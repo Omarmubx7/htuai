@@ -342,21 +342,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                 {/* Major Donut */}
                 <GlassCard delay={0.15}>
                     <CardHeader icon={<PieChart className="w-4 h-4" />} title="Major Distribution" iconColor="#818cf8" />
-                    <div className="flex items-center gap-6 mt-6">
-                        <DonutChart data={majors} />
-                        <div className="flex-1 space-y-3.5">
-                            {majors.map(([major, count]) => (
-                                <div key={major} className="flex items-center gap-2.5 group">
-                                    <div className="w-3 h-3 rounded-md shrink-0 shadow-sm"
-                                        style={{ background: MAJOR_GRADIENTS[major] || fallbackGradient }} />
-                                    <span className="text-xs text-white/50 flex-1 group-hover:text-white/70 transition-colors font-medium">{formatMajor(major)}</span>
-                                    <span className="text-xs font-mono text-white/35 tabular-nums">
-                                        {count} <span className="text-white/15">({Math.round(count / stats.totalStudents * 100)}%)</span>
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    <MajorDonutSection majors={majors} total={stats.totalStudents} />
                 </GlassCard>
 
                 {/* Progress Distribution */}
@@ -678,36 +664,191 @@ function Th({ children, sortable, onClick }: { children: React.ReactNode; sortab
     );
 }
 
-function DonutChart({ data }: { data: [string, number][] }) {
-    const total = data.reduce((s, [, v]) => s + v, 0) || 1;
-    const size = 130;
-    const radius = 48;
-    const stroke = 16;
-    const circumference = 2 * Math.PI * radius;
-    let offset = 0;
+function MajorDonutSection({ majors, total }: { majors: [string, number][]; total: number }) {
+    const [hoveredMajor, setHoveredMajor] = useState<string | null>(null);
+    const animTotal = useCountUp(total);
+
+    // Donut geometry
+    const size = 160;
+    const cx = size / 2, cy = size / 2;
+    const radius = 58;
+    const stroke = 18;
+    const gapAngle = 3; // degrees gap between segments
+    const totalVal = majors.reduce((s, [, v]) => s + v, 0) || 1;
+
+    // Build arc segments
+    const segments: { major: string; count: number; pct: number; startAngle: number; endAngle: number }[] = [];
+    let currentAngle = -90; // start from top
+    for (const [major, count] of majors) {
+        const pct = count / totalVal;
+        const sweep = pct * (360 - gapAngle * majors.length);
+        segments.push({ major, count, pct, startAngle: currentAngle, endAngle: currentAngle + sweep });
+        currentAngle += sweep + gapAngle;
+    }
+
+    // SVG arc path helper
+    const arcPath = (startDeg: number, endDeg: number, r: number) => {
+        const startRad = (startDeg * Math.PI) / 180;
+        const endRad = (endDeg * Math.PI) / 180;
+        const x1 = cx + r * Math.cos(startRad);
+        const y1 = cy + r * Math.sin(startRad);
+        const x2 = cx + r * Math.cos(endRad);
+        const y2 = cy + r * Math.sin(endRad);
+        const largeArc = endDeg - startDeg > 180 ? 1 : 0;
+        return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+    };
+
+    // Hovered segment info for tooltip
+    const hoveredSeg = segments.find(s => s.major === hoveredMajor);
 
     return (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0 drop-shadow-lg">
-            <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth={stroke} />
-            {data.map(([major, count], i) => {
-                const pct = count / total;
-                const dashLength = pct * circumference;
-                const dashGap = circumference - dashLength;
-                const currentOffset = offset;
-                offset += dashLength;
-                return (
-                    <motion.circle key={major} cx={size / 2} cy={size / 2} r={radius} fill="none"
-                        stroke={MAJOR_COLORS[major] || fallbackColor} strokeWidth={stroke}
-                        strokeDasharray={`${dashLength} ${dashGap}`} strokeDashoffset={-currentOffset}
-                        strokeLinecap="round"
-                        initial={{ opacity: 0, pathLength: 0 }} animate={{ opacity: 1, pathLength: 1 }}
-                        transition={{ delay: 0.5 + i * 0.15, duration: 0.8, ease: 'easeOut' }}
-                        style={{ transformOrigin: 'center', transform: 'rotate(-90deg)', filter: `drop-shadow(0 0 6px ${(MAJOR_COLORS[major] || fallbackColor)}40)` }} />
-                );
-            })}
-            <text x={size / 2} y={size / 2 - 4} textAnchor="middle" className="fill-white text-xl font-bold">{total}</text>
-            <text x={size / 2} y={size / 2 + 14} textAnchor="middle" className="fill-white/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.1em' }}>STUDENTS</text>
-        </svg>
+        <div className="flex flex-col sm:flex-row items-center gap-6 mt-6">
+            {/* Donut Chart */}
+            <div className="relative shrink-0" style={{ width: size, height: size }}>
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="drop-shadow-xl">
+                    <defs>
+                        {majors.map(([major]) => {
+                            const color = MAJOR_COLORS[major] || fallbackColor;
+                            return (
+                                <linearGradient key={`grad-${major}`} id={`donut-grad-${major}`} x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stopColor={color} stopOpacity="1" />
+                                    <stop offset="100%" stopColor={color} stopOpacity="0.6" />
+                                </linearGradient>
+                            );
+                        })}
+                        <filter id="donut-glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="4" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    {/* Background track */}
+                    <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={stroke} />
+
+                    {/* Arc segments */}
+                    {segments.map((seg, i) => {
+                        const isHovered = hoveredMajor === seg.major;
+                        const isOtherHovered = hoveredMajor !== null && hoveredMajor !== seg.major;
+                        return (
+                            <motion.path
+                                key={seg.major}
+                                d={arcPath(seg.startAngle, seg.endAngle, radius)}
+                                fill="none"
+                                stroke={`url(#donut-grad-${seg.major})`}
+                                strokeWidth={isHovered ? stroke + 4 : stroke}
+                                strokeLinecap="round"
+                                filter={isHovered ? 'url(#donut-glow)' : 'none'}
+                                initial={{ pathLength: 0, opacity: 0 }}
+                                animate={{ pathLength: 1, opacity: isOtherHovered ? 0.35 : 1 }}
+                                transition={{
+                                    pathLength: { delay: 0.4 + i * 0.15, duration: 0.9, ease: 'easeOut' },
+                                    opacity: { duration: 0.25 },
+                                    strokeWidth: { duration: 0.2 },
+                                }}
+                                onMouseEnter={() => setHoveredMajor(seg.major)}
+                                onMouseLeave={() => setHoveredMajor(null)}
+                                className="cursor-pointer"
+                                style={{
+                                    filter: isHovered
+                                        ? `drop-shadow(0 0 10px ${MAJOR_COLORS[seg.major] || fallbackColor}90)`
+                                        : `drop-shadow(0 0 4px ${MAJOR_COLORS[seg.major] || fallbackColor}30)`,
+                                }}
+                            />
+                        );
+                    })}
+
+                    {/* Center text */}
+                    <text x={cx} y={cy - 6} textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 26 }}>
+                        {animTotal}
+                    </text>
+                    <text x={cx} y={cy + 12} textAnchor="middle" className="fill-white/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.15em' }}>
+                        STUDENTS
+                    </text>
+                </svg>
+
+                {/* Hover tooltip */}
+                <AnimatePresence>
+                    {hoveredSeg && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-30 pointer-events-none"
+                        >
+                            <div className="px-3 py-2 rounded-xl text-center whitespace-nowrap"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(30,30,55,0.97), rgba(18,18,35,0.97))',
+                                    border: `1px solid ${MAJOR_COLORS[hoveredSeg.major] || fallbackColor}40`,
+                                    boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${MAJOR_COLORS[hoveredSeg.major] || fallbackColor}15`,
+                                }}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: MAJOR_COLORS[hoveredSeg.major] || fallbackColor }} />
+                                    <span className="text-[11px] font-semibold text-white/80">{formatMajor(hoveredSeg.major)}</span>
+                                </div>
+                                <div className="text-sm font-bold text-white tabular-nums">
+                                    {hoveredSeg.count} <span className="text-white/30 text-xs font-medium">({Math.round(hoveredSeg.pct * 100)}%)</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Legend */}
+            <div className="flex-1 space-y-3 w-full">
+                {segments.map((seg) => {
+                    const isHovered = hoveredMajor === seg.major;
+                    const pctRounded = Math.round(seg.pct * 100);
+                    return (
+                        <motion.div
+                            key={seg.major}
+                            className="flex items-center gap-3 group cursor-pointer rounded-xl px-3 py-2.5 -mx-2 transition-all duration-200"
+                            style={{
+                                background: isHovered ? `${MAJOR_COLORS[seg.major] || fallbackColor}10` : 'transparent',
+                                border: `1px solid ${isHovered ? `${MAJOR_COLORS[seg.major] || fallbackColor}20` : 'transparent'}`,
+                            }}
+                            onMouseEnter={() => setHoveredMajor(seg.major)}
+                            onMouseLeave={() => setHoveredMajor(null)}
+                            animate={{ opacity: hoveredMajor && !isHovered ? 0.45 : 1 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <div className="w-3.5 h-3.5 rounded-md shrink-0 shadow-sm transition-transform duration-200"
+                                style={{
+                                    background: MAJOR_GRADIENTS[seg.major] || fallbackGradient,
+                                    transform: isHovered ? 'scale(1.25)' : 'scale(1)',
+                                    boxShadow: isHovered ? `0 0 10px ${MAJOR_COLORS[seg.major] || fallbackColor}50` : 'none',
+                                }} />
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs text-white/55 font-medium group-hover:text-white/80 transition-colors truncate">
+                                        {formatMajor(seg.major)}
+                                    </span>
+                                    <span className="text-xs font-mono text-white/40 tabular-nums shrink-0 ml-2">
+                                        {seg.count} <span className="text-white/20">({pctRounded}%)</span>
+                                    </span>
+                                </div>
+                                <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                                    <motion.div
+                                        className="h-full rounded-full"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${pctRounded}%` }}
+                                        transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
+                                        style={{
+                                            background: MAJOR_GRADIENTS[seg.major] || fallbackGradient,
+                                            boxShadow: isHovered ? `0 0 8px ${MAJOR_COLORS[seg.major] || fallbackColor}40` : 'none',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </div>
+        </div>
     );
 }
 

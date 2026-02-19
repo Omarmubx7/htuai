@@ -6,6 +6,7 @@ import { Course, CourseData } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
 import { CheckCircle2, Trophy, RotateCcw, Loader2 } from 'lucide-react';
+import StudentDashboard from './StudentDashboard';
 
 interface TranscriptViewProps {
     data: CourseData;
@@ -207,6 +208,15 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                     </div>
                 </div>
             </div>
+
+            {/* Student Dashboard — Stats, Badges, What's Next */}
+            <StudentDashboard
+                completedCourses={completedCourses}
+                completedCredits={completedCredits}
+                totalCredits={totalCredits}
+                data={data}
+                allCourses={allCourses}
+            />
 
             {/* View-mode toggle */}
             <div className="flex gap-1 mb-10 p-1 glass-card rounded-xl w-fit">
