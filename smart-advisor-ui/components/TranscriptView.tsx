@@ -18,13 +18,26 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
     const [viewMode, setViewMode] = useState<"level" | "category">("level");
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
 
+    const allCourses = [
+        ...data.university_requirements,
+        ...data.college_requirements,
+        ...(data.university_electives ?? []),
+        ...data.department_requirements,
+        ...data.electives
+    ];
+
+    // Build code → name lookup
+    const courseNameMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
+
     // Load progress from SERVER on mount or when student/major changes
     useEffect(() => {
         if (!studentId || !majorKey) return;
         fetch(`/api/progress/${encodeURIComponent(studentId)}?major=${majorKey}`)
             .then(r => r.json())
-            .then(({ completed }: { completed: string[] }) => {
-                setCompletedCourses(new Set(completed));
+            .then(({ completed }: { completed: (string | { code: string })[] }) => {
+                // Handle both legacy string[] and new {code, name}[] formats
+                const codes = completed.map(c => (typeof c === 'string' ? c : c.code));
+                setCompletedCourses(new Set(codes));
             })
             .catch(() => setCompletedCourses(new Set()));
     }, [studentId, majorKey]);
@@ -37,35 +50,24 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
 
             // Save to server immediately
             setSaveStatus("saving");
+
+            // Map codes to objects { code, name }
+            const completedObjects = [...newSet].map(c => ({
+                code: c,
+                name: courseNameMap[c] || "Unknown Course"
+            }));
+
             fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ major: majorKey, completed: [...newSet] }),
+                body: JSON.stringify({ major: majorKey, completed: completedObjects }),
             })
                 .then(() => { setSaveStatus("saved"); setTimeout(() => setSaveStatus(null), 1500); })
                 .catch(() => setSaveStatus(null));
 
             return newSet;
         });
-    }, [studentId, majorKey]);
-
-    const resetProgress = () => {
-        setCompletedCourses(new Set());
-        fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ major: majorKey, completed: [] }),
-        });
-    };
-
-
-    const allCourses = [
-        ...data.university_requirements,
-        ...data.college_requirements,
-        ...(data.university_electives ?? []),
-        ...data.department_requirements,
-        ...data.electives
-    ];
+    }, [studentId, majorKey, courseNameMap]);
 
     // Build code → name lookup for prerequisite resolution
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
@@ -129,6 +131,8 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
     };
 
     const groups = getGroups();
+
+
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 pt-10 pb-24">
