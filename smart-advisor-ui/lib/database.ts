@@ -1,102 +1,88 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
+import { sql } from '@vercel/postgres';
 
-// Store the DB file in the project root (outside public/)
-const DB_DIR = path.join(process.cwd(), 'data');
-const DB_PATH = path.join(DB_DIR, 'students.db');
-
-// Ensure data/ directory exists
-if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-}
-
-let _db: Database.Database | null = null;
-
-export function getDb(): Database.Database {
-    if (_db) return _db;
-
-    _db = new Database(DB_PATH);
-
-    // Enable WAL mode for fast concurrent reads
-    _db.pragma('journal_mode = WAL');
-
-    // Progress table
-    _db.exec(`
+/**
+ * Initialize the database tables if they don't exist.
+ * Note: In production, it's better to run migration scripts, but this works for simple apps.
+ */
+export async function initDB() {
+    await sql`
         CREATE TABLE IF NOT EXISTS student_progress (
             student_id  TEXT    NOT NULL,
             major       TEXT    NOT NULL,
             completed   TEXT    NOT NULL DEFAULT '[]',
-            updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+            updated_at  INTEGER NOT NULL DEFAULT (extract(epoch from now())),
             PRIMARY KEY (student_id, major)
         );
+    `;
+    await sql`
         CREATE INDEX IF NOT EXISTS idx_student_id ON student_progress (student_id);
-
-        -- Profile table: stores the student's chosen major
+    `;
+    await sql`
         CREATE TABLE IF NOT EXISTS student_profile (
             student_id  TEXT    PRIMARY KEY,
             major       TEXT    NOT NULL,
-            updated_at  INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+            updated_at  INTEGER NOT NULL DEFAULT (extract(epoch from now()))
         );
-    `);
-
-    return _db;
+    `;
 }
 
 /** Load a student's completed courses for a specific major */
-export function loadProgress(studentId: string, major: string): string[] {
-    const db = getDb();
-    const row = db
-        .prepare('SELECT completed FROM student_progress WHERE student_id = ? AND major = ?')
-        .get(studentId, major) as { completed: string } | undefined;
-
-    if (!row) return [];
+export async function loadProgress(studentId: string, major: string): Promise<string[]> {
     try {
-        return JSON.parse(row.completed) as string[];
-    } catch {
+        const { rows } = await sql`
+            SELECT completed FROM student_progress 
+            WHERE student_id = ${studentId} AND major = ${major}
+        `;
+        if (rows.length === 0) return [];
+        return JSON.parse(rows[0].completed) as string[];
+    } catch (e) {
+        console.error("DB Load Error:", e);
+        // Fallback or init table if missing
         return [];
     }
 }
 
 /** Save a student's completed courses for a specific major */
-export function saveProgress(studentId: string, major: string, completed: string[]): void {
-    const db = getDb();
-    db.prepare(`
+export async function saveProgress(studentId: string, major: string, completed: string[]): Promise<void> {
+    const json = JSON.stringify(completed);
+    await sql`
         INSERT INTO student_progress (student_id, major, completed, updated_at)
-        VALUES (?, ?, ?, strftime('%s', 'now'))
+        VALUES (${studentId}, ${major}, ${json}, extract(epoch from now()))
         ON CONFLICT (student_id, major) DO UPDATE SET
-            completed   = excluded.completed,
-            updated_at  = excluded.updated_at
-    `).run(studentId, major, JSON.stringify(completed));
+            completed   = EXCLUDED.completed,
+            updated_at  = EXCLUDED.updated_at
+    `;
 }
 
-/** Get a summary of all students (for admin view later) */
-export function getAllStudents(): { student_id: string; major: string; count: number }[] {
-    const db = getDb();
-    return db.prepare(`
-        SELECT student_id, major, json_array_length(completed) as count
+/** Get a summary of all students */
+export async function getAllStudents(): Promise<{ student_id: string; major: string; count: number }[]> {
+    const { rows } = await sql`
+        SELECT student_id, major, json_array_length(completed::json) as count
         FROM student_progress
         ORDER BY updated_at DESC
-    `).all() as { student_id: string; major: string; count: number }[];
+    `;
+    return rows as { student_id: string; major: string; count: number }[];
 }
 
 /** Load the major a student previously chose (null = first-time user) */
-export function loadMajor(studentId: string): string | null {
-    const db = getDb();
-    const row = db
-        .prepare('SELECT major FROM student_profile WHERE student_id = ?')
-        .get(studentId) as { major: string } | undefined;
-    return row?.major ?? null;
+export async function loadMajor(studentId: string): Promise<string | null> {
+    try {
+        const { rows } = await sql`
+            SELECT major FROM student_profile WHERE student_id = ${studentId}
+        `;
+        return rows[0]?.major ?? null;
+    } catch {
+        return null;
+    }
 }
 
 /** Save / update the student's chosen major */
-export function saveMajor(studentId: string, major: string): void {
-    const db = getDb();
-    db.prepare(`
+export async function saveMajor(studentId: string, major: string): Promise<void> {
+    await sql`
         INSERT INTO student_profile (student_id, major, updated_at)
-        VALUES (?, ?, strftime('%s', 'now'))
+        VALUES (${studentId}, ${major}, extract(epoch from now()))
         ON CONFLICT (student_id) DO UPDATE SET
-            major      = excluded.major,
-            updated_at = excluded.updated_at
-    `).run(studentId, major);
+            major      = EXCLUDED.major,
+            updated_at = EXCLUDED.updated_at
+    `;
 }
