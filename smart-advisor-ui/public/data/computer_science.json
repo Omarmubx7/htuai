@@ -1,0 +1,261 @@
+{
+  "computer_science": {
+    "total_credits": 135,
+    "shared_credits": 45,
+    "core_credits": 90,
+    "note": "department_requirements + electives are unique to this major. university_requirements and college_requirements come from shared.json",
+    "department_requirements": [
+      {
+        "code": "10203180",
+        "name": "Networking",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 1,
+        "prereq": "40303130"
+      },
+      {
+        "code": "40201260",
+        "name": "Website Design & Development",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "40201201",
+        "name": "Data Structures & Algorithms",
+        "ch": 3,
+        "framework": "HND",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "00203280",
+        "name": "Security",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40303130"
+      },
+      {
+        "code": "40201200",
+        "name": "Advanced Programming",
+        "ch": 3,
+        "framework": "HND",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "40201220",
+        "name": "Software Development Lifecycles",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "40201261",
+        "name": "Prototyping",
+        "ch": 3,
+        "framework": "HND",
+        "level": 2,
+        "prereq": "40201220"
+      },
+      {
+        "code": "40201360",
+        "name": "Application Development",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "40201261"
+      },
+      {
+        "code": "00201391",
+        "name": "Computing Research Project",
+        "ch": 6,
+        "framework": "HND",
+        "level": 3
+      },
+      {
+        "code": "10204282",
+        "name": "Database Design & Development",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "10204312",
+        "name": "Business Intelligence",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "10204282"
+      },
+      {
+        "code": "40201321",
+        "name": "Systems Analysis & Design",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "40201220"
+      },
+      {
+        "code": "10203380",
+        "name": "Computer Organization and Design",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "40303221 AND 40201100"
+      },
+      {
+        "code": "40201341",
+        "name": "Operating Systems",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "40201201"
+      },
+      {
+        "code": "40201362",
+        "name": "Games Engine & Scripting",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "40201100"
+      },
+      {
+        "code": "40201320",
+        "name": "ERP Systems",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "40201360"
+      },
+      {
+        "code": "40201430",
+        "name": "Database Programming",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10204282"
+      },
+      {
+        "code": "40201440",
+        "name": "Systems Programming",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201341"
+      },
+      {
+        "code": "40201491",
+        "name": "Capstone Project I",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": ">= 90 hrs including core courses"
+      },
+      {
+        "code": "40201492",
+        "name": "Capstone Project II",
+        "ch": 2,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201491"
+      },
+      {
+        "code": "40201390",
+        "name": "HNC Training",
+        "ch": 12,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "Minimum completed hours >= 85",
+        "description": "Work-based placement — minimum 85 CH must be completed before starting"
+      },
+      {
+        "code": "40201490",
+        "name": "HND Training",
+        "ch": 6,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201390",
+        "description": "Advanced placement — corequisite: HNC Training must be completed or concurrent"
+      }
+    ],
+    "electives": [
+      {
+        "code": "40201441",
+        "name": "Internet of Things",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201341 AND 10203180"
+      },
+      {
+        "code": "40201450",
+        "name": "Cloud Computing",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201341 AND 10203180"
+      },
+      {
+        "code": "40201462",
+        "name": "Virtual & Augmented Reality Development",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201362"
+      },
+      {
+        "code": "40201460",
+        "name": "E-Commerce",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201260"
+      },
+      {
+        "code": "40201442",
+        "name": "Real Time Systems",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201341"
+      },
+      {
+        "code": "40201461",
+        "name": "Mobile Application Development",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "40201360"
+      },
+      {
+        "code": "00204414",
+        "name": "Data Analytics for IT Professionals",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10204312"
+      },
+      {
+        "code": "00204456",
+        "name": "Artificial Intelligence for IT Professionals",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10204312"
+      },
+      {
+        "code": "40201470",
+        "name": "Special Topics",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "Department Approval"
+      }
+    ]
+  }
+}

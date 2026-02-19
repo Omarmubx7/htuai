@@ -1,0 +1,91 @@
+/* Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Global Reset & Typography */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Background & Main Container */
+.stApp {
+    background-color: #f8f9fa; /* Light clean background */
+}
+
+/* Glassmorphism Sidebar */
+[data-testid="stSidebar"] {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-right: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Headers */
+h1, h2, h3 {
+    font-weight: 700 !important;
+    letter-spacing: -0.5px !important;
+    color: #1a1a1a;
+}
+
+/* Cards (Expanders) */
+[data-testid="stExpander"] {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+
+[data-testid="stExpander"]:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+[data-testid="stExpander"] summary {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Metrics */
+[data-testid="stMetricValue"] {
+    font-size: 1.8rem !important;
+    font-weight: 700;
+    color: #2563eb; /* Modern Blue */
+}
+
+/* Buttons */
+.stButton > button {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* Custom Checkbox Styling (Subtle) */
+.stCheckbox {
+    padding: 4px 0;
+}
+
+/* Alerts / Info Boxes */
+.stAlert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Dataframes */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+    [data-testid="stMetricValue"] {
+        font-size: 1.4rem !important;
+    }
+    
+    /* Make columns stack nicely */
+    [data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+    }
+}

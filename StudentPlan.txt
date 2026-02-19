@@ -1,0 +1,213 @@
+Student Academic Plan19/02/2026
+م02:04:11
+Student Number
+Academic Degree :
+Admission Year :
+Student Status : Level :Attending 2022
+ 24110213 OMAR MOHD LAFI ALMUBAIDIN Major Computer Science
+Bachelor Total Major Hours : 135 GPA : 2.93
+2024 Total Passed Hours : 46 Hours Counted in GPA : 42 46Total Passed Hours within the Study Plan :
+Academic Plan Year :
+Group :
+Prerequest Type : Passed Hours :Compulsory 0 Passed Hours : 0
+Prerequest : Placement in Industry Requ Credit Hours : 18 Studied Hours : 0
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+7102 HTU Career Readiness Workshop
+201291 Apprenticeship for Computer Science
+ 1
+7102
+201292 Apprenticeship for Computer Science
+ 2
+201291
+201392 Apprenticeship for Computer Science
+ 3
+201292
+Group :
+Prerequest Type : Passed Hours :Compulsory 20 Passed Hours : 20
+Prerequest : School Requirements Credit Hours : 24 Studied Hours : 20
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+30303111 HTU Functional Maths Plan Course Functional Maths30303111 30303110Fall 2024D33
+30303121 Stem Lab 1 Equivalent Course STEM Lab I103101 Spring 2024P11
+40201100 Pearson  HNC Programming Plan Course Programming40201100 40303130Spring 2024P33
+40201290 Planning a Computing Project 40302211
+40302211 Professional Practice Plan Course Professional Practice40302211 OR 30302111 (
+ 40302111 ( AND
+ 30301122
+Fall 2025D33
+40303121 Maths for Computing Maths for Computing40303121 30303111Spring 2024P33
+40303130 HTU Fundamentals of Computing Fundamentals of Computing40303130 Fall 2024D44
+40303221 Pearson  HND Discrete Maths Discrete Maths40303221 AND 40303121
+ 40201201
+ CO-REQUISITE
+Fall 2025P33
+Page 1 of 5
+Group :
+Prerequest Type : Passed Hours :Compulsory 13 Passed Hours : 13
+Prerequest : University Requirements Credit Hours : 21 Studied Hours : 13
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+30301111 HTU Arabic Language & Communication 
+Skills
+Plan Course Arabic Language &
+ Communication Skills
+30301111 30301110Spring 2024M11
+30301121 English Pre-Intermediate Intensive +
+ Lab
+English Pre-Intermediate 
+Intensive + Lab
+30301121 30301120Fall 2024Exempt44
+30301122 English Intermediate English Intermediate30301122 30301121Fall 2024Exempt33
+30301123 English Upper - Intermediate English Upper - Intermediate30301123 30301122Fall 2024M33
+30301124 English Advanced 30301123
+30302129 Military Sciences Plan Course Military Sciences30302129 Fall 2024M11
+30302232 Leadership Camp OR 30302231
+ 40302231
+40302111 Professional Skills Plan Course Professional Skills40302111 Fall 2024M11
+40302231 Entrepreneurship Bootcamp OR 30302112 (
+ 40302211 ( AND
+ 30301123
+Page 2 of 5
+Group :
+Prerequest Type : Passed Hours :Elective 1 Passed Hours : 1
+Prerequest : University Requirements Credit Hours : 3 Studied Hours : 1
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+302222 HTU Introduction to Philosophy and Critical 
+Thinking
+302238 Free Choice Elective 2
+30301130 Foundational French Language
+30301131 French Language Level 1 30301130
+30301132 French Language 2 30301131
+30301133 French Language Level 1 30301132
+30301140 Foundational German Language
+30301141 German Language Level 1 30301140
+30301150 Spanish Language
+30301160 Turkish Language
+30301170 Foundations of Italian ITAL
+30301180 Chinese language
+30301221 Development Academic Writing 30301124
+30301222 Research and Technical Writing
+30301223 Introduction to Translation
+30301224 Arabic Calligraphy
+30302121 Science & Society Seminar 1: Arab 
+Contributions to Science and Art
+30302122 Science & Society Seminar 2:
+ Philosophy of Science
+30302123 Art Appreciation and Techniques
+30302124 Civil & Professional Culture
+30302125 Rights and Responsibilities:
+ Understanding Human Rights
+30302126 Introduction to Cultural Anthropology -
+ Focus on Urban Anthropology
+30302127 Jerusalem, History and Civilization
+30302128 Jordan: History and Civilization
+30302133 Principles of Management
+30302134 Strategies for Industry 
+Competitiveness: Tools & Techniques
+30302135 Principles of Accounting
+30302136 Principles of Economics
+30302237 Free Choice Elective 1 Plan Course Free Choice Elective 130302237 Spring 2024D11
+40302221 Speech and Debate
+Page 3 of 5
+Group :
+Prerequest Type : Passed Hours :استدراكي 9 Passed Hours : 0
+Prerequest : University Requirements Credit Hours : 9 Studied Hours : 0
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+30301110 HTU Remedial Arabic Language Plan Course Remedial Arabic Language30301110 Fall 2024Exempt00
+30301120 Pre-Foundation English Elementary 
+Intensive + Lab
+Pre-Foundation English 
+Elementary Intensive + Lab
+30301120 Fall 2024Exempt00
+30303110 Remedial Maths Remedial Maths30303110 Fall 2024Exempt00
+Group :
+Prerequest Type : Passed Hours :Compulsory 12 Passed Hours : 12
+Prerequest : تخصص متطلبات Credit Hours : 60 Studied Hours : 15
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+201391 Pearson  HND Computing Research Project 40201290
+203280 Pearson  HNC Security Plan Course Security203280 40303130Fall 2025P33
+204313 Pearson  HND Business Process Support 10204282
+10203180 Pearson  HNC Networking 40303130
+10203380 HTU Computer Organization and Design AND 40201100
+ 40303221
+ CO-REQUISITE
+10204282 Pearson  HNC Database Design & Development Plan Course Database Design &
+ Development
+10204282 40201100Fall 2025P33
+40201200 Pearson  HND Advanced Programming
+40201201 Data Structures & Algorithms Plan Course Data Structures & Algorithms40201201 Summer
+ 2024
+U33
+40201220 Pearson  HNC Software Development Lifecycles Software Development 
+Lifecycles
+40201220 Summer
+ 2024
+M33
+40201260 Website Design & Development Website Design &
+ Development
+40201260 Fall 2025P33
+40201261 Pearson  HND Prototyping 40201220
+40201320 HTU ERP Systems 40201360
+40201321 Pearson  HND Systems Analysis & Design 40201220
+40201341 Operating Systems 40201201
+40201360 Application Development 40201261
+40201362 HTU Games Engine & Scripting 40201100
+40201430 Database Programing AND 10204282
+ 40201201
+40201440 Systems Programing 40201341
+40201491 Capstone project I
+40201492 Capstone project II 40201491
+Page 4 of 5
+Group :
+Prerequest Type : Passed Hours :Elective 0 Passed Hours : 0
+Prerequest : تخصص متطلبات Credit Hours : 9 Studied Hours : 0
+Prerequisite CourseMark  SemesterCourse Type Course Name (Plan) Notes Course Number Course NameCourse Number
+Number 
+of  Hours
+Number 
+of Hours
+201471 HTU Special Topics in Computer Science 1
+201472 Special Topics in Computer Science 2
+201473 Special Topics in Computer Science 3
+204251 Pearson  HNC Fundamentals of Artificial Intelligence
+ (AI( & Intelligent Systems
+40303121
+204414 HTU Data Analytics for IT professionals 204313
+204456 Artificial Intelligence for IT 
+professionals
+10204210 Pearson  HNC Data Analytics OR 30201100
+ 10201100
+40201441 HTU Internet of Things AND 10203180
+ 40201341
+40201442 Real Time Systems 40201341
+40201450 Cloud Computing AND 10203180
+ 40201341
+40201460 E-Commerce 40201260
+40201461 Mobile Application Development 40201360
+40201462 Virtual & Augmented Reality 
+Development
+40201362
+40201470 Special Topics
+Page 5 of 5

@@ -1,0 +1,394 @@
+{
+  "cybersecurity": {
+    "source": "Official Cybersecurity Study Plan",
+    "total_credits": 135,
+    "university_requirements": [
+      {
+        "code": "30301121",
+        "name": "English Pre-Intermediate Intensive + Lab",
+        "ch": 4,
+        "framework": "HTU",
+        "level": 1,
+        "prereq": "30301120"
+      },
+      {
+        "code": "30301122",
+        "name": "English Intermediate",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 1
+      },
+      {
+        "code": "30301123",
+        "name": "English Upper - Intermediate",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 1,
+        "prereq": "30301122"
+      },
+      {
+        "code": "30301124",
+        "name": "English Advanced",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 1,
+        "prereq": "30301123"
+      },
+      {
+        "code": "40302111",
+        "name": "Professional Skills",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 1
+      },
+      {
+        "code": "40302211",
+        "name": "Professional Practice",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "30302111 AND 40302111 AND 30301122"
+      },
+      {
+        "code": "40302231",
+        "name": "Entrepreneurship Bootcamp",
+        "ch": 4,
+        "framework": "HTU",
+        "level": 2,
+        "prereq": "40302211 AND 30301123 AND 30302112"
+      },
+      {
+        "code": "30301111",
+        "name": "Arabic Language & Communication Skills",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 1,
+        "prereq": "30301110"
+      },
+      {
+        "code": "30302129",
+        "name": "Military Science",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 1
+      },
+      {
+        "code": "30302232",
+        "name": "Leadership Camp",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 2,
+        "prereq": "30302231"
+      }
+    ],
+    "college_requirements": [
+      {
+        "code": "30303111",
+        "name": "Functional Math",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 1,
+        "prereq": "30303110"
+      },
+      {
+        "code": "40303121",
+        "name": "Maths for Computing",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 1,
+        "prereq": "30303111"
+      },
+      {
+        "code": "40303130",
+        "name": "Fundamentals of Computing",
+        "ch": 4,
+        "framework": "HTU",
+        "level": 1
+      },
+      {
+        "code": "40201100",
+        "name": "Programming",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 1,
+        "prereq": "40303130"
+      },
+      {
+        "code": "40303221",
+        "name": "Discrete Maths",
+        "ch": 3,
+        "framework": "HND",
+        "level": 2
+      },
+      {
+        "code": "40201290",
+        "name": "Planning a Computing Project",
+        "ch": 4,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40302211"
+      },
+      {
+        "code": "30303121",
+        "name": "STEM Lab I",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 1
+      }
+    ],
+    "department_requirements": [
+      {
+        "code": "10203180",
+        "name": "Networking",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 1,
+        "prereq": "40303130"
+      },
+      {
+        "code": "40201260",
+        "name": "Website Design & Development",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "40201201",
+        "name": "Data Structures & Algorithms",
+        "ch": 3,
+        "framework": "HND",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "00203280",
+        "name": "Security",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40303130"
+      },
+      {
+        "code": "10203340",
+        "name": "Cryptography",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "40303221"
+      },
+      {
+        "code": "10203210",
+        "name": "Network Security",
+        "ch": 3,
+        "framework": "HND",
+        "level": 2,
+        "prereq": "00203280"
+      },
+      {
+        "code": "10203361",
+        "name": "Forensics",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3
+      },
+      {
+        "code": "10203300",
+        "name": "Information Security Management",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "10203210"
+      },
+      {
+        "code": "00201391",
+        "name": "Computing Research Project",
+        "ch": 6,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "40201290"
+      },
+      {
+        "code": "10204282",
+        "name": "Database Design & Development",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "10204312",
+        "name": "Business Intelligence",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "10204282"
+      },
+      {
+        "code": "40201220",
+        "name": "Software Development Lifecycle",
+        "ch": 3,
+        "framework": "HNC",
+        "level": 2,
+        "prereq": "40201100"
+      },
+      {
+        "code": "10203380",
+        "name": "Computer Organization and Design",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "40303221 AND 40201100"
+      },
+      {
+        "code": "40201341",
+        "name": "Operating Systems",
+        "ch": 3,
+        "framework": "HND",
+        "level": 3,
+        "prereq": "40201201"
+      },
+      {
+        "code": "00203360",
+        "name": "Penetration Testing",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "10203210"
+      },
+      {
+        "code": "10203362",
+        "name": "Ethical Hacking",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "00203360"
+      },
+      {
+        "code": "00203400",
+        "name": "Risk Analysis & Systems Testing",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "00203280"
+      },
+      {
+        "code": "00203420",
+        "name": "Secure Coding",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4
+      },
+      {
+        "code": "10203491",
+        "name": "Capstone project I",
+        "ch": 1,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": ">=90 hrs including core courses"
+      },
+      {
+        "code": "10203492",
+        "name": "Capstone project II",
+        "ch": 2,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10203491"
+      },
+      {
+        "code": "10203390",
+        "name": "Training",
+        "ch": 12,
+        "framework": "HTU",
+        "level": 3,
+        "prereq": "Minimum number of completed hours >= 85"
+      },
+      {
+        "code": "10203490",
+        "name": "Training",
+        "ch": 6,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10203390"
+      }
+    ],
+    "electives": [
+      {
+        "code": "10203421",
+        "name": "Web Security",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10203210"
+      },
+      {
+        "code": "10203411",
+        "name": "Internet of Things Security",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4
+      },
+      {
+        "code": "10203410",
+        "name": "Mobile and Wireless Security",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4
+      },
+      {
+        "code": "10203401",
+        "name": "Incident response management",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10203420"
+      },
+      {
+        "code": "10203402",
+        "name": "Ethical Issues in Cyber Security",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10203362"
+      },
+      {
+        "code": "40201450",
+        "name": "Cloud Computing",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4
+      },
+      {
+        "code": "00204414",
+        "name": "Data Analytics for IT Professionals",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10204312"
+      },
+      {
+        "code": "00204456",
+        "name": "Artificial Intelligencefor IT Professionals",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "10204312"
+      },
+      {
+        "code": "10203420",
+        "name": "Secure System Design and Developments",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4
+      },
+      {
+        "code": "10203470",
+        "name": "Special Topics",
+        "ch": 3,
+        "framework": "HTU",
+        "level": 4,
+        "prereq": "Department Approval"
+      }
+    ]
+  }
+}

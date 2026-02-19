@@ -1,0 +1,59 @@
+the majors are 135 hours with 3 university electives each one is one hours
+and also 3 department electives each one is 3 hours
+the hours are in the study plan for each major
+university requirements are 27 hours
+{
+    English
+Pre-Intermediate
+Intensive + Lab
+(30301121)
+English
+Intermediate
+(30301122)
+English
+Upper – Intermediate
+(30301123)
+English
+Advanced
+(30301124)
+Entrepreneurship
+Bootcamp
+(40302231)
+Leadership Camp
+(30302232)
+Professional Skills
+(40302111)
+University Elective
+I
+University Elective
+II
+University Elective
+III
+Arabic Language &
+Communication
+Skills
+(30301111)Military Science
+(30302129)
+Professional Practice
+(40302211) *
+
+}
+collage requirements are 21 hours
+{ 
+    Functional Math
+(30303111)
+STEM Lab I
+(30303121)
+Fundamentals of
+Computing
+(40303130)
+Programming *
+(40201100)
+Maths for Computing
+(40303v121) *
+Discrete Maths **
+(40303221) 
+    }
+
+and then add the department  Requirements electives
+for each major
