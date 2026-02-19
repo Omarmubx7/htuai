@@ -121,7 +121,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 3,
-        "prereq": "10203210"
+        "prereq": "10203362"
       },
       {
         "code": "10203362",
@@ -129,7 +129,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 3,
-        "prereq": "00203360"
+        "prereq": "10203210"
       },
       {
         "code": "00203400",
