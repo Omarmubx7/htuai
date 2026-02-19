@@ -1,0 +1,38 @@
+
+> smart-advisor-ui@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+Found 1 warning while optimizing generated CSS:
+
+Γöé   }
+Γöé }
+Γöé @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+Γöå        ^-- @import rules must precede all rules aside from @charset and @layer statements
+Γöå
+Γöé :root {
+Γöé   --background: #000000;
+
+Γ£ô Compiled successfully in 2.2s
+  Running TypeScript ...
+Failed to compile.
+
+.next/dev/types/validator.ts:63:31
+Type error: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/profile/[studentId]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/profile/[studentId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(_req: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ studentId: string; major: string | null; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+
+  61 |   type __IsExpected<Specific extends RouteHandlerConfig<"/api/profile/[studentId]">> = Specific
+  62 |   const handler = {} as typeof import("../../../app/api/profile/[studentId]/route.js")
+> 63 |   type __Check = __IsExpected<typeof handler>
+     |                               ^
+  64 |   // @ts-ignore
+  65 |   type __Unused = __Check
+  66 | }
+Next.js build worker exited with code: 1 and signal: null
