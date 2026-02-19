@@ -64,6 +64,7 @@ export async function initDB() {
     }
 }
 
+
 /** Log visitor information */
 export async function logVisitor(data: VisitorLog): Promise<void> {
     try {
@@ -77,6 +78,21 @@ export async function logVisitor(data: VisitorLog): Promise<void> {
         `;
     } catch (e) {
         console.error("Failed to log visitor:", e);
+    }
+}
+
+/** Get recent visitor logs */
+export async function getVisitorLogs(limit = 100): Promise<(VisitorLog & { id: number; visited_at: Date })[]> {
+    try {
+        const { rows } = await sql`
+            SELECT * FROM visitor_logs 
+            ORDER BY visited_at DESC 
+            LIMIT ${limit}
+        `;
+        return rows as (VisitorLog & { id: number; visited_at: Date })[];
+    } catch (e) {
+        console.error("Failed to fetch logs:", e);
+        return [];
     }
 }
 
