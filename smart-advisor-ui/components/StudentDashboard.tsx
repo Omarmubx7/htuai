@@ -143,38 +143,35 @@ export default function StudentDashboard({
         if (completedCredits >= totalCredits) return "Graduated! 🎉";
         if (completedCredits === 0) return "Start your journey!";
 
-        // Assume student started Year 1 and is progressing
-        // Standard HTU load: ~18 CH per semester (2 semesters/year)
-        const CH_PER_SEMESTER = 18;
         const remaining = totalCredits - completedCredits;
+
+        // HTU runs 2 main semesters/year, ~18 CH each = ~36 CH/year
+        // Students typically take 15-18 CH per regular semester
+        const CH_PER_SEMESTER = 17; // realistic average
         const semestersLeft = Math.ceil(remaining / CH_PER_SEMESTER);
 
-        // Current semester estimation (based on completed CH)
-        const semestersDone = Math.max(1, Math.round(completedCredits / CH_PER_SEMESTER));
-        const totalSemesters = semestersDone + semestersLeft;
-        const yearsTotal = Math.ceil(totalSemesters / 2);
+        // Estimate which academic year they'll graduate in
+        // 1 semester = 1 sem left, 2 semesters = 1 year left, etc.
+        const yearsLeft = Math.ceil(semestersLeft / 2);
 
         if (semestersLeft <= 1) return "This semester! 🔥";
-        if (semestersLeft <= 2) return "Next semester";
-        return `~${semestersLeft} semesters (Year ${yearsTotal})`;
+        if (semestersLeft === 2) return "~1 year left";
+        return `~${yearsLeft} years (${semestersLeft} semesters)`;
     }, [completedCredits, totalCredits]);
 
     // ── Category CH breakdown for "What's Next" ──────────────────────
+    // Hard-coded required CH per category — these are fixed across all HTU IT majors
+    const UNI_REQ_CH = 24;        // 10 courses
+    const COLLEGE_REQ_CH = 21;    // 7 courses
+    const UNI_ELEC_CH = 3;        // 3 slots × 1 CH
+    const DEPT_REQ_CH = 78;       // ~22 courses (varies by major but always sums to 78)
+    const MAJOR_ELEC_CH = 9;      // 3 slots × 3 CH
+
+    const MAX_UNI_ELECTIVES = 3;
+    const MAX_DEPT_ELECTIVES = 3;
+
     const categories = useMemo(() => {
-        const MAX_UNI_ELECTIVES = 3;
-        const MAX_DEPT_ELECTIVES = 3;
-
-        const uniReqCodes = new Set(data.university_requirements.map(c => c.code));
-        const collegeReqCodes = new Set(data.college_requirements.map(c => c.code));
-        const uniElecCodes = new Set((data.university_electives ?? []).map(c => c.code));
-        const deptReqCodes = new Set(data.department_requirements.map(c => c.code));
-        const electiveCodes = new Set(data.electives.map(c => c.code));
-
-        const computeCH = (courses: Course[], codes: Set<string>, cap?: number) => {
-            const totalCH = cap !== undefined
-                ? Math.min(courses.reduce((s, c) => s + c.ch, 0), cap * (courses[0]?.ch || 3))
-                : courses.reduce((s, c) => s + c.ch, 0);
-
+        const countDoneCH = (courses: Course[], cap?: number) => {
             let doneCH = 0;
             let count = 0;
             for (const c of courses) {
@@ -184,21 +181,21 @@ export default function StudentDashboard({
                     count++;
                 }
             }
-            return { totalCH, doneCH, remaining: Math.max(0, totalCH - doneCH) };
+            return doneCH;
         };
 
-        const uniReq = computeCH(data.university_requirements, uniReqCodes);
-        const collegeReq = computeCH(data.college_requirements, collegeReqCodes);
-        const uniElec = computeCH(data.university_electives ?? [], uniElecCodes, MAX_UNI_ELECTIVES);
-        const deptReq = computeCH(data.department_requirements, deptReqCodes);
-        const electives = computeCH(data.electives, electiveCodes, MAX_DEPT_ELECTIVES);
+        const uniReqDone = countDoneCH(data.university_requirements);
+        const collegeReqDone = countDoneCH(data.college_requirements);
+        const uniElecDone = countDoneCH(data.university_electives ?? [], MAX_UNI_ELECTIVES);
+        const deptReqDone = countDoneCH(data.department_requirements);
+        const elecDone = countDoneCH(data.electives, MAX_DEPT_ELECTIVES);
 
         return [
-            { label: "University Requirements", ...uniReq, color: "#a78bfa", icon: <GraduationCap className="w-3.5 h-3.5" /> },
-            { label: "College Requirements", ...collegeReq, color: "#60a5fa", icon: <BookOpen className="w-3.5 h-3.5" /> },
-            { label: "University Electives", ...uniElec, color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" /> },
-            { label: "Department Requirements", ...deptReq, color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
-            { label: "Major Electives", ...electives, color: "#f472b6", icon: <Star className="w-3.5 h-3.5" /> },
+            { label: "University Requirements", totalCH: UNI_REQ_CH, doneCH: Math.min(uniReqDone, UNI_REQ_CH), remaining: Math.max(0, UNI_REQ_CH - uniReqDone), color: "#a78bfa", icon: <GraduationCap className="w-3.5 h-3.5" /> },
+            { label: "College Requirements", totalCH: COLLEGE_REQ_CH, doneCH: Math.min(collegeReqDone, COLLEGE_REQ_CH), remaining: Math.max(0, COLLEGE_REQ_CH - collegeReqDone), color: "#60a5fa", icon: <BookOpen className="w-3.5 h-3.5" /> },
+            { label: "University Electives", totalCH: UNI_ELEC_CH, doneCH: Math.min(uniElecDone, UNI_ELEC_CH), remaining: Math.max(0, UNI_ELEC_CH - uniElecDone), color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" /> },
+            { label: "Department Requirements", totalCH: DEPT_REQ_CH, doneCH: Math.min(deptReqDone, DEPT_REQ_CH), remaining: Math.max(0, DEPT_REQ_CH - deptReqDone), color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
+            { label: "Major Electives", totalCH: MAJOR_ELEC_CH, doneCH: Math.min(elecDone, MAJOR_ELEC_CH), remaining: Math.max(0, MAJOR_ELEC_CH - elecDone), color: "#f472b6", icon: <Star className="w-3.5 h-3.5" /> },
         ];
     }, [data, completedCourses]);
 
