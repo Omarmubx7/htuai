@@ -7,7 +7,7 @@ import {
     Monitor, Smartphone, Globe, BookOpen,
     Eye, Clock, ArrowUpRight, Database,
     Search, ChevronUp, ChevronDown, RefreshCw,
-    Flame, BarChart3, ArrowUp, ArrowDown
+    Flame, BarChart3, ArrowUp, ArrowDown, Filter
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -26,6 +26,7 @@ interface Stats {
     totalVisitors: number;
     totalCompletedCourses: number;
     avgCoursesCompleted: number;
+    avgCreditHours: number;
     thisWeekVisits: number;
     lastWeekVisits: number;
     majorCounts: Record<string, number>;
@@ -117,6 +118,7 @@ export default function Dashboard() {
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('count');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
+    const [majorFilter, setMajorFilter] = useState<string>('all');
 
     const fetchData = useCallback(async (silent = false) => {
         if (!silent) setLoading(true);
@@ -142,6 +144,9 @@ export default function Dashboard() {
     const filteredStudents = useMemo(() => {
         if (!stats) return [];
         let list = [...stats.students];
+        if (majorFilter !== 'all') {
+            list = list.filter(s => s.major === majorFilter);
+        }
         if (search) {
             const q = search.toLowerCase();
             list = list.filter(s =>
@@ -156,7 +161,7 @@ export default function Dashboard() {
             return sortDir === 'asc' ? cmp : -cmp;
         });
         return list;
-    }, [stats, search, sortKey, sortDir]);
+    }, [stats, search, sortKey, sortDir, majorFilter]);
 
     const toggleSort = (key: SortKey) => {
         if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -172,6 +177,7 @@ export default function Dashboard() {
     const maxTraffic = Math.max(...stats.trafficByDay.map(d => d.count), 1);
     const totalDeviceCount = stats.deviceBreakdown.reduce((s, d) => s + d.count, 0) || 1;
     const weekChange = pctChange(stats.thisWeekVisits, stats.lastWeekVisits);
+    const allMajorKeys = Object.keys(stats.majorCounts).sort();
 
     const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
         { key: 'overview', label: 'Overview', icon: <BarChart3 className="w-3.5 h-3.5" /> },
@@ -216,21 +222,40 @@ export default function Dashboard() {
                     </button>
                 </div>
 
-                {/* ─── Tab Navigation ──────────────────────────────── */}
-                <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/5 w-fit">
-                    {TABS.map(t => (
-                        <button
-                            key={t.key}
-                            onClick={() => setTab(t.key)}
-                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${tab === t.key
+                {/* ─── Filter + Tab Row ──────────────────────────────── */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/5 w-fit">
+                        {TABS.map(t => (
+                            <button
+                                key={t.key}
+                                onClick={() => setTab(t.key)}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${tab === t.key
                                     ? 'bg-white text-black shadow-sm'
                                     : 'text-white/35 hover:text-white/60'
-                                }`}
+                                    }`}
+                            >
+                                {t.icon}
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Major Filter */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5">
+                        <Filter className="w-3.5 h-3.5 text-white/25" />
+                        <select
+                            value={majorFilter}
+                            onChange={e => setMajorFilter(e.target.value)}
+                            className="bg-transparent text-xs text-white outline-none cursor-pointer appearance-none pr-4"
                         >
-                            {t.icon}
-                            {t.label}
-                        </button>
-                    ))}
+                            <option value="all" className="bg-neutral-900">All Majors</option>
+                            {allMajorKeys.map(m => (
+                                <option key={m} value={m} className="bg-neutral-900">
+                                    {formatMajor(m)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -271,16 +296,18 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
     const animVisitors = useCountUp(stats.totalVisitors);
     const animCourses = useCountUp(stats.totalCompletedCourses);
     const animAvg = useCountUp(stats.avgCoursesCompleted);
+    const animCH = useCountUp(stats.avgCreditHours);
 
     return (
         <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                 <StatCard icon={<Users className="w-4 h-4" />} label="Total Students" value={animStudents} color="violet" delay={0} />
                 <StatCard icon={<Eye className="w-4 h-4" />} label="Total Visits" value={animVisitors} color="blue" delay={0.05}
                     badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Completed" value={animCourses} color="emerald" delay={0.1} />
-                <StatCard icon={<Flame className="w-4 h-4" />} label="Avg per Student" value={animAvg} color="amber" delay={0.15} />
+                <StatCard icon={<Flame className="w-4 h-4" />} label="Avg Courses" value={animAvg} color="amber" delay={0.15} />
+                <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg CH / Student" value={`${animCH} / 135`} color="violet" delay={0.2} />
             </div>
 
             {/* Traffic Area Chart */}

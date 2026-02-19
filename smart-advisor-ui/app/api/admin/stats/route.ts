@@ -160,12 +160,14 @@ export async function GET() {
         const avgCoursesCompleted = totalStudents > 0
             ? Math.round(totalCompletedCourses / totalStudents)
             : 0;
+        const avgCreditHours = avgCoursesCompleted * 3;
 
         return NextResponse.json({
             totalStudents,
             totalVisitors,
             totalCompletedCourses,
             avgCoursesCompleted,
+            avgCreditHours,
             thisWeekVisits,
             lastWeekVisits,
             majorCounts,
