@@ -10,7 +10,7 @@ export async function initDB() {
             student_id  TEXT    NOT NULL,
             major       TEXT    NOT NULL,
             completed   TEXT    NOT NULL DEFAULT '[]',
-            updated_at  INTEGER NOT NULL DEFAULT (extract(epoch from now())),
+            updated_at  BIGINT  NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())::bigint),
             PRIMARY KEY (student_id, major)
         );
     `;
@@ -21,7 +21,7 @@ export async function initDB() {
         CREATE TABLE IF NOT EXISTS student_profile (
             student_id  TEXT    PRIMARY KEY,
             major       TEXT    NOT NULL,
-            updated_at  INTEGER NOT NULL DEFAULT (extract(epoch from now()))
+            updated_at  BIGINT  NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())::bigint)
         );
     `;
 }
