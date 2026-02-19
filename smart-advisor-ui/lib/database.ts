@@ -47,7 +47,7 @@ export async function saveProgress(studentId: string, major: string, completed: 
     const json = JSON.stringify(completed);
     await sql`
         INSERT INTO student_progress (student_id, major, completed, updated_at)
-        VALUES (${studentId}, ${major}, ${json}, extract(epoch from now()))
+        VALUES (${studentId}, ${major}, ${json}, (EXTRACT(EPOCH FROM NOW())::bigint))
         ON CONFLICT (student_id, major) DO UPDATE SET
             completed   = EXCLUDED.completed,
             updated_at  = EXCLUDED.updated_at
@@ -80,7 +80,7 @@ export async function loadMajor(studentId: string): Promise<string | null> {
 export async function saveMajor(studentId: string, major: string): Promise<void> {
     await sql`
         INSERT INTO student_profile (student_id, major, updated_at)
-        VALUES (${studentId}, ${major}, extract(epoch from now()))
+        VALUES (${studentId}, ${major}, (EXTRACT(EPOCH FROM NOW())::bigint))
         ON CONFLICT (student_id) DO UPDATE SET
             major      = EXCLUDED.major,
             updated_at = EXCLUDED.updated_at
