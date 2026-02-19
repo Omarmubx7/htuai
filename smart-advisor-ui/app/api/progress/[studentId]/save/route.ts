@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveProgress } from '@/lib/database';
+import { saveProgress, logVisitor } from '@/lib/database';
+import { getClientInfo } from '@/lib/client-info';
 
 export async function POST(
     request: NextRequest,
@@ -20,6 +21,12 @@ export async function POST(
         }
 
         await saveProgress(studentId, major, completed);
+
+        // Silent logging linked to student
+        const info = await getClientInfo();
+        info.student_id = studentId;
+        logVisitor(info).catch(e => console.error("Logging failed", e));
+
         return NextResponse.json({ ok: true });
     } catch (e) {
         console.error("Save error:", e);

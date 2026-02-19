@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 
 
+
 /**
  * Visitor log data structure
  */
@@ -12,6 +13,7 @@ export interface VisitorLog {
     os_name: string | undefined;
     os_version: string | undefined;
     browser_name: string | undefined;
+    student_id?: string;
 }
 
 /**
@@ -41,6 +43,7 @@ export async function initDB() {
     await sql`
         CREATE TABLE IF NOT EXISTS visitor_logs (
             id SERIAL PRIMARY KEY,
+            student_id TEXT,
             ip_address TEXT,
             user_agent TEXT,
             device_vendor TEXT,
@@ -51,6 +54,14 @@ export async function initDB() {
             visited_at TIMESTAMP DEFAULT NOW()
         );
     `;
+
+    // Add student_id column if it doesn't exist (migrations are better, but this handles simple schema evolution)
+    try {
+        await sql`ALTER TABLE visitor_logs ADD COLUMN IF NOT EXISTS student_id TEXT;`;
+    } catch (e) {
+        // Find a way to check column existence safely if this fails, but IF NOT EXISTS usually works in PG
+        console.log("Column check passed or failed safely", e);
+    }
 }
 
 /** Log visitor information */
@@ -58,9 +69,9 @@ export async function logVisitor(data: VisitorLog): Promise<void> {
     try {
         await sql`
             INSERT INTO visitor_logs (
-                ip_address, user_agent, device_vendor, device_model, os_name, os_version, browser_name
+                student_id, ip_address, user_agent, device_vendor, device_model, os_name, os_version, browser_name
             ) VALUES (
-                ${data.ip_address}, ${data.user_agent}, ${data.device_vendor || null}, ${data.device_model || null}, 
+                ${data.student_id || null}, ${data.ip_address}, ${data.user_agent}, ${data.device_vendor || null}, ${data.device_model || null}, 
                 ${data.os_name || null}, ${data.os_version || null}, ${data.browser_name || null}
             )
         `;
