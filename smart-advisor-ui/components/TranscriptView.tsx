@@ -69,6 +69,15 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
         });
     }, [studentId, majorKey, courseNameMap]);
 
+    const resetProgress = () => {
+        setCompletedCourses(new Set());
+        fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ major: majorKey, completed: [] }),
+        });
+    };
+
     // Build code → name lookup for prerequisite resolution
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
     // Set of all codes in the curriculum — prereqs outside this are auto-satisfied
