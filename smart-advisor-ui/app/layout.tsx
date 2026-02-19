@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import { getClientInfo } from "@/lib/client-info";
+import { logVisitor } from "@/lib/database";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,11 +12,20 @@ export const metadata: Metadata = {
   description: "Track your HTU course progress and plan your semester.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Silent logging
+  try {
+    const info = await getClientInfo();
+    // Fire and forget - don't await the DB insert to avoid blocking
+    logVisitor(info).catch(e => console.error("Logging failed", e));
+  } catch (e) {
+    // Ignore errors to not break the app
+  }
+
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>

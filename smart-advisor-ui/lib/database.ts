@@ -1,5 +1,19 @@
 import { sql } from '@vercel/postgres';
 
+
+/**
+ * Visitor log data structure
+ */
+export interface VisitorLog {
+    ip_address: string;
+    user_agent: string;
+    device_vendor: string | undefined;
+    device_model: string | undefined;
+    os_name: string | undefined;
+    os_version: string | undefined;
+    browser_name: string | undefined;
+}
+
 /**
  * Initialize the database tables if they don't exist.
  * Note: In production, it's better to run migration scripts, but this works for simple apps.
@@ -24,6 +38,35 @@ export async function initDB() {
             updated_at  BIGINT  NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())::bigint)
         );
     `;
+    await sql`
+        CREATE TABLE IF NOT EXISTS visitor_logs (
+            id SERIAL PRIMARY KEY,
+            ip_address TEXT,
+            user_agent TEXT,
+            device_vendor TEXT,
+            device_model TEXT,
+            os_name TEXT,
+            os_version TEXT,
+            browser_name TEXT,
+            visited_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+}
+
+/** Log visitor information */
+export async function logVisitor(data: VisitorLog): Promise<void> {
+    try {
+        await sql`
+            INSERT INTO visitor_logs (
+                ip_address, user_agent, device_vendor, device_model, os_name, os_version, browser_name
+            ) VALUES (
+                ${data.ip_address}, ${data.user_agent}, ${data.device_vendor || null}, ${data.device_model || null}, 
+                ${data.os_name || null}, ${data.os_version || null}, ${data.browser_name || null}
+            )
+        `;
+    } catch (e) {
+        console.error("Failed to log visitor:", e);
+    }
 }
 
 /** Load a student's completed courses for a specific major */
