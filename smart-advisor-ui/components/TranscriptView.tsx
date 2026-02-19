@@ -131,7 +131,7 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
     const groups = getGroups();
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 py-10">
+        <div className="w-full max-w-7xl mx-auto px-4 pt-10 pb-24">
 
             {/* Page header + progress card */}
             <div className="mb-12 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
