@@ -198,7 +198,13 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                             style={{ background: "linear-gradient(90deg, #8b5cf6, #6366f1)" }}
                         />
                     </div>
-                    <p className="text-[11px] text-white/20 mt-2">{Math.round(progress * 100)}% complete</p>
+                    <div className="flex items-center justify-between mt-2">
+                        <p className="text-[11px] text-white/20">{Math.round(progress * 100)}% complete</p>
+                        <p className="text-[11px] text-white/30 font-medium">
+                            <span className="text-violet-400/80 font-bold">{completedCourses.size}</span>
+                            <span className="text-white/15"> / {allCourses.length} courses</span>
+                        </p>
+                    </div>
                 </div>
             </div>
 
