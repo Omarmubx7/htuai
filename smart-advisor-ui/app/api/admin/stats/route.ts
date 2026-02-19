@@ -19,13 +19,15 @@ export async function GET() {
             "0-25%": 0, "26-50%": 0, "51-75%": 0, "76-100%": 0,
         };
         const TOTAL_CREDITS = 135;
+        let totalCompletedCourses = 0;
 
-        // ── 4. Top Courses (most completed) ──────────────────────────
+        // ── 4. Course Counts ─────────────────────────────────────────
         const courseCounts: Record<string, number> = {};
 
         for (const s of students) {
             const major = s.major || "Unknown";
             majorCounts[major] = (majorCounts[major] || 0) + 1;
+            totalCompletedCourses += s.count;
 
             const estimatedCredits = s.count * 3;
             const percent = Math.min((estimatedCredits / TOTAL_CREDITS) * 100, 100);
@@ -35,11 +37,9 @@ export async function GET() {
             else progressDistribution["76-100%"]++;
         }
 
-        // Scan completed arrays for top courses
+        // Scan completed arrays
         try {
-            const { rows: progressRows } = await sql`
-                SELECT completed FROM student_progress
-            `;
+            const { rows: progressRows } = await sql`SELECT completed FROM student_progress`;
             for (const row of progressRows) {
                 let courses: (string | { code: string; name?: string })[] = [];
                 try { courses = JSON.parse(row.completed); } catch { /* skip */ }
@@ -57,8 +57,7 @@ export async function GET() {
                 const [code, name] = key.split('||');
                 return { code, name: name || code, count };
             })
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10);
+            .sort((a, b) => b.count - a.count);
 
         // ── 5. Visitor Traffic (last 30 days) ────────────────────────
         let trafficByDay: { date: string; count: number }[] = [];
@@ -88,7 +87,6 @@ export async function GET() {
                 FROM visitor_logs
                 GROUP BY os_name, browser_name
                 ORDER BY count DESC
-                LIMIT 10
             `;
             deviceBreakdown = rows.map(r => ({
                 os: String(r.os),
@@ -107,7 +105,7 @@ export async function GET() {
                 SELECT student_id, os_name, browser_name, device_model, visited_at
                 FROM visitor_logs
                 ORDER BY visited_at DESC
-                LIMIT 8
+                LIMIT 50
             `;
             for (const r of visitRows) {
                 const device = r.device_model || r.os_name || 'Unknown device';
@@ -121,15 +119,63 @@ export async function GET() {
             }
         } catch { /* ok */ }
 
+        // ── 8. Activity Heatmap (hour × day of week) ─────────────────
+        let heatmap: { day: number; hour: number; count: number }[] = [];
+        try {
+            const { rows } = await sql`
+                SELECT
+                    EXTRACT(DOW FROM visited_at)::int as day,
+                    EXTRACT(HOUR FROM visited_at)::int as hour,
+                    COUNT(*) as count
+                FROM visitor_logs
+                GROUP BY day, hour
+                ORDER BY day, hour
+            `;
+            heatmap = rows.map(r => ({
+                day: Number(r.day),
+                hour: Number(r.hour),
+                count: Number(r.count),
+            }));
+        } catch { /* ok */ }
+
+        // ── 9. Comparison: this week vs last week ────────────────────
+        let thisWeekVisits = 0;
+        let lastWeekVisits = 0;
+        try {
+            const { rows: tw } = await sql`
+                SELECT COUNT(*) as count FROM visitor_logs
+                WHERE visited_at >= DATE_TRUNC('week', NOW())
+            `;
+            thisWeekVisits = Number(tw[0]?.count ?? 0);
+
+            const { rows: lw } = await sql`
+                SELECT COUNT(*) as count FROM visitor_logs
+                WHERE visited_at >= DATE_TRUNC('week', NOW()) - INTERVAL '7 days'
+                AND visited_at < DATE_TRUNC('week', NOW())
+            `;
+            lastWeekVisits = Number(lw[0]?.count ?? 0);
+        } catch { /* ok */ }
+
+        // Average courses completed
+        const avgCoursesCompleted = totalStudents > 0
+            ? Math.round(totalCompletedCourses / totalStudents)
+            : 0;
+
         return NextResponse.json({
             totalStudents,
             totalVisitors,
+            totalCompletedCourses,
+            avgCoursesCompleted,
+            thisWeekVisits,
+            lastWeekVisits,
             majorCounts,
             progressDistribution,
             topCourses,
             trafficByDay,
             deviceBreakdown,
             recentActivity,
+            heatmap,
+            students,
         });
 
     } catch (e) {
