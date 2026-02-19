@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Activity, PieChart, TrendingUp,
@@ -15,11 +15,11 @@ import {
    Types
    ═══════════════════════════════════════════════════════════════════ */
 
-interface TopCourse { code: string; name: string; count: number }
+interface TopCourse { code: string; name: string; count: number; ch?: number }
 interface TrafficDay { date: string; count: number }
 interface DeviceEntry { os: string; browser: string; count: number }
 interface ActivityEntry { type: string; student_id: string; detail: string; time: string }
-interface StudentRow { student_id: string; major: string; count: number }
+interface StudentRow { student_id: string; major: string; count: number; ch?: number }
 interface HeatmapCell { day: number; hour: number; count: number }
 
 interface Stats {
@@ -40,7 +40,7 @@ interface Stats {
     students: StudentRow[];
 }
 
-type SortKey = 'student_id' | 'major' | 'count';
+type SortKey = 'student_id' | 'major' | 'count' | 'ch';
 type SortDir = 'asc' | 'desc';
 type TabKey = 'overview' | 'students' | 'visitors';
 
@@ -157,7 +157,8 @@ export default function Dashboard() {
             list = list.filter(s => s.student_id.toLowerCase().includes(q) || s.major.toLowerCase().includes(q));
         }
         list.sort((a, b) => {
-            const av = a[sortKey], bv = b[sortKey];
+            const getVal = (s: StudentRow) => sortKey === 'ch' ? (s.ch ?? s.count * 3) : s[sortKey];
+            const av = getVal(a), bv = getVal(b);
             const cmp = typeof av === 'string' ? av.localeCompare(bv as string) : (av as number) - (bv as number);
             return sortDir === 'asc' ? cmp : -cmp;
         });
@@ -250,8 +251,8 @@ export default function Dashboard() {
                         {TABS.map(t => (
                             <button key={t.key} onClick={() => setTab(t.key)}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${tab === t.key
-                                        ? 'bg-white text-black shadow-md shadow-white/10'
-                                        : 'text-white/30 hover:text-white/55 hover:bg-white/[0.03]'
+                                    ? 'bg-white text-black shadow-md shadow-white/10'
+                                    : 'text-white/30 hover:text-white/55 hover:bg-white/[0.03]'
                                     }`}>
                                 {t.icon}{t.label}
                             </button>
@@ -325,35 +326,14 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                 <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg CH" value={`${animCH}/135`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.16} />
             </div>
 
-            {/* Traffic Chart */}
+            {/* Traffic Chart — Professional SVG Area Chart */}
             <GlassCard delay={0.1}>
                 <div className="flex items-center justify-between mb-6">
                     <CardHeader icon={<TrendingUp className="w-4 h-4" />} title="Visitor Traffic" iconColor="#60a5fa" />
                     <span className="text-[10px] text-white/20 font-medium px-2.5 py-1 rounded-lg bg-white/[0.03]">Last 30 days</span>
                 </div>
                 {stats.trafficByDay.length === 0 ? <Empty text="No visitor data yet" /> : (
-                    <div className="h-48 flex items-end gap-[3px] px-1">
-                        {stats.trafficByDay.map((day, i) => (
-                            <div key={day.date} className="flex-1 relative group cursor-default">
-                                <motion.div
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${(day.count / maxTraffic) * 100}%` }}
-                                    transition={{ duration: 0.5, delay: i * 0.015, ease: 'easeOut' }}
-                                    className="w-full rounded-t min-h-[2px] transition-all duration-200"
-                                    style={{ background: 'linear-gradient(180deg, rgba(96,165,250,0.9) 0%, rgba(59,130,246,0.4) 100%)' }}
-                                />
-                                {/* Glow on hover */}
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-t"
-                                    style={{ background: 'linear-gradient(180deg, rgba(96,165,250,0.5) 0%, transparent 100%)', filter: 'blur(4px)' }} />
-                                {/* Tooltip */}
-                                <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute -top-12 left-1/2 -translate-x-1/2
-                                    px-2.5 py-1.5 rounded-lg whitespace-nowrap z-20 pointer-events-none text-[10px] font-medium"
-                                    style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.95), rgba(20,20,40,0.95))', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-                                    <span className="text-white/40">{day.date.slice(5)}</span> · <span className="text-white font-bold">{day.count}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <AreaChart data={stats.trafficByDay} maxVal={maxTraffic} />
                 )}
             </GlassCard>
 
@@ -496,12 +476,14 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                             <Th sortable onClick={() => toggleSort('student_id')}>Student ID <SortIcon col="student_id" /></Th>
                             <Th sortable onClick={() => toggleSort('major')}>Major <SortIcon col="major" /></Th>
                             <Th sortable onClick={() => toggleSort('count')}>Courses <SortIcon col="count" /></Th>
+                            <Th sortable onClick={() => toggleSort('ch')}>CH <SortIcon col="ch" /></Th>
                             <Th>Progress</Th>
                         </tr>
                     </thead>
                     <tbody>
                         {students.map((s, i) => {
-                            const pct = Math.min(Math.round((s.count * 3 / 135) * 100), 100);
+                            const realCH = s.ch ?? s.count * 3;
+                            const pct = Math.min(Math.round((realCH / 135) * 100), 100);
                             const barColor = pct >= 75 ? '#10b981' : pct >= 50 ? '#3b82f6' : pct >= 25 ? '#f59e0b' : '#ef4444';
                             return (
                                 <motion.tr key={`${s.student_id}-${s.major}`}
@@ -517,6 +499,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                                         </span>
                                     </td>
                                     <td className="py-3 pr-4 text-xs font-mono text-white/45 tabular-nums">{s.count}</td>
+                                    <td className="py-3 pr-4 text-xs font-mono text-white/35 tabular-nums">{realCH}<span className="text-white/15">/135</span></td>
                                     <td className="py-3">
                                         <div className="flex items-center gap-2.5">
                                             <div className="w-24 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
@@ -725,6 +708,124 @@ function DonutChart({ data }: { data: [string, number][] }) {
             <text x={size / 2} y={size / 2 - 4} textAnchor="middle" className="fill-white text-xl font-bold">{total}</text>
             <text x={size / 2} y={size / 2 + 14} textAnchor="middle" className="fill-white/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.1em' }}>STUDENTS</text>
         </svg>
+    );
+}
+
+function AreaChart({ data, maxVal }: { data: TrafficDay[]; maxVal: number }) {
+    const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+    const W = 700, H = 200, PL = 40, PR = 10, PT = 10, PB = 28;
+    const chartW = W - PL - PR, chartH = H - PT - PB;
+    const n = data.length;
+
+    // Y-axis ticks (4 labels)
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map(p => ({
+        val: Math.round(maxVal * p),
+        y: PT + chartH * (1 - p),
+    }));
+
+    // Points
+    const points = data.map((d, i) => ({
+        x: PL + (n > 1 ? (i / (n - 1)) * chartW : chartW / 2),
+        y: PT + chartH * (1 - d.count / maxVal),
+    }));
+
+    // SVG path (smooth curve using catmull-rom → bezier)
+    const linePath = points.length < 2 ? '' : (() => {
+        let path = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+            const p0 = points[Math.max(i - 1, 0)];
+            const p1 = points[i];
+            const p2 = points[i + 1];
+            const p3 = points[Math.min(i + 2, points.length - 1)];
+            const cp1x = p1.x + (p2.x - p0.x) / 6;
+            const cp1y = p1.y + (p2.y - p0.y) / 6;
+            const cp2x = p2.x - (p3.x - p1.x) / 6;
+            const cp2y = p2.y - (p3.y - p1.y) / 6;
+            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+        }
+        return path;
+    })();
+
+    const areaPath = linePath
+        ? `${linePath} L ${points[points.length - 1].x} ${PT + chartH} L ${points[0].x} ${PT + chartH} Z`
+        : '';
+
+    return (
+        <div className="relative w-full" style={{ aspectRatio: `${W}/${H}` }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgba(96,165,250,0.25)" />
+                        <stop offset="100%" stopColor="rgba(96,165,250,0)" />
+                    </linearGradient>
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#60a5fa" />
+                    </linearGradient>
+                </defs>
+
+                {/* Grid lines */}
+                {yTicks.map((t, i) => (
+                    <g key={i}>
+                        <line x1={PL} y1={t.y} x2={W - PR} y2={t.y}
+                            stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray={i === 0 ? 'none' : '4 4'} />
+                        <text x={PL - 8} y={t.y + 3} textAnchor="end" fill="rgba(255,255,255,0.15)"
+                            style={{ fontSize: 9, fontFamily: 'monospace' }}>{t.val}</text>
+                    </g>
+                ))}
+
+                {/* Area fill */}
+                {areaPath && <path d={areaPath} fill="url(#areaGrad)" />}
+
+                {/* Line */}
+                {linePath && <path d={linePath} fill="none" stroke="url(#lineGrad)" strokeWidth="2" strokeLinecap="round" />}
+
+                {/* Hover line + dot */}
+                {hoverIdx !== null && points[hoverIdx] && (
+                    <>
+                        <line x1={points[hoverIdx].x} y1={PT} x2={points[hoverIdx].x} y2={PT + chartH}
+                            stroke="rgba(96,165,250,0.3)" strokeWidth="1" strokeDasharray="3 3" />
+                        <circle cx={points[hoverIdx].x} cy={points[hoverIdx].y} r="4"
+                            fill="#60a5fa" stroke="#0a0a0f" strokeWidth="2" />
+                        <circle cx={points[hoverIdx].x} cy={points[hoverIdx].y} r="8"
+                            fill="rgba(96,165,250,0.15)" />
+                    </>
+                )}
+
+                {/* X-axis labels (every ~5 days) */}
+                {data.map((d, i) => {
+                    if (n > 10 && i % Math.ceil(n / 6) !== 0 && i !== n - 1) return null;
+                    return (
+                        <text key={i} x={points[i]?.x ?? 0} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.15)"
+                            style={{ fontSize: 8, fontFamily: 'monospace' }}>{d.date.slice(5)}</text>
+                    );
+                })}
+
+                {/* Invisible hover areas */}
+                {points.map((pt, i) => (
+                    <rect key={i} x={pt.x - chartW / n / 2} y={PT} width={chartW / n} height={chartH}
+                        fill="transparent" className="cursor-crosshair"
+                        onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)} />
+                ))}
+            </svg>
+
+            {/* Floating tooltip */}
+            {hoverIdx !== null && data[hoverIdx] && points[hoverIdx] && (
+                <div className="absolute z-20 pointer-events-none transition-all duration-100"
+                    style={{
+                        left: `${(points[hoverIdx].x / W) * 100}%`,
+                        top: `${(points[hoverIdx].y / H) * 100 - 12}%`,
+                        transform: 'translate(-50%, -100%)',
+                    }}>
+                    <div className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap"
+                        style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.95), rgba(20,20,40,0.95))', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                        <span className="text-white/40">{data[hoverIdx].date.slice(5)}</span>{' · '}
+                        <span className="text-white font-bold">{data[hoverIdx].count}</span>
+                        <span className="text-white/25"> visits</span>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
 

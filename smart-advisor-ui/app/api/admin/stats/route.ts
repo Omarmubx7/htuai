@@ -1,12 +1,56 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { getAllStudents } from '@/lib/database';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
+/* ─── Load course catalog from JSON files (server-side) ────────── */
+
+interface CourseEntry { code: string; name: string; ch: number; level?: number }
+
+let courseCache: Map<string, CourseEntry> | null = null;
+
+async function getCourseMap(): Promise<Map<string, CourseEntry>> {
+    if (courseCache) return courseCache;
+
+    const dataDir = path.join(process.cwd(), 'public', 'data');
+    const files = ['shared.json', 'computer_science.json', 'cybersecurity.json', 'data_science.json'];
+    const map = new Map<string, CourseEntry>();
+
+    for (const file of files) {
+        try {
+            const raw = await fs.readFile(path.join(dataDir, file), 'utf-8');
+            const json = JSON.parse(raw);
+            // Flatten all arrays in the JSON
+            const extractCourses = (obj: Record<string, unknown>) => {
+                for (const val of Object.values(obj)) {
+                    if (Array.isArray(val)) {
+                        for (const c of val) {
+                            if (c && typeof c === 'object' && 'code' in c && 'ch' in c) {
+                                map.set(c.code, { code: c.code, name: c.name || c.code, ch: c.ch, level: c.level });
+                            }
+                        }
+                    } else if (val && typeof val === 'object') {
+                        extractCourses(val as Record<string, unknown>);
+                    }
+                }
+            };
+            extractCourses(json);
+        } catch { /* file might not exist */ }
+    }
+
+    courseCache = map;
+    return map;
+}
+
 export async function GET() {
     try {
-        const students = await getAllStudents();
+        const [students, courseMap] = await Promise.all([
+            getAllStudents(),
+            getCourseMap(),
+        ]);
 
         // ── 1. Total Students ────────────────────────────────────────
         const totalStudents = students.length;
@@ -21,45 +65,76 @@ export async function GET() {
         const TOTAL_CREDITS = 135;
         let totalCompletedCourses = 0;
 
-        // ── 4. Course Counts ─────────────────────────────────────────
+        // ── 4. Course Counts (from completed arrays) ─────────────────
         const courseCounts: Record<string, number> = {};
 
+        // ── 5. Compute REAL credit hours per student ─────────────────
+        let totalRealCreditHours = 0;
+        const studentRealCH: { student_id: string; major: string; count: number; ch: number }[] = [];
+
+        // Load all completed arrays to compute real CH
+        let progressRows: { student_id: string; major: string; completed: string }[] = [];
+        try {
+            const { rows } = await sql`SELECT student_id, major, completed FROM student_progress`;
+            progressRows = rows as { student_id: string; major: string; completed: string }[];
+        } catch { /* table might not exist yet */ }
+
+        // Build a lookup of student_id+major → real credit hours
+        const studentCHMap = new Map<string, number>();
+
+        for (const row of progressRows) {
+            let courses: (string | { code: string; name?: string })[] = [];
+            try { courses = JSON.parse(row.completed); } catch { continue; }
+
+            let studentCH = 0;
+            for (const c of courses) {
+                const code = typeof c === 'string' ? c : c.code;
+                const name = typeof c === 'object' && c.name ? c.name : code;
+                const key = `${code}||${name}`;
+                courseCounts[key] = (courseCounts[key] || 0) + 1;
+
+                // Look up real credit hours from course catalog
+                const catalogEntry = courseMap.get(code);
+                studentCH += catalogEntry ? catalogEntry.ch : 3; // fallback to 3 if not found
+            }
+
+            const mapKey = `${row.student_id}||${row.major}`;
+            studentCHMap.set(mapKey, studentCH);
+            totalRealCreditHours += studentCH;
+        }
+
+        // Process student summaries with real CH
         for (const s of students) {
             const major = s.major || "Unknown";
             majorCounts[major] = (majorCounts[major] || 0) + 1;
             totalCompletedCourses += s.count;
 
-            const estimatedCredits = s.count * 3;
-            const percent = Math.min((estimatedCredits / TOTAL_CREDITS) * 100, 100);
+            const mapKey = `${s.student_id}||${s.major}`;
+            const realCH = studentCHMap.get(mapKey) ?? s.count * 3;
+
+            studentRealCH.push({ ...s, ch: realCH });
+
+            const percent = Math.min((realCH / TOTAL_CREDITS) * 100, 100);
             if (percent <= 25) progressDistribution["0-25%"]++;
             else if (percent <= 50) progressDistribution["26-50%"]++;
             else if (percent <= 75) progressDistribution["51-75%"]++;
             else progressDistribution["76-100%"]++;
         }
 
-        // Scan completed arrays
-        try {
-            const { rows: progressRows } = await sql`SELECT completed FROM student_progress`;
-            for (const row of progressRows) {
-                let courses: (string | { code: string; name?: string })[] = [];
-                try { courses = JSON.parse(row.completed); } catch { /* skip */ }
-                for (const c of courses) {
-                    const code = typeof c === 'string' ? c : c.code;
-                    const name = typeof c === 'object' && c.name ? c.name : code;
-                    const key = `${code}||${name}`;
-                    courseCounts[key] = (courseCounts[key] || 0) + 1;
-                }
-            }
-        } catch { /* table might not exist yet */ }
-
         const topCourses = Object.entries(courseCounts)
             .map(([key, count]) => {
                 const [code, name] = key.split('||');
-                return { code, name: name || code, count };
+                const catalogEntry = courseMap.get(code);
+                return {
+                    code,
+                    name: name || code,
+                    count,
+                    ch: catalogEntry?.ch ?? 3,
+                };
             })
             .sort((a, b) => b.count - a.count);
 
-        // ── 5. Visitor Traffic (last 30 days) ────────────────────────
+        // ── 6. Visitor Traffic (last 30 days) ────────────────────────
         let trafficByDay: { date: string; count: number }[] = [];
         try {
             const { rows } = await sql`
@@ -75,7 +150,7 @@ export async function GET() {
             }));
         } catch { /* table might not exist */ }
 
-        // ── 6. Device / OS / Browser Breakdown ───────────────────────
+        // ── 7. Device / OS / Browser Breakdown ───────────────────────
         let deviceBreakdown: { os: string; browser: string; count: number }[] = [];
         let totalVisitors = 0;
         try {
@@ -98,7 +173,7 @@ export async function GET() {
             totalVisitors = Number(totalRows[0]?.total ?? 0);
         } catch { /* table might not exist */ }
 
-        // ── 7. Recent Activity ───────────────────────────────────────
+        // ── 8. Recent Activity ───────────────────────────────────────
         let recentActivity: { type: string; student_id: string; detail: string; time: string }[] = [];
         try {
             const { rows: visitRows } = await sql`
@@ -119,7 +194,7 @@ export async function GET() {
             }
         } catch { /* ok */ }
 
-        // ── 8. Activity Heatmap (hour × day of week) ─────────────────
+        // ── 9. Activity Heatmap (hour × day of week) ─────────────────
         let heatmap: { day: number; hour: number; count: number }[] = [];
         try {
             const { rows } = await sql`
@@ -138,7 +213,7 @@ export async function GET() {
             }));
         } catch { /* ok */ }
 
-        // ── 9. Comparison: this week vs last week ────────────────────
+        // ── 10. Week-over-week comparison ─────────────────────────────
         let thisWeekVisits = 0;
         let lastWeekVisits = 0;
         try {
@@ -156,11 +231,13 @@ export async function GET() {
             lastWeekVisits = Number(lw[0]?.count ?? 0);
         } catch { /* ok */ }
 
-        // Average courses completed
+        // ── Computed Averages (REAL) ──────────────────────────────────
         const avgCoursesCompleted = totalStudents > 0
             ? Math.round(totalCompletedCourses / totalStudents)
             : 0;
-        const avgCreditHours = avgCoursesCompleted * 3;
+        const avgCreditHours = totalStudents > 0
+            ? Math.round(totalRealCreditHours / totalStudents)
+            : 0;
 
         return NextResponse.json({
             totalStudents,
@@ -177,7 +254,7 @@ export async function GET() {
             deviceBreakdown,
             recentActivity,
             heatmap,
-            students,
+            students: studentRealCH,
         });
 
     } catch (e) {
