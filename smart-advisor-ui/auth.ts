@@ -3,7 +3,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
-import { getUserByStudentId, createUser, getUserByEmail, linkAccount } from "./lib/database";
+import { getUserByStudentId, createUser, getUserByEmail, linkAccount, updateUserDetails } from "./lib/database";
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -19,31 +19,57 @@ export const authOptions: NextAuthOptions = {
                 is_claiming: { label: "Claiming Account", type: "text" }
             },
             async authorize(credentials) {
-                if (!credentials?.student_id || !credentials?.password) return null;
+                console.log("Authorize called with:", { ...credentials, password: "[REDACTED]" });
+                if (!credentials?.student_id || !credentials?.password) {
+                    console.log("Missing ID or Password");
+                    return null;
+                }
 
                 const studentId = credentials.student_id as string;
                 const password = credentials.password as string;
                 const isClaiming = credentials.is_claiming === "true";
 
-                const user = await getUserByStudentId(studentId);
+                try {
+                    const user = await getUserByStudentId(studentId);
+                    console.log("Existing user found:", !!user);
 
-                if (isClaiming) {
-                    if (user) return null;
+                    if (isClaiming) {
+                        const passwordHash = await bcrypt.hash(password, 10);
+                        let finalUser;
 
-                    const passwordHash = await bcrypt.hash(password, 10);
-                    const newUser = await createUser({
-                        student_id: studentId,
-                        password_hash: passwordHash
-                    });
-                    return { id: newUser.id.toString(), name: studentId, student_id: studentId } as any;
+                        if (user) {
+                            console.log("Updating password for existing user during claim:", studentId);
+                            await updateUserDetails(user.id, { password_hash: passwordHash });
+                            finalUser = user;
+                        } else {
+                            console.log("Creating new user for claim:", studentId);
+                            finalUser = await createUser({
+                                student_id: studentId,
+                                password_hash: passwordHash
+                            });
+                        }
+
+                        console.log("User successfully claimed/updated with id:", finalUser.id);
+                        return { id: finalUser.id.toString(), name: studentId, student_id: studentId } as any;
+                    }
+
+                    if (!user || !user.password_hash) {
+                        console.log("Login failed: User not found or no password hash for ID:", studentId);
+                        return null;
+                    }
+
+                    const isValid = await bcrypt.compare(password, user.password_hash);
+                    if (!isValid) {
+                        console.log("Login failed: Invalid password for student_id:", studentId);
+                        return null;
+                    }
+
+                    console.log("Login successful for student_id:", studentId);
+                    return { id: user.id.toString(), name: user.student_id, student_id: user.student_id } as any;
+                } catch (error) {
+                    console.error("Auth Error in authorize callback:", error);
+                    throw error;
                 }
-
-                if (!user || !user.password_hash) return null;
-
-                const isValid = await bcrypt.compare(password, user.password_hash);
-                if (!isValid) return null;
-
-                return { id: user.id.toString(), name: user.student_id, student_id: user.student_id } as any;
             }
         }),
     ],

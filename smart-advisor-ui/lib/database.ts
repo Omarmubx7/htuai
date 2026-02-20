@@ -216,18 +216,47 @@ export async function getUserByEmail(email: string): Promise<DBUser | null> {
 }
 
 export async function createUser(data: Partial<DBUser>): Promise<DBUser> {
-    const { rows } = await sql`
-        INSERT INTO users (student_id, email, password_hash, name, image)
-        VALUES (
-            ${data.student_id || null}, 
-            ${data.email || null}, 
-            ${data.password_hash || null}, 
-            ${data.name || null}, 
-            ${data.image || null}
-        )
-        RETURNING *
-    `;
-    return rows[0] as DBUser;
+    console.log("DB: Creating/Updating user with data:", { ...data, password_hash: data.password_hash ? "[HASHED]" : null });
+    try {
+        // We use ON CONFLICT on student_id if provided, otherwise on email
+        let query;
+        if (data.student_id) {
+            query = sql`
+                INSERT INTO users (student_id, email, password_hash, name, image)
+                VALUES (${data.student_id}, ${data.email || null}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null})
+                ON CONFLICT (student_id) DO UPDATE SET
+                    password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
+                    email = COALESCE(EXCLUDED.email, users.email),
+                    name = COALESCE(EXCLUDED.name, users.name),
+                    image = COALESCE(EXCLUDED.image, users.image)
+                RETURNING *
+            `;
+        } else if (data.email) {
+            query = sql`
+                INSERT INTO users (student_id, email, password_hash, name, image)
+                VALUES (${data.student_id || null}, ${data.email}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null})
+                ON CONFLICT (email) DO UPDATE SET
+                    student_id = COALESCE(EXCLUDED.student_id, users.student_id),
+                    password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
+                    name = COALESCE(EXCLUDED.name, users.name),
+                    image = COALESCE(EXCLUDED.image, users.image)
+                RETURNING *
+            `;
+        } else {
+            query = sql`
+                INSERT INTO users (student_id, email, password_hash, name, image)
+                VALUES (${data.student_id || null}, ${data.email || null}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null})
+                RETURNING *
+            `;
+        }
+
+        const { rows } = await query;
+        console.log("DB: User created/updated successfully with ID:", rows[0].id);
+        return rows[0] as DBUser;
+    } catch (error) {
+        console.error("DB Error in createUser:", error);
+        throw error;
+    }
 }
 
 export async function linkAccount(userId: number, provider: string, providerAccountId: string) {

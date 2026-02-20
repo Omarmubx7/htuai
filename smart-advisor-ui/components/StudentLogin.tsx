@@ -164,12 +164,18 @@ export default function StudentLogin() {
                             Continue with Google
                         </motion.button>
 
-                        <button
-                            onClick={() => { setIsClaiming(!isClaiming); setError(""); }}
-                            className="text-xs text-white/30 hover:text-white/60 transition-colors font-medium text-center hover:underline underline-offset-4"
-                        >
-                            {isClaiming ? "Already registered? Sign In" : "New student? Claim your account here"}
-                        </button>
+                        <p className="text-center mt-2">
+                            <button
+                                type="button"
+                                onClick={() => { setIsClaiming(!isClaiming); setError(""); }}
+                                className="text-[10px] uppercase tracking-wider font-bold text-violet-400/60 hover:text-violet-400 transition-colors"
+                            >
+                                {isClaiming
+                                    ? "Already have an account? Login"
+                                    : "First time? Sign up & Claim your progress"
+                                }
+                            </button>
+                        </p>
                     </div>
                 </div>
 
