@@ -7,7 +7,7 @@ import StudentLogin from "@/components/StudentLogin";
 import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
 import { CourseData } from "@/types";
-import { LogOut, Settings2, Sparkles } from "lucide-react";
+import { LogOut, Settings2, Sparkles, Share2 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
@@ -238,6 +238,27 @@ export default function HomeClient() {
                             >
                                 <LogOut className="w-3 h-3" />
                                 Log out
+                            </button>
+
+                            <div className="w-px h-4 bg-white/8" />
+
+                            <button
+                                onClick={() => {
+                                    const url = "https://htuai.vercel.app";
+                                    const text = "Track your HTU courses and degree progress";
+                                    if (navigator.share) {
+                                        navigator.share({ title: "HTU Courses Tracker", text, url }).catch(() => {});
+                                    } else {
+                                        navigator.clipboard.writeText(url).then(() => {
+                                            const btn = document.getElementById('share-btn');
+                                            if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Share'; }, 1500); }
+                                        });
+                                    }
+                                }}
+                                className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-violet-400/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-violet-500/5"
+                            >
+                                <Share2 className="w-3 h-3" />
+                                <span id="share-btn">Share</span>
                             </button>
 
                             <div className="w-px h-4 bg-white/8" />
