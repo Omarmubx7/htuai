@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { getClientInfo } from "@/lib/client-info";
 import { logVisitor } from "@/lib/database";
+import { Providers } from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,7 +30,9 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <footer className="fixed bottom-4 left-0 right-0 text-center text-xs text-white/20 select-none z-50 pointer-events-none">
           Made by{' '}
           <a

@@ -8,27 +8,33 @@ import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
 import { CourseData } from "@/types";
 import { LogOut } from "lucide-react";
-
-const STUDENT_KEY = "htu_student_id";
+import { useSession, signOut } from "next-auth/react";
 
 type AppState = "checking" | "login" | "major-select" | "transcript";
 
 export default function HomeClient() {
+    const { data: session, status } = useSession();
     const [appState, setAppState] = useState<AppState>("checking");
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajorState] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // On mount: restore cached student ID, then fetch their saved major
     useEffect(() => {
-        const saved = localStorage.getItem(STUDENT_KEY);
-        if (saved) {
-            loadProfile(saved);
-        } else {
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
             setAppState("login");
+        } else if (status === "authenticated" && session?.user) {
+            const sid = (session.user as any).student_id || session.user.name;
+            if (sid) {
+                loadProfile(sid);
+            } else {
+                // Social user without linked ID yet
+                setAppState("major-select");
+            }
         }
-    }, []);
+    }, [status, session]);
 
     /** After login: fetch the student's saved major from the DB */
     async function loadProfile(id: string) {
@@ -41,7 +47,6 @@ export default function HomeClient() {
                 setAppState("transcript");
                 loadCourses(savedMajor as MajorKey);
             } else {
-                // First-time user: no major saved yet
                 setAppState("major-select");
             }
         } catch {
@@ -49,24 +54,16 @@ export default function HomeClient() {
         }
     }
 
-    const handleLogin = (id: string) => {
-        localStorage.setItem(STUDENT_KEY, id);
-        loadProfile(id);
-    };
-
     const handleLogout = () => {
-        localStorage.removeItem(STUDENT_KEY);
-        setStudentId(null);
-        setMajorState(null);
-        setCourseData(null);
-        setAppState("login");
+        signOut();
     };
 
     /** Save major to DB + move to transcript — called only for new students */
     const handleMajorSelect = async (key: MajorKey) => {
         setMajorState(key);
-        if (studentId) {
-            await fetch(`/api/profile/${encodeURIComponent(studentId)}/save`, {
+        const sid = studentId || (session?.user as any).student_id || session?.user?.name;
+        if (sid) {
+            await fetch(`/api/profile/${encodeURIComponent(sid)}/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ major: key }),
@@ -109,7 +106,7 @@ export default function HomeClient() {
     // ─── Render ──────────────────────────────────────────────────────────────
 
     if (appState === "checking") return <Spinner />;
-    if (appState === "login") return <StudentLogin onLogin={handleLogin} />;
+    if (appState === "login") return <StudentLogin />;
 
     if (appState === "major-select") {
         return (

@@ -1,101 +1,183 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Lock, User, Chrome, Sparkles } from "lucide-react";
+import { signIn } from "next-auth/react";
 
-interface StudentLoginProps {
-    onLogin: (studentId: string) => void;
-}
-
-export default function StudentLogin({ onLogin }: StudentLoginProps) {
+export default function StudentLogin() {
     const [id, setId] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [isClaiming, setIsClaiming] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const clean = id.trim();
-        if (!clean || clean.length < 5) {
+        const cleanId = id.trim();
+        if (!cleanId || cleanId.length < 5) {
             setError("Please enter a valid university ID.");
             return;
         }
+        if (!password || password.length < 6) {
+            setError("Password must be at least 6 characters.");
+            return;
+        }
+
         setError("");
-        onLogin(clean);
+        setLoading(true);
+
+        try {
+            const result = await signIn("credentials", {
+                student_id: cleanId,
+                password,
+                is_claiming: isClaiming ? "true" : "false",
+                redirect: false,
+            });
+
+            if (result?.error) {
+                setError(isClaiming ? "Account already exists or invalid data." : "Invalid ID or password.");
+            } else {
+                window.location.reload();
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="relative min-h-screen bg-black flex items-center justify-center px-4 overflow-hidden">
-
-            {/* Framer-style violet radial glow */}
-            <div className="pointer-events-none absolute inset-0">
-                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[600px]"
-                    style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.28) 0%, transparent 70%)" }} />
+        <div className="relative min-h-screen bg-[#030303] flex items-center justify-center px-4 overflow-hidden glow-premium">
+            {/* Animated Background Orbs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-500/10 rounded-full blur-[120px] animate-slow-glow" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/10 rounded-full blur-[120px] animate-slow-glow" style={{ animationDelay: "-4s" }} />
             </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-sm z-10"
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full max-w-[400px] z-10"
             >
-                {/* Pill badge */}
+                {/* Badge */}
                 <div className="flex justify-center mb-10">
-                    <span className="pill-badge">
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-                        HTU Courses Tracker
-                    </span>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="pill-badge-premium"
+                    >
+                        <Sparkles className="w-3.5 h-3.5 fill-violet-400/20" />
+                        HTU Smart Advisor
+                    </motion.div>
                 </div>
 
-                {/* Heading */}
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl font-bold text-white mb-3 tracking-tight leading-none">
-                        Welcome back
-                    </h1>
-                    <p className="text-[15px] text-white/40 leading-relaxed">
-                        Enter your university ID to load<br />your saved progress
-                    </p>
-                </div>
+                <div className="glass-card-premium rounded-[32px] p-8 md:p-10 border border-white/10 relative overflow-hidden">
+                    {/* Subtle inner flare */}
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-violet-400/20 to-transparent" />
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-3">
-                    <div className="glass-card rounded-2xl p-1">
-                        <input
-                            type="text"
-                            value={id}
-                            onChange={(e) => { setId(e.target.value); setError(""); }}
-                            placeholder="University ID — e.g. 2210001234"
-                            autoFocus
-                            className="w-full bg-transparent px-4 py-3 text-white placeholder-white/25
-                                       outline-none text-sm font-mono tracking-wide rounded-xl"
-                        />
+                    <div className="text-center mb-10">
+                        <AnimatePresence mode="wait">
+                            <motion.h1
+                                key={isClaiming ? "claim" : "login"}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="text-[32px] font-bold text-white mb-2 tracking-tight leading-none"
+                            >
+                                {isClaiming ? "Claim Your Spot" : "Welcome Back"}
+                            </motion.h1>
+                        </AnimatePresence>
+                        <p className="text-sm text-white/40 font-medium">
+                            {isClaiming
+                                ? "Link your university ID to start tracking."
+                                : "Sign in to access your advisor dashboard."}
+                        </p>
                     </div>
 
-                    {error && (
-                        <motion.p
-                            initial={{ opacity: 0, y: -6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-xs text-red-400/80 px-1"
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-3">
+                            <div className="relative group">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-violet-400/50 transition-colors">
+                                    <User className="w-4.5 h-4.5" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={id}
+                                    onChange={(e) => { setId(e.target.value); setError(""); }}
+                                    placeholder="University ID"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 outline-none transition-all focus:bg-white/[0.05] focus:border-violet-500/40 text-sm font-medium"
+                                />
+                            </div>
+
+                            <div className="relative group">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-violet-400/50 transition-colors">
+                                    <Lock className="w-4.5 h-4.5" />
+                                </div>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                                    placeholder="Secure Password"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 outline-none transition-all focus:bg-white/[0.05] focus:border-violet-500/40 text-sm font-medium"
+                                />
+                            </div>
+                        </div>
+
+                        {error && (
+                            <motion.p initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} className="text-[11px] font-semibold text-red-400/90 text-center">
+                                {error}
+                            </motion.p>
+                        )}
+
+                        <motion.button
+                            disabled={loading}
+                            whileHover={{ scale: 1.01, y: -1 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white text-black font-bold text-sm transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
                         >
-                            {error}
-                        </motion.p>
-                    )}
+                            {loading ? "Initializing..." : isClaiming ? "Verify & Claim" : "Enter Dashboard"}
+                            {!loading && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
+                        </motion.button>
+                    </form>
 
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                        type="submit"
-                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl
-                                   bg-white text-black font-semibold text-sm tracking-tight
-                                   hover:bg-white/90 transition-colors"
-                    >
-                        Continue
-                        <ArrowRight className="w-4 h-4" />
-                    </motion.button>
-                </form>
+                    <div className="relative my-10 px-4">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5" /></div>
+                        <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest text-white/20">
+                            <span className="bg-[#121212] px-3 py-1 rounded-full border border-white/5">Universal Login</span>
+                        </div>
+                    </div>
 
-                <p className="text-center text-white/20 text-xs mt-8">
-                    Progress is saved server-side and accessible from any device.
-                </p>
+                    <div className="flex flex-col gap-4">
+                        <motion.button
+                            whileHover={{ scale: 1.01, border: "rgba(255,255,255,0.2)" }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => signIn("google")}
+                            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white text-sm font-semibold transition-all hover:bg-white/[0.05]"
+                        >
+                            <div className="w-6 h-6 flex items-center justify-center bg-white/5 rounded-full">
+                                <Chrome className="w-3.5 h-3.5 text-white/60" />
+                            </div>
+                            Continue with Google
+                        </motion.button>
+
+                        <button
+                            onClick={() => { setIsClaiming(!isClaiming); setError(""); }}
+                            className="text-xs text-white/30 hover:text-white/60 transition-colors font-medium text-center hover:underline underline-offset-4"
+                        >
+                            {isClaiming ? "Already registered? Sign In" : "New student? Claim your account here"}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="mt-8 flex items-center justify-center gap-6 opacity-20">
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white" />
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-white">SECURE AUTH</span>
+                    <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white" />
+                </div>
             </motion.div>
         </div>
     );

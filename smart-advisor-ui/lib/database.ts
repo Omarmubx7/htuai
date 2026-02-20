@@ -1,6 +1,16 @@
 import { sql } from '@vercel/postgres';
 
-
+/**
+ * Drop all tables and recreate them. (Nuclear Reset)
+ */
+export async function resetDB() {
+    await sql`DROP TABLE IF EXISTS accounts CASCADE;`;
+    await sql`DROP TABLE IF EXISTS users CASCADE;`;
+    await sql`DROP TABLE IF EXISTS visitor_logs CASCADE;`;
+    await sql`DROP TABLE IF EXISTS student_profile CASCADE;`;
+    await sql`DROP TABLE IF EXISTS student_progress CASCADE;`;
+    await initDB();
+}
 
 /**
  * Visitor log data structure
@@ -55,11 +65,33 @@ export async function initDB() {
         );
     `;
 
+    // New authentication tables
+    await sql`
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            student_id TEXT UNIQUE,
+            email TEXT UNIQUE,
+            password_hash TEXT,
+            name TEXT,
+            image TEXT,
+            created_at TIMESTAMP DEFAULT (NOW())
+        );
+    `;
+
+    await sql`
+        CREATE TABLE IF NOT EXISTS accounts (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            provider TEXT NOT NULL,
+            provider_account_id TEXT NOT NULL,
+            UNIQUE(provider, provider_account_id)
+        );
+    `;
+
     // Add student_id column if it doesn't exist (migrations are better, but this handles simple schema evolution)
     try {
         await sql`ALTER TABLE visitor_logs ADD COLUMN IF NOT EXISTS student_id TEXT;`;
     } catch (e) {
-        // Find a way to check column existence safely if this fails, but IF NOT EXISTS usually works in PG
         console.log("Column check passed or failed safely", e);
     }
 }
@@ -154,5 +186,66 @@ export async function saveMajor(studentId: string, major: string): Promise<void>
         ON CONFLICT (student_id) DO UPDATE SET
             major      = EXCLUDED.major,
             updated_at = EXCLUDED.updated_at
+    `;
+}
+
+// ─── User Authentication Methods ─────────────────────────────────────────────
+
+export interface DBUser {
+    id: number;
+    student_id: string | null;
+    email: string | null;
+    password_hash: string | null;
+    name: string | null;
+    image: string | null;
+}
+
+export async function getUserById(id: number): Promise<DBUser | null> {
+    const { rows } = await sql`SELECT * FROM users WHERE id = ${id}`;
+    return (rows[0] as DBUser) || null;
+}
+
+export async function getUserByStudentId(studentId: string): Promise<DBUser | null> {
+    const { rows } = await sql`SELECT * FROM users WHERE student_id = ${studentId}`;
+    return (rows[0] as DBUser) || null;
+}
+
+export async function getUserByEmail(email: string): Promise<DBUser | null> {
+    const { rows } = await sql`SELECT * FROM users WHERE email = ${email}`;
+    return (rows[0] as DBUser) || null;
+}
+
+export async function createUser(data: Partial<DBUser>): Promise<DBUser> {
+    const { rows } = await sql`
+        INSERT INTO users (student_id, email, password_hash, name, image)
+        VALUES (
+            ${data.student_id || null}, 
+            ${data.email || null}, 
+            ${data.password_hash || null}, 
+            ${data.name || null}, 
+            ${data.image || null}
+        )
+        RETURNING *
+    `;
+    return rows[0] as DBUser;
+}
+
+export async function linkAccount(userId: number, provider: string, providerAccountId: string) {
+    await sql`
+        INSERT INTO accounts (user_id, provider, provider_account_id)
+        VALUES (${userId}, ${provider}, ${providerAccountId})
+        ON CONFLICT (provider, provider_account_id) DO NOTHING
+    `;
+}
+
+export async function updateUserDetails(id: number, data: Partial<DBUser>) {
+    await sql`
+        UPDATE users 
+        SET 
+            student_id = COALESCE(${data.student_id}, student_id),
+            password_hash = COALESCE(${data.password_hash}, password_hash),
+            name = COALESCE(${data.name}, name),
+            image = COALESCE(${data.image}, image)
+        WHERE id = ${id}
     `;
 }
