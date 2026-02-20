@@ -29,6 +29,18 @@ const majorGlow: Record<string, string> = {
     "mechanical_engineering": "rgba(59,130,246,0.18)",
 };
 
+/** Per-major solid accent colour for border & text */
+const majorAccent: Record<string, string> = {
+    "data_science": "#8b5cf6",
+    "computer_science": "#3b82f6",
+    "cybersecurity": "#10b981",
+    "game_design": "#f43f5e",
+    "electrical_engineering": "#fbbf24",
+    "energy_engineering": "#84cc16",
+    "industrial_engineering": "#94a3b8",
+    "mechanical_engineering": "#f97316",
+};
+
 export default function MajorSelector({ onSelect }: MajorSelectorProps) {
     return (
         <div className="relative min-h-screen bg-black flex items-center justify-center px-4 overflow-hidden">
@@ -75,7 +87,9 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                         animate="show"
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
                     >
-                        {MAJORS.filter(m => m.school === "Computing").map((major) => (
+                        {MAJORS.filter(m => m.school === "Computing").map((major) => {
+                            const accent = majorAccent[major.key] ?? "#8b5cf6";
+                            return (
                             <motion.button
                                 key={major.key}
                                 variants={item}
@@ -84,6 +98,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                                 onClick={() => onSelect(major.key)}
                                 className="group relative text-left p-6 rounded-2xl overflow-hidden cursor-pointer
                                            glass-card glass-card-hover transition-all duration-300"
+                                style={{ borderTop: `2px solid ${accent}40` }}
                             >
                                 <div
                                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
@@ -91,19 +106,22 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                                 />
                                 <div className="relative z-10">
                                     <div className="text-3xl mb-5">{major.icon}</div>
-                                    <h2 className="text-base font-semibold text-white mb-2 leading-snug tracking-tight">
+                                    <h2 className="text-base font-semibold mb-2 leading-snug tracking-tight"
+                                        style={{ color: accent }}>
                                         {major.label}
                                     </h2>
                                     <p className="text-sm text-white/35 mb-6 leading-relaxed">
                                         {major.description}
                                     </p>
-                                    <div className="flex items-center gap-1.5 text-xs font-medium text-white/50 group-hover:text-white/70 transition-colors">
+                                    <div className="flex items-center gap-1.5 text-xs font-medium transition-colors"
+                                        style={{ color: `${accent}80` }}>
                                         Select major
                                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 </div>
                             </motion.button>
-                        ))}
+                            );
+                        })}
                     </motion.div>
                 </div>
 
@@ -121,7 +139,9 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                         animate="show"
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
                     >
-                        {MAJORS.filter(m => m.school === "Engineering").map((major) => (
+                        {MAJORS.filter(m => m.school === "Engineering").map((major) => {
+                            const accent = majorAccent[major.key] ?? "#8b5cf6";
+                            return (
                             <motion.button
                                 key={major.key}
                                 variants={item}
@@ -130,6 +150,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                                 onClick={() => onSelect(major.key)}
                                 className="group relative text-left p-6 rounded-2xl overflow-hidden cursor-pointer
                                            glass-card glass-card-hover transition-all duration-300"
+                                style={{ borderTop: `2px solid ${accent}40` }}
                             >
                                 <div
                                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
@@ -137,19 +158,22 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                                 />
                                 <div className="relative z-10">
                                     <div className="text-3xl mb-5">{major.icon}</div>
-                                    <h2 className="text-base font-semibold text-white mb-2 leading-snug tracking-tight">
+                                    <h2 className="text-base font-semibold mb-2 leading-snug tracking-tight"
+                                        style={{ color: accent }}>
                                         {major.label}
                                     </h2>
                                     <p className="text-sm text-white/35 mb-6 leading-relaxed">
                                         {major.description}
                                     </p>
-                                    <div className="flex items-center gap-1.5 text-xs font-medium text-white/50 group-hover:text-white/70 transition-colors">
+                                    <div className="flex items-center gap-1.5 text-xs font-medium transition-colors"
+                                        style={{ color: `${accent}80` }}>
                                         Select major
                                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 </div>
                             </motion.button>
-                        ))}
+                            );
+                        })}
                     </motion.div>
                 </div>
 
