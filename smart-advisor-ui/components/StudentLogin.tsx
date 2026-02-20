@@ -85,12 +85,12 @@ export default function StudentLogin() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="text-[32px] font-bold text-white mb-2 tracking-tight leading-none"
+                                className="text-[32px] font-extrabold text-white mb-2 tracking-tight leading-none"
                             >
                                 {isClaiming ? "Claim Your Spot" : "Welcome Back"}
                             </motion.h1>
                         </AnimatePresence>
-                        <p className="text-sm text-white/40 font-medium">
+                        <p className="text-sm text-white/50 font-semibold">
                             {isClaiming
                                 ? "Link your university ID to start tracking."
                                 : "Sign in to access your advisor dashboard."}
@@ -197,12 +197,6 @@ export default function StudentLogin() {
                             </button>
                         </p>
                     </div>
-                </div>
-
-                <div className="mt-8 flex items-center justify-center gap-6 opacity-20">
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white" />
-                    <span className="text-[10px] font-bold tracking-[0.2em] text-white">SECURE AUTH</span>
-                    <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white" />
                 </div>
             </motion.div>
         </div>

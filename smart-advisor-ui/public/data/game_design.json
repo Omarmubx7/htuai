@@ -3,20 +3,92 @@
         "total_credits": 72,
         "shared_credits": 27,
         "core_credits": 45,
-        "note": "department_requirements + electives + work_market are unique to this major. university_requirements and college_requirements come from shared.json",
+        "note": "Technical degree structure. Includes specific 10 CH University and 17 CH College requirements.",
+        "university_requirements": [
+            {
+                "code": "30301111",
+                "name": "Arabic Language & Communication Skills",
+                "ch": 1,
+                "level": 1,
+                "prereq": "30301110"
+            },
+            {
+                "code": "30301121",
+                "name": "English Pre-Intermediate Intensive + Lab",
+                "ch": 4,
+                "level": 1,
+                "prereq": "30301120"
+            },
+            {
+                "code": "30301122",
+                "name": "English Intermediate",
+                "ch": 3,
+                "level": 1,
+                "prereq": "30301121"
+            },
+            {
+                "code": "30302129",
+                "name": "Military Sciences",
+                "ch": 1,
+                "level": 1
+            },
+            {
+                "code": "40302111",
+                "name": "Professional Skills",
+                "ch": 1,
+                "level": 1
+            }
+        ],
+        "college_requirements": [
+            {
+                "code": "30303111",
+                "name": "Functional Maths",
+                "ch": 3,
+                "level": 1,
+                "prereq": "30303110"
+            },
+            {
+                "code": "40201100",
+                "name": "Programming",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "40303130"
+            },
+            {
+                "code": "40201290",
+                "name": "Planning a Computing Project",
+                "ch": 4,
+                "framework": "HNC",
+                "level": 2,
+                "prereq": "40302211"
+            },
+            {
+                "code": "40302211",
+                "name": "Professional Practice",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "40302111 & 30301122"
+            },
+            {
+                "code": "40303130",
+                "name": "Fundamentals of Computing",
+                "ch": 4,
+                "level": 1
+            }
+        ],
         "department_requirements": [
             {
                 "code": "201120",
                 "name": "Game Design",
                 "ch": 3,
-                "framework": "HTU",
                 "level": 1
             },
             {
                 "code": "201160",
                 "name": "Creative Games Development",
                 "ch": 3,
-                "framework": "HTU",
                 "level": 1,
                 "prereq": "201120"
             },
@@ -24,7 +96,6 @@
                 "code": "201262",
                 "name": "Games Engine",
                 "ch": 3,
-                "framework": "HTU",
                 "level": 2,
                 "prereq": "201160"
             },
@@ -32,7 +103,6 @@
                 "code": "201263",
                 "name": "Advanced Scripting for Games",
                 "ch": 3,
-                "framework": "HTU",
                 "level": 2,
                 "prereq": "201262"
             },
@@ -40,7 +110,6 @@
                 "code": "201264",
                 "name": "Immersive Technology Development",
                 "ch": 3,
-                "framework": "HTU",
                 "level": 2,
                 "prereq": "201262"
             },
@@ -48,7 +117,6 @@
                 "code": "201270",
                 "name": "Special Topics in Game Development",
                 "ch": 3,
-                "framework": "HTU",
                 "level": 2,
                 "prereq": "201262"
             },
@@ -57,7 +125,8 @@
                 "name": "Security",
                 "ch": 3,
                 "framework": "HNC",
-                "level": 1
+                "level": 1,
+                "prereq": "40303130"
             },
             {
                 "code": "10203180",
@@ -73,7 +142,7 @@
                 "ch": 3,
                 "framework": "HNC",
                 "level": 1,
-                "prereq": "40303130"
+                "prereq": "40201100"
             },
             {
                 "code": "40201220",
@@ -85,6 +154,14 @@
             }
         ],
         "electives": [
+            {
+                "code": "40201260",
+                "name": "Website Design & Development",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "40201100"
+            },
             {
                 "code": "40303121",
                 "name": "Maths for Computing",
@@ -99,14 +176,12 @@
                 "code": "7102",
                 "name": "Career Readiness Workshop",
                 "ch": 0,
-                "framework": "HTU",
                 "level": 1
             },
             {
                 "code": "201290",
                 "name": "Apprenticeship 1 for Game Design and Development",
                 "ch": 6,
-                "framework": "HTU",
                 "level": 2,
                 "prereq": "7102"
             },
@@ -114,7 +189,6 @@
                 "code": "201293",
                 "name": "Apprenticeship 2 for Game Design and Development",
                 "ch": 6,
-                "framework": "HTU",
                 "level": 2,
                 "prereq": "201290"
             }

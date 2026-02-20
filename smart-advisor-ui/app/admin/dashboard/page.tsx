@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AdminGate, { useAdminSecret } from '@/components/AdminGate';
 import {
     Users, Activity, PieChart, TrendingUp,
     Monitor, Smartphone, Globe, BookOpen,
@@ -119,6 +120,11 @@ function useCountUp(target: number, duration = 1400) {
    ═══════════════════════════════════════════════════════════════════ */
 
 export default function Dashboard() {
+    return <AdminGate><DashboardInner /></AdminGate>;
+}
+
+function DashboardInner() {
+    const adminSecret = useAdminSecret();
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<TabKey>('overview');
@@ -133,14 +139,16 @@ export default function Dashboard() {
         if (!silent) setLoading(true);
         else setRefreshing(true);
         try {
-            const res = await fetch('/api/admin/stats');
+            const res = await fetch('/api/admin/stats', {
+                headers: { 'x-admin-secret': adminSecret }
+            });
             const data = await res.json();
             setStats(data);
             setLastFetched(new Date());
         } catch { /* ignore */ }
         setLoading(false);
         setRefreshing(false);
-    }, []);
+    }, [adminSecret]);
 
     useEffect(() => {
         fetchData();

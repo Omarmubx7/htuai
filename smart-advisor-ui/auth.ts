@@ -34,22 +34,20 @@ export const authOptions: NextAuthOptions = {
                     console.log("Existing user found:", !!user);
 
                     if (isClaiming) {
-                        const passwordHash = await bcrypt.hash(password, 10);
-                        let finalUser;
-
                         if (user) {
-                            console.log("Updating password for existing user during claim:", studentId);
-                            await updateUserDetails(user.id, { password_hash: passwordHash });
-                            finalUser = user;
-                        } else {
-                            console.log("Creating new user for claim:", studentId);
-                            finalUser = await createUser({
-                                student_id: studentId,
-                                password_hash: passwordHash
-                            });
+                            // Account already exists — cannot claim it, must login instead
+                            console.log("Claim rejected: account already exists for", studentId);
+                            return null;
                         }
 
-                        console.log("User successfully claimed/updated with id:", finalUser.id);
+                        console.log("Creating new user for claim:", studentId);
+                        const passwordHash = await bcrypt.hash(password, 10);
+                        const finalUser = await createUser({
+                            student_id: studentId,
+                            password_hash: passwordHash
+                        });
+
+                        console.log("User successfully claimed with id:", finalUser.id);
                         return { id: finalUser.id.toString(), name: studentId, student_id: studentId } as any;
                     }
 

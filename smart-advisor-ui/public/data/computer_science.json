@@ -3,7 +3,6 @@
     "total_credits": 135,
     "shared_credits": 45,
     "core_credits": 90,
-    "note": "department_requirements + electives are unique to this major. university_requirements and college_requirements come from shared.json",
     "department_requirements": [
       {
         "code": "10203180",
@@ -74,7 +73,8 @@
         "name": "Computing Research Project",
         "ch": 6,
         "framework": "HND",
-        "level": 3
+        "level": 3,
+        "prereq": "40201290"
       },
       {
         "code": "10204282",
@@ -106,7 +106,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 3,
-        "prereq": "40303221 AND 40201100"
+        "prereq": "40201100 & 40303221"
       },
       {
         "code": "40201341",
@@ -138,7 +138,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 4,
-        "prereq": "10204282"
+        "prereq": "10204282 & 40201201"
       },
       {
         "code": "40201440",
@@ -152,15 +152,13 @@
         "code": "40201491",
         "name": "Capstone Project I",
         "ch": 1,
-        "framework": "HTU",
         "level": 4,
-        "prereq": ">= 90 hrs including core courses"
+        "prereq": ">= 90 CH"
       },
       {
         "code": "40201492",
         "name": "Capstone Project II",
         "ch": 2,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40201491"
       },
@@ -168,19 +166,15 @@
         "code": "40201390",
         "name": "HNC Training",
         "ch": 12,
-        "framework": "HTU",
         "level": 3,
-        "prereq": "Minimum completed hours >= 85",
-        "description": "Work-based placement — minimum 85 CH must be completed before starting"
+        "prereq": ">= 85 CH"
       },
       {
         "code": "40201490",
         "name": "HND Training",
         "ch": 6,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "40201390",
-        "description": "Advanced placement — corequisite: HNC Training must be completed or concurrent"
+        "prereq": "40201390"
       }
     ],
     "electives": [
@@ -188,23 +182,20 @@
         "code": "40201441",
         "name": "Internet of Things",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "40201341 AND 10203180"
+        "prereq": "10203180 & 40201341"
       },
       {
         "code": "40201450",
         "name": "Cloud Computing",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "40201341 AND 10203180"
+        "prereq": "10203180 & 40201341"
       },
       {
         "code": "40201462",
         "name": "Virtual & Augmented Reality Development",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40201362"
       },
@@ -212,7 +203,6 @@
         "code": "40201460",
         "name": "E-Commerce",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40201260"
       },
@@ -220,7 +210,6 @@
         "code": "40201442",
         "name": "Real Time Systems",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40201341"
       },
@@ -228,7 +217,6 @@
         "code": "40201461",
         "name": "Mobile Application Development",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40201360"
       },
@@ -236,7 +224,6 @@
         "code": "00204414",
         "name": "Data Analytics for IT Professionals",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204312"
       },
@@ -244,7 +231,6 @@
         "code": "00204456",
         "name": "Artificial Intelligence for IT Professionals",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204312"
       },
@@ -252,7 +238,6 @@
         "code": "40201470",
         "name": "Special Topics",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "Department Approval"
       }

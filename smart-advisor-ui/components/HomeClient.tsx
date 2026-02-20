@@ -7,8 +7,9 @@ import StudentLogin from "@/components/StudentLogin";
 import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
 import { CourseData } from "@/types";
-import { LogOut, Settings2 } from "lucide-react";
+import { LogOut, Settings2, Sparkles } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 
 type AppState = "checking" | "login" | "major-select" | "transcript";
 
@@ -18,6 +19,7 @@ export default function HomeClient() {
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajorState] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);
+    const [rules, setRules] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -38,10 +40,17 @@ export default function HomeClient() {
 
     /** After login: fetch the student's saved major from the DB */
     async function loadProfile(id: string) {
+        console.log(`[Advisor] Loading profile for: ${id}`);
         setStudentId(id);
         try {
             const res = await fetch(`/api/profile/${encodeURIComponent(id)}`);
+            if (!res.ok) {
+                console.error(`[Advisor] Profile fetch failed: ${res.status} ${res.statusText}`);
+                setAppState("major-select");
+                return;
+            }
             const { major: savedMajor } = await res.json();
+            console.log(`[Advisor] Profile loaded. Major: ${savedMajor}`);
             if (savedMajor) {
                 setMajorState(savedMajor as MajorKey);
                 setAppState("transcript");
@@ -49,7 +58,8 @@ export default function HomeClient() {
             } else {
                 setAppState("major-select");
             }
-        } catch {
+        } catch (e) {
+            console.error("[Advisor] Profile fetch error:", e);
             setAppState("major-select");
         }
     }
@@ -78,32 +88,63 @@ export default function HomeClient() {
     };
 
 
-    /** Fetch + merge shared + major-specific JSON */
+    /** Fetch + merge shared + major-specific JSON + rules */
     async function loadCourses(key: MajorKey) {
         setLoading(true);
+        // ... (rest of fileMap)
         const fileMap: Record<MajorKey, string> = {
             data_science: "data_science.json",
             computer_science: "computer_science.json",
             cybersecurity: "cybersecurity.json",
             game_design: "game_design.json",
+            electrical_engineering: "electrical_engineering.json",
+            energy_engineering: "energy_engineering.json",
+            industrial_engineering: "industrial_engineering.json",
+            mechanical_engineering: "mechanical_engineering.json",
         };
         try {
-            const [shared, majorJson] = await Promise.all([
-                fetch("/data/shared.json").then(r => r.json()),
-                fetch(`/data/${fileMap[key]}`).then(r => r.json()),
+            const rulesPath = "/data/curriculum_rules.json";
+            const sharedPath = "/data/shared.json";
+            const majorPath = `/data/${fileMap[key]}`;
+
+            console.log(`[Advisor] Fetching rules: ${rulesPath}`);
+            console.log(`[Advisor] Fetching shared: ${sharedPath}`);
+            console.log(`[Advisor] Fetching major: ${majorPath}`);
+
+            const [rulesRes, sharedRes, majorRes] = await Promise.all([
+                fetch(rulesPath),
+                fetch(sharedPath),
+                fetch(majorPath),
             ]);
+
+            if (!rulesRes.ok) throw new Error(`Rules fetch failed: ${rulesRes.status}`);
+            if (!sharedRes.ok) throw new Error(`Shared data fetch failed: ${sharedRes.status} ${sharedRes.statusText}`);
+            if (!majorRes.ok) throw new Error(`Major data fetch failed: ${majorRes.status} ${majorRes.statusText}`);
+
+            const [rulesJson, shared, majorJson] = await Promise.all([
+                rulesRes.json(),
+                sharedRes.json(),
+                majorRes.json(),
+            ]);
+
+            setRules(rulesJson);
+
             const rootKey = Object.keys(majorJson)[0];
             const majorData = majorJson[rootKey];
+
+            if (!majorData) throw new Error(`Major data root key mismatch for ${key}`);
+
             setCourseData({
-                university_requirements: shared.university_requirements ?? [],
-                college_requirements: shared.college_requirements ?? [],
-                university_electives: shared.university_electives ?? [],
+                university_requirements: majorData.university_requirements ?? shared.university_requirements ?? [],
+                college_requirements: majorData.college_requirements ?? shared.college_requirements ?? [],
+                university_electives: majorData.university_electives ?? shared.university_electives ?? [],
                 department_requirements: majorData.department_requirements ?? [],
                 electives: majorData.electives ?? [],
                 work_market_requirements: majorData.work_market_requirements ?? [],
             });
         } catch (e) {
-            console.error(e);
+            console.error("[Advisor] Data Load Error:", e);
+            // Alert or show error UI? For now just log.
         } finally {
             setLoading(false);
         }
@@ -148,6 +189,20 @@ export default function HomeClient() {
 
                             <div className="w-px h-4 bg-white/8 hidden sm:block" />
 
+                            {/* Planner link hidden for now
+                            <Link
+                                href="/planner"
+                                className="flex items-center gap-1.5 text-xs font-medium text-white/40 hover:text-violet-400 transition-colors px-2 py-1 rounded-md hover:bg-violet-500/5 group"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                <span>Semester Planner</span>
+                            </Link>
+
+                            <div className="w-px h-4 bg-white/8 hidden sm:block" />
+                            */}
+
+                            <div className="w-px h-4 bg-white/8 hidden sm:block" />
+
                             {/* Student ID */}
                             <div className="flex items-center gap-2">
                                 <div className="w-5 h-5 rounded-full bg-violet-500/20 border border-violet-500/25 flex items-center justify-center">
@@ -184,6 +239,17 @@ export default function HomeClient() {
                                 <LogOut className="w-3 h-3" />
                                 Log out
                             </button>
+
+                            <div className="w-px h-4 bg-white/8" />
+
+                            <a
+                                href="https://mubx.dev"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-white/20 hover:text-violet-400/70 transition-colors font-medium tracking-wide"
+                            >
+                                made by <span className="font-semibold">mubx</span>
+                            </a>
                         </div>
                     </div>
                 </header>
@@ -191,8 +257,8 @@ export default function HomeClient() {
                 {/* Content */}
                 {loading ? (
                     <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>
-                ) : courseData && major ? (
-                    <TranscriptView data={courseData} studentId={studentId!} majorKey={major} />
+                ) : courseData && major && rules ? (
+                    <TranscriptView data={courseData} studentId={studentId!} majorKey={major} rules={rules} />
                 ) : null}
             </motion.div>
         </AnimatePresence>

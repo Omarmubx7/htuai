@@ -3,7 +3,6 @@
     "total_credits": 135,
     "shared_credits": 45,
     "core_credits": 90,
-    "note": "department_requirements + electives are unique to this major. university_requirements and college_requirements come from shared.json",
     "department_requirements": [
       {
         "code": "10203180",
@@ -42,14 +41,16 @@
         "name": "Business Intelligence",
         "ch": 3,
         "framework": "HND",
-        "level": 3
+        "level": 3,
+        "prereq": "10204282"
       },
       {
         "code": "00201391",
         "name": "Computing Research Project",
         "ch": 6,
         "framework": "HND",
-        "level": 3
+        "level": 3,
+        "prereq": "40201290"
       },
       {
         "code": "00203280",
@@ -96,7 +97,7 @@
         "name": "Data Mining",
         "ch": 3,
         "framework": "HTU",
-        "level": 4,
+        "level": 3,
         "prereq": "10204210"
       },
       {
@@ -104,7 +105,8 @@
         "name": "Modeling and Simulation",
         "ch": 3,
         "framework": "HTU",
-        "level": 3
+        "level": 3,
+        "prereq": "10204250"
       },
       {
         "code": "10204350",
@@ -112,14 +114,15 @@
         "ch": 3,
         "framework": "HND",
         "level": 3,
-        "prereq": "10204210"
+        "prereq": "00204280 & 10204210"
       },
       {
         "code": "10204351",
         "name": "Natural Language Processing",
         "ch": 3,
         "framework": "HTU",
-        "level": 3
+        "level": 3,
+        "prereq": "10204250"
       },
       {
         "code": "00204310",
@@ -149,15 +152,13 @@
         "code": "10204491",
         "name": "Capstone Project I",
         "ch": 1,
-        "framework": "HTU",
         "level": 4,
-        "prereq": ">= 90 hrs including core courses"
+        "prereq": ">= 90 CH"
       },
       {
         "code": "10204492",
         "name": "Capstone Project II",
         "ch": 2,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204491"
       },
@@ -165,19 +166,15 @@
         "code": "10204390",
         "name": "HNC Training",
         "ch": 12,
-        "framework": "HTU",
         "level": 3,
-        "prereq": "Minimum completed hours >= 85",
-        "description": "Work-based placement — minimum 85 CH must be completed before starting"
+        "prereq": ">= 85 CH"
       },
       {
         "code": "10204490",
         "name": "HND Training",
         "ch": 6,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "10204390",
-        "description": "Advanced placement — corequisite: HNC Training must be completed or concurrent"
+        "prereq": "10204390"
       }
     ],
     "electives": [
@@ -185,7 +182,6 @@
         "code": "00204410",
         "name": "Health Informatics",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204210"
       },
@@ -193,7 +189,6 @@
         "code": "00204411",
         "name": "Time Series Analysis",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204210"
       },
@@ -201,7 +196,6 @@
         "code": "00204412",
         "name": "Applied Analytical Models",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40303221"
       },
@@ -209,7 +203,6 @@
         "code": "10204431",
         "name": "Information Retrieval",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40303221"
       },
@@ -217,7 +210,6 @@
         "code": "00204432",
         "name": "Bioinformatics",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204350"
       },
@@ -225,7 +217,6 @@
         "code": "00204413",
         "name": "Analytical Methods",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40303221"
       },
@@ -233,7 +224,6 @@
         "code": "00204433",
         "name": "Data Engineering",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204210"
       },
@@ -241,14 +231,13 @@
         "code": "10204451",
         "name": "Pattern Recognition",
         "ch": 3,
-        "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "10204250"
       },
       {
         "code": "10204452",
         "name": "Computer Vision",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "40303221"
       },
@@ -256,22 +245,20 @@
         "code": "10204453",
         "name": "Robotics",
         "ch": 3,
-        "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "10204250"
       },
       {
         "code": "10204454",
         "name": "Optimization Theory",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "40201201 AND 40303221"
+        "prereq": "40201201 & 40303221"
       },
       {
         "code": "10204455",
         "name": "Machine Learning Operations",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204350"
       },
@@ -279,15 +266,13 @@
         "code": "40201450",
         "name": "Cloud Computing",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "10203180"
+        "prereq": "10203180 & 40201341"
       },
       {
         "code": "10204470",
         "name": "Special Topics",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "Department Approval"
       }

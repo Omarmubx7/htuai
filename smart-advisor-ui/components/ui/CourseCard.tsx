@@ -8,6 +8,7 @@ interface CourseCardProps {
     course: Course;
     isCompleted: boolean;
     isLocked: boolean;
+    hasPrereqWarning?: boolean;
     lockReason?: string;
     missingPrereqs?: string[];
     courseMap?: Record<string, string>;
@@ -40,6 +41,7 @@ export default function CourseCard({
     course,
     isCompleted,
     isLocked,
+    hasPrereqWarning,
     lockReason,
     missingPrereqs = [],
     courseMap = {},
@@ -66,11 +68,14 @@ export default function CourseCard({
                     ? "border-emerald-500/20 bg-emerald-500/5"
                     : isLocked
                         ? "border-white/5 bg-white/[0.02] opacity-50"
-                        : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.05]"
+                        : hasPrereqWarning
+                            ? "border-amber-500/20 bg-amber-500/5 hover:border-amber-500/30"
+                            : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.05]"
                 }
             `}
             style={{ backdropFilter: "blur(12px)" }}
             onClick={handleClick}
+            title={lockReason}
         >
             {/* Completed glow */}
             {isCompleted && (
@@ -86,6 +91,8 @@ export default function CourseCard({
                 </span>
                 {isLocked ? (
                     <Lock className="w-3.5 h-3.5 text-white/20 shrink-0" />
+                ) : hasPrereqWarning ? (
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
                 ) : isCompleted ? (
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 ) : (

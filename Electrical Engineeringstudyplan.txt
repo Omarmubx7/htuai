@@ -1,0 +1,1656 @@
+1 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+School of Engineering Technology 
+Electrical Engineering Department 
+ 
+ 
+Bachelor Degree in Electrical Engineering  
+Study Plan 
+ 
+2022 
+  
+
+2 
+ 
+Program Objectives 
+1. Provide world-class, flexible, STEM-based education which combines in-depth technical 
+knowledge with professional, leadership, and entrepreneurial skills. 
+ 
+2. Build advanced practical and technical skills to enable the student to conceive, design, build, 
+and test complex engineering systems. 
+ 
+3. Provide the student with a hands-on understanding of the evolving market needs through a 
+tailored and intensive industry-based apprenticeship scheme. 
+ 
+4. Create opportunities to enhance the student’s character, soft skills and adaptation abilities 
+within different multidisciplinary teams and various professional environments. 
+ 
+5. Emphasize the necessity of engaging in life-long independent learning and professional 
+development. 
+ 
+6. Equip the student with the relevant up-to-date skills for employment in a variety of technical 
+and engineering fields, or initiating an innovative entrepreneurial venture or a technology 
+startup. 
+ 
+7. Enable the student to progress in graduate studies in relevant technical or engineering fields. 
+ 
+ 
+Learning Outcomes 
+Upon graduation, the graduate of the Electrical Engineering Program should be able to: 
+ 
+1. Apply the knowledge of science, mathematics, technology, and engineering fundamentals to 
+electrical engineering applications. 
+ 
+2. Design and conduct experiments, as well as analyze and present results in a professional 
+manner.  
+ 
+3. Design, model, analyze and build practical electrical systems to meet specific requirements and 
+realistic constraints. 
+ 
+4. Use the techniques, skills and modern engineering and computing tools necessary for 
+engineering practices. 
+ 
+5. Identify, formulate and solve engineering problems. 
+ 
+6. Communicate effectively and function in multidisciplinary teams. 
+ 
+3 
+ 
+7. Understand professional and ethical issues and the responsibilities of the engineering practice. 
+ 
+8. Recognize contemporary issues and environmental, cultural, and economical considerations of 
+the engineering profession. 
+ 
+9. Appreciate the need for professional development and engage in life-long learning. 
+ 
+10. Engage in entrepreneurial activity and understand the value of technology innovation. 
+ 
+11. Understand the requirements and constraints of the professional employment environment.  
+ 
+Assessment of Learning Outcomes 
+Assessment model requires the students to engage with a variety of assessment tools including design 
+and practical projects, laboratory activities and simulations, take-home assignments and conventional 
+in-class examinations. The assessment tools are designed to support the development of the students’ 
+knowledge, deep understanding, self-efficacy and confidence. Examinations are required to be based 
+on practical scenarios to maintain the connection between the theoretical and experimental parts of 
+knowledge delivered through the courses. A robust quality assurance system relying on systematic 
+internal-verification procedures is used, monitoring the assignments in terms of content and grading, 
+ensuring that the best implementation is adopted.  Feedback to the students is given in the form of 
+formative and summative feedback. Formative support is continuously provided to the students 
+throughout the course, leading them constructively towards enhancing their understanding and skills, 
+based on their performance that is measured by various assessment tools.   
+4 
+ 
+Framework of Bachelor’s Degree 
+Classification Credit Hours 
+Compulsory Elective Total 
+University Requirements 24 3 27 
+School Requirements 35 0 35 
+Program Requirements 77 9 86 
+Professional Apprenticeship Training 18 0 18 
+Total 154 12 166 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+5 
+ 
+1. University Requirements: (27 credit hours) 
+ 
+1.1. Compulsory: (24 credit hours)  
+Course ID Course Title Credit 
+Hours 
+Contact Hours Prerequisite Lecture Practical 
+30301121 Pre-Intermediate English 
+Intensive + Lab 4 3 6 
+30301120 
+Pre-Foundation English 
+Elementary Intensive 
+30301122 English Intermediate 3 6 0 30301121 
+30301123 English Upper-Intermediate 3 6 0 30301122 
+30301124 English Advanced 3 6 0 30301123 
+40302111 Professional Skills 1 2 0 - 
+40302211 Professional Practice 3 4 0 40302111 
+40302231 Entrepreneurship Bootcamp 4 2 6 30301123 & 40302211 
+30302232 Leadership Camp 1 3 0 30302231 or 40302231 
+30301111 Arabic Language & 
+Communication Skills 1 1 0 30301110   
+30302129 Military Science 1 0 0 -  Total 24  
+ 
+ 
+1.2. Elective: 3 Credit Hours (three courses out of the following) 
+Course ID Course Title Credit 
+Hours 
+Contact Hours Prerequisite Lecture Practical 
+30301130 Foundational French Language    1 3 0 - 
+30301131 French Language Level 1 1 3 0 30301130 
+30301232 French Language Level 2 1 3 0 30301131 
+30301233 French Language Level 3 1 3 0 30301232 
+30301140 Foundational German Language    1 3 0 - 
+30301141 German Language level 1 1 3 0 30301140 
+30301150 Foundational Spanish Language    1 3 0 - 
+30301160 Foundational Turkish Language    1 3 0 - 
+30301170 Foundational Italian Language    1 3 0  
+30301171 Italian Language    1 3 0 30301170 
+30301180 Chinese 1 1 3 0  
+30301221 Development Academic Writing 1 3 0 30301124 
+30301222 Research and Technical Writing 1 3 0 30301124 
+30302121 Science & Society Seminar I: Arab 
+Contributions to Science and Arts 1 3 0 - 
+30302122 Science & Society Seminar II: 
+Philosophy of Science 1 3 0 - 
+30302123 Art Appreciation and Techniques 1 3 0 - 
+30302124 Civil & Professional Culture 1 3 0 - 
+30302125 Rights and Responsibilities: 
+Understanding Human Rights 1 3 0 - 
+6 
+ 
+30302126 
+Introduction to cultural 
+Anthropology-Focus on Urban 
+Anthropology 
+1 3 0 - 
+30302127 Jerusalem, History and 
+Civilization 1 3 0 - 
+30302128 Jordan: History and Civilization  1 3 0 - 
+30302133 Principles of Management 1 3 0 - 
+30302134 
+Strategies for Industry 
+Competitiveness: Tools & 
+Techniques 
+1 3 0 - 
+30302135 Principles of Accounting 1 3 0 - 
+30302136 Principles of Economics 1 3 0 - 
+30302237 Free Choice Elective 1 0 0 - 
+40302233 Business Analytics  1 3 0 - 
+40302221 Speech and Debate 1 3 0 - 
+30301223 Introduction to Translation 1 3 0 30301124  Total 3  
+ 
+2. School Requirements: (35 credit hours) 
+Course ID Course Title Credit 
+Hours 
+Contact Hours Type Prerequisite Lecture Practical 
+30303111 Functional Math 3 3 0 HTU 30303110 
+30303112 Functional Physics 3 3 0 HTU - 
+40303130 Fundamentals of Computing 4 6 0 HTU - 
+00101100 Introduction to Engineering 
+Drawing 1 0 3 HTU - 
+00103101  STEM Lab I 1 0 3 HTU - 
+00102102 STEM Lab II 1 0 3 HTU 00103101 
+00101103 Workshop I 2 0 6 HTU - 
+00101104 Workshop II 1 0 3 HTU 00101103 
+00103110 Engineering Math 4 3 3 HNC 30303111 
+00102111 Engineering Science 4 3 3 HNC 30303112 
+00101112 Engineering Design 4 3 3 HNC 00101100 
+00102220 Managing a Professional 
+Engineering Project 4 3 3 HNC 00101112 
+00103375 Introduction to AI and Data 
+Sciences  3 2 3 HTU 40303130 & 
+00103110  Total 35   
+7 
+ 
+ 
+ 
+3. Program Requirements (86 credit hours) 
+3.1. Compulsory: (77 credit hours) 
+Course ID Course Title Credit 
+Hours 
+Contact Hours Type Prerequisite Lecture Practical 
+00103205 Advanced Workshop for Electrical 
+Engineers 1 0 3 HTU 00101104 
+00103230 Electrical and Electronic Principles 4 3 3 HNC 00102111 
+00103282 Digital Design 3 2 3 HTU 40303130 
+00103240 Electronic Circuits and Devices 4 3 3 HNC 00103230 
+00103250 Instrumentation and Control 
+Systems 4 3 3 HNC 00103230 
+00103213 Further Mathematics 4 3 3 HND 00103110 
+00103383 Programmable Logic Controllers 3 2 3 HTU 00103282, 00103250 
+00102321 Professional Engineering 
+Management 4 3 3 HND 00102220 
+00103331 Industrial Power, Electronics and 
+Storage 4 3 3 HND 00103240 
+00103351 Industrial Systems 4 3 3 HND 00103250, 00103282 
+00103232 Further Electrical, Electronic and 
+Digital Principles 4 3 3 HND 00103230, 00103213 
+00103352 Further Control Systems 4 3 3 HND 00103250, 00103213 
+00103490 Research Project for Electrical 
+Engineers 4 2 6 HND Passed 90 credit hours 
+00103568 Engineering Electromagnetics 3 3 0 HTU 00103230. 00103213 
+00103367 Telecommunication Principles 4 3 3 HNC 00103282, 00103110 
+00103333 Electrical Machines 3 2 3 HTU 00103232 
+00103534 Power Systems 3 2 3 HTU 00103232 
+00103581 Embedded Systems 3 2 3 HTU 00103282 
+00102541 Photovoltaic Systems 3 2 3 HTU 00103232 
+00103546 Advanced Electronics 3 2 3 HTU 00103240 
+00103566 Speech and Image Processing 3 2 3 HTU 00103375, 00103213 
+00103553 Industry 4.0 1 0 3 HTU 00103351, 00103367 
+8 
+ 
+00102523 Health, Safety, and Environment 1 1 0 HTU 00102321 
+00103595 Capstone Project for Electrical 
+Engineering 1 0 3 HTU 00103490 
+00103596 Capstone Project for Electrical 
+Engineering Continuation 2 0 6 HTU 00103595 
+ Total 77   
+     
+3.2. Electives: (9 credit hours) (Three courses out of the following) 
+A minimum of 9 credit hours of engineering coursework are required. This list is considered to be 
+open for modifications on the base of the decision of the school council before registration. 
+Course 
+ID Course Title Credit 
+Hours 
+Contact Hours Type Prerequisite Lecture Practical 
+00103574 Algorithms and Optimization 3 2 3 HTU 00103375, 00103213 
+00103571 Data Analytics  3 3 0 HTU 00103375, 00103213 
+00103572 Artificial Intelligence and 
+Engineering Applications 3 3 0 HTU 00103375, 00103213 
+00103573 Machine Learning  3 3 0 HTU 00103375, 00103213 
+00101535 Mechatronics 3 2 3 HTU 00103250 
+00103554 Mobile Robotics 3 2 3 HTU 00103250 
+00103555 Industrial Robotics 3 2 3 HTU 00103250 
+00102544 Green Buildings 3 2 3 HTU 00102111 
+00102551 Smart Grids 3 2 3 HTU 00103331 
+00102505 Energy Storage 3 2 3 HTU 00103331 
+00103522 Electrical Installations for Buildings 3 3 0 HTU 00103232 
+00102552 Electric and Hybrid Vehicles 3 2 3 HTU 00103333 
+00103539 Power Electronics and Drives 3 3 0 HTU 00103333, 00103232 
+00103535 Power System Quality, Reliability 
+and Protection 3 3 0 HTU 00103534 
+00103537 Special Topics in Power Systems 3 3 0 HTU 00103534 
+00103545 Special Topics in Clinical 
+Engineering 3 3 0 HTU 00103240 
+00103565 Special Topics in Communications 3 3 0 HTU 00103367 
+00103584 Special Topics in Computer 
+Engineering 3 3 0 HTU 00103375 
+00103422 Special Topics 1 1 1 0 HTU - 
+00103453 Special Topics 2 2 2 0 HTU - 
+ Total 9   
+9 
+ 
+ 
+4. Professional Apprentice Requirements (18 credit hours) (8 months) 
+Course 
+ID Course Title Credit 
+Hours 
+Contact Hours Type Prerequisite Lecture Practical 
+00103497 Practical Training for Electrical 
+Engineering (PATH) 6 0 10 HTU 
+40302231 
+Department Approval 
+Passed 100 CHs 
+00103498 Practical Training for Electrical 
+Engineering (PATH) Continuation 12 0 30 HTU 00103497 
+ Total 18   
+ 
+  
+10 
+ 
+Course Identification Convention 
+ 
+Version 
+(1st 
+Digit) 
+School 
+(2nd&3rd Digit) 
+Department 
+(4th&5th 
+Digit) 
+Level 
+(6th Digit) 
+Knowledge Group 
+(7th Digit) 
+Sequence 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+0 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+01: Engineering 
+Technology 
+ 
+ 
+ 
+ 
+ 
+ 
+01: 
+Mechanical    
+Engineering 
+ 
+02: 
+Energy 
+Engineering 
+ 
+03:  
+Electrical 
+Engineering 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 1: 1st  
+Year 
+ 
+2: 2nd Year 
+ 
+3: 3rd Year 
+ 
+4: 4th  
+Year 
+ 
+5: 5th Year 
+0: Engineering Skills 
+ 
+1: Engineering 
+Science 
+ 
+2: Engineering 
+Management 
+ 
+3: Power & Energy 
+ 
+4: Electronics 
+ 
+5: Industrial & Control 
+ 
+6: Communications & 
+Networking 
+ 
+7: Data Science 
+ 
+8: Computer 
+ 
+9: Research & 
+Professional Skills 
+ 
+ 
+Study Plan Knowledge Groups 
+    Course ID Course Title 
+Group 0 
+Engineering 
+Skills  
+40303130 Fundamentals of Computing 
+00101100 Introduction to Engineering Drawing 
+00103101 STEM Lab I 
+00102102 STEM Lab II 
+00101103 Workshop I 
+00101104 Workshop II 
+00103205 Advanced Workshop for Electrical Engineers 
+Group 1 
+Engineering 
+Science 
+30303111 Functional Math 
+30303112 Functional Physics 
+00103110 Engineering Math 
+00102111 Engineering Science 
+00101112 Engineering Design 
+00103213 Further Mathematics 
+11 
+ 
+Group 2 
+Engineering 
+Management 
+ 
+00102220 
+00102321 
+00103522 
+00103422 
+ 
+ 
+Managing a Professional Engineering Project 
+Professional Engineering Management 
+Electrical Installations for Buildings 
+Special Topics 1 
+ 
+Group 3 
+Power & Energy 
+00103230 
+00103331 
+00103232 
+00103333 
+00103534 
+00103535 
+00103537 
+00103539 
+ 
+Electrical and Electronic Principles 
+Industrial Power, Electronics and Storage 
+Further Electrical, Electronic and Digital Principles 
+Electrical Machines 
+Power Systems 
+Power System Quality, Reliability and Protection 
+Special Topics in Power Systems 
+Power Electronics and Drives 
+ 
+Group 4 
+Electronics  
+00103240 
+00103542 
+00103545 
+00103546 
+ 
+Electronic Circuits and Devices 
+Digital Electronic Systems  
+Special Topics in Clinical Engineering 
+Advanced Electronics 
+ 
+Group 5 
+Industrial Control 
+and Robotics 
+00103250 
+00103351 
+00103352 
+00103553 
+00103554 
+00103555 
+00103453 
+ 
+Instrumentation and Control Systems 
+Industrial Systems 
+Further Control Systems 
+Industry 4.0 
+Mobile Robotics 
+Industrial Robotics 
+Special Topics 2 
+ 
+Group 6 
+Communications 
+and Signal 
+Processing 
+00103565 
+00103566 
+00103567 
+00103568 
+00103565 
+ 
+Special Topics in Communications 
+Speech and Image Processing 
+Telecommunication Principles 
+Engineering Electromagnetics 
+Special Topics in Communications 
+ 
+Group 7 
+Data Science 
+00103570 
+00103571 
+00103572 
+00103573 
+00103574 
+00103375 
+ 
+Data Structures and Algorithms 
+Data Analytics 
+Artificial Intelligence and Engineering Applications 
+Machine Learning  
+Algorithms and Optimization 
+Introduction to AI and Data Sciences 
+ 
+Group 8 
+Computer 
+00103581 
+00103282 
+00103383 
+00103584 
+ 
+Embedded Systems 
+Digital Design 
+Programmable Logic Controllers 
+Special Topics in Computer Engineering 
+ 
+Group 9 
+Research & 
+Professional 
+Skills 
+00103490 
+00103591 
+00103492 
+00103494 
+00103595 
+00103596 
+00103497 
+00103498 
+ 
+ 
+Research Project for Electrical Engineers 
+Capstone Project for Electrical Engineers 
+Practical Training for Electrical Engineers 
+Practical Training for Electrical Engineers Continuation 
+Capstone Project for Electrical Engineering 
+Capstone Project for Electrical Engineering Continuation 
+Practical Training for Electrical Engineering (PATH) 
+Practical Training for Electrical Engineering (PATH) 
+Continuation 
+ 
+ 
+ 
+12 
+ 
+Course Descriptions 
+ 
+University Compulsory Course Descriptions 
+ 
+30301120: Pre-Foundation English Elementary Intensive + Lab, 4 Cr (6,3) 
+This foundation course deals with all language skills: speaking, listening, reading, writing, grammar review, 
+and vocabulary building. The overall objective of the course is to ensure that students will be able to 
+understand straightforward information in the spoken and written language and to express themselves in 
+speech and in writing for simple practical purposes in everyday situations requiring a simple and direct 
+exchange of information. 
+By the end of the course, students will reach an A2 level on the Global Scale of English (GSE). Students 
+will be evaluated on their ability to understand sentences and frequently used expressions related to areas 
+of most immediate relevance. Students will be able to describe in simple terms aspects of their background, 
+immediate environment, and matters in areas of immediate need.  
+This course also includes scheduled lab time, dedicated to practice and/or other work assigned by the 
+instructor to enhance students’ communication skills [including assigned homework/in-class practice], 
+writing or speaking workshops, and projects. 
+Prerequisites: Placement test score: Pearson 0-35, VTEST A1, A2.1, A2.2 (0-34), TOEFL IBT: 0-31, IELTS: 0-
+4.0, TOEFL ITP: 0-399 
+ 
+30301121: Pre-Intermediate English Intensive + Lab, 4 Cr (6,3) 
+This foundation course deals with all language skills: speaking, listening, reading, writing, grammar review, 
+and vocabulary development. The overall objective of the course is to ensure that students could understand 
+and express in speech and writing: information, ideas, feelings, opinions, and common functions about 
+situations relating to English skills.  
+By the end of the course, students will reach a B1 level on the Global Scale of English (GSE). Students will 
+be evaluated on their ability to understand the main points of clear standard input on familiar matters 
+regularly encountered in the typical work-related environment/setting, specifically in relation to technical-
+English related communication skills. In addition, students are required to be able to deal with most 
+situations likely to arise while at the workplace or in the field where English is spoken; in addition to the 
+type of setting they would need to communicate to other stakeholders (customer/ client, supervisor, 
+sponsor/funding entity/ supplier and so on). Students will be able to produce simple connected text on topics 
+which are familiar in their field of study, and in relation to basic communication skills needed. Finally, 
+students will be able to describe experiences and work-related skills, their opinion, plans, and other 
+practical, relevant communication skills.  
+This course also includes a scheduled lab time, dedicated to practice and/or other work assigned by the 
+instructor to enhance students’ communication skills [including assigned homework/in-class practice], 
+writing or speaking workshops, and projects pertaining. 
+13 
+ 
+Prerequisites: Placement test score: Pearson 36-46, VTEST B1.1 (35-45), TOEFL IBT: 32-42 (Minimum score 
+of 6 in each of the four sections), IELTS: 4.5 (Minimum score of 4.0 in each of the four sections), TOEFL ITP: 
+400-442, or 30301120 
+ 
+30301122: English Intermediate, 3 Cr (6,0) 
+This course is meant to follow on from 30301121; it is for students who have completed level 2 and now 
+require an intermediate course in Technical English, and it is benchmarked against CEFR level B1+. This 
+course targets students in technical or vocational education who want to develop their careers and technical 
+skills, as it aims to prepare them for the successful and effective use of English in their studies and 
+occupations.  
+The course adopts a practical task-based approach, consisting of work-specific communicative functions, 
+technology-specific notions or concepts, grammar, vocabulary, and skills. The syllabus is designed to 
+reflect current and future developments in technology, whereby everything is selected based on high 
+frequency of use and relevancy of needs across a range of technical contexts, including technical training 
+and work contexts. 
+Prerequisites: Placement test score: Pearson 47-58, VTEST B1.2 (46-55), TOEFL IBT: 43-52 (Minimum score 
+of 10 in each of the four sections), IELTS: 5.0 (Minimum score of 4.5 in each of the four sections) 
+TOEFL ITP: 443-476, or 30301121 
+ 
+30301123: English Upper-Intermediate, 3 Cr (6,0) 
+This course is for students in technical or vocational education, and for company employees in training at 
+work. It covers the core language and skills that students need to communicate successfully in all technical 
+and industrial specializations. It is for students who have an intermediate level of general English and now 
+require an upper intermediate course in English for specific purposes. This is benchmarked against CEF 
+level B2.  
+The course uses a multi-thread syllabus consisting mainly of communicative functions, notions, grammar, 
+vocabulary, and skills. The work-specific communicative functions (e.g., giving instructions, making 
+recommendations') and technology-specific notions or concepts (e.g., causation, resistance) are selected on 
+the basis of relevance to the needs of students in technical training and work contexts. Grammatical 
+exponents of functions and notions are selected based on frequency and relevance to needs. In this level, 
+the syllabus organization is increasingly driven by topics, skills and genre or text type, within which 
+appropriate grammar, vocabulary, functions, and notions are introduced or recycled. The vocabulary of the 
+course is a selection of common core lexical items that have a high frequency of use across a range of 
+technical and industrial contexts. Many of these items can be found in general contexts but have a greater 
+frequency and often a more specific meaning in technical contexts. Many of them are the kind of words 
+which a specialist in one field might use to explain technical concepts and specialized terms to the public, 
+or to specialists in other fields. 
+Prerequisites: Placement test score: Pearson 59-68, VTEST: B2.1 (56-68), TOEFL IBT: 53-78 (Minimum score 
+of 14 in each of the four sections), IELTS: 5.5-6.0 (Minimum score of 5.0 in each of the four sections), TOEFL 
+ITP: 477-547, or 30301122 
+  
+ 
+ 
+14 
+ 
+30301124: English Advanced Course, 3 Cr (6,0) 
+This course is meant to follow 30301123. This course deals with all language skills: speaking, listening, 
+reading, writing, grammar review, and vocabulary building. The overall objective of the course is to ensure 
+that students can understand and respond appropriately in the spoken and written form to a wide range of 
+demanding, longer texts and recognize implicit meaning.  
+By the end of the course, students will reach a C1 level on the Global Scale of English (GSE). Students will 
+be evaluated on their ability to express themselves fluently and spontaneously without much obvious 
+searching for expressions. In addition, students are required to be able to use language flexibly and 
+effectively for social, academic, and professional purposes. Students will be able to produce clear, well-
+structured, detailed text on complex subjects, showing controlled use of organizational patterns, connectors, 
+and cohesive devices. (Exempted if Placement test score: Pearson ≥ 81, VTEST ≥ C1 (≥81), TOEFL IBT: 
+≥ 102 (Minimum score of 22 in each of the four sections), IELTS: ≥ 7.5 (Minimum score of 6.5 in each of 
+the four sections), TOEFL ITP: ≥ 608). 
+Prerequisites: Placement test score: Pearson 69-80, VTEST B2.2 (69-80), TOEFL IBT: 79-101 (Minimum 
+score of 18 in each of the four sections), IELTS: 6.5-7.0 (Minimum score of 6.0 in each of the four sections), 
+TOEFL ITP: 548-607, or 30301123 
+ 
+40302111: Professional Skills, 1 Cr (2,0) 
+This course introduces students to the basic personal and interdependent competencies necessary to have a 
+successful career and lead a fulfilling life. The course focuses on developing students’ self-awareness, self-
+esteem, and confidence relative to goal development, values, interests, and skills. The course gives special 
+attention to interpersonal and communication skills including listening, speaking, and writing. In addition, 
+the course introduces students to effective time management and organizational skills, the dynamics of 
+working within a team, and how attitude affects interpersonal relationships. The course serves as a 
+prerequisite for a later course, Soft Skills II, which focuses on professional practice and career readiness. 
+Prerequisites: - 
+ 
+40302112: Professional Practice, 3 Cr (4,0) 
+This course aims to cover the general aspects of employability skills and to provide students with the tools 
+and resources needed to make informed career decisions. The course put special emphasis on skills that can 
+be transferable among a variety of professions and careers and are considered essential in any employment 
+setting. Students will learn to assess and identify the skills required to increase their chances of finding a 
+job and perform better in the workplace. The course covers personal and interpersonal skills, written 
+communication, teamwork, and leadership development. The course introduces students to critical thinking 
+and problem-solving techniques in addition to personal and professional development planning. 
+Prerequisites: 40302111 & 30301122 
+ 
+ 
+ 
+ 
+15 
+ 
+40302231: Entrepreneurship Bootcamp, 4 Cr (2,6) 
+HTU’s Accelerated Innovation and Entrepreneurship Bootcamp is an experiential learning journey that all 
+HTU students undergo as part of their degree program at HTU. Students are formed into high-performing 
+teams with the mission to develop a desirable, feasible and viable solution that targets a specific customer 
+segment with an attractive market size, while addressing one or more of the UN’s Sustainable Development 
+Goals (SDG’s). 
+Students leverage human-centered design and lean startup methodology to develop their prototypes and 
+iterate on their solutions, while building an investable business case delivered through a final mission report 
+and rocket pitch. 
+The Bootcamp equips students with the necessary business acumen than enhances their entrepreneurial and 
+intrapreneurial mindset, skillset, and toolset while providing a transformative opportunity to upgrade their 
+modes of being, thinking and doing, and to challenge what is possible for themselves and the world around 
+them. 
+Prerequisites: 40302112 & 30301123 
+ 
+30302232: Leadership Camp, 1 Cr (0,3) 
+A fundamental principle in teaching leadership is engaging students in experiential learning so they can 
+mature into their leadership capacity. This course provides students with the diagnostic tools and strategic 
+foundation for leading organizations, communities, and society. Students will practice a set of tools and 
+behaviors that will allow them to improve their self-efficacy and develop their leadership skills. The course 
+provides a safe and supportive environment where students will learn from actual experience and apply the 
+concepts in real life settings and situations. The emphasis will be on experiential learning and the 
+application of leadership concepts. 
+Prerequisites: 30302231 or 40302231 
+ 
+30301110: Remedial Arabic, 3 Cr (3,0) 
+The course aims to improve the student's abilities in reading and comprehending texts' primary, secondary, 
+and missing ideas and how to extract them; recognizing words' equivalent meanings in texts; differentiating 
+opinion from fact; recognizing similarities contained therein; comparing texts read with texts that are 
+similar to them; and reasoning on the writer's attitude toward a topic by determining the implicit meanings 
+contained. The course also aims to teach students the fundamentals of writing in Arabic, so that they can 
+write a paragraph and a summary in a sound Arabic language that is free of spelling and linguistic errors, 
+expressing their thoughts and feelings while adhering to the correct language rules, using the correct 
+conjunctions, punctuation marks, and Arabic styles, and developing speaking skills about their family and 
+community while adhering to the correct language rules respecting his teacher and fellow students, 
+responding to their queries with a declaration of his views and supporting it with facts. The course also 
+aims to improve the student's listening abilities so that he can comprehend the speaker's main idea and 
+supporting ideas, recognize the connections between them, and classify the ideas he heard with the ability 
+to remember the right ones and be able to recognize strengths and weaknesses in the speaker's text. 
+ 
+Prerequisites: Arabic Placement test 0-59 
+16 
+ 
+ 
+30301111: Arabic Language & Communication Skills, 1 Cr (1,0) 
+In this level, students should understand the main ideas of complex texts on both concrete and abstract 
+topics. Further, they should understand a wide range of demanding, long texts, and recognize implicit 
+meanings. Analytical thinking is stressed at this stage as students should use the language skills they have 
+developed to engage in discussions about different topics. 
+They will also develop and use their writing skills in different genres. They will be asked to present reports, 
+articles, and essays on a wide variety of topics. Students will also develop their media skills tools and learn 
+how to critically talk about and respond to a wide range of media reports. In addition, functional syntax 
+will be deployed and will serve the aforementioned skills and goals. Finally, compiled authentic teaching 
+materials will be used in this level. 
+ 
+Prerequisites: Arabic Placement test score ≥60 or 30301110 
+ 
+30302129: Military Science, 1 Cr (1,0) 
+The Military Science course is one of many components of the National Strategy for Higher Education in 
+Jordan and is thus an extension of the Ministry of Education’s philosophy for Higher Education. The course 
+covers the concept of a comprehensive national security strategy, both its traditional and social definitions, 
+with the aim of consolidating the values of loyalty and belonging to the nation, which includes the land and 
+its people, the system of governance, and the national security systems and military institutions; the course 
+thus prepares students to fulfil their roles in society as self-aware and responsible citizens who hold the 
+power to advance positive change and maintain a safe and stable nation. Furthermore, the course aims to 
+enrich students’ knowledge about the history of the Hashemite Kingdom of Jordan and its development, 
+and to provide essential information about the Jordanian armed forces and security systems, highlighting 
+their crucial role in protecting our nation’s greater interests, and in serving and supporting the development 
+of the local, Arab, and global communities. Moreover, the course aims to increase students’ awareness of 
+the concept of national security through a comprehensive study of critical issues, including psychological 
+warfare and the dangers of drugs and terrorism. Ultimately, the course aims to highlight the benefits of 
+holding on to our treasured Jordanian values of loyalty, belonging, citizenship, and the importance of 
+utilizing our national resources.   
+Prerequisites: - 
+ 
+University Elective Course Descriptions 
+ 
+30301130: Foundational French Language, 1 Cr (3,0) 
+By the end of this course, the student will be able to communicate in French using basic greetings, asking 
+directions, writing short simple notes and emails, understanding simple question on familiar topics, and 
+introducing him/herself to others.  By the end of the course, the student will have attained a high-A1 level 
+on the CEFR scale. 
+17 
+ 
+Prerequisites: - 
+ 
+30301131: French Language Level 1, 1 Cr (3,0) 
+By the end of this course, the student will be able to use a wide variety of verb tenses and lexical items in 
+Italian.  The student will be able to understand simple questions in questionnaires on familiar topics, 
+recognize phrases and content words related to basic personal and family information, make, and accept a 
+simple apology, and write simple sentences about personal skills.  By the end of the course, the student will 
+have attained a low-A2 level on the CEFR scale. 
+Prerequisites: 30301130 
+ 
+30301232: French Language Level 2, 1 Cr (3,0) 
+By the end of this course, students can understand the main points of clear standard speech on familiar 
+subjects in work, school, leisure activities, etc. Students will be able to conduct conversations in most 
+situations when travelling in a region where the language is spoken. They will be able to produce a simple 
+and cohesive text on familiar subjects or subjects of personal interest. Students will be able to narrate an 
+event, an experience or a dream, describe a desire or goal, and outline reasons or explanations behind a 
+project or idea. 
+Prerequisites: 30301131 
+ 
+30301233: French Language Level 3, 1 Cr (3,0) 
+By the end of this course, students will be able to understand the main ideas of concrete or abstract topics, 
+including technical articles in the user’s area of expertise. They will be able to communicate with a degree 
+of spontaneity and fluency during a conversation with a native speaker. Students will be able to speak in a 
+clear, detailed way on a number of subjects and express an opinion on current affairs, giving the advantages 
+and disadvantages of the various options. 
+Prerequisites: 30301232 
+ 
+30301140: Foundational German Language, 1 Cr (3,0) 
+By the end of this course, the student will be able to communicate in German basic greetings, asking 
+directions, writing short simple notes and emails, understanding simple question on familiar topics, and 
+introducing him/herself to others.  By the end of the course, the student will have attained a high-A1 level 
+on the CEFR scale. 
+Prerequisites: - 
+ 
+30301141: German Language level 1, 1 Cr (3,0) 
+By the end of this course, the student will be able to use a wide variety of verb tenses and lexical items in 
+German.  The student will be able to understand simple questions in questionnaires on familiar topics, 
+recognize phrases and content words related to basic personal and family information, make, and accept a 
+18 
+ 
+simple apology, and write simple sentences about personal skills.  By the end of the course, the student will 
+have attained a mid-A2 level on the CEFR scale. 
+Prerequisites: 30301140 
+ 
+30301150: Foundational Spanish, 1 Cr (3,0) 
+By the end of this course, the student will be able to communicate in Spanish using basic greetings, asking 
+directions, writing short simple notes and emails, understanding simple question on familiar topics, and 
+introducing him/herself to others.  By the end of the course, the student will have attained a high-A1 level 
+on the CEFR scale. 
+Prerequisites: - 
+ 
+30301160 Foundational Turkish, 1 Cr (3,0) 
+By the end of this course, the student will be able to communicate in Turkish basic greetings, asking 
+directions, writing short simple notes and emails, understanding simple question on familiar topics, and 
+introducing him/herself to others.  By the end of the course, the student will have attained a high-A1 level 
+on the CEFR scale. 
+Prerequisites: - 
+ 
+30301170: Foundational Italian, 1 Cr (3,0) 
+By the end of this course, the student will be able to communicate in Italian using basic greetings, asking 
+directions, writing short simple notes and emails, understanding simple question on familiar topics, and 
+introducing him/herself to others.  By the end of the course, the student will have attained a high-A1 level 
+on the CEFR scale. 
+Prerequisites: - 
+ 
+30301171: Italian Language Level 1, 1 Cr (3,0) 
+By the end of this course, the student will be able to use a wide variety of verb tenses and lexical items in 
+Italian.  The student will be able to understand simple questions in questionnaires on familiar topics, 
+recognize phrases and content words related to basic personal and family information, make, and accept a 
+simple apology, and write simple sentences about personal skills.  By the end of the course, the student will 
+have attained a low-A2 level on the CEFR scale. 
+Prerequisites: 30301170 
+ 
+30301180: Chinese 1, 1 Cr (3,0) 
+This course introduces students to the standard Chinese language and is designed for students with no or 
+minimal previous background in spoken or written Chinese. Students in this course focus on learning 
+essential vocabulary, practicing pronunciation, and understanding simple grammatical structures. This 
+knowledge prepares students to effectively communicate in Chinese on a limited range of topics related to 
+19 
+ 
+everyday situations. Students practice listening and speaking in real-life situations, learn to read and 
+write Chinese characters, and examine how culture and language interact in China. In-class activities and 
+course assignments aim to assist students as they develop the oral proficiency and confidence necessary to 
+initiate simple conversations. Out-of-classroom experiences such as field trips and guided interactions with 
+native speakers supplement formal classroom instruction and provide ample opportunities for practical 
+engagement. 
+Prerequisites: - 
+ 
+30301221: Development Academic Writing, 1 Cr (3,0) 
+This course develops students’ abilities in academic writing.  Focus will be given to sentence structure, 
+paragraph writing, revision, punctuation, parallelism, and cohesion.  Students, in conjunction with the 
+instructor, will decide on a topic for the culminating paper, which will be developed throughout the 
+semester.  Students will have weekly writing assignments to develop the writing features being discussed.  
+This course is meant for students who have passed or tested out of Advanced English in the Intensive 
+English program. 
+Prerequisites: 30301124, or by permission of the department 
+ 
+30301222: Research and Technical Writing, 1 Cr (3,0) 
+This course follows 30301220, or any student who has exempted out of English courses.  Research and 
+Technical Writing develops students’ abilities in writing persuasive and explanatory texts in several 
+formats:  emails, reports, theses, among others.  Focus will be given to establishing a clear thesis statement, 
+developing a cohesive argument throughout the text, and creating a compelling summary.  Various 
+rhetorical devices will be discussed, such as alliteration, anaphora, hedging, hyperbole, litotes, metaphor, 
+simile, etc.  Students, in conjunction with the instructor, will decide on a topic for the culminating paper, 
+which will be developed throughout the semester.  Students will learn proper citation of quoted material 
+according to APA or MLA standards.  Students will have weekly writing assignments using various 
+expository devices, such as descriptive essays, process essays, comparison essays, cause and effect essays, 
+and problem and solution essays. 
+Prerequisites: 30301124, or by permission of the department 
+ 
+ 
+30302121: Science and Society Seminar I: Arab Contributions to Science and Arts, 1 Cr (3,0) 
+This seminar-based course highlights Arab contributions to science and arts since the early Mesopotamian 
+and Phoenician civilizations with particular emphasis on contributions during the Middle Ages under Islam. 
+Prerequisites: - 
+ 
+30302122: Science & Society Seminar II: Philosophy of Science, 1 Cr (3,0) 
+This course explores the effects of scientific and technological developments on various aspects of society. 
+It is designed to illuminate the distinctive character of science and its relevance to the challenges facing our 
+20 
+ 
+world, including environmental concerns, public and global policy, international competitiveness, and legal 
+and ethical liabilities.  
+Prerequisites: - 
+ 
+30302123: Art Appreciation and Techniques, 1 Cr (3,0) 
+This course affords students a basic understanding of the main elements of art. It covers context and subject 
+and analyzes the main arguments around aesthetics. The course also presents an overview of art history as 
+it relates to other historical, sociocultural, and political aspects. The course aims to prepare students to be 
+critically observant and to assess different symbolic values within artwork. The course is intended to raise 
+students’ awareness of the role of the arts and culture in their everyday lives regardless of students’ areas 
+of concentration and to promote an appreciation for, and interest in, the arts. 
+Prerequisites: - 
+ 
+30302124: Civil and Professional Culture, 1 Cr (3,0) 
+This course aims to consolidate and enhance students’ knowledge of their native Jordan, the efforts of the 
+Hashemite Kings in serving the Arab nation, its causes, and the establishment and development of the 
+Jordanian state. It introduces students to the development of Jordanian political and constitutional life as 
+well as to the emergence and development of Jordanian civil society. This course focuses on building 
+students’ professionalism and defining the concepts of professional work and ethics. Students will learn 
+about legislation related to professional work as well as trade union institutions, professionalism, and labor.  
+Prerequisites: - 
+ 
+30302125: Rights and Responsibilities: Understanding Human Rights, 1 Cr (3,0) 
+This course aims to introduce students to the basic concept of human rights. Students will be expected to 
+understand and internalize human rights values including tolerance, gender equality; and freedom from 
+discrimination based on race, color, and ethnicity. The course aims to contribute to the full development of 
+students’ personalities by increasing their sense of dignity and appreciation for the rights of others. Students 
+will also cultivate a sense of responsibility to promote and defend others’ rights. Students will develop their 
+advocacy skills by identifying key human rights issues in their local context and proposing courses of action 
+to advance human rights.  
+Prerequisites: - 
+ 
+30302126: Introduction to cultural Anthropology-Focus on Urban Anthropology, 1 Cr (3,0) 
+An introductory course in cultural anthropology with a focus on urban anthropology is an important course 
+for students in various areas of study, since it offers them training in cross-cultural perspectives, whether 
+on a local or global level. It is also increasingly important for students of the built environment and the local 
+communities they work with. Through looking at different anthropological case studies, from Jordan, the 
+region and globally, the course will consider such issues as the meaning of culture from an anthropological 
+perspective and how it affects society; cultural diversity and sociocultural communication; the relationship 
+of people to the land, their environment and their experiences of space and place; urban anthropology from 
+21 
+ 
+a theoretical and historical context; changing city structures and “temporary” dwellings such as local 
+refugee camps; ethics in social research and methods in ethnographic fieldwork; and qualitative data 
+gathering, amongst other areas. 
+Prerequisites: - 
+ 
+30302127: Jerusalem, History and Civilization, 1 Cr (3,0) 
+This course focuses on introducing Jerusalem in terms of geography and history across the ages, and its 
+religious and cultural importance since the Arab Islamic conquest in the period of the Rightly Guided 
+Caliphs  era and through the successive Islamic periods.  Moreover, the course sheds light on the Ottoman 
+period, and the political, civilizational and administrative realities during that period, as well as treating the 
+genesis of the movement of Jewish migration and settlement in the latter part of the Ottoman period. The 
+course focuses on the practices of the British Mandate and its contribution to the attempts to Judaize the 
+city, culminating with the Israeli occupation of western Jerusalem in 1948, and subsequently the Israeli 
+occupation of East Jerusalem in 1967. Furthermore, light is shed on Israeli practices targeting the Arab 
+identity of Jerusalem in terms of the demographic composition and holy places, and Islamic and Christian 
+endowments. The course explains the Jordanian Hashemite efforts and its role in defending Jerusalem and 
+safeguarding its Arab character. 
+Prerequisites: - 
+ 
+30302128: Jordan: History and Civilization, 1 Cr (3,0) 
+Jordan: History and Civilization course is concerned with introducing Jordan's history, sheds light on 
+Jordan's geography, topography, climate, and natural resources, and is interested in studying Jordan's 
+prehistoric history and ancient historical times. To examine Jordan's position and role in successive Islamic 
+times. The course also highlights Jordan's administrative, economic, and social conditions during the 
+Ottoman period 1516-1918, and is interested in studying Jordan's circumstances and conditions during the 
+first world war of 1914-1918, the establishment of the Emirate of Eastern Jordan in 1921, and the most 
+prominent political, economic, and social developments occurred in Jordan during the emirate in 1921-
+1946. It explained the importance of the achievements took place in Jordan during the reign of the 
+Hashemite kings Talal bin Abdullah and Hussein bin Talal from 1951 to 1999. To study the origins and 
+development of Jordanian constitutional authorities (executive, legislative and judicial), and Jordanian 
+educational, economic, social, military and security institutions. Introducing Jordan's role in the Palestinian 
+cause, the Jordanian-Palestinian unity phase 1950-1988, and Jordan's sacrifices in the Arab Israeli wars and 
+their consequences and effects on it. It examined King Abdullah II's efforts in building and modernizing 
+the Hashemite Kingdom of Jordan from 1999 to 2021. Assess the Jordanian state's march in its centenary, 
+and a future look. 
+Prerequisites: - 
+ 
+30302133: Principles of Management, 1 Cr (3,0) 
+This course introduces students to the management process of a business organization. The course 
+emphasizes basic concepts and functions of management by examining the processes of planning, 
+organizing, leading, and controlling. Students will develop the skills and tools required to work with people 
+22 
+ 
+and resources to achieve organizational goals. Students will also develop their strategic management and 
+decision-making capacities. 
+Prerequisites: - 
+ 
+30302134: Strategies for Industry Competitiveness: Tools & Techniques, 1 Cr (3,0) 
+This course covers the role of policy in industry competitiveness. The course examines firm strategies, 
+cluster vitality, and the quality of the business environment in which competition takes place, all of which 
+can determine a nation’s productivity. 
+Prerequisites: - 
+ 
+30302135: Principles of Accounting, 1 Cr (3,0) 
+This course provides students with the basic accounting principles, concepts, and terminology. Students 
+will become familiar with the basic financial statement analysis. Students will be able to understand and 
+apply the basic elements of financial accounting information such as assets, liabilities, revenue, and 
+expenses. Students will be able to understand and interpret income statement, balance sheet, and cash flow 
+statement.  
+Prerequisites: - 
+ 
+30302136: Principles of Economics, 1 Cr (3,0) 
+This course covers the basic concepts of both microeconomics and macroeconomics. The first part of the 
+course looks at resource allocation under scarcity, supply and demand analysis, and the theory behind 
+consumer behavior. The course further examines production decisions taken by firms under different types 
+of market structure such as perfect competition, oligopoly, and monopoly. The second part of the course 
+examines the wider economic phenomena and introduces the basic principles of the aggregate economy, 
+such as determinates of national product, inflation, unemployment, and fiscal and monetary policy. 
+Prerequisites: - 
+ 
+30302237: Free Choice Elective, 1 Cr (3,0) 
+The free choice elective is designed to offer students the opportunity to explore a subject of interest under 
+the supervision of a faculty member. The course may include coursework offered by online platforms (i.e. 
+HTUx, Coursera), directed readings, applied projects, independent research projects, or other appropriate 
+activities. 
+Prerequisites: - 
+ 
+40302233: Business Analytics, 1 Cr (3,0) 
+The Business Analytics course provides students with the tools they need to put data to work; how to set 
+up experiments, how to collect data, how to learn from data and make decisions to how to navigate the 
+organizational, legal, and ethical issues involved in data-based decision making. The course teaches widely 
+23 
+ 
+used frameworks of business analytics: biases, experimentation, descriptive analytics, prescriptive 
+analytics, predictive analytics. Students then implement the frameworks they have learned through 
+assignments. The course includes case studies and examples from Google, Netflix, and others. The 
+assignments and cases focus on interpreting the results of analysis and taking decisions based on those 
+analysis. The course does not require coding. 
+Prerequisites: - 
+ 
+40302221: Speech and Debate, 1 Cr (3,0) 
+The Speech and Debate course aims to provide students with linguistic and basic debate skills in Arabic. 
+This course aims to improve the student's level of Arabic grammar as well as his vocabulary, linguistic 
+structures, and linguistic style so that he can address political, social, and ethical issues through scientific 
+debates and discourses presented in the classroom, by familiarizing him with unique and authentic models 
+of ancient and modern discourses so that he can understand them. And walk according to the structure of 
+his own speech. The course is also designed to teach students research skills, independent and collaborative 
+learning, logical argumentation, problem-solving skills through critical and creative thinking, organizing 
+ideas, presentation skills, and confidence. The course contains theoretical sections that describe debate, 
+public speaking, and other historical and contemporary speech forms. Examples include debating forms, 
+speaker roles and arguments, developing team positions, interventions, and response speeches based on 
+active learning techniques focused on discussion, working groups, and communication. 
+Prerequisites: - 
+ 
+30301223: Introduction to Translation, 1 Cr (3,0) 
+This course is aimed at beginners who would like to improve their translation skills in translating from 
+Arabic to English and vice versa. This is a highly practical course whereby students will translate excerpts 
+from technical, scientific, literary, and media texts. Students will learn the most effective translation 
+practices guided by theoretical knowledge in the field, so that they produce high quality work and learn 
+how to critically evaluate translations. They will also learn how to search for information from a variety of 
+available resources and develop an awareness of linguistic and cultural differences, and the multiple levels 
+of meanings and contexts. By the end of the course, students will have learned different translation 
+strategies and methods and will be able to tackle source texts with competence, translating them 
+professionally and critiquing their own and others’ work. Students will be assessed on their practical 
+application of what we learned in class and on their ability to evaluate and critique translations.  
+ 
+Prerequisites: 30301124, or by permission of the department 
+ 
+30303110: Remedial Math, 2 Cr (2,0) 
+This course serves as an introductory course designed specifically for students that lack a foundational 
+knowledge in mathematics required to pursue a post high school degree (HNC, HND, or Bachelor’s). This 
+course revisits topics typically covered in high school for students that failed to pass the mathematics 
+placement test upon the admission process. The topics included in this unit are numbers, algebra and 
+functions, geometry, and vectors. (Exempted if Math placement test (1) score ≥60%). 
+24 
+ 
+ 
+Prerequisites: Placement test 
+ 
+30303111: Functional Math, 3 Cr (3,0) 
+This course reviews the fundamental concepts in numerical analysis, linear algebra, geometry, statistics, 
+and probabilities. It strengthens problem-formulation skills (i.e., the ability to translate real application 
+problems into a series of mathematical processes). It also focuses on developing the mathematical reasoning 
+skills, such as mathematical deductions and proofs. 
+Prerequisites: Placement Test 
+ 
+30303112: Functional Physics , 3 Cr (3,0) 
+This course demonstrates understanding and application of essential physics topics such as: Physics and 
+measurements, motion in one dimension, vectors, motion in two dimensions, the laws of motion, forces and 
+motion, applications of Newton’s laws (projectile, angular velocity, etc.), energy of a system, static 
+equilibrium, and electricity and magnetism. 
+Prerequisites: - 
+ 
+40303130: Fundamentals of Computing, 4 Cr (3,3) 
+This course provides a comprehensive route to developing an in-depth exposure to personal computers, 
+hardware, a range of operating systems, and in-depth programming in C. Students learn the functionality 
+of various hardware and software components and best practices in maintenance and safety issues as well 
+as programming in C, including variables, operations, functions, structures, and pointers.  
+Prerequisites: - 
+ 
+00101100: Introduction to Engineering Drawing, 1 Cr (0,3) 
+This course provides the fundamentals of engineering graphics and drawing. Among the topics covered 
+are: drawing of orthographic, isometric and auxiliary projections, sectioning, dimensioning, scaling and 
+documentation. Students learn and use the interface, structure, and commands of the latest version of a 
+conventional computer-aided design (CAD) software.   
+Prerequisites: - 
+ 
+00103101: STEM Lab I, 1 Cr (0,3) 
+This course develops the basic skills in the fields of science, technology, engineering and mathematics 
+through a set of practical experiments covering mechanical, electrical, electronics, automation, mechanics 
+of materials, robotics, computer applications and process control. 
+Prerequisites: - 
+ 
+ 
+25 
+ 
+00102102: STEM Lab II, 1 Cr (0,3) 
+This course provides students with a modern hands-on technical perspective of STEM education as they 
+are applied in professional settings. The lab is equipped with state-of-the-art educational technologies in 
+fields related - but not limited - to electromechanical systems, robotics, pneumatic systems, automation, 
+image processing, sensor installation and calibration and material manufacturing processes.  
+Prerequisites: 00103101 
+ 
+00101103: Workshop I, 2 Cr (0,6) 
+This course develops the following basic skills: Hand filing, turning, welding, piping and plumbing, 
+carpentry, brick laying, constructional works, surveying measurements, sheet metal fabrication, household 
+electric circuits and installation of simple computer networks. 
+Prerequisites: - 
+  
+00101104: Workshop II, 1 Cr (0,3) 
+This course covers hands-on training on manual and electric driven tools, electric arc welding, spot 
+welding, resistance welding, sand casting, sheet-metal forming, longitudinal lathing, longitudinal and 
+inclined turning and metal milling.  
+Prerequisites: 00101103 
+ 
+ 
+00103110: Engineering Math, 4 Cr (3,3) 
+This course aims to develop students’ skills in the mathematical principles and theories that are directly 
+applicable to the engineering industry. Students will be introduced to mathematical methods and statistical 
+techniques that enable them to analyze and solve problems within an engineering context. Among the topics 
+included in this course are: Arithmetic and geometric progressions (exponential, logarithmic, circular and 
+hyperbolic functions), mean and standard deviation of grouped data, linear regression, binomial and normal 
+distributions. In addition to sine waves and their applications, trigonometric and hyperbolic identities, 
+vector functions and the use of differential and integral calculus in solving engineering problems. 
+Prerequisites: 30303111 
+ 
+00102111: Engineering Science, 4 Cr (3,3) 
+This course introduces the fundamental laws and applications of the physical sciences within engineering 
+and the application of this knowledge in finding solutions to a variety of engineering problems. Among the 
+topics included in this course are: international system of units, interpreting data, static and dynamic forces, 
+fluid mechanics and thermodynamics, material properties and failure, in addition to A.C./D.C. circuit 
+theories. 
+Prerequisites: 30303112 
+ 
+ 
+26 
+ 
+00101112: Engineering Design, 4 Cr (3,3) 
+This course introduces the methodical steps that engineers use in creating functional products and 
+processes, starting from a design brief to the work and the stages involved in identifying and justifying a 
+solution to a given engineering need. Among the topics included in this course are: Gantt charts and critical 
+path analysis, stakeholder requirements, market analysis, design process management, modelling and 
+prototyping, manufacturability, reliability life-cycle, safety and risk management, calculations, drawings 
+and concepts and ergonomics. 
+Prerequisites: 00101100 
+  
+00102220: Managing a Professional Engineering Project, 4 Cr (3,3) 
+This course introduces students to the techniques and best practices required to successfully create and 
+manage an engineering project designed to identify a solution to an engineering need. Among the topics 
+covered in this course are: roles, responsibilities and behaviors of a professional engineer, planning a 
+project, project management stages, devising solutions, theories and calculations, management using a 
+Gantt chart, evaluation techniques, communication skills, and the creation and presentation of a project 
+report. 
+Prerequisites: 00101112 
+ 
+00103375: Introduction to AI and Data Science, 3 Cr (2,3). 
+This course is an introduction to Artificial Intelligence and Data Science. It provides an overview of AI 
+development history, explains AI ethics, and discusses future trends. The course reviews basic math 
+concepts in Calculus, Linear Algebra, and Probability Theory. The math exposure will be limited and only 
+essential concepts will be discussed. The course will introduce the following topics: Data Visualization, 
+Data Pre-Processing, Missing Data, Normalization and Standardization, Log Transformation, Cross and 
+Auto Correlation, Linear and Nonlinear Regression, Clustering and Classification, Machine Learning, 
+Artificial Neural Networks, Deep Learning, Supervised and Unsupervised learning. Different examples and 
+case studies will be provided and discussed. The course will introduce Python with its most popular 
+packages (NumPy, Pandas, Matplotlib, Scikit-learn, and TensorFlow) and introduce available platform 
+environments. This is a hands-on and projects-based course and will include laboratory that will enhance 
+the students’ coding skills. 
+Prerequisites: 40303130 & 00103110 
+ 
+ 
+00103205: Advanced Workshop for Electrical Engineers, 1 Cr (0,3) 
+This course develops high-level skills in designing and building industrial control systems. It includes a set 
+of practical experiments covering a variety of topics, such as: starting and driving circuits of different motor 
+types in addition to different low-current systems (fire alarm, security and IP-based CCTV systems).  
+Prerequisites: 00113104 
+ 
+ 
+ 
+27 
+ 
+00103230: Electrical and Electronic Principles, 4 Cr (3,3) 
+This course provides students with a good and wide-ranging grasp of the fundamental principles of 
+electrical and electronic circuits and devices. Topics included in this course are: Analysis of simple circuits 
+with constant voltages and currents, using circuit laws, Kirchhoff’s and Thevenin’s laws, and the 
+superposition principle. In addition to the analysis of simple circuits with sinusoidal voltages and currents, 
+basis of semiconductor action and its applications to simple electronic devices, such as junction diode, 
+Zener diode, light emitting diode, bipolar transistor, junction field-effect transistor (FET), and metal-oxide-
+semiconductor FET (MOSFET), highlighting the difference between analogue and digital electronics and 
+their applications. 
+Prerequisites: 00102111 
+ 
+00103282: Digital Design, 3 Cr (2,3) 
+This course introduces the two main branches of digital electronics: Combinational and sequential. Topics 
+included in this course are: Fundamental elements of digital circuits, various techniques used for analyzing 
+digital logic circuits, such as truth tables, Boolean algebra, Karnaugh maps, and timing diagrams. In 
+addition to key digital technologies, such as conventional TTL (transistor-transistor logic) and CMOS 
+(complementary metal-oxide-semiconductor), field programmable gate array (FPGA) and some standard 
+digital subsystems such as microprocessors. 
+Prerequisites: 40303130 
+ 
+00103240: Electronic Circuits and Devices, 4 Cr (3,3) 
+This course introduces students to the use of electronics manufacturers’ data to analyze the performance of 
+circuits and devices, the operational characteristics of amplifier circuits, the types and effects of feedback 
+on circuits performance, and the operation and application of oscillators. Students will also be introduced 
+to the application of testing procedures to electronic devices and circuits, and the use of the findings of the 
+tests to evaluate their operation. Among the topics included in this course are: Power amplifiers (classes A, 
+B, and AB), operational amplifiers (inverting, non-inverting, differential, summing, integrator, 
+differentiator), feedback types, such as open, closed, positive, and negative feedback, in addition to 
+frequency response, stability, frequency drift, distortion, amplitude, wave shapes, and testing procedures. 
+Prerequisites: 00103230 
+ 
+00103250: Instrumentation and Control Systems , 4 Cr (3,3) 
+This course discusses the main components of measuring systems including various types of sensing 
+elements (such as: displacement, speed, pressure, temperature and strain), variable conditioning and signal 
+processing techniques, in addition to signal representation methods. The course also introduces the concepts 
+and terminology of control systems, such as: open and closed loop, discrete and analogue systems. It focuses 
+on process controllers as a main part of control systems. Proportional-Integral-Differential (PID) controllers 
+are investigated in details according to their mathematical models. Multiple practical experiments and 
+simulation exercises are conducted throughout the course demonstrating conventional instrumentation 
+circuits. 
+Prerequisites: 00103230 
+28 
+ 
+ 
+00103213: Further Mathematics, 4 Cr (3,3) 
+This course introduces additional mathematical topics to students, advancing their knowledge of the 
+underpinning mathematics gained in the Engineering Mathematics course. The purpose of this course is to 
+prepare the students to analyze and model engineering problems using mathematical techniques. Among 
+the topics included in this course are: Number theory, complex numbers, matrix theory, linear equations, 
+numerical integration and graphical representation of curves within an engineering context. Furthermore, 
+this course expands students’ knowledge of calculus to discover how to model and solve engineering 
+problems using first and second order differential equations. 
+Prerequisites: 00103110 
+ 
+ 
+ 
+00103383: Programmable Logic Controllers, 4 Cr (3,3) 
+This course introduces automation system definition as a method designed to reduce labor costs and 
+improve the quality, accuracy and precision of the finished products. Also, to be familiar with the sight of 
+dancing robots, not only in the production of cars but in everything from washing machines to 
+pharmaceuticals. In addition to benefit from a reduction in costs and improvement in quality. The aim of 
+this course is to investigate how Programmable Logic Controllers (PLCs) and industrial robots can be 
+programmed to successfully implement automated engineering solutions. This course covers PLC system 
+operational characteristics, different types of programming languages, and types of robots and cell safety 
+features. Moreover, it includes programming PLCs and robotic manipulators to achieve a set task, 
+with straightforward commands and safety factors. 
+Prerequisites: 00103282, 00103250 
+ 
+00102321: Professional Engineering Management, 4 Cr (3,3) 
+This course aims to continue building-up the knowledge gained by Managing a Professional Engineering 
+Project course, to provide the students with common professional standards and guide them on how to 
+develop a range of employability skills. Among the topics included in this course are: engineering strategy 
+and services delivery planning, the role of sustainability, Total Quality Management (TQM), engineering 
+management tools, managing people and becoming a professional engineer. 
+Prerequisites:  00102220 
+ 
+00103331: Industrial Power, Electronics and Storage , 4 Cr (3,3) 
+This course reviews the main issues related to energy demand and production, efficiency measures and 
+policies, and interfacing methodologies used to connect renewable energy sources to the grid. It reviews 
+the historical perspective of energy production and demand, their environmental effects and the necessity 
+of renewable, or sustainable, energy sources. Energy auditing and management skills are delivered through 
+this course, discussed through examples of energy efficiency in buildings and electric vehicles. Renewable 
+energy sources are then investigated in detail, concentrating on their theoretical models, control circuits, 
+29 
+ 
+and grid interfacing techniques. The impact of connecting renewable energy sources to the grid is also 
+discussed, introducing the principle of smart grid.    
+Prerequisites: 00103240 
+ 
+00103351: Industrial Systems, 4 Cr (3,3) 
+This course introduces the basics of industrial automation and discrete control systems. It summarizes the 
+main concepts of discrete and analog, open and closed-loop control systems. Moreover, it describes each 
+part of conventional automated industrial systems, starting from input and output devices, interfacing 
+elements, and discrete controllers. The course also covers the creation of logic functions describing the 
+operation of automated industrial systems, representing them using ladder diagrams, and implementing 
+them through relay sequencers, programmable logic controllers (PLC), or modern industrial controllers 
+such as CNC modules. Modern industrial trends are also presented in this course, such as the Internet-of-
+Things (IoT) and novel manufacturing technologies contributing to the fourth industrial revolution. 
+Prerequisites: 00103250, 00103282 
+ 
+00103232: Further Electrical, Electronic and Digital Principles, 4 Cr (3,3) 
+This course focuses on using appropriate mathematical techniques to solve a range of electrical and 
+electronic problems by applying appropriate circuit theorems and computer simulation tools. Topics include 
+steady state circuit analysis techniques such as mesh and nodal analysis, using complex notation and phasor 
+diagrams to analyze single and three-phase AC circuits. Terminology related to power calculations such as 
+instantaneous power, power factor, real and reactive power are summarized based on the power triangle 
+representation. The course also briefs the characteristics of non-linear circuits including diodes and 
+transistors. 
+Prerequisites: 00103230, 00103213 
+ 
+00103352: Further Control Systems, 4 Cr (3,3) 
+This course introduces the main concepts of control systems and their theoretical modelling based on 
+realistic physical applications. It focuses on modelling electrical and mechanical systems using differential 
+equations and Laplace transform, forming and simplifying their corresponding block diagrams and 
+analyzing their response in terms of dynamic characteristics and stability. The course also investigates the 
+implementation and tuning of PID controllers by detailed mathematical analysis and computer simulations.  
+Prerequisites: 00103250, 00103213 
+ 
+00103490: Research Project for Electrical Engineers, 4 Cr (2,6) 
+This eight-month course introduces the skills necessary to deliver a complex, independently conducted, 
+research project that fits within an electrical engineering context. Topics included in this course are: Finding 
+a research problem, writing a research proposal, selecting a problem-solving approach, conducting 
+literature review, analyzing data and interpreting findings, managing a research project and identifying key 
+milestones, in addition to reporting, presenting, and publishing research outcomes. 
+Prerequisites: Passed 90 CHs 
+30 
+ 
+ 
+00103568: Engineering Electromagnetics, 3 Cr (3,0) 
+This course introduces the main theory of electromagnetism and its applications. It summarizes the theory 
+of vector calculus required to solve mathematical problems related to electromagnetic fields. It then 
+presents the derivation and the physical significance of Maxwell’s equations based on electrostatics and 
+magnetostatics. Topics include Coulomb’s law, Gauss’s Law, electric fields in materials, Biot-Savart’s 
+Law, Ampere’s Circuit Law, magnetic fields, vectors, forces and materials. Electromagnetic waves 
+propagation is also briefly discussed.   
+Prerequisites: 00103230, 00103213 
+ 
+ 
+00103367: Telecommunication Principles, 4 Cr (3,3) 
+This course introduces the main concepts in communication systems that deal with the transmission of 
+information such as voice, images and data using three elements: transmitter, medium and receiver. In 
+addition to the applications of telecommunications are all around us including mobile phones, satellite TV, 
+computer networks, Bluetooth and Wi-Fi. This course involves with the fundamental principles of wireless 
+communication systems including frequency spectrum, sources of noise and interference, theories and 
+practices of analogue and digital communication . This course further covers the physical practicalities of 
+telecommunication systems such as guided and unguided transmission media, security and network 
+architectures. 
+Prerequisites: 00103282, 00103110 
+ 
+00103333: Electrical Machines, 3 Cr (2,3) 
+This course provides the theoretical background of standard electrical machines. It presents the main 
+principles of electro-magnetism, reluctance circuits and transformers operation. It provides detailed 
+analysis of common alternating-current machines such as single-phase and three-phase motors. Different 
+types of machines such as induction and synchronous types are compared in terms of operation, speed-
+torque characteristics and applications. 
+Prerequisites: 00103232 
+ 
+00103534: Power Systems, 3 Cr (2,3) 
+This course represents the core of electrical engineering theory related to power generation, transmission 
+and distribution networks. It introduces the basics of electrical power system analysis that deals with 
+transmission lines, power networks, power flow and faults. Topics include basic concepts necessary for 
+power system analysis such as: Complex power and the power triangle, direction of power flow, power in 
+balanced three-phase systems, per-unit quantities and the single line diagram. The course covers in detail 
+the series impedance model of transmission lines, the capacitance of transmission lines, current-voltage 
+relations in transmission lines and an introduction to power-flow solutions.  
+Prerequisites: 00103232 
+ 
+ 
+31 
+ 
+00103535: Power System Quality, Reliability and Protection, 3 Cr (3,0) 
+This course provides a more detailed study of electrical power systems. It includes topics covering 
+symmetrical and unsymmetrical faults, such as: Transients in RL series circuits, fault calculations, single 
+line-to-ground faults, line-to-line and double line-to-ground faults. It also introduces the concept of power 
+system stability, the swing and the power-angle equations, and the qual-area criterion of stability. Protection 
+devices and their sizing calculations, in addition to economic operation and reliability of power systems are 
+also briefly discussed in this course. 
+Prerequisites: 00103534 
+ 
+00102541: Photovoltaic Systems, 3 Cr (2,3) 
+This course covers an in-depth analysis of solar photovoltaic systems and technologies, and focuses on the 
+practical design considerations. Topics covered include: Solar radiation characteristics, solar insolation 
+over collecting surfaces and shading analysis, categories of photovoltaic systems, specification and 
+selection of solar PV modules, types and characteristics of grid-connected inverters, fixed and tracking 
+mounting structures, design of grid-connected PV systems using software tools, energy yield calculations, 
+economic feasibility, testing and commissioning, operation and maintenance, off-grid PV systems, hybrid 
+PV-systems, and storage technologies. 
+Prerequisites: 00103232 
+ 
+00103546: Advanced Electronics, 4 Cr (3,3) 
+This course provides a detailed investigation of the p-n junction, its characteristics and working 
+principle, as it is considered the building concept of many conventional electronic devices like bipolar-
+junction (BJT) and field-effect (FET) transistors. It summarizes the theory behind the operation of field-
+effect transistors and metal-oxide-semiconductor field-effect transistors as discrete devices. It introduces 
+the main principles of CMOS logic gates as the building blocks of digital logic circuits. The course also 
+concentrates on the analysis and the design of different types of analog circuits. It also briefs the 
+mathematical techniques used to determine the frequency response, gain and stability of analog electronic 
+systems for the real-life applications. Moreover, it concentrates on the analysis of digital electronic circuits 
+and their applications and delivers the ability of mathematically modelling conventional digital electronic 
+circuits, such as: NMOS Inverters and logic circuits, CMOS inverters and logic circuits, clocked CMOS 
+logic circuits, sequential logic circuits, memories like RAM and ROM cells. In addition to emitter- coupled 
+logic circuits, transistor-transistor logic, Schottky transistor-transistor logic, BiCMOS digital circuits. 
+Prerequisites: 00103240 
+ 
+00103566: Speech and Image Processing, 3 Cr (2,3). 
+This course introduces various analytical techniques for signals and systems. Topics included in this course 
+are Signal representation including Fourier transform, system definitions and properties, in addition to the 
+use of convolution, transfer functions, and frequency response to determine the system response. Moreover, 
+it covers developing robust feature extraction techniques for speech analysis, speaker recognition, and 
+image processing with signal enhancement and features Extraction. 
+Prerequisites: 00103375, 00103213 
+ 
+ 
+32 
+ 
+00103553: Industry 4.0, 1 Cr (0,3). 
+The course provides a principle understanding of why and how smart factories are changing the face of 
+manufacturing. Students are first introduced to the factors and consequences behind industrial revolutions 
+and the definition of smart factories followed by the wide range of technologies that make smart factories 
+work.  The course will explore the integration of cyber-physical systems (CPSS) with the Internet of Things 
+(IoT) and how high-performance computing and the internet are combined with the development of 
+advanced manufacturing technologies. The course is designed for a lab-based lectures that works with the 
+following technologies: Automated and Intelligent Production Systems, CPSS; IoT; Wireless 
+Communication Protocols; Data Analytics; and Cloud Computing. Through lectures and lab work, students 
+will learn how to design and implement Industry 4.0 solutions in various industries. By the end of the 
+course, students will have a strong foundation in Industry 4.0 concepts and technologies, enabling them to 
+apply Industry 4.0 principles in real-world settings and contribute to the ongoing transformation of various 
+industries. 
+Prerequisites: 00103351, 00103367 
+ 
+00102523: Health, Safety, and Environment, 1 Cr (1,0)  
+The course aims to qualify the student for international certification in health and safety and environmental 
+awareness at work. Topics covered include: Fundamentals of health and safety, the responsibility for health 
+and safety, risk assessment and control, work equipment, transport safety, working with electricity, fire 
+safety, manual handling, repetitive activity, hazardous substances, practical risk assessment planning 
+activity, environmental awareness, pollution impact assessment, dealing with emergencies. 
+Prerequisites: 00102321 
+ 
+ 
+00103595: Capstone Project for Electrical Engineers, 1 Cr (0,3) 
+An applied research project required from each student to implement the knowledge gained from the 
+research project course. The students will practice proper project documentation, results presentation and 
+defending their project outcomes in front of a specialized committee.  
+Prerequisites: 00103490 
+00103596: Capstone Project for Electrical Engineers, 2 Cr (0,6) 
+An applied research project required from each student to implement the knowledge gained from the 
+capstone project course. The students will practice proper project documentation, results presentation and 
+defending their project outcomes in front of a specialized committee.  
+Prerequisites: 00103595 
+  
+00103536: Advanced Electrical Machines, 3 Cr (3,0) 
+This course builds on the electrical machines course by discussing advanced topics in conventional motors 
+(induction and synchronous AC machines). It also describes the theory behind special electrical machines 
+and their applications, such as brushless DC, stepper and servo motors.  
+Prerequisites: 00103333 
+33 
+ 
+ 
+ 
+00103537: Special Topics in Power Systems, 3 Cr (3,0) 
+This course provides a focused review of certain chosen topics in power systems engineering. Topics are 
+chosen to keep the students up-to-date with the current technologies and advancements in electrical power 
+systems engineering. 
+Prerequisites: 00103534 
+ 
+00103538: Electrical Drive Systems, 3 Cr (3,0) 
+This course introduces the concept of drive systems for controlling the speed and the torque of electrical 
+motors. It summarizes different types of electrical drive systems, a detailed review of their control circuits 
+and their corresponding applications.  
+Prerequisites: 00103333, 00103341 
+ 
+00103554: Mobile Robotics, 3 Cr (2,3). 
+This course provides the students with comprehensive material for designing and building simple 
+Unmanned Aerial Vehicles (UAV) and Unmanned Ground Vehicles (UGV)  prototypes. The course covers 
+the fundamentals of mobile robots, including their locomotion, perception, and control. The course 
+integrates theory, simulation, and practical work into four focused modules: System modeling; Sensors and 
+actuators; Control systems; and Unmanned vehicles. The course will include an introduction to robot 
+navigation and autonomous systems. By the end of the course, students will have a strong foundation in 
+mobile robotics, enabling them to build and program mobile robotic solutions in real-world settings. 
+Prerequisites: 00103250 
+ 
+00103555: Industrial Robotics, 3 Cr (2,3). 
+The aim of this course is for students to investigate the range, operations, and benefits of industrial robots 
+within manufacturing applications. The course covers the fundamentals of robot systems, including their 
+kinematics, dynamics, and control. Among the topics included are industrial robot selection, programming 
+and safety protocols that anticipate future developments in industrial robot technology.  Students will learn 
+the different robot structures with emphasis on six-degree of freedom manipulators. Students will 
+understand the electrical, mechanical, hydraulic and pneumatic operation of common industrial robots. 
+Students will learn how to program an industrial robot for automated process applications and will 
+understand the communication protocols. Through lectures, lab experiments, and hands-on projects, 
+students will learn how to design and program industrial robots for various applications. By the end of the 
+course, students will have a strong foundation in industrial robots and automation systems, enabling them 
+to develop and implement robotic solutions in real-world settings. 
+Prerequisites: 00103250 
+ 
+ 
+ 
+34 
+ 
+00102544: Green Buildings, 3 Cr (2,3) 
+This course introduces sustainability concepts in new and existing buildings and prepares the student for 
+international certification in green buildings. Topics covered include: Green buildings rating systems, 
+LEED concepts and categories, site sustainability strategies, water efficiency and wastewater technologies, 
+energy performance, building simulation, renewable energy in buildings, fundamental and enhanced 
+commissioning, sustainable building materials, indoor air quality, lighting and thermal comfort, innovative 
+design case studies. 
+Prerequisites: 00102111 
+00103543: Nano-Electronics and Information Technology, 3 Cr (3,0) 
+This course presents the current status of the state-of-the-art Silicon industry and its evolution, starting from 
+the well-established micro-fabrication techniques to the proposed novel nano-fabrication trends. It focuses 
+on the MOSFET as the main building component of the integrated circuits and the motivation behind the 
+emergence of nanotechnology. It also presents some revolutionary applications of the novel nano-electronic 
+devices in various areas, such as: memory and storage devices, displays, data transmission and 
+communications and imaging systems. 
+Prerequisites: 00103260, 00103542 
+ 
+00103544: Optical Electronics and Applications, 3 Cr (3,0) 
+This course summarizes the physics of semiconductor laser diodes and their applications in various fields 
+such as illumination, communications, biomedical and industrial applications. It also reviews the recent 
+trends in integrating electrical and optical devices into single electronic chips, or electro-optical integrated 
+circuits. 
+Prerequisites: 00103362, 00103341 
+ 
+00103545: Special Topics in Clinical Engineering, 3 Cr (3,0) 
+This course reviews the biomedical engineering technologies and managerial skills used in healthcare 
+applications. It focuses on the design and application of electronic medical devices, in addition to healthcare 
+environment design and development. Topics include lifecycle management, patient-safety regulations, risk 
+assessment and management, interoperability and cybersecurity.  
+Prerequisites: 00103341 
+ 
+00103564: Network Science, 3 Cr (2,3) 
+This course provides students with an introduction to modern networked technologies, such as wireless, 
+social, and economic networks. Topics included in this course are: Analysis of networked technologies 
+using analytical and engineering techniques, such as optimization, game/auction theory, graph analysis, and 
+learning as applied to networked technologies; introduction to the basics of these techniques and their 
+applications in networked systems; development of a network science for solving practical problems 
+pertaining to various networked systems, such as smartphones, Wiki, Facebook, economic networks, or 
+online video streaming software. 
+Prerequisites: 00103563 
+35 
+ 
+ 
+00103565: Special Topics in Communications, 3 Cr (3,0) 
+This course provides a focused review of certain chosen topics in communications engineering. Topics are 
+chosen to keep the students up-to-date with the current communication technologies and advancements. 
+Prerequisites: 00103362 
+ 
+00103574: Algorithms and Optimization, 3 Cr (2,3). 
+This course is designed to provide Electrical Engineering students with the knowledge and skills necessary 
+to develop and analyze algorithms for solving complex problems in their field. This will involve 
+mathematical formulation, algorithm development, and programming. The course covers the fundamentals 
+of algorithms and optimization, including their applications in signal processing, communication networks, 
+control systems, and machine learning. Unconstrained and constrained optimization techniques, such as 
+Simplex and gradient-based algorithms will be covered. 
+Prerequisites: 00103375, 00103213 
+ 
+00103571: Data Analytics, 3 Cr (3,0) 
+This course introduces the theoretical foundation of data analytics and a range of data analytic processes 
+and techniques to provide hands-on experience for enhancing students’ skills. Topics included in this course 
+are: Data analytic terminologies; types of data analytics; data exploration and visualization; understanding 
+data with descriptive, predictive and prescriptive analytics. 
+Prerequisites: 00103213 
+ 
+00103572: Artificial Intelligence and Engineering Applications, 3 Cr (3,0) 
+This course covers the following topics: Problem solving methods; problem spaces; search techniques; 
+knowledge representation; programming languages for AI; games; predicate logic; knowledge-based 
+systems; planning techniques; reactive systems; artificial neural networks; natural language understanding; 
+computer vision; and robotics. 
+Prerequisites: 00103570, 00103571 
+ 
+00103573: Machine Learning, 3 Cr (3,0) 
+This course covers the following topics: Algorithms and principles involved in machine learning; 
+fundamentals of representing uncertainty, learning from data, supervised learning, ensemble methods, 
+unsupervised learning, structured models, learning theory and reinforcement learning; design and analysis 
+of machine perception systems; design and implementation of a technical project applied to real datasets. 
+Prerequisites: 00103570, 00103571 
+ 
+00103581: Embedded Systems, 3 Cr (2,3) 
+This course concentrates on real-time programming of embedded systems. It develops the basic 
+understanding of embedded systems structure and terminology. It also delivers the knowledge required for 
+36 
+ 
+embedded systems programming. Topics include micro-controller structure, I/O systems, real-time 
+programming and debugging. 
+Prerequisites: 00103341 
+ 
+ 
+00103522: Electrical Installations for Buildings, 3 Cr (3,0) 
+The purpose of this course is to provide the students with the basics of buildings’ electrical systems design 
+and installations to facilitate the penetration of engineering consultancy / contracting fields career.  It covers 
+various topics related to Lighting system design, Distribution of socket outlets, Circuit breakers, Circuits 
+protection, Wiring and final branch circuit panelboard schedules, Cables Sizing, Emergency power 
+supply, Lighting control systems, Load Estimate, Life Safety Requirements, and electrical network 
+distribution levels and development of single line diagrams.  The course content is based on relevant 
+international standards such as IET, IEC, and ISO. 
+Prerequisites: 00103232 
+ 
+ 
+  
+00102552: Electric and Hybrid Vehicles, 3 Cr (2,3)  
+This course introduces the fundamentals, principles and design of hybrid and electric vehicles. Among the 
+topics covered are: components and operation of hybrid and electric vehicles, sizing the drive system, 
+energy storage devices and challenges, battery and charging technologies, energy management systems, 
+vehicle dynamics and transmission, performance analysis. 
+Prerequisites: 00103333 
+  
+00102551: Smart Grids, 3 Cr (2,3)  
+This course provides an in-depth introduction to the aspects and consideration governing the evolution of 
+conventional electrical networks into smart grids. Topics covered include: anatomy of smart grids, smart 
+grid infrastructure, smart grid operation, communication, cyber security, IEC 61850, power system 
+protection applications, demand side management applications, energy storage applications, integration of 
+electric vehicles. 
+Prerequisites: 00103331 
+  
+00101535: Mechatronics, 3 Cr (2,3) 
+This course introduces a general overview of mechatronic systems in terms of user requirements, concept 
+design, detailed design and component selection, as well as the additional issues of troubleshooting, 
+maintenance and documentation.  Specific components that are studied include:  sensors/transducers, 
+actuators and motors, controllers (physical controllers such as PLC and microcontrollers; control algorithms 
+such as on/off controllers and PID controllers), as well as the plant that is to be controlled, especially 
+mechanical plants. 
+Prerequisites: 00103230 
+ 
+37 
+ 
+ 
+ 
+00103497: Practical Training for Electrical Engineering (PATH), 6 Cr (0,40) 
+The practical training program is the bridge between academic study and industry. It is designed to 
+transform the apprentice from a student to an employee. The main objective is to improve graduate 
+readiness for full-time employment upon graduation. It is an 8-month work placement opportunity for a 
+student where they apply the technical knowledge obtained during study and develop their workplace skills 
+to match high international standards. The program is designed to allow updated monitoring of the 
+apprentice progress and development. 
+Prerequisites: Department Approval, 40302231, Passed 100 CHs 
+ 
+00103498: Practical Training for Electrical Engineering (PATH) Continuation, 12 Cr (0,40) 
+The practical training continuation program is the bridge between academic study and industry. It is 
+designed to transform the apprentice from a student to an employee. The main objective is to improve 
+graduate readiness for full-time employment upon graduation. It is an 8-month work placement opportunity 
+for a student where they apply the technical knowledge obtained during study and develop their workplace 
+skills to match high international standards. The program is designed to allow updated monitoring of the 
+apprentice progress and development. 
+Prerequisites: 00103497 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Version Feb 2023

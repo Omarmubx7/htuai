@@ -17,8 +17,15 @@ export function checkPrerequisites(
     course: Course,
     completedCourses: Set<string>,
     completedCredits: number = 0,
-    allCourseCodes: Set<string> = new Set()
+    allCourseCodes: Set<string> = new Set(),
+    logicRules?: any
 ): PrereqResult {
+    const rules = logicRules || {
+        code_regex: "\\b\\d{6,10}\\b",
+        separators: { and: ["AND", "&"], or: ["OR"] }
+    };
+
+    const extract = (s: string) => extractCode(s, rules);
     if (!course.prereq || course.prereq.trim() === '') {
         return { isLocked: false, missing: [] };
     }
@@ -30,10 +37,12 @@ export function checkPrerequisites(
         return { isLocked: true, missing: [], lockReason: 'Requires Department Approval' };
     }
 
-    // ── Credit-hour rules: ">= 85" or ">= 90" ───────────────────────────────
-    const hoursMatch = prereqStr.match(/>=\s*(\d+)\s*(HRS|HOURS?|CH|CREDITS?)?/);
+    // ── Credit-hour rules: ">= 85", "90 CH", or "100 hrs completed" ──────────
+    // We only treat it as an hour rule if it has a comparison operator OR a units suffix (CH, HRS, etc.)
+    const hoursMatch = prereqStr.match(/(?:>=\s*)(\d+)|(\d+)\s*(?:HRS|HOURS?|CH|CREDITS?)/);
     if (hoursMatch) {
-        const required = parseInt(hoursMatch[1], 10);
+        // hoursMatch[1] is for >= rule, hoursMatch[2] is for suffix rule
+        const required = parseInt(hoursMatch[1] || hoursMatch[2], 10);
         if (completedCredits < required) {
             return {
                 isLocked: true,
@@ -41,15 +50,15 @@ export function checkPrerequisites(
                 lockReason: `Requires ${required} CH completed (you have ${completedCredits} CH)`,
             };
         }
-        // Hours rule satisfied — fall through to also check any course-code prereqs
     }
 
     // ── Course-code prerequisites ────────────────────────────────────────────
-    // Strip the hours clause if any, then check codes
-    const codeOnlyStr = prereqStr.replace(/>=\s*\d+\s*(HRS|HOURS?|CH|CREDITS?)?\s*(INCLUDING[^)]*)?/gi, '');
+    // Strip only valid credit hour rules (requiring >= or units) to leave only course codes.
+    const codeOnlyStr = prereqStr.replace(/(?:>=\s*\d+)|(?:\d+\s*(?:HRS|HOURS?|CH|CREDITS?))|(?:\d+\s*INCLUDING[^)]*)/gi, '').trim();
 
-    // If nothing left after stripping the hours part, we're done (hours already passed above)
-    const hasCodePrereqs = /\d{8,10}/.test(codeOnlyStr);
+    // If nothing left after stripping the hours part, we're done
+    const codeRegex = new RegExp(rules.code_regex);
+    const hasCodePrereqs = codeRegex.test(codeOnlyStr);
     if (!hasCodePrereqs) {
         return { isLocked: false, missing: [] };
     }
@@ -57,24 +66,24 @@ export function checkPrerequisites(
     let missing: string[] = [];
 
     if (codeOnlyStr.includes(' OR ')) {
-        const options = codeOnlyStr.split(' OR ').map(s => s.trim());
+        const orRegex = new RegExp(`\\s*(?:${rules.separators.or.join('|')})\\s*`, 'i');
+        const options = codeOnlyStr.split(orRegex).map(s => s.trim());
         const codes = options
-            .map(extractCode)
+            .map(extract)
             .filter((c): c is string => c !== null)
-            // Only check codes that actually exist in our curriculum
             .filter(c => allCourseCodes.size === 0 || allCourseCodes.has(c));
 
-        // If all options are external, treat as satisfied
         if (codes.length === 0) return { isLocked: false, missing: [] };
 
         const hasOne = codes.some(code => completedCourses.has(code));
         if (!hasOne) missing = codes;
     } else {
-        const parts = codeOnlyStr.split(' AND ');
+        const andRegex = new RegExp(`\\s*(?:${rules.separators.and.join('|')})\\s*`, 'i');
+        const parts = codeOnlyStr.split(andRegex);
         const codes = parts
-            .map(s => extractCode(s))
+            .map(s => s.trim())
+            .map(extract)
             .filter((c): c is string => c !== null)
-            // Skip codes not in curriculum (pre-foundation / external)
             .filter(c => allCourseCodes.size === 0 || allCourseCodes.has(c));
 
         for (const code of codes) {
@@ -85,11 +94,17 @@ export function checkPrerequisites(
     return { isLocked: missing.length > 0, missing };
 }
 
-function extractCode(str: string): string | null {
-    const match = str.match(/\b\d{8,10}\b/);
+function extractCode(str: string, rules: any): string | null {
+    const regexStr = rules.code_regex;
+    const match = str.match(new RegExp(regexStr));
     if (match) {
         let code = match[0];
-        if (code.startsWith('00') && code.length === 10) code = code.substring(2);
+        const { leading_zeros_if_length, target_length } = rules.stripping || {};
+
+        if (leading_zeros_if_length && code.length === leading_zeros_if_length && code.startsWith('00')) {
+            const stripped = code.substring(2);
+            return stripped;
+        }
         return code;
     }
     return null;

@@ -19,6 +19,7 @@ interface StudentDashboardProps {
     totalCredits: number;
     data: CourseData;
     allCourses: Course[];
+    rules: any;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -40,6 +41,7 @@ interface BadgeContext {
     completedCount: number;
     allCourses: Course[];
     completedCourses: Set<string>;
+    totalCredits: number;
 }
 
 const BADGES: Badge[] = [
@@ -80,7 +82,7 @@ const BADGES: Badge[] = [
         description: "Complete 50% of your degree",
         color: "#f59e0b",
         glow: "rgba(245,158,11,0.3)",
-        check: (ctx) => ctx.completedCredits >= (ctx.allCourses.some(c => c.code === "201120") ? 36 : 68),
+        check: (ctx) => ctx.completedCredits >= ctx.totalCredits / 2,
     },
     {
         id: "year2-done",
@@ -111,8 +113,7 @@ const BADGES: Badge[] = [
         color: "#fb923c",
         glow: "rgba(251,146,60,0.3)",
         check: (ctx) => {
-            const total = ctx.allCourses.some(c => c.code === "201120") ? 72 : 135;
-            return ctx.completedCredits >= (total - 15);
+            return ctx.completedCredits >= ctx.totalCredits - 15 && ctx.completedCredits < ctx.totalCredits;
         },
     },
     {
@@ -122,10 +123,7 @@ const BADGES: Badge[] = [
         description: "Complete all requirements",
         color: "#fbbf24",
         glow: "rgba(251,191,36,0.4)",
-        check: (ctx) => {
-            const total = ctx.allCourses.some(c => c.code === "201120") ? 72 : 135;
-            return ctx.completedCredits >= total;
-        },
+        check: (ctx) => ctx.completedCredits >= ctx.totalCredits,
     },
 ];
 
@@ -139,10 +137,26 @@ export default function StudentDashboard({
     totalCredits,
     data,
     allCourses,
+    rules,
 }: StudentDashboardProps) {
     const completedCount = completedCourses.size;
     const progress = Math.min(completedCredits / totalCredits, 1);
     const progressPct = Math.round(progress * 100);
+
+    // ── Gamification Logic ──────────────────────────────────────────
+    const level = Math.floor(completedCredits / 15) + 1;
+    const xp = completedCredits * 100;
+    const xpInLevel = xp % 1500;
+    const xpToNext = 1500 - xpInLevel;
+    const levelProgress = xpInLevel / 1500;
+
+    const studentTitle = useMemo(() => {
+        if (progressPct >= 100) return "Legendary Scholar";
+        if (progressPct >= 75) return "Master of Arts";
+        if (progressPct >= 50) return "Expert Analyst";
+        if (progressPct >= 25) return "Rising Junior";
+        return "Academic Aspirant";
+    }, [progressPct]);
 
     // ── Graduation estimate ──────────────────────────────────────────
     const graduationEstimate = useMemo(() => {
@@ -185,17 +199,22 @@ export default function StudentDashboard({
             return doneCH;
         };
 
-        const isTechnical = totalCredits === 72;
-        const maxUniElec = isTechnical ? 0 : 3;
-        const maxDeptElec = isTechnical ? 1 : 3;
+        const ruleSet = Object.values(rules.degree_types).find((rs: any) =>
+            rs.major_keys.some((k: string) => rs.major_keys.includes(k)) // This is a bit redundant but safe
+        ) as any || rules.degree_types.computing_bsc;
+
+        // More accurate approach: find by totalCredits match or major keys
+        const actualRuleSet = Object.values(rules.degree_types).find((rs: any) => rs.total_credits === totalCredits) as any || rules.degree_types.computing_bsc;
+
+        const maxUniElec = actualRuleSet.max_uni_electives;
+        const maxDeptElec = actualRuleSet.max_dept_electives;
 
         const catData = [
             { label: "University Requirements", courses: data.university_requirements, color: "#a78bfa", icon: <GraduationCap className="w-3.5 h-3.5" /> },
+            { label: "University Elective", courses: data.university_electives ?? [], color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" />, cap: maxUniElec },
             { label: "College Requirements", courses: data.college_requirements, color: "#60a5fa", icon: <BookOpen className="w-3.5 h-3.5" /> },
-            { label: "University Electives", courses: data.university_electives ?? [], color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" />, cap: maxUniElec },
-            { label: "Department Requirements", courses: data.department_requirements, color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
-            { label: "Major Electives", courses: data.electives, color: "#f472b6", icon: <Star className="w-3.5 h-3.5" />, cap: maxDeptElec },
-            { label: "Work Market", courses: data.work_market_requirements ?? [], color: "#10b981", icon: <Rocket className="w-3.5 h-3.5" /> },
+            { label: "Department Requirements", courses: [...data.department_requirements, ...(data.work_market_requirements ?? [])], color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
+            { label: "Department Elective", courses: data.electives, color: "#f472b6", icon: <Star className="w-3.5 h-3.5" />, cap: maxDeptElec },
         ];
 
         return catData
@@ -215,7 +234,7 @@ export default function StudentDashboard({
     }, [data, completedCourses, totalCredits]);
 
     // ── Badge context ────────────────────────────────────────────────
-    const badgeCtx: BadgeContext = { completedCredits, completedCount, allCourses, completedCourses };
+    const badgeCtx: BadgeContext = { completedCredits, completedCount, allCourses, completedCourses, totalCredits };
     const earnedCount = BADGES.filter(b => b.check(badgeCtx)).length;
     const totalRemaining = categories.reduce((s, c) => s + c.remaining, 0);
 
@@ -224,8 +243,68 @@ export default function StudentDashboard({
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-10 space-y-4"
+            className="mb-10 space-y-6"
         >
+            {/* ── Gamification Header ────────────────────────────────── */}
+            <div className="flex flex-col md:flex-row gap-4 items-stretch">
+                <div className="flex-1 glass-card p-5 rounded-3xl relative overflow-hidden group border-white/10 bg-white/[0.02]">
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="relative flex items-center gap-5">
+                        <div className="relative w-16 h-16 flex items-center justify-center">
+                            <svg className="w-full h-full -rotate-90">
+                                <circle cx="32" cy="32" r="30" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+                                <motion.circle
+                                    cx="32" cy="32" r="30" fill="transparent" stroke="url(#level-grad)" strokeWidth="4"
+                                    strokeDasharray="188.4"
+                                    initial={{ strokeDashoffset: 188.4 }}
+                                    animate={{ strokeDashoffset: 188.4 * (1 - levelProgress) }}
+                                    transition={{ duration: 1.5, ease: "easeOut" }}
+                                    strokeLinecap="round"
+                                />
+                                <defs>
+                                    <linearGradient id="level-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#8b5cf6" />
+                                        <stop offset="100%" stopColor="#d946ef" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-xl font-black text-white">{level}</span>
+                                <span className="text-[7px] font-bold text-white/30 uppercase tracking-tighter">Level</span>
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h2 className="text-lg font-bold text-white tracking-tight leading-none">{studentTitle}</h2>
+                                <Sparkles className="w-3.5 h-3.5 text-amber-400 opacity-60 animate-pulse" />
+                            </div>
+                            <p className="text-[10px] text-white/30 font-medium uppercase tracking-widest mb-3">Student Rank</p>
+                            <div className="flex items-center justify-between text-[10px] mb-1.5">
+                                <span className="text-violet-400 font-bold">{xpInLevel} XP</span>
+                                <span className="text-white/20">{xpToNext} XP to Level {level + 1}</span>
+                            </div>
+                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${levelProgress * 100}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 md:w-56 shrink-0">
+                    <div className="flex-1 h-full py-4 px-6 glass-card rounded-3xl border-white/10 bg-white/[0.02] flex flex-col justify-center">
+                        <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest mb-1">Total XP</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-2xl font-black text-white tabular-nums tracking-tighter">{xp.toLocaleString()}</span>
+                            <span className="text-xs text-violet-400/70 font-bold">PTS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {/* ── Stats Row ──────────────────────────────────────────── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard
@@ -293,10 +372,10 @@ export default function StudentDashboard({
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: 0.3 + i * 0.05, duration: 0.3 }}
                                     title={`${badge.label}: ${badge.description}`}
-                                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-default transition-all duration-300
+                                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-default transition-all duration-500
                                         ${earned
-                                            ? "hover:scale-105"
-                                            : "opacity-30 grayscale"
+                                            ? "hover:scale-105 hover:bg-white/[0.03]"
+                                            : "opacity-20 grayscale scale-95"
                                         }`}
                                     style={{
                                         background: earned ? `${badge.color}10` : "rgba(255,255,255,0.02)",

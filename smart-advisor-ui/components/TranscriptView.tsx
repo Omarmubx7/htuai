@@ -5,16 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
-import { CheckCircle2, Trophy, RotateCcw, Loader2 } from 'lucide-react';
+import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Sparkles, Target, Star } from 'lucide-react';
 import StudentDashboard from './StudentDashboard';
 
 interface TranscriptViewProps {
     data: CourseData;
     studentId: string;   // university ID → database key
-    majorKey?: string;
+    majorKey: string;
+    rules: any;
 }
 
-export default function TranscriptView({ data, studentId, majorKey }: TranscriptViewProps) {
+export default function TranscriptView({ data, studentId, majorKey, rules }: TranscriptViewProps) {
     const [completedCourses, setCompletedCourses] = useState<Set<string>>(new Set());
     const [viewMode, setViewMode] = useState<"level" | "category">("level");
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
@@ -85,12 +86,15 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
     // Set of all codes in the curriculum — prereqs outside this are auto-satisfied
     const allCourseCodes = new Set(allCourses.map(c => c.code));
 
-    // HTU degree is always 135 CH
-    // HTU degree is usually 135 CH, but technical (HNC/HND) can be 72 CH
-    const isTechnical = majorKey === "game_design";
-    const totalCredits = isTechnical ? 72 : 135;
-    const MAX_DEPT_ELECTIVES = isTechnical ? 1 : 3;
-    const MAX_UNI_ELECTIVES = isTechnical ? 0 : 3;
+    // Determine rule set from majorKey
+    const ruleSet = Object.values(rules.degree_types).find((rs: any) =>
+        rs.major_keys.includes(majorKey)
+    ) as any || rules.degree_types.computing_bsc;
+
+    const totalCredits = ruleSet.total_credits;
+    const MAX_DEPT_ELECTIVES = ruleSet.max_dept_electives;
+    const MAX_UNI_ELECTIVES = ruleSet.max_uni_electives;
+    const TOTAL_CAP = totalCredits;
 
     // ── University Electives: 3 slots × 1 CH = 3 CH max ─────────────────────
     const uniElectiveCodes = new Set((data.university_electives ?? []).map((c: Course) => c.code));
@@ -117,7 +121,7 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                 total += course.ch;
             }
         }
-        return Math.min(total, 135);
+        return Math.min(total, TOTAL_CAP);
     })();
 
     const progress = Math.min(completedCredits / totalCredits, 1);
@@ -128,18 +132,21 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
         if (viewMode === 'category') {
             return {
                 "University Requirements": data.university_requirements,
+                "University Elective": data.university_electives ?? [],
                 "College Requirements": data.college_requirements,
-                "University Electives": data.university_electives ?? [],
-                "Department Requirements": data.department_requirements,
-                "Major Electives": data.electives,
-                "Work Market Requirements": data.work_market_requirements ?? []
+                "Department Requirements": [
+                    ...data.department_requirements,
+                    ...(data.work_market_requirements ?? [])
+                ],
+                "Department Elective": data.electives,
             };
         } else {
             return {
                 "First Year (Level 1)": allCourses.filter(c => c.level === 1),
                 "Second Year (Level 2)": allCourses.filter(c => c.level === 2),
                 "Third Year (Level 3)": allCourses.filter(c => c.level === 3),
-                "Fourth Year (Level 4)": allCourses.filter(c => (c.level || 4) >= 4),
+                "Fourth Year (Level 4)": allCourses.filter(c => c.level === 4),
+                "Fifth Year (Level 5)": allCourses.filter(c => (c.level || 5) >= 5),
             };
         }
     };
@@ -150,6 +157,14 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 pt-10 pb-24">
+
+            {/* Data notice banner */}
+            <div className="mb-6 flex items-start gap-3 px-4 py-3 rounded-2xl border border-amber-500/15 bg-amber-500/[0.04]">
+                <span className="text-amber-400 text-base mt-0.5">📋</span>
+                <p className="text-[12px] text-amber-200/70 leading-relaxed">
+                    Course data is still being updated. If you can&apos;t find a specific course, don&apos;t worry — we&apos;ll update it as soon as we receive the latest information from the university.
+                </p>
+            </div>
 
             {/* Page header + progress card */}
             <div className="mb-12 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
@@ -220,6 +235,7 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                 totalCredits={totalCredits}
                 data={data}
                 allCourses={allCourses}
+                rules={rules}
             />
 
             {/* View-mode toggle */}
@@ -241,10 +257,23 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
 
             {/* Course Grid */}
             <div className="space-y-12">
-                {Object.entries(groups).map(([title, courses]) => (
-                    courses.length > 0 && <section key={title}>
+                {Object.entries(groups).map(([title, courses]) => {
+                    // Category-specific styling
+                    const catStyle: Record<string, { icon: React.ReactNode; color: string }> = {
+                        "University Requirements": { icon: <GraduationCap className="w-4 h-4" />, color: "#a78bfa" },
+                        "University Elective": { icon: <Sparkles className="w-4 h-4" />, color: "#34d399" },
+                        "College Requirements": { icon: <BookOpen className="w-4 h-4" />, color: "#60a5fa" },
+                        "Department Requirements": { icon: <Target className="w-4 h-4" />, color: "#f59e0b" },
+                        "Department Elective": { icon: <Star className="w-4 h-4" />, color: "#f472b6" },
+                    };
+                    const style = catStyle[title];
+
+                    return courses.length > 0 && <section key={title}>
                         <div className="flex items-center gap-3 mb-6">
-                            {viewMode === 'level' && <Trophy className="w-4 h-4 text-violet-400/60" />}
+                            {viewMode === 'level'
+                                ? <Trophy className="w-4 h-4 text-violet-400/60" />
+                                : style && <span style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
+                            }
                             <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
                                 {title}
                             </h2>
@@ -257,11 +286,11 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                             let isCapReached = false;
                             let count = 0;
                             let max = 0;
-                            if (title.includes('University Elective')) {
+                            if (title === 'University Elective') {
                                 isCapReached = tickedUniElecCount >= MAX_UNI_ELECTIVES;
                                 count = tickedUniElecCount;
                                 max = MAX_UNI_ELECTIVES;
-                            } else if (title === 'Major Electives' || (title.includes('Elective') && !title.includes('University'))) {
+                            } else if (title === 'Department Elective') {
                                 isCapReached = deptElecCapReached;
                                 count = tickedDeptElecCount;
                                 max = MAX_DEPT_ELECTIVES;
@@ -292,15 +321,25 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                                     capMax = MAX_DEPT_ELECTIVES;
                                 }
 
-                                const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes);
-                                const isLocked = prereqLocked || isElectiveLocked;
-                                const lockReason = isElectiveLocked ? `Max ${capMax} electives reached — untick one to swap` : prereqReason;
+                                const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules.prerequisites);
+
+                                // Hard-lock everything EXCEPT University Requirements & Electives (which get a soft-lock warning)
+                                const uniReqCodes = new Set(data.university_requirements.map(r => r.code));
+                                const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
+
+                                const isLocked = isElectiveLocked || (!isUniversitySubject && prereqLocked);
+                                const hasPrereqWarning = isUniversitySubject && prereqLocked;
+
+                                const lockReason = isElectiveLocked
+                                    ? `Max ${capMax} electives reached — untick one to swap`
+                                    : (prereqLocked ? prereqReason : undefined);
                                 return (
                                     <CourseCard
                                         key={course.code}
                                         course={course}
                                         isCompleted={completedCourses.has(course.code)}
                                         isLocked={isLocked}
+                                        hasPrereqWarning={hasPrereqWarning}
                                         lockReason={lockReason}
                                         missingPrereqs={missing}
                                         courseMap={courseMap}
@@ -311,7 +350,7 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                             })}
                         </div>
                     </section>
-                ))}
+                })}
             </div>
         </div>
     );

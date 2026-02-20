@@ -1,9 +1,44 @@
-import { getVisitorLogs } from '@/lib/database';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useEffect, useState } from 'react';
+import AdminGate, { useAdminSecret } from '@/components/AdminGate';
+import { Loader2 } from 'lucide-react';
 
-export default async function LogsPage() {
-    const logs = await getVisitorLogs(100);
+interface LogEntry {
+    id: number;
+    student_id: string | null;
+    ip_address: string;
+    device_vendor: string | null;
+    device_model: string | null;
+    os_name: string | null;
+    os_version: string | null;
+    browser_name: string | null;
+    visited_at: string;
+}
+
+export default function LogsPage() {
+    return <AdminGate><LogsInner /></AdminGate>;
+}
+
+function LogsInner() {
+    const adminSecret = useAdminSecret();
+    const [logs, setLogs] = useState<LogEntry[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('/api/admin/logs', {
+            headers: { 'x-admin-secret': adminSecret }
+        })
+            .then(res => res.json())
+            .then(data => { setLogs(data); setLoading(false); })
+            .catch(() => setLoading(false));
+    }, [adminSecret]);
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0f' }}>
+            <Loader2 className="w-6 h-6 text-white/30 animate-spin" />
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-black text-white p-6">

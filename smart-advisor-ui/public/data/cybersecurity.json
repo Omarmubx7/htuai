@@ -3,7 +3,6 @@
     "total_credits": 135,
     "shared_credits": 45,
     "core_credits": 90,
-    "note": "department_requirements + electives are unique to this major. university_requirements and college_requirements come from shared.json",
     "department_requirements": [
       {
         "code": "10203180",
@@ -50,7 +49,7 @@
         "name": "Network Security",
         "ch": 3,
         "framework": "HND",
-        "level": 2,
+        "level": 3,
         "prereq": "00203280"
       },
       {
@@ -58,7 +57,8 @@
         "name": "Forensics",
         "ch": 3,
         "framework": "HND",
-        "level": 3
+        "level": 3,
+        "prereq": "10203380 & 00203280"
       },
       {
         "code": "10203300",
@@ -73,7 +73,8 @@
         "name": "Computing Research Project",
         "ch": 6,
         "framework": "HND",
-        "level": 3
+        "level": 3,
+        "prereq": "40201290"
       },
       {
         "code": "10204282",
@@ -105,7 +106,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 3,
-        "prereq": "40303221 AND 40201100"
+        "prereq": "40201100 & 40303221"
       },
       {
         "code": "40201341",
@@ -121,7 +122,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 3,
-        "prereq": "10203362"
+        "prereq": "10203210"
       },
       {
         "code": "10203362",
@@ -129,7 +130,7 @@
         "ch": 3,
         "framework": "HTU",
         "level": 3,
-        "prereq": "10203210"
+        "prereq": "00203360"
       },
       {
         "code": "00203400",
@@ -144,21 +145,20 @@
         "name": "Secure Coding",
         "ch": 3,
         "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "10204282"
       },
       {
         "code": "10203491",
         "name": "Capstone Project I",
         "ch": 1,
-        "framework": "HTU",
         "level": 4,
-        "prereq": ">= 90 hrs including core courses"
+        "prereq": ">= 90 CH"
       },
       {
         "code": "10203492",
         "name": "Capstone Project II",
         "ch": 2,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10203491"
       },
@@ -166,19 +166,15 @@
         "code": "10203390",
         "name": "HNC Training",
         "ch": 12,
-        "framework": "HTU",
         "level": 3,
-        "prereq": "Minimum completed hours >= 85",
-        "description": "Work-based placement — minimum 85 CH must be completed before starting"
+        "prereq": ">= 85 CH"
       },
       {
         "code": "10203490",
         "name": "HND Training",
         "ch": 6,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "10203390",
-        "description": "Advanced placement — corequisite: HNC Training must be completed or concurrent"
+        "prereq": "10203390"
       }
     ],
     "electives": [
@@ -186,37 +182,34 @@
         "code": "10203421",
         "name": "Web Security",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "10203210"
+        "prereq": "10203210 & 40201260"
       },
       {
         "code": "10203411",
         "name": "Internet of Things Security",
         "ch": 3,
-        "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "10203210"
       },
       {
         "code": "10203410",
         "name": "Mobile and Wireless Security",
         "ch": 3,
-        "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "10203210"
       },
       {
         "code": "10203401",
         "name": "Incident Response Management",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
-        "prereq": "10203420"
+        "prereq": "10203420 & 00203400"
       },
       {
         "code": "10203402",
         "name": "Ethical Issues in Cyber Security",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10203362"
       },
@@ -224,14 +217,13 @@
         "code": "40201450",
         "name": "Cloud Computing",
         "ch": 3,
-        "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "10203180 & 40201341"
       },
       {
         "code": "00204414",
         "name": "Data Analytics for IT Professionals",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204312"
       },
@@ -239,7 +231,6 @@
         "code": "00204456",
         "name": "Artificial Intelligence for IT Professionals",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "10204312"
       },
@@ -247,14 +238,13 @@
         "code": "10203420",
         "name": "Secure System Design and Development",
         "ch": 3,
-        "framework": "HTU",
-        "level": 4
+        "level": 4,
+        "prereq": "00203420"
       },
       {
         "code": "10203470",
         "name": "Special Topics",
         "ch": 3,
-        "framework": "HTU",
         "level": 4,
         "prereq": "Department Approval"
       }

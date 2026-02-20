@@ -45,7 +45,12 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
     return map;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+    const secret = request.headers.get('x-admin-secret');
+    if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     try {
         const [students, courseMap] = await Promise.all([
             getAllStudents(),
