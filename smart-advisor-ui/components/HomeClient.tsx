@@ -81,6 +81,7 @@ export default function HomeClient() {
             data_science: "data_science.json",
             computer_science: "computer_science.json",
             cybersecurity: "cybersecurity.json",
+            game_design: "game_design.json",
         };
         try {
             const [shared, majorJson] = await Promise.all([
@@ -95,6 +96,7 @@ export default function HomeClient() {
                 university_electives: shared.university_electives ?? [],
                 department_requirements: majorData.department_requirements ?? [],
                 electives: majorData.electives ?? [],
+                work_market_requirements: majorData.work_market_requirements ?? [],
             });
         } catch (e) {
             console.error(e);

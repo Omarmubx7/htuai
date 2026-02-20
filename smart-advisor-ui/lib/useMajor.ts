@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-export type MajorKey = "data_science" | "computer_science" | "cybersecurity";
+export type MajorKey = "data_science" | "computer_science" | "cybersecurity" | "game_design";
 
 export const MAJORS: { key: MajorKey; label: string; description: string; icon: string; color: string }[] = [
     {
@@ -25,6 +25,13 @@ export const MAJORS: { key: MajorKey; label: string; description: string; icon: 
         description: "Network Security, Ethical Hacking, and Cryptography",
         icon: "🔐",
         color: "from-orange-500 to-red-600",
+    },
+    {
+        key: "game_design",
+        label: "Game Design",
+        description: "Game Mechanics, Graphics, and Interactive Design",
+        icon: "🎮",
+        color: "from-pink-500 to-rose-600",
     },
 ];
 

@@ -1,0 +1,131 @@
+{
+    "game_design": {
+        "total_credits": 72,
+        "shared_credits": 27,
+        "core_credits": 45,
+        "note": "department_requirements + electives + work_market are unique to this major. university_requirements and college_requirements come from shared.json",
+        "department_requirements": [
+            {
+                "code": "201120",
+                "name": "Game Design",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 1
+            },
+            {
+                "code": "201160",
+                "name": "Creative Games Development",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 1,
+                "prereq": "201120"
+            },
+            {
+                "code": "201262",
+                "name": "Games Engine",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "201160"
+            },
+            {
+                "code": "201263",
+                "name": "Advanced Scripting for Games",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "201262"
+            },
+            {
+                "code": "201264",
+                "name": "Immersive Technology Development",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "201262"
+            },
+            {
+                "code": "201270",
+                "name": "Special Topics in Game Development",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "201262"
+            },
+            {
+                "code": "203280",
+                "name": "Security",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1
+            },
+            {
+                "code": "10203180",
+                "name": "Networking",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "40303130"
+            },
+            {
+                "code": "10204282",
+                "name": "Database Design & Development",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "40303130"
+            },
+            {
+                "code": "40201220",
+                "name": "Software Development Lifecycles",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 2,
+                "prereq": "40201100"
+            }
+        ],
+        "electives": [
+            {
+                "code": "40201260",
+                "name": "Website Design & Development",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 2,
+                "prereq": "40201100"
+            },
+            {
+                "code": "40303121",
+                "name": "Maths for Computing",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "30303111"
+            }
+        ],
+        "work_market_requirements": [
+            {
+                "code": "7102",
+                "name": "Career Readiness Workshop",
+                "ch": 0,
+                "framework": "HTU",
+                "level": 1
+            },
+            {
+                "code": "201290",
+                "name": "Apprenticeship 1 for Game Design and Development",
+                "ch": 6,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "7102"
+            },
+            {
+                "code": "201293",
+                "name": "Apprenticeship 2 for Game Design and Development",
+                "ch": 6,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "201290"
+            }
+        ]
+    }
+}

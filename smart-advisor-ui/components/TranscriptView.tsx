@@ -24,7 +24,8 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
         ...data.college_requirements,
         ...(data.university_electives ?? []),
         ...data.department_requirements,
-        ...data.electives
+        ...data.electives,
+        ...(data.work_market_requirements ?? [])
     ];
 
     // Build code → name lookup
@@ -85,16 +86,18 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
     const allCourseCodes = new Set(allCourses.map(c => c.code));
 
     // HTU degree is always 135 CH
-    const totalCredits = 135;
+    // HTU degree is usually 135 CH, but technical (HNC/HND) can be 72 CH
+    const isTechnical = majorKey === "game_design";
+    const totalCredits = isTechnical ? 72 : 135;
+    const MAX_DEPT_ELECTIVES = isTechnical ? 1 : 3;
+    const MAX_UNI_ELECTIVES = isTechnical ? 0 : 3;
 
     // ── University Electives: 3 slots × 1 CH = 3 CH max ─────────────────────
-    const MAX_UNI_ELECTIVES = 3;
     const uniElectiveCodes = new Set((data.university_electives ?? []).map((c: Course) => c.code));
     // UE slots (UE-I, UE-II, UE-III) are always tickable — there are exactly 3, each 1 CH
     const tickedUniElecCount = [...completedCourses].filter(c => uniElectiveCodes.has(c)).length;
 
     // ── Department Electives: 3 slots × 3 CH = 9 CH max ─────────────────────
-    const MAX_DEPT_ELECTIVES = 3;
     const deptElectiveCodes = new Set(data.electives.map((c: Course) => c.code));
     const tickedDeptElecCount = [...completedCourses].filter(c => deptElectiveCodes.has(c)).length;
     const deptElecCapReached = tickedDeptElecCount >= MAX_DEPT_ELECTIVES;
@@ -128,7 +131,8 @@ export default function TranscriptView({ data, studentId, majorKey }: Transcript
                 "College Requirements": data.college_requirements,
                 "University Electives": data.university_electives ?? [],
                 "Department Requirements": data.department_requirements,
-                "Major Electives": data.electives
+                "Major Electives": data.electives,
+                "Work Market Requirements": data.work_market_requirements ?? []
             };
         } else {
             return {

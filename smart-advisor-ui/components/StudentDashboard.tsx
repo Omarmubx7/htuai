@@ -80,7 +80,7 @@ const BADGES: Badge[] = [
         description: "Complete 50% of your degree",
         color: "#f59e0b",
         glow: "rgba(245,158,11,0.3)",
-        check: (ctx) => ctx.completedCredits >= 68,
+        check: (ctx) => ctx.completedCredits >= (ctx.allCourses.some(c => c.code === "201120") ? 36 : 68),
     },
     {
         id: "year2-done",
@@ -107,19 +107,25 @@ const BADGES: Badge[] = [
         id: "almost-there",
         icon: <Trophy className="w-4 h-4" />,
         label: "Almost There",
-        description: "Earn 120 credit hours",
+        description: "Nearly finished",
         color: "#fb923c",
         glow: "rgba(251,146,60,0.3)",
-        check: (ctx) => ctx.completedCredits >= 120,
+        check: (ctx) => {
+            const total = ctx.allCourses.some(c => c.code === "201120") ? 72 : 135;
+            return ctx.completedCredits >= (total - 15);
+        },
     },
     {
         id: "graduate",
         icon: <Crown className="w-4 h-4" />,
         label: "Graduate",
-        description: "Complete all 135 CH",
+        description: "Complete all requirements",
         color: "#fbbf24",
         glow: "rgba(251,191,36,0.4)",
-        check: (ctx) => ctx.completedCredits >= 135,
+        check: (ctx) => {
+            const total = ctx.allCourses.some(c => c.code === "201120") ? 72 : 135;
+            return ctx.completedCredits >= total;
+        },
     },
 ];
 
@@ -160,17 +166,12 @@ export default function StudentDashboard({
     }, [completedCredits, totalCredits]);
 
     // ── Category CH breakdown for "What's Next" ──────────────────────
-    // Hard-coded required CH per category — these are fixed across all HTU IT majors
-    const UNI_REQ_CH = 24;        // 10 courses
-    const COLLEGE_REQ_CH = 21;    // 7 courses
-    const UNI_ELEC_CH = 3;        // 3 slots × 1 CH
-    const DEPT_REQ_CH = 78;       // ~22 courses (varies by major but always sums to 78)
-    const MAJOR_ELEC_CH = 9;      // 3 slots × 3 CH
-
-    const MAX_UNI_ELECTIVES = 3;
-    const MAX_DEPT_ELECTIVES = 3;
-
     const categories = useMemo(() => {
+        const sumCH = (courses: Course[], cap?: number) => {
+            if (!cap) return courses.reduce((s, c) => s + c.ch, 0);
+            return cap * (courses[0]?.ch || 3); // assumes constant CH per elective slot
+        };
+
         const countDoneCH = (courses: Course[], cap?: number) => {
             let doneCH = 0;
             let count = 0;
@@ -184,20 +185,34 @@ export default function StudentDashboard({
             return doneCH;
         };
 
-        const uniReqDone = countDoneCH(data.university_requirements);
-        const collegeReqDone = countDoneCH(data.college_requirements);
-        const uniElecDone = countDoneCH(data.university_electives ?? [], MAX_UNI_ELECTIVES);
-        const deptReqDone = countDoneCH(data.department_requirements);
-        const elecDone = countDoneCH(data.electives, MAX_DEPT_ELECTIVES);
+        const isTechnical = totalCredits === 72;
+        const maxUniElec = isTechnical ? 0 : 3;
+        const maxDeptElec = isTechnical ? 1 : 3;
 
-        return [
-            { label: "University Requirements", totalCH: UNI_REQ_CH, doneCH: Math.min(uniReqDone, UNI_REQ_CH), remaining: Math.max(0, UNI_REQ_CH - uniReqDone), color: "#a78bfa", icon: <GraduationCap className="w-3.5 h-3.5" /> },
-            { label: "College Requirements", totalCH: COLLEGE_REQ_CH, doneCH: Math.min(collegeReqDone, COLLEGE_REQ_CH), remaining: Math.max(0, COLLEGE_REQ_CH - collegeReqDone), color: "#60a5fa", icon: <BookOpen className="w-3.5 h-3.5" /> },
-            { label: "University Electives", totalCH: UNI_ELEC_CH, doneCH: Math.min(uniElecDone, UNI_ELEC_CH), remaining: Math.max(0, UNI_ELEC_CH - uniElecDone), color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" /> },
-            { label: "Department Requirements", totalCH: DEPT_REQ_CH, doneCH: Math.min(deptReqDone, DEPT_REQ_CH), remaining: Math.max(0, DEPT_REQ_CH - deptReqDone), color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
-            { label: "Major Electives", totalCH: MAJOR_ELEC_CH, doneCH: Math.min(elecDone, MAJOR_ELEC_CH), remaining: Math.max(0, MAJOR_ELEC_CH - elecDone), color: "#f472b6", icon: <Star className="w-3.5 h-3.5" /> },
+        const catData = [
+            { label: "University Requirements", courses: data.university_requirements, color: "#a78bfa", icon: <GraduationCap className="w-3.5 h-3.5" /> },
+            { label: "College Requirements", courses: data.college_requirements, color: "#60a5fa", icon: <BookOpen className="w-3.5 h-3.5" /> },
+            { label: "University Electives", courses: data.university_electives ?? [], color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" />, cap: maxUniElec },
+            { label: "Department Requirements", courses: data.department_requirements, color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
+            { label: "Major Electives", courses: data.electives, color: "#f472b6", icon: <Star className="w-3.5 h-3.5" />, cap: maxDeptElec },
+            { label: "Work Market", courses: data.work_market_requirements ?? [], color: "#10b981", icon: <Rocket className="w-3.5 h-3.5" /> },
         ];
-    }, [data, completedCourses]);
+
+        return catData
+            .filter(cat => cat.courses.length > 0 || (cat.cap && cat.cap > 0))
+            .map(cat => {
+                const totalCH = sumCH(cat.courses, cat.cap);
+                const doneCH = countDoneCH(cat.courses, cat.cap);
+                return {
+                    label: cat.label,
+                    totalCH,
+                    doneCH: Math.min(doneCH, totalCH),
+                    remaining: Math.max(0, totalCH - doneCH),
+                    color: cat.color,
+                    icon: cat.icon
+                };
+            });
+    }, [data, completedCourses, totalCredits]);
 
     // ── Badge context ────────────────────────────────────────────────
     const badgeCtx: BadgeContext = { completedCredits, completedCount, allCourses, completedCourses };

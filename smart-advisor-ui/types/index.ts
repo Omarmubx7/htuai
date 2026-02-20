@@ -14,6 +14,7 @@ export interface CourseData {
     department_requirements: Course[];
     electives: Course[];
     university_electives: Course[];
+    work_market_requirements?: Course[];
 }
 
 export type SemesterType = "Regular" | "Summer";
