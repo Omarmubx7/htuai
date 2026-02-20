@@ -185,6 +185,19 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                 >
                     Your selection cannot be changed without admin assistance.
                 </motion.p>
+
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className="text-center text-white/15 text-xs mt-4"
+                >
+                    made by{" "}
+                    <a href="https://mubx.dev" target="_blank" rel="noopener noreferrer"
+                       className="text-white/30 hover:text-white/60 font-semibold transition-colors">
+                        mubx
+                    </a>
+                </motion.p>
             </div>
         </div>
     );
