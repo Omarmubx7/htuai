@@ -50,16 +50,34 @@ type TabKey = 'overview' | 'students' | 'visitors';
    ═══════════════════════════════════════════════════════════════════ */
 
 const MAJOR_COLORS: Record<string, string> = {
-    computer_science: '#a78bfa',
-    cybersecurity: '#f87171',
-    data_science: '#60a5fa',
-    artificial_intelligence: '#34d399',
+    computer_science: '#3b82f6',       // Blue
+    cybersecurity: '#10b981',          // Emerald
+    data_science: '#8b5cf6',           // Violet
+    game_design: '#f43f5e',            // Rose
+    electrical_engineering: '#f59e0b', // Amber
+    energy_engineering: '#84cc16',     // Lime
+    industrial_engineering: '#64748b', // Slate
+    mechanical_engineering: '#f97316', // Orange
 };
 const MAJOR_GRADIENTS: Record<string, string> = {
-    computer_science: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
-    cybersecurity: 'linear-gradient(135deg, #ef4444, #f87171)',
-    data_science: 'linear-gradient(135deg, #3b82f6, #60a5fa)',
-    artificial_intelligence: 'linear-gradient(135deg, #10b981, #34d399)',
+    computer_science: 'linear-gradient(135deg, #2563eb, #60a5fa)',
+    cybersecurity: 'linear-gradient(135deg, #059669, #34d399)',
+    data_science: 'linear-gradient(135deg, #7c3aed, #a78bfa)',
+    game_design: 'linear-gradient(135deg, #e11d48, #fb7185)',
+    electrical_engineering: 'linear-gradient(135deg, #d97706, #fbbf24)',
+    energy_engineering: 'linear-gradient(135deg, #65a30d, #a3e635)',
+    industrial_engineering: 'linear-gradient(135deg, #475569, #94a3b8)',
+    mechanical_engineering: 'linear-gradient(135deg, #ea580c, #fb923c)',
+};
+const MAJOR_ICONS: Record<string, string> = {
+    computer_science: '💻',
+    cybersecurity: '🔐',
+    data_science: '🧠',
+    game_design: '🎮',
+    electrical_engineering: '⚡',
+    energy_engineering: '🔋',
+    industrial_engineering: '🏭',
+    mechanical_engineering: '⚙️',
 };
 const fallbackColor = '#818cf8';
 const fallbackGradient = 'linear-gradient(135deg, #6366f1, #818cf8)';
@@ -487,6 +505,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                                     <td className="py-3 pr-4 text-xs font-mono text-white/50 group-hover:text-white/70 transition-colors">{s.student_id}</td>
                                     <td className="py-3 pr-4">
                                         <span className="inline-flex items-center gap-2">
+                                            <span className="text-sm">{MAJOR_ICONS[s.major] || '📚'}</span>
                                             <span className="w-2.5 h-2.5 rounded-md shadow-sm"
                                                 style={{ background: MAJOR_GRADIENTS[s.major] || fallbackGradient }} />
                                             <span className="text-xs text-white/45 font-medium">{formatMajor(s.major)}</span>
@@ -923,7 +942,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                                 boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${MAJOR_COLORS[activeSeg.major] || fallbackColor}15`,
                                             }}>
                                             <div className="flex items-center gap-2 mb-2">
-                                                <div className="w-2.5 h-2.5 rounded-full" style={{ background: MAJOR_COLORS[activeSeg.major] || fallbackColor }} />
+                                                <span className="text-sm">{MAJOR_ICONS[activeSeg.major] || '📚'}</span>
                                                 <span className="text-[11px] font-semibold text-white/80">{formatMajor(activeSeg.major)}</span>
                                                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md"
                                                     style={{ background: `${MAJOR_COLORS[activeSeg.major] || fallbackColor}20`, color: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>
@@ -989,6 +1008,9 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                                 }}>
                                                 {seg.rank}
                                             </div>
+
+                                            {/* Major emoji */}
+                                            <span className="text-base shrink-0">{MAJOR_ICONS[seg.major] || '📚'}</span>
 
                                             {/* Color dot */}
                                             <div className="w-3 h-3 rounded-md shrink-0 shadow-sm transition-transform duration-200"
@@ -1178,6 +1200,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                                 </td>
                                                 <td className="py-3 pr-4">
                                                     <div className="flex items-center gap-2">
+                                                        <span className="text-sm">{MAJOR_ICONS[seg.major] || '📚'}</span>
                                                         <div className="w-3 h-3 rounded-md" style={{ background: MAJOR_GRADIENTS[seg.major] || fallbackGradient }} />
                                                         <span className="text-xs text-white/55 font-medium">{formatMajor(seg.major)}</span>
                                                     </div>
