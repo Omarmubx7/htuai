@@ -7,7 +7,7 @@ import StudentLogin from "@/components/StudentLogin";
 import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
 import { CourseData } from "@/types";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings2 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 type AppState = "checking" | "login" | "major-select" | "transcript";
@@ -56,6 +56,10 @@ export default function HomeClient() {
 
     const handleLogout = () => {
         signOut();
+    };
+
+    const handleMajorChange = () => {
+        setAppState("major-select");
     };
 
     /** Save major to DB + move to transcript — called only for new students */
@@ -161,14 +165,26 @@ export default function HomeClient() {
                             </div>
                         </div>
 
-                        {/* Right: log out */}
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-white/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
-                        >
-                            <LogOut className="w-3 h-3" />
-                            Log out
-                        </button>
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleMajorChange}
+                                className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-white/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
+                            >
+                                <Settings2 className="w-3 h-3" />
+                                Change Major
+                            </button>
+
+                            <div className="w-px h-4 bg-white/8" />
+
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-white/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
+                            >
+                                <LogOut className="w-3 h-3" />
+                                Log out
+                            </button>
+                        </div>
                     </div>
                 </header>
 
