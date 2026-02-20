@@ -350,7 +350,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                 {/* Major Donut */}
                 <GlassCard delay={0.15}>
                     <CardHeader icon={<PieChart className="w-4 h-4" />} title="Major Distribution" iconColor="#818cf8" />
-                    <MajorDonutSection majors={majors} total={stats.totalStudents} />
+                    <MajorDonutSection majors={majors} total={stats.totalStudents} students={stats.students} />
                 </GlassCard>
 
                 {/* Progress Distribution */}
@@ -672,190 +672,545 @@ function Th({ children, sortable, onClick }: { children: React.ReactNode; sortab
     );
 }
 
-function MajorDonutSection({ majors, total }: { majors: [string, number][]; total: number }) {
+function MajorDonutSection({ majors, total, students }: { majors: [string, number][]; total: number; students: StudentRow[] }) {
     const [hoveredMajor, setHoveredMajor] = useState<string | null>(null);
+    const [selectedMajor, setSelectedMajor] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
     const animTotal = useCountUp(total);
 
-    // Donut geometry
-    const size = 160;
+    /* ── Per-major analytics ─────────────────────────────── */
+    const majorStats = useMemo(() => {
+        const stats: Record<string, {
+            count: number; avgCourses: number; avgCH: number;
+            avgProgress: number; maxCH: number; minCH: number;
+            progressBuckets: [number, number, number, number];
+        }> = {};
+        for (const [major] of majors) {
+            const ms = students.filter(s => s.major === major);
+            const totalCourses = ms.reduce((s, x) => s + x.count, 0);
+            const totalCH = ms.reduce((s, x) => s + (x.ch ?? x.count * 3), 0);
+            const chValues = ms.map(x => x.ch ?? x.count * 3);
+            const buckets: [number, number, number, number] = [0, 0, 0, 0];
+            for (const ch of chValues) {
+                const pct = Math.min((ch / 135) * 100, 100);
+                if (pct <= 25) buckets[0]++;
+                else if (pct <= 50) buckets[1]++;
+                else if (pct <= 75) buckets[2]++;
+                else buckets[3]++;
+            }
+            stats[major] = {
+                count: ms.length,
+                avgCourses: ms.length > 0 ? Math.round(totalCourses / ms.length) : 0,
+                avgCH: ms.length > 0 ? Math.round(totalCH / ms.length) : 0,
+                avgProgress: ms.length > 0 ? Math.min(Math.round((totalCH / ms.length / 135) * 100), 100) : 0,
+                maxCH: chValues.length > 0 ? Math.max(...chValues) : 0,
+                minCH: chValues.length > 0 ? Math.min(...chValues) : 0,
+                progressBuckets: buckets,
+            };
+        }
+        return stats;
+    }, [majors, students]);
+
+    /* ── Donut geometry (dual-ring) ──────────────────────── */
+    const size = 200;
     const cx = size / 2, cy = size / 2;
-    const radius = 58;
-    const stroke = 18;
-    const gapAngle = 3; // degrees gap between segments
+    const outerRadius = 78, outerStroke = 20;
+    const innerRadius = 52, innerStroke = 10;
+    const gapAngle = 3;
     const totalVal = majors.reduce((s, [, v]) => s + v, 0) || 1;
 
     // Build arc segments
-    const segments: { major: string; count: number; pct: number; startAngle: number; endAngle: number }[] = [];
-    let currentAngle = -90; // start from top
-    for (const [major, count] of majors) {
+    const segments: { major: string; count: number; pct: number; startAngle: number; endAngle: number; rank: number }[] = [];
+    let currentAngle = -90;
+    for (let idx = 0; idx < majors.length; idx++) {
+        const [major, count] = majors[idx];
         const pct = count / totalVal;
         const sweep = pct * (360 - gapAngle * majors.length);
-        segments.push({ major, count, pct, startAngle: currentAngle, endAngle: currentAngle + sweep });
+        segments.push({ major, count, pct, startAngle: currentAngle, endAngle: currentAngle + sweep, rank: idx + 1 });
         currentAngle += sweep + gapAngle;
     }
 
     // SVG arc path helper
-    const arcPath = (startDeg: number, endDeg: number, r: number) => {
+    const arcPath = (startDeg: number, endDeg: number, r: number, cxo = cx, cyo = cy) => {
         const startRad = (startDeg * Math.PI) / 180;
         const endRad = (endDeg * Math.PI) / 180;
-        const x1 = cx + r * Math.cos(startRad);
-        const y1 = cy + r * Math.sin(startRad);
-        const x2 = cx + r * Math.cos(endRad);
-        const y2 = cy + r * Math.sin(endRad);
+        const x1 = cxo + r * Math.cos(startRad);
+        const y1 = cyo + r * Math.sin(startRad);
+        const x2 = cxo + r * Math.cos(endRad);
+        const y2 = cyo + r * Math.sin(endRad);
         const largeArc = endDeg - startDeg > 180 ? 1 : 0;
         return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
     };
 
-    // Hovered segment info for tooltip
-    const hoveredSeg = segments.find(s => s.major === hoveredMajor);
+    const activeMajor = selectedMajor || hoveredMajor;
+    const activeSeg = segments.find(s => s.major === activeMajor);
+    const activeStats = activeMajor ? majorStats[activeMajor] : null;
+
+    const RANK_MEDALS = ['', '#c9b037', '#b4b4b4', '#ad6e33'];
+
+    const handleSegmentClick = (major: string) => {
+        setSelectedMajor(prev => prev === major ? null : major);
+    };
 
     return (
-        <div className="flex flex-col sm:flex-row items-center gap-6 mt-6">
-            {/* Donut Chart */}
-            <div className="relative shrink-0" style={{ width: size, height: size }}>
-                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="drop-shadow-xl">
-                    <defs>
-                        {majors.map(([major]) => {
-                            const color = MAJOR_COLORS[major] || fallbackColor;
-                            return (
-                                <linearGradient key={`grad-${major}`} id={`donut-grad-${major}`} x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0%" stopColor={color} stopOpacity="1" />
-                                    <stop offset="100%" stopColor={color} stopOpacity="0.6" />
-                                </linearGradient>
-                            );
-                        })}
-                        <filter id="donut-glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="4" result="blur" />
-                            <feMerge>
-                                <feMergeNode in="blur" />
-                                <feMergeNode in="SourceGraphic" />
-                            </feMerge>
-                        </filter>
-                    </defs>
-
-                    {/* Background track */}
-                    <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={stroke} />
-
-                    {/* Arc segments */}
-                    {segments.map((seg, i) => {
-                        const isHovered = hoveredMajor === seg.major;
-                        const isOtherHovered = hoveredMajor !== null && hoveredMajor !== seg.major;
-                        return (
-                            <motion.path
-                                key={seg.major}
-                                d={arcPath(seg.startAngle, seg.endAngle, radius)}
-                                fill="none"
-                                stroke={`url(#donut-grad-${seg.major})`}
-                                strokeWidth={isHovered ? stroke + 4 : stroke}
-                                strokeLinecap="round"
-                                filter={isHovered ? 'url(#donut-glow)' : 'none'}
-                                initial={{ pathLength: 0, opacity: 0 }}
-                                animate={{ pathLength: 1, opacity: isOtherHovered ? 0.35 : 1 }}
-                                transition={{
-                                    pathLength: { delay: 0.4 + i * 0.15, duration: 0.9, ease: 'easeOut' },
-                                    opacity: { duration: 0.25 },
-                                    strokeWidth: { duration: 0.2 },
-                                }}
-                                onMouseEnter={() => setHoveredMajor(seg.major)}
-                                onMouseLeave={() => setHoveredMajor(null)}
-                                className="cursor-pointer"
-                                style={{
-                                    filter: isHovered
-                                        ? `drop-shadow(0 0 10px ${MAJOR_COLORS[seg.major] || fallbackColor}90)`
-                                        : `drop-shadow(0 0 4px ${MAJOR_COLORS[seg.major] || fallbackColor}30)`,
-                                }}
-                            />
-                        );
-                    })}
-
-                    {/* Center text */}
-                    <text x={cx} y={cy - 6} textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 26 }}>
-                        {animTotal}
-                    </text>
-                    <text x={cx} y={cy + 12} textAnchor="middle" className="fill-white/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.15em' }}>
-                        STUDENTS
-                    </text>
-                </svg>
-
-                {/* Hover tooltip */}
-                <AnimatePresence>
-                    {hoveredSeg && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 6, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                            transition={{ duration: 0.15 }}
-                            className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-30 pointer-events-none"
+        <div className="mt-5 space-y-5">
+            {/* Mode Toggle */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    {['chart', 'table'].map(mode => (
+                        <button
+                            key={mode}
+                            onClick={() => setViewMode(mode as 'chart' | 'table')}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${viewMode === mode
+                                ? 'bg-white/[0.08] text-white/70 border border-white/[0.1]'
+                                : 'text-white/20 hover:text-white/40 border border-transparent'
+                                }`}
                         >
-                            <div className="px-3 py-2 rounded-xl text-center whitespace-nowrap"
-                                style={{
-                                    background: 'linear-gradient(135deg, rgba(30,30,55,0.97), rgba(18,18,35,0.97))',
-                                    border: `1px solid ${MAJOR_COLORS[hoveredSeg.major] || fallbackColor}40`,
-                                    boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${MAJOR_COLORS[hoveredSeg.major] || fallbackColor}15`,
-                                }}>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: MAJOR_COLORS[hoveredSeg.major] || fallbackColor }} />
-                                    <span className="text-[11px] font-semibold text-white/80">{formatMajor(hoveredSeg.major)}</span>
-                                </div>
-                                <div className="text-sm font-bold text-white tabular-nums">
-                                    {hoveredSeg.count} <span className="text-white/30 text-xs font-medium">({Math.round(hoveredSeg.pct * 100)}%)</span>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            {mode === 'chart' ? 'Visual' : 'Details'}
+                        </button>
+                    ))}
+                </div>
+                {selectedMajor && (
+                    <button onClick={() => setSelectedMajor(null)}
+                        className="text-[10px] text-white/25 hover:text-white/50 transition-colors font-medium">
+                        Clear Selection
+                    </button>
+                )}
             </div>
 
-            {/* Legend */}
-            <div className="flex-1 space-y-3 w-full">
-                {segments.map((seg) => {
-                    const isHovered = hoveredMajor === seg.major;
-                    const pctRounded = Math.round(seg.pct * 100);
-                    return (
-                        <motion.div
-                            key={seg.major}
-                            className="flex items-center gap-3 group cursor-pointer rounded-xl px-3 py-2.5 -mx-2 transition-all duration-200"
-                            style={{
-                                background: isHovered ? `${MAJOR_COLORS[seg.major] || fallbackColor}10` : 'transparent',
-                                border: `1px solid ${isHovered ? `${MAJOR_COLORS[seg.major] || fallbackColor}20` : 'transparent'}`,
-                            }}
-                            onMouseEnter={() => setHoveredMajor(seg.major)}
-                            onMouseLeave={() => setHoveredMajor(null)}
-                            animate={{ opacity: hoveredMajor && !isHovered ? 0.45 : 1 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <div className="w-3.5 h-3.5 rounded-md shrink-0 shadow-sm transition-transform duration-200"
-                                style={{
-                                    background: MAJOR_GRADIENTS[seg.major] || fallbackGradient,
-                                    transform: isHovered ? 'scale(1.25)' : 'scale(1)',
-                                    boxShadow: isHovered ? `0 0 10px ${MAJOR_COLORS[seg.major] || fallbackColor}50` : 'none',
-                                }} />
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-xs text-white/55 font-medium group-hover:text-white/80 transition-colors truncate">
-                                        {formatMajor(seg.major)}
-                                    </span>
-                                    <span className="text-xs font-mono text-white/40 tabular-nums shrink-0 ml-2">
-                                        {seg.count} <span className="text-white/20">({pctRounded}%)</span>
-                                    </span>
-                                </div>
-                                <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+            <AnimatePresence mode="wait">
+                {viewMode === 'chart' ? (
+                    <motion.div key="chart-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="flex flex-col lg:flex-row items-start gap-6">
+                        {/* Dual-Ring Donut Chart */}
+                        <div className="relative shrink-0 self-center" style={{ width: size, height: size }}>
+                            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="drop-shadow-xl">
+                                <defs>
+                                    {majors.map(([major]) => {
+                                        const color = MAJOR_COLORS[major] || fallbackColor;
+                                        return (
+                                            <linearGradient key={`grad-${major}`} id={`donut-grad-${major}`} x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0%" stopColor={color} stopOpacity="1" />
+                                                <stop offset="100%" stopColor={color} stopOpacity="0.6" />
+                                            </linearGradient>
+                                        );
+                                    })}
+                                    <filter id="donut-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feGaussianBlur stdDeviation="4" result="blur" />
+                                        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                    </filter>
+                                    <filter id="inner-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feGaussianBlur stdDeviation="2" result="blur" />
+                                        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                    </filter>
+                                </defs>
+
+                                {/* Outer background track */}
+                                <circle cx={cx} cy={cy} r={outerRadius} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={outerStroke} />
+                                {/* Inner background track */}
+                                <circle cx={cx} cy={cy} r={innerRadius} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth={innerStroke} />
+
+                                {/* Inner ring: avg progress per major */}
+                                {segments.map((seg, i) => {
+                                    const stats = majorStats[seg.major];
+                                    if (!stats) return null;
+                                    const progressSweep = (stats.avgProgress / 100) * ((seg.endAngle - seg.startAngle));
+                                    if (progressSweep < 0.5) return null;
+                                    const isActive = activeMajor === seg.major;
+                                    const isOtherActive = activeMajor !== null && activeMajor !== seg.major;
+                                    return (
+                                        <motion.path
+                                            key={`inner-${seg.major}`}
+                                            d={arcPath(seg.startAngle, seg.startAngle + progressSweep, innerRadius)}
+                                            fill="none"
+                                            stroke={`url(#donut-grad-${seg.major})`}
+                                            strokeWidth={isActive ? innerStroke + 3 : innerStroke}
+                                            strokeLinecap="round"
+                                            initial={{ pathLength: 0, opacity: 0 }}
+                                            animate={{ pathLength: 1, opacity: isOtherActive ? 0.2 : 0.55 }}
+                                            transition={{
+                                                pathLength: { delay: 0.7 + i * 0.15, duration: 0.8, ease: 'easeOut' },
+                                                opacity: { duration: 0.25 },
+                                            }}
+                                            style={{ filter: isActive ? `drop-shadow(0 0 6px ${MAJOR_COLORS[seg.major] || fallbackColor}60)` : 'none' }}
+                                        />
+                                    );
+                                })}
+
+                                {/* Outer ring: student distribution */}
+                                {segments.map((seg, i) => {
+                                    const isActive = activeMajor === seg.major;
+                                    const isOtherActive = activeMajor !== null && activeMajor !== seg.major;
+                                    return (
+                                        <motion.path
+                                            key={seg.major}
+                                            d={arcPath(seg.startAngle, seg.endAngle, outerRadius)}
+                                            fill="none"
+                                            stroke={`url(#donut-grad-${seg.major})`}
+                                            strokeWidth={isActive ? outerStroke + 5 : outerStroke}
+                                            strokeLinecap="round"
+                                            filter={isActive ? 'url(#donut-glow)' : 'none'}
+                                            initial={{ pathLength: 0, opacity: 0 }}
+                                            animate={{ pathLength: 1, opacity: isOtherActive ? 0.25 : 1 }}
+                                            transition={{
+                                                pathLength: { delay: 0.4 + i * 0.15, duration: 0.9, ease: 'easeOut' },
+                                                opacity: { duration: 0.25 },
+                                                strokeWidth: { duration: 0.2 },
+                                            }}
+                                            onMouseEnter={() => setHoveredMajor(seg.major)}
+                                            onMouseLeave={() => setHoveredMajor(null)}
+                                            onClick={() => handleSegmentClick(seg.major)}
+                                            className="cursor-pointer"
+                                            style={{
+                                                filter: isActive
+                                                    ? `drop-shadow(0 0 12px ${MAJOR_COLORS[seg.major] || fallbackColor}90)`
+                                                    : `drop-shadow(0 0 4px ${MAJOR_COLORS[seg.major] || fallbackColor}30)`,
+                                            }}
+                                        />
+                                    );
+                                })}
+
+                                {/* Center content */}
+                                {activeSeg && activeStats ? (
+                                    <>
+                                        <text x={cx} y={cy - 14} textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 22 }}>
+                                            {activeSeg.count}
+                                        </text>
+                                        <text x={cx} y={cy + 2} textAnchor="middle" style={{ fontSize: 7.5, letterSpacing: '0.12em', fill: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>
+                                            {formatMajor(activeSeg.major).toUpperCase()}
+                                        </text>
+                                        <text x={cx} y={cy + 16} textAnchor="middle" className="fill-white/25" style={{ fontSize: 8 }}>
+                                            Avg {activeStats.avgProgress}% done
+                                        </text>
+                                    </>
+                                ) : (
+                                    <>
+                                        <text x={cx} y={cy - 10} textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 28 }}>
+                                            {animTotal}
+                                        </text>
+                                        <text x={cx} y={cy + 6} textAnchor="middle" className="fill-white/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.15em' }}>
+                                            STUDENTS
+                                        </text>
+                                        <text x={cx} y={cy + 18} textAnchor="middle" className="fill-white/10" style={{ fontSize: 7, letterSpacing: '0.08em' }}>
+                                            CLICK TO EXPLORE
+                                        </text>
+                                    </>
+                                )}
+
+                                {/* Ring labels */}
+                                <text x={size - 4} y={cy - outerRadius + 4} textAnchor="end" className="fill-white/10" style={{ fontSize: 6, letterSpacing: '0.1em' }}>
+                                    COUNT
+                                </text>
+                                <text x={size - 4} y={cy - innerRadius + 4} textAnchor="end" className="fill-white/8" style={{ fontSize: 6, letterSpacing: '0.1em' }}>
+                                    PROGRESS
+                                </text>
+                            </svg>
+
+                            {/* Hover tooltip */}
+                            <AnimatePresence>
+                                {hoveredMajor && !selectedMajor && activeSeg && activeStats && (
                                     <motion.div
-                                        className="h-full rounded-full"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${pctRounded}%` }}
-                                        transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
+                                        initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                                        transition={{ duration: 0.15 }}
+                                        className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-full z-30 pointer-events-none"
+                                    >
+                                        <div className="px-4 py-3 rounded-xl whitespace-nowrap"
+                                            style={{
+                                                background: 'linear-gradient(135deg, rgba(30,30,55,0.97), rgba(18,18,35,0.97))',
+                                                border: `1px solid ${MAJOR_COLORS[activeSeg.major] || fallbackColor}40`,
+                                                boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${MAJOR_COLORS[activeSeg.major] || fallbackColor}15`,
+                                            }}>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="w-2.5 h-2.5 rounded-full" style={{ background: MAJOR_COLORS[activeSeg.major] || fallbackColor }} />
+                                                <span className="text-[11px] font-semibold text-white/80">{formatMajor(activeSeg.major)}</span>
+                                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md"
+                                                    style={{ background: `${MAJOR_COLORS[activeSeg.major] || fallbackColor}20`, color: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>
+                                                    #{activeSeg.rank}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-3 text-center">
+                                                <div>
+                                                    <div className="text-sm font-bold text-white tabular-nums">{activeSeg.count}</div>
+                                                    <div className="text-[8px] text-white/25 uppercase font-bold">Students</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-bold tabular-nums" style={{ color: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>{activeStats.avgCH}</div>
+                                                    <div className="text-[8px] text-white/25 uppercase font-bold">Avg CH</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-bold text-white tabular-nums">{activeStats.avgProgress}%</div>
+                                                    <div className="text-[8px] text-white/25 uppercase font-bold">Progress</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Right Panel: Legend + Selected Details */}
+                        <div className="flex-1 w-full space-y-3">
+                            {/* Legend Items */}
+                            {segments.map((seg) => {
+                                const isActive = activeMajor === seg.major;
+                                const isSelected = selectedMajor === seg.major;
+                                const isOtherActive = activeMajor !== null && activeMajor !== seg.major;
+                                const pctRounded = Math.round(seg.pct * 100);
+                                const stats = majorStats[seg.major];
+                                const medalColor = RANK_MEDALS[seg.rank] || '';
+
+                                return (
+                                    <motion.div
+                                        key={seg.major}
+                                        layout
+                                        className="rounded-xl transition-all duration-200 cursor-pointer"
                                         style={{
-                                            background: MAJOR_GRADIENTS[seg.major] || fallbackGradient,
-                                            boxShadow: isHovered ? `0 0 8px ${MAJOR_COLORS[seg.major] || fallbackColor}40` : 'none',
+                                            background: isSelected
+                                                ? `linear-gradient(135deg, ${MAJOR_COLORS[seg.major] || fallbackColor}12, ${MAJOR_COLORS[seg.major] || fallbackColor}04)`
+                                                : isActive ? `${MAJOR_COLORS[seg.major] || fallbackColor}08` : 'transparent',
+                                            border: `1px solid ${isSelected ? `${MAJOR_COLORS[seg.major] || fallbackColor}30` : isActive ? `${MAJOR_COLORS[seg.major] || fallbackColor}15` : 'transparent'}`,
                                         }}
-                                    />
-                                </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </div>
+                                        onMouseEnter={() => setHoveredMajor(seg.major)}
+                                        onMouseLeave={() => setHoveredMajor(null)}
+                                        onClick={() => handleSegmentClick(seg.major)}
+                                        animate={{ opacity: isOtherActive && !isActive ? 0.4 : 1 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {/* Main legend row */}
+                                        <div className="flex items-center gap-3 px-3 py-2.5">
+                                            {/* Rank Badge */}
+                                            <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
+                                                style={{
+                                                    background: medalColor ? `${medalColor}20` : 'rgba(255,255,255,0.03)',
+                                                    color: medalColor || 'rgba(255,255,255,0.2)',
+                                                    border: `1px solid ${medalColor ? `${medalColor}30` : 'rgba(255,255,255,0.04)'}`,
+                                                }}>
+                                                {seg.rank}
+                                            </div>
+
+                                            {/* Color dot */}
+                                            <div className="w-3 h-3 rounded-md shrink-0 shadow-sm transition-transform duration-200"
+                                                style={{
+                                                    background: MAJOR_GRADIENTS[seg.major] || fallbackGradient,
+                                                    transform: isActive ? 'scale(1.3)' : 'scale(1)',
+                                                    boxShadow: isActive ? `0 0 10px ${MAJOR_COLORS[seg.major] || fallbackColor}50` : 'none',
+                                                }} />
+
+                                            {/* Name + bars */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-xs text-white/55 font-medium group-hover:text-white/80 transition-colors truncate">
+                                                        {formatMajor(seg.major)}
+                                                    </span>
+                                                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                                                        <span className="text-[10px] font-mono text-white/25 tabular-nums">
+                                                            {stats?.avgProgress ?? 0}%
+                                                        </span>
+                                                        <span className="text-xs font-mono text-white/40 tabular-nums">
+                                                            {seg.count} <span className="text-white/15">({pctRounded}%)</span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {/* Stacked bar: distribution + progress */}
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                                                        <motion.div
+                                                            className="h-full rounded-full"
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${pctRounded}%` }}
+                                                            transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
+                                                            style={{
+                                                                background: MAJOR_GRADIENTS[seg.major] || fallbackGradient,
+                                                                boxShadow: isActive ? `0 0 8px ${MAJOR_COLORS[seg.major] || fallbackColor}40` : 'none',
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="w-12 h-1.5 bg-white/[0.03] rounded-full overflow-hidden" title="Avg progress">
+                                                        <motion.div
+                                                            className="h-full rounded-full"
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${stats?.avgProgress ?? 0}%` }}
+                                                            transition={{ duration: 1, delay: 0.7, ease: 'easeOut' }}
+                                                            style={{
+                                                                background: `${MAJOR_COLORS[seg.major] || fallbackColor}80`,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Expand indicator */}
+                                            <motion.div
+                                                animate={{ rotate: isSelected ? 180 : 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="shrink-0"
+                                            >
+                                                <ChevronDown className="w-3.5 h-3.5 text-white/15" />
+                                            </motion.div>
+                                        </div>
+
+                                        {/* Expanded detail panel */}
+                                        <AnimatePresence>
+                                            {isSelected && stats && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.25 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="px-3 pb-3 pt-1 space-y-3">
+                                                        {/* Stats grid */}
+                                                        <div className="grid grid-cols-4 gap-2">
+                                                            {[
+                                                                { label: 'Avg Courses', value: stats.avgCourses, icon: <BookOpen className="w-3 h-3" /> },
+                                                                { label: 'Avg CH', value: `${stats.avgCH}/135`, icon: <BarChart3 className="w-3 h-3" /> },
+                                                                { label: 'Max CH', value: stats.maxCH, icon: <ArrowUp className="w-3 h-3" /> },
+                                                                { label: 'Min CH', value: stats.minCH, icon: <ArrowDown className="w-3 h-3" /> },
+                                                            ].map((item) => (
+                                                                <div key={item.label} className="text-center p-2 rounded-lg"
+                                                                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                                    <div className="flex items-center justify-center gap-1 mb-1"
+                                                                        style={{ color: `${MAJOR_COLORS[seg.major] || fallbackColor}80` }}>
+                                                                        {item.icon}
+                                                                    </div>
+                                                                    <div className="text-xs font-bold text-white/60 tabular-nums">{item.value}</div>
+                                                                    <div className="text-[7px] text-white/20 uppercase font-bold tracking-wide">{item.label}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Mini progress distribution */}
+                                                        <div>
+                                                            <div className="text-[8px] text-white/20 uppercase font-bold tracking-wider mb-2">Progress Breakdown</div>
+                                                            <div className="flex items-end gap-1.5" style={{ height: 36 }}>
+                                                                {['0-25%', '26-50%', '51-75%', '76-100%'].map((label, bi) => {
+                                                                    const bucketVal = stats.progressBuckets[bi];
+                                                                    const maxBucket = Math.max(...stats.progressBuckets, 1);
+                                                                    const barH = Math.max((bucketVal / maxBucket) * 28, bucketVal > 0 ? 4 : 0);
+                                                                    const bucketColor = PROGRESS_COLORS[bi];
+                                                                    return (
+                                                                        <div key={label} className="flex-1 flex flex-col items-center justify-end h-full gap-0.5">
+                                                                            <span className="text-[8px] font-mono tabular-nums" style={{ color: bucketColor.text }}>{bucketVal}</span>
+                                                                            <motion.div
+                                                                                initial={{ height: 0 }}
+                                                                                animate={{ height: barH }}
+                                                                                transition={{ duration: 0.5, delay: bi * 0.05 }}
+                                                                                className="w-full rounded-sm"
+                                                                                style={{ background: bucketColor.bar }}
+                                                                            />
+                                                                            <span className="text-[6px] text-white/15 font-mono">{label}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Circular progress indicator */}
+                                                        <div className="flex items-center justify-center gap-4 pt-1">
+                                                            <div className="relative" style={{ width: 44, height: 44 }}>
+                                                                <svg width="44" height="44" viewBox="0 0 44 44">
+                                                                    <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="4" />
+                                                                    <motion.circle
+                                                                        cx="22" cy="22" r="18" fill="none"
+                                                                        stroke={MAJOR_COLORS[seg.major] || fallbackColor}
+                                                                        strokeWidth="4" strokeLinecap="round"
+                                                                        strokeDasharray={`${2 * Math.PI * 18}`}
+                                                                        initial={{ strokeDashoffset: 2 * Math.PI * 18 }}
+                                                                        animate={{ strokeDashoffset: 2 * Math.PI * 18 * (1 - stats.avgProgress / 100) }}
+                                                                        transition={{ duration: 0.8, delay: 0.2 }}
+                                                                        transform="rotate(-90 22 22)"
+                                                                        style={{ filter: `drop-shadow(0 0 4px ${MAJOR_COLORS[seg.major] || fallbackColor}50)` }}
+                                                                    />
+                                                                    <text x="22" y="24" textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 11 }}>
+                                                                        {stats.avgProgress}%
+                                                                    </text>
+                                                                </svg>
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <div className="text-[10px] text-white/40 font-medium">Average Degree Completion</div>
+                                                                <div className="text-[9px] text-white/20 mt-0.5">
+                                                                    {stats.avgCH} of 135 credit hours
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                ) : (
+                    /* ── Table View ─────────────────────────────── */
+                    <motion.div key="table-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="border-b border-white/[0.04]">
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4">#</th>
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4">Major</th>
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Students</th>
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Avg Courses</th>
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Avg CH</th>
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Max CH</th>
+                                        <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4">Avg Progress</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {segments.map((seg, i) => {
+                                        const stats = majorStats[seg.major];
+                                        if (!stats) return null;
+                                        const barColor = stats.avgProgress >= 75 ? '#10b981' : stats.avgProgress >= 50 ? '#3b82f6' : stats.avgProgress >= 25 ? '#f59e0b' : '#ef4444';
+                                        return (
+                                            <motion.tr key={seg.major}
+                                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                                                className="border-b border-white/[0.02] hover:bg-white/[0.015] transition-colors">
+                                                <td className="py-3 pr-4">
+                                                    <span className="text-[10px] font-black tabular-nums"
+                                                        style={{ color: RANK_MEDALS[seg.rank] || 'rgba(255,255,255,0.2)' }}>
+                                                        {seg.rank}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 pr-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-3 h-3 rounded-md" style={{ background: MAJOR_GRADIENTS[seg.major] || fallbackGradient }} />
+                                                        <span className="text-xs text-white/55 font-medium">{formatMajor(seg.major)}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/45 tabular-nums">
+                                                    {seg.count}
+                                                    <span className="text-white/15 ml-1">({Math.round(seg.pct * 100)}%)</span>
+                                                </td>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/40 tabular-nums">{stats.avgCourses}</td>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/40 tabular-nums">
+                                                    {stats.avgCH}<span className="text-white/15">/135</span>
+                                                </td>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/35 tabular-nums">{stats.maxCH}</td>
+                                                <td className="py-3 pr-4">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-20 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                                                            <motion.div initial={{ width: 0 }} animate={{ width: `${stats.avgProgress}%` }}
+                                                                transition={{ duration: 0.6, delay: i * 0.04 }}
+                                                                className="h-full rounded-full"
+                                                                style={{ background: barColor, boxShadow: `0 0 6px ${barColor}40` }} />
+                                                        </div>
+                                                        <span className="text-[10px] font-mono text-white/30 w-8 tabular-nums">{stats.avgProgress}%</span>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
