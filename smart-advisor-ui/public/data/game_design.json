@@ -86,14 +86,6 @@
         ],
         "electives": [
             {
-                "code": "40201260",
-                "name": "Website Design & Development",
-                "ch": 3,
-                "framework": "HNC",
-                "level": 2,
-                "prereq": "40201100"
-            },
-            {
                 "code": "40303121",
                 "name": "Maths for Computing",
                 "ch": 3,
