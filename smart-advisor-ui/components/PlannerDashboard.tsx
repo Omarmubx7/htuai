@@ -527,7 +527,10 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     };
 
     const syncGoogleCalendar = async () => {
-        if (!gcalConnected) return;
+        if (!gcalConnected) {
+            setMessage({ text: "Follow the correct order: \n1. Click 'Connect' to authorize Google \n2. Click 'Sync' to push your dates.", ok: false });
+            return;
+        }
         setGcalLoading(true);
         setMessage(null);
         try {
@@ -540,10 +543,13 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             if (res.ok) {
                 setMessage({ text: `Synced ${data.successCount}/${data.totalCount} events to Google Calendar`, ok: true });
             } else {
-                setMessage({ text: data.error || "Failed to sync", ok: false });
+                const errorMsg = res.status === 401
+                    ? "Connection lost. Please follow the correct order: 1. Reconnect Google, then 2. Try Sync again."
+                    : (data.error || "Failed to sync");
+                setMessage({ text: errorMsg, ok: false });
             }
         } catch {
-            setMessage({ text: "Network error", ok: false });
+            setMessage({ text: "Sync failed. Follow the correct order: 1. Connect, 2. Sync.", ok: false });
         }
         setGcalLoading(false);
     };
@@ -560,7 +566,10 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     };
 
     const syncNotion = async () => {
-        if (!notionConnected) return;
+        if (!notionConnected) {
+            setMessage({ text: "Follow the correct order: \n1. Click 'Connect' to authorize Notion \n2. Click 'Sync' to export courses.", ok: false });
+            return;
+        }
         setNotionLoading(true);
         setMessage(null);
         try {
@@ -573,16 +582,22 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             if (res.ok) {
                 setMessage({ text: `Synced ${data.successCount} courses to Notion`, ok: true });
             } else {
-                setMessage({ text: data.error || "Failed to sync", ok: false });
+                const errorMsg = res.status === 401
+                    ? "Connection lost. Follow the correct order: 1. Reconnect Notion, then 2. Try Sync again."
+                    : (data.error || "Failed to sync");
+                setMessage({ text: errorMsg, ok: false });
             }
         } catch {
-            setMessage({ text: "Network error", ok: false });
+            setMessage({ text: "Sync failed. Follow the correct order: 1. Connect, 2. Sync.", ok: false });
         }
         setNotionLoading(false);
     };
 
     const initNotionPage = async () => {
-        if (!notionConnected) return;
+        if (!notionConnected) {
+            setMessage({ text: "Follow the correct order: \n1. Click 'Connect' to authorize Notion \n2. Click 'New Page' to create the hub.", ok: false });
+            return;
+        }
         setNotionLoading(true);
         setMessage(null);
         try {
@@ -595,10 +610,13 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             if (res.ok) {
                 setMessage({ text: `Created new Study Plan page with ${data.successCount} courses`, ok: true });
             } else {
-                setMessage({ text: data.error || "Failed to create page. Make sure Notion is connected first.", ok: false });
+                const errorMsg = res.status === 401
+                    ? "Connection lost. Follow the correct order: 1. Reconnect Notion, then 2. Create New Page."
+                    : (data.error || "Failed to create page");
+                setMessage({ text: errorMsg, ok: false });
             }
         } catch {
-            setMessage({ text: "Network error", ok: false });
+            setMessage({ text: "Network error. Follow the correct order: 1. Connect, 2. New Page.", ok: false });
         }
         setNotionLoading(false);
     };
