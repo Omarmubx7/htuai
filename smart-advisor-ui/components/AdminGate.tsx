@@ -66,6 +66,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
                     className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/20 outline-none
                         border border-white/[0.06] focus:border-violet-500/30 transition-colors"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
+                    autoComplete="current-password"
                 />
 
                 {error && (

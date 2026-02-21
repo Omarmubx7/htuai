@@ -203,7 +203,7 @@ function DashboardInner() {
     const progress = Object.entries(stats.progressDistribution);
     const maxProgress = Math.max(...Object.values(stats.progressDistribution), 1);
     const maxTraffic = Math.max(...stats.trafficByDay.map(d => d.count), 1);
-    const totalDeviceCount = stats.deviceBreakdown.reduce((s, d) => s + d.count, 0) || 1;
+    const totalDeviceCount = (Array.isArray(stats.deviceBreakdown) ? stats.deviceBreakdown : []).reduce((s, d: any) => s + d.count, 0) || 1;
     const weekChange = pctChange(stats.thisWeekVisits, stats.lastWeekVisits);
     const allMajorKeys = Object.keys(stats.majorCounts).sort();
 

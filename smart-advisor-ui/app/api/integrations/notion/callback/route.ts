@@ -106,9 +106,9 @@ export async function GET(req: NextRequest) {
                 studentId,
                 "notion",
                 data.access_token,
-                null,
                 undefined,
-                JSON.stringify({ workspaceId: data.workspace_id })
+                undefined,
+                { workspaceId: data.workspace_id }
             );
             return NextResponse.redirect(new URL("/planner?error=notion_no_pages", req.url));
         }
@@ -142,13 +142,13 @@ export async function GET(req: NextRequest) {
             studentId,
             "notion",
             data.access_token,
-            null,
             undefined,
-            JSON.stringify({
+            undefined,
+            {
                 parentPageId: studyPlanPageId,
                 workspaceId: data.workspace_id,
                 semester,
-            })
+            }
         );
 
         return NextResponse.redirect(new URL("/planner?connected=notion", req.url));

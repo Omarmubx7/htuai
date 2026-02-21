@@ -1,0 +1,59 @@
+.next/dev/types/validator.ts(216,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/profile/[studentId]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/profile/[studentId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(_req: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ studentId: string; major: string | null; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/dev/types/validator.ts(225,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/profile/[studentId]/save/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/profile/[studentId]/save">'.
+  Types of property 'POST' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/dev/types/validator.ts(234,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/progress/[studentId]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/progress/[studentId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ studentId: string; major: string; completed: string[]; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/dev/types/validator.ts(243,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/progress/[studentId]/save/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/progress/[studentId]/save">'.
+  Types of property 'POST' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/types/validator.ts(171,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/profile/[studentId]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/profile/[studentId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(_req: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ studentId: string; major: string | null; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/types/validator.ts(180,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/profile/[studentId]/save/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/profile/[studentId]/save">'.
+  Types of property 'POST' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/types/validator.ts(189,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/progress/[studentId]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/progress/[studentId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ studentId: string; major: string; completed: string[]; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+.next/types/validator.ts(198,31): error TS2344: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/progress/[studentId]/save/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/progress/[studentId]/save">'.
+  Types of property 'POST' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
+app/api/integrations/notion/callback/route.ts(109,17): error TS2345: Argument of type 'null' is not assignable to parameter of type 'string | undefined'.
+app/api/integrations/notion/callback/route.ts(145,13): error TS2345: Argument of type 'null' is not assignable to parameter of type 'string | undefined'.
+next.config.ts(8,3): error TS2353: Object literal may only specify known properties, and 'eslint' does not exist in type 'NextConfig'.

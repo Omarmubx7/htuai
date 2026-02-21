@@ -271,7 +271,7 @@ export async function GET(request: Request) {
             topCourses,
             trafficTrends: trafficByDay,
             trafficByDay,
-            deviceBreakdown: deviceBreakdownObj,
+            deviceBreakdown: deviceBreakdown,
             recentActivity,
             heatmap,
             studentData: studentRealCH,

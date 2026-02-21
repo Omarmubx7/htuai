@@ -6,7 +6,7 @@ import { authOptions } from "@/auth";
 
 export async function GET(
     _req: NextRequest,
-    { params }: { params: { studentId: string } }
+    { params }: { params: Promise<{ studentId: string }> }
 ) {
     const session = await getServerSession(authOptions);
     const { studentId: targetId } = await params;
