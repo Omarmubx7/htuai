@@ -88,51 +88,35 @@ export default function HomeClient() {
     };
 
 
-    /** Fetch + merge shared + major-specific JSON + rules */
+    /** Fetch + merge shared + major-specific data from curriculum.json + rules */
     async function loadCourses(key: MajorKey) {
         setLoading(true);
-        // ... (rest of fileMap)
-        const fileMap: Record<MajorKey, string> = {
-            data_science: "data_science.json",
-            computer_science: "computer_science.json",
-            cybersecurity: "cybersecurity.json",
-            game_design: "game_design.json",
-            electrical_engineering: "electrical_engineering.json",
-            energy_engineering: "energy_engineering.json",
-            industrial_engineering: "industrial_engineering.json",
-            mechanical_engineering: "mechanical_engineering.json",
-        };
         try {
             const rulesPath = "/data/curriculum_rules.json";
-            const sharedPath = "/data/shared.json";
-            const majorPath = `/data/${fileMap[key]}`;
+            const curriculumPath = "/data/curriculum.json";
 
             console.log(`[Advisor] Fetching rules: ${rulesPath}`);
-            console.log(`[Advisor] Fetching shared: ${sharedPath}`);
-            console.log(`[Advisor] Fetching major: ${majorPath}`);
+            console.log(`[Advisor] Fetching curriculum: ${curriculumPath}`);
 
-            const [rulesRes, sharedRes, majorRes] = await Promise.all([
+            const [rulesRes, curriculumRes] = await Promise.all([
                 fetch(rulesPath),
-                fetch(sharedPath),
-                fetch(majorPath),
+                fetch(curriculumPath),
             ]);
 
             if (!rulesRes.ok) throw new Error(`Rules fetch failed: ${rulesRes.status}`);
-            if (!sharedRes.ok) throw new Error(`Shared data fetch failed: ${sharedRes.status} ${sharedRes.statusText}`);
-            if (!majorRes.ok) throw new Error(`Major data fetch failed: ${majorRes.status} ${majorRes.statusText}`);
+            if (!curriculumRes.ok) throw new Error(`Curriculum fetch failed: ${curriculumRes.status}`);
 
-            const [rulesJson, shared, majorJson] = await Promise.all([
+            const [rulesJson, curriculum] = await Promise.all([
                 rulesRes.json(),
-                sharedRes.json(),
-                majorRes.json(),
+                curriculumRes.json(),
             ]);
 
             setRules(rulesJson);
 
-            const rootKey = Object.keys(majorJson)[0];
-            const majorData = majorJson[rootKey];
+            const shared = curriculum.shared;
+            const majorData = curriculum.majors[key];
 
-            if (!majorData) throw new Error(`Major data root key mismatch for ${key}`);
+            if (!majorData) throw new Error(`Major data not found for ${key}`);
 
             setCourseData({
                 university_requirements: majorData.university_requirements ?? shared.university_requirements ?? [],
@@ -243,7 +227,7 @@ export default function HomeClient() {
                                     const url = "https://htuai.vercel.app";
                                     const text = "Track your HTU courses and degree progress";
                                     if (navigator.share) {
-                                        navigator.share({ title: "HTU Courses Tracker", text, url }).catch(() => {});
+                                        navigator.share({ title: "HTU Courses Tracker", text, url }).catch(() => { });
                                     } else {
                                         navigator.clipboard.writeText(url).then(() => {
                                             const btn = document.getElementById('share-btn');
