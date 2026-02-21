@@ -66,14 +66,16 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
         }
     };
 
-    // Track selected course CH for each input slot
+    // Track selected course CH and code for each input slot
     const [selectedCh, setSelectedCh] = useState<Record<number, number>>({});
+    const [selectedCodes, setSelectedCodes] = useState<Record<number, string>>({});
 
     const selectSuggestion = (index: number, course: { name: string, code: string, ch: number }) => {
         const next = [...inputList];
         next[index] = course.name;
         setInputList(next);
         setSelectedCh(prev => ({ ...prev, [index]: course.ch }));
+        setSelectedCodes(prev => ({ ...prev, [index]: course.code }));
         setSuggestions([]);
     };
 
@@ -84,15 +86,18 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
         if (validEntries.length === 0) return;
 
         const initialCourses: PlannerCourse[] = validEntries.map(({ name, idx }) => {
-            // Use CH from selection, or try to look up from available courses, fallback to 3
+            // Use CH and code from selection, or try to look up from available courses
             let ch = selectedCh[idx];
-            if (ch === undefined) {
+            let code = selectedCodes[idx];
+            if (ch === undefined || !code) {
                 const match = allAvailableCourses.find(c => c.name.toLowerCase() === name.toLowerCase());
-                ch = match?.ch ?? 3;
+                ch = ch ?? match?.ch ?? 3;
+                code = code || match?.code;
             }
             return {
                 id: Math.random().toString(36).substr(2, 9),
                 name,
+                code,
                 hasMidterm: false,
                 credits: ch,
                 status: "In Progress"
@@ -105,7 +110,13 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
 
     const toggleMidterm = (id: string) => {
         setCourses(prev => prev.map(c =>
-            c.id === id ? { ...c, hasMidterm: !c.hasMidterm } : c
+            c.id === id ? { ...c, hasMidterm: !c.hasMidterm, midtermDate: !c.hasMidterm ? c.midtermDate : undefined } : c
+        ));
+    };
+
+    const updateMidtermDate = (id: string, date: string) => {
+        setCourses(prev => prev.map(c =>
+            c.id === id ? { ...c, midtermDate: date || undefined } : c
         ));
     };
 
@@ -230,27 +241,44 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                     >
                         <div className="grid grid-cols-1 gap-3">
                             {courses.map((course) => (
-                                <button
+                                <div
                                     key={course.id}
-                                    onClick={() => toggleMidterm(course.id)}
-                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${course.hasMidterm
+                                    className={`rounded-2xl border transition-all ${course.hasMidterm
                                         ? "bg-violet-500/10 border-violet-500/40"
                                         : "bg-white/[0.02] border-white/5 hover:border-white/10"
                                         }`}
                                 >
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-sm font-semibold">{course.name}</span>
-                                        <span className="text-[10px] uppercase tracking-wider font-bold text-white/30 mt-0.5">
-                                            {course.hasMidterm ? "Includes Midterm" : "No Midterm"}
-                                        </span>
-                                    </div>
-                                    <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${course.hasMidterm
-                                        ? "bg-violet-500 border-violet-500 text-white"
-                                        : "border-white/10 text-transparent"
-                                        }`}>
-                                        <Check className="w-3.5 h-3.5" />
-                                    </div>
-                                </button>
+                                    <button
+                                        onClick={() => toggleMidterm(course.id)}
+                                        className="flex items-center justify-between p-4 w-full"
+                                    >
+                                        <div className="flex flex-col items-start text-left">
+                                            <span className="text-sm font-semibold">{course.name}</span>
+                                            <span className="text-[10px] uppercase tracking-wider font-bold text-white/30 mt-0.5">
+                                                {course.hasMidterm ? "Includes Midterm" : "No Midterm"}
+                                            </span>
+                                        </div>
+                                        <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${course.hasMidterm
+                                            ? "bg-violet-500 border-violet-500 text-white"
+                                            : "border-white/10 text-transparent"
+                                            }`}>
+                                            <Check className="w-3.5 h-3.5" />
+                                        </div>
+                                    </button>
+                                    {course.hasMidterm && (
+                                        <div className="px-4 pb-4 flex items-center gap-3">
+                                            <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider shrink-0">Midterm Date:</label>
+                                            <input
+                                                type="date"
+                                                value={course.midtermDate || ""}
+                                                onChange={(e) => updateMidtermDate(course.id, e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-violet-500/40 transition-colors flex-1"
+                                                style={{ colorScheme: "dark" }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
 

@@ -1,53 +1,168 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Cloud, CloudOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import PlannerSetup from "../../components/PlannerSetup";
 import PlannerDashboard from "../../components/PlannerDashboard";
 
+// ── Types ────────────────────────────────────────────────────────────────
+
 export interface PlannerCourse {
     id: string;
     name: string;
-    hasMidterm: boolean;
+    code?: string;
     credits: number;
-    status: "In Progress" | "Completed" | "At Risk";
+    hasMidterm: boolean;
     midtermDate?: string;
+    finalDate?: string;
     professor?: string;
+    status: "In Progress" | "Completed" | "At Risk";
+    grade?: string | null;
 }
 
-const STORAGE_KEY = "htu_semester_planner_v1";
+export interface StudySession {
+    id: string;
+    courseId: string;
+    date: string;
+    hours: number;
+    notes?: string;
+}
+
+export interface SemesterData {
+    id: string;
+    name?: string;
+    courses: PlannerCourse[];
+    studySessions: StudySession[];
+}
+
+// ── Storage ──────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "htu_semester_planner_v2";
+const LEGACY_KEY = "htu_semester_planner_v1";
+
+function generateId() {
+    return Math.random().toString(36).substring(2, 11);
+}
 
 export default function PlannerPage() {
-    const [courses, setCourses] = useState<PlannerCourse[] | null>(null);
+    const { data: session, status: authStatus } = useSession();
+    const isAuthenticated = authStatus === "authenticated";
+    const [data, setData] = useState<SemesterData | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [syncStatus, setSyncStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    // ── Load data (DB if authenticated, localStorage fallback) ──
     useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            try {
-                setCourses(JSON.parse(saved));
-            } catch (e) {
-                console.error("Failed to parse saved planner data", e);
+        if (authStatus === "loading") return;
+
+        async function load() {
+            if (isAuthenticated) {
+                try {
+                    const res = await fetch("/api/planner");
+                    if (res.ok) {
+                        const remote = await res.json();
+                        if (remote && remote.courses && Array.isArray(remote.courses)) {
+                            setData({
+                                id: remote.id,
+                                name: remote.name,
+                                courses: remote.courses,
+                                studySessions: remote.studySessions || [],
+                            });
+                            setIsLoaded(true);
+                            setSyncStatus("saved");
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load from DB:", e);
+                }
+            }
+            // Fallback: localStorage
+            let saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (!parsed.id) parsed.id = generateId();
+                    setData(parsed);
+                } catch {}
+            } else {
+                saved = localStorage.getItem(LEGACY_KEY);
+                if (saved) {
+                    try {
+                        const courses = JSON.parse(saved);
+                        if (Array.isArray(courses)) {
+                            const migrated: SemesterData = { id: generateId(), courses, studySessions: [] };
+                            setData(migrated);
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+                            localStorage.removeItem(LEGACY_KEY);
+                        }
+                    } catch {}
+                }
+            }
+            setIsLoaded(true);
+        }
+        load();
+    }, [authStatus, isAuthenticated]);
+
+    // ── Debounced save to DB ──
+    const saveToDb = useCallback(async (semester: SemesterData) => {
+        if (!isAuthenticated) return;
+        setSyncStatus("saving");
+        try {
+            const res = await fetch("/api/planner", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(semester),
+            });
+            setSyncStatus(res.ok ? "saved" : "error");
+        } catch {
+            setSyncStatus("error");
+        }
+    }, [isAuthenticated]);
+
+    const persist = useCallback((updated: SemesterData) => {
+        setData(updated);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        // Debounced DB save
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => saveToDb(updated), 1200);
+    }, [saveToDb]);
+
+    const handleSetupComplete = (courses: PlannerCourse[]) => {
+        persist({ id: generateId(), courses, studySessions: [] });
+    };
+
+    const handleUpdateCourses = (courses: PlannerCourse[]) => {
+        if (!data) return;
+        persist({ ...data, courses });
+    };
+
+    const handleAddStudySession = (session: StudySession) => {
+        if (!data) return;
+        persist({ ...data, studySessions: [...data.studySessions, session] });
+    };
+
+    const handleDeleteStudySession = (id: string) => {
+        if (!data) return;
+        persist({ ...data, studySessions: data.studySessions.filter(s => s.id !== id) });
+    };
+
+    const handleReset = async () => {
+        if (confirm("Reset your planner? All data will be lost.")) {
+            setData(null);
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(LEGACY_KEY);
+            if (isAuthenticated) {
+                try { await fetch("/api/planner", { method: "DELETE" }); } catch {}
             }
         }
-        setIsLoaded(true);
-    }, []);
-
-    const handleSave = (updatedCourses: PlannerCourse[]) => {
-        setCourses(updatedCourses);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCourses));
     };
 
-    const handleReset = () => {
-        if (confirm("Are you sure you want to reset your planner? All data will be lost.")) {
-            setCourses(null);
-            localStorage.removeItem(STORAGE_KEY);
-        }
-    };
-
-    if (!isLoaded) return <div className="min-h-screen bg-black" />;
+    if (!isLoaded || authStatus === "loading") return <div className="min-h-screen bg-black" />;
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-violet-500/30">
@@ -72,27 +187,36 @@ export default function PlannerPage() {
                         </div>
                     </div>
 
-                    {courses && (
-                        <button
-                            onClick={handleReset}
-                            className="text-[10px] uppercase tracking-wider font-bold text-white/20 hover:text-red-400/60 transition-colors"
-                        >
-                            Reset Workspace
-                        </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {isAuthenticated && data && (
+                            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold">
+                                {syncStatus === "saving" && <><Loader2 className="w-3 h-3 animate-spin text-violet-400" /><span className="text-violet-400">Saving…</span></>}
+                                {syncStatus === "saved" && <><Cloud className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400">Synced</span></>}
+                                {syncStatus === "error" && <><CloudOff className="w-3 h-3 text-red-400" /><span className="text-red-400">Offline</span></>}
+                            </div>
+                        )}
+                        {data && (
+                            <button
+                                onClick={handleReset}
+                                className="text-[10px] uppercase tracking-wider font-bold text-white/20 hover:text-red-400/60 transition-colors"
+                            >
+                                Reset
+                            </button>
+                        )}
+                    </div>
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto px-4 py-12 relative z-10">
+            <main className="max-w-6xl mx-auto px-4 py-10 relative z-10">
                 <AnimatePresence mode="wait">
-                    {!courses ? (
+                    {!data ? (
                         <motion.div
                             key="setup"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                         >
-                            <PlannerSetup onComplete={handleSave} />
+                            <PlannerSetup onComplete={handleSetupComplete} />
                         </motion.div>
                     ) : (
                         <motion.div
@@ -101,7 +225,13 @@ export default function PlannerPage() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                         >
-                            <PlannerDashboard courses={courses} onUpdate={handleSave} />
+                            <PlannerDashboard
+                                courses={data.courses}
+                                studySessions={data.studySessions}
+                                onUpdateCourses={handleUpdateCourses}
+                                onAddStudySession={handleAddStudySession}
+                                onDeleteStudySession={handleDeleteStudySession}
+                            />
                         </motion.div>
                     )}
                 </AnimatePresence>

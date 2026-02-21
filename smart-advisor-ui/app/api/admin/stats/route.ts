@@ -16,29 +16,35 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
     if (courseCache) return courseCache;
 
     const dataDir = path.join(process.cwd(), 'public', 'data');
-    const files = ['shared.json', 'computer_science.json', 'cybersecurity.json', 'data_science.json'];
+    const masterFile = path.join(dataDir, 'curriculum.json');
     const map = new Map<string, CourseEntry>();
 
-    for (const file of files) {
-        try {
-            const raw = await fs.readFile(path.join(dataDir, file), 'utf-8');
-            const json = JSON.parse(raw);
-            // Flatten all arrays in the JSON
-            const extractCourses = (obj: Record<string, unknown>) => {
-                for (const val of Object.values(obj)) {
-                    if (Array.isArray(val)) {
-                        for (const c of val) {
-                            if (c && typeof c === 'object' && 'code' in c && 'ch' in c) {
-                                map.set(c.code, { code: c.code, name: c.name || c.code, ch: c.ch, level: c.level });
-                            }
+    try {
+        const raw = await fs.readFile(masterFile, 'utf-8');
+        const json = JSON.parse(raw);
+
+        const extractCourses = (obj: any) => {
+            if (!obj || typeof obj !== 'object') return;
+            for (const key in obj) {
+                const val = obj[key];
+                if (Array.isArray(val)) {
+                    for (const c of val) {
+                        if (c && typeof c === 'object' && 'code' in c && 'ch' in c) {
+                            map.set(c.code, { code: c.code, name: c.name || c.code, ch: c.ch, level: c.level });
                         }
-                    } else if (val && typeof val === 'object') {
-                        extractCourses(val as Record<string, unknown>);
                     }
+                } else if (val && typeof val === 'object') {
+                    extractCourses(val);
                 }
-            };
-            extractCourses(json);
-        } catch { /* file might not exist */ }
+            }
+        };
+
+        // Extract from shared and all majors
+        extractCourses(json.shared);
+        extractCourses(json.majors);
+
+    } catch (e) {
+        console.error("Failed to load course map for stats:", e);
     }
 
     courseCache = map;

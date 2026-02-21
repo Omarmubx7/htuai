@@ -1,0 +1,2951 @@
+{
+    "majors": {
+        "computer_science": {
+            "total_credits": 135,
+            "shared_credits": 45,
+            "core_credits": 90,
+            "department_requirements": [
+                {
+                    "code": "10203180",
+                    "name": "Networking",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "40201260",
+                    "name": "Website Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201201",
+                    "name": "Data Structures & Algorithms",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "00203280",
+                    "name": "Security",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "40201200",
+                    "name": "Advanced Programming",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201220",
+                    "name": "Software Development Lifecycles",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201261",
+                    "name": "Prototyping",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201220"
+                },
+                {
+                    "code": "40201360",
+                    "name": "Application Development",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201261"
+                },
+                {
+                    "code": "00201391",
+                    "name": "Computing Research Project",
+                    "ch": 6,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201290"
+                },
+                {
+                    "code": "10204282",
+                    "name": "Database Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "10204312",
+                    "name": "Business Intelligence",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "10204282"
+                },
+                {
+                    "code": "40201321",
+                    "name": "Systems Analysis & Design",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201220"
+                },
+                {
+                    "code": "10203380",
+                    "name": "Computer Organization and Design",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "40201100 & 40303221"
+                },
+                {
+                    "code": "40201341",
+                    "name": "Operating Systems",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201201"
+                },
+                {
+                    "code": "40201362",
+                    "name": "Games Engine & Scripting",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201320",
+                    "name": "ERP Systems",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "40201360"
+                },
+                {
+                    "code": "40201430",
+                    "name": "Database Programming",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 4,
+                    "prereq": "10204282 & 40201201"
+                },
+                {
+                    "code": "40201440",
+                    "name": "Systems Programming",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 4,
+                    "prereq": "40201341"
+                },
+                {
+                    "code": "40201491",
+                    "name": "Capstone Project I",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": ">= 90 CH"
+                },
+                {
+                    "code": "40201492",
+                    "name": "Capstone Project II",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "40201491"
+                },
+                {
+                    "code": "40201390",
+                    "name": "HNC Training",
+                    "ch": 12,
+                    "level": 3,
+                    "prereq": ">= 85 CH"
+                },
+                {
+                    "code": "40201490",
+                    "name": "HND Training",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "40201390"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "40201441",
+                    "name": "Internet of Things",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203180 & 40201341"
+                },
+                {
+                    "code": "40201450",
+                    "name": "Cloud Computing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203180 & 40201341"
+                },
+                {
+                    "code": "40201462",
+                    "name": "Virtual & Augmented Reality Development",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40201362"
+                },
+                {
+                    "code": "40201460",
+                    "name": "E-Commerce",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40201260"
+                },
+                {
+                    "code": "40201442",
+                    "name": "Real Time Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40201341"
+                },
+                {
+                    "code": "40201461",
+                    "name": "Mobile Application Development",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40201360"
+                },
+                {
+                    "code": "00204414",
+                    "name": "Data Analytics for IT Professionals",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204312"
+                },
+                {
+                    "code": "00204456",
+                    "name": "Artificial Intelligence for IT Professionals",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204312"
+                },
+                {
+                    "code": "40201470",
+                    "name": "Special Topics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "Department Approval"
+                }
+            ]
+        },
+        "cybersecurity": {
+            "total_credits": 135,
+            "shared_credits": 45,
+            "core_credits": 90,
+            "department_requirements": [
+                {
+                    "code": "10203180",
+                    "name": "Networking",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "40201260",
+                    "name": "Website Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201201",
+                    "name": "Data Structures & Algorithms",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "00203280",
+                    "name": "Security",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "10203340",
+                    "name": "Cryptography",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "40303221"
+                },
+                {
+                    "code": "10203210",
+                    "name": "Network Security",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "00203280"
+                },
+                {
+                    "code": "10203361",
+                    "name": "Forensics",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "10203380 & 00203280"
+                },
+                {
+                    "code": "10203300",
+                    "name": "Information Security Management",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "10203210"
+                },
+                {
+                    "code": "00201391",
+                    "name": "Computing Research Project",
+                    "ch": 6,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201290"
+                },
+                {
+                    "code": "10204282",
+                    "name": "Database Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "10204312",
+                    "name": "Business Intelligence",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "10204282"
+                },
+                {
+                    "code": "40201220",
+                    "name": "Software Development Lifecycle",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "10203380",
+                    "name": "Computer Organization and Design",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "40201100 & 40303221"
+                },
+                {
+                    "code": "40201341",
+                    "name": "Operating Systems",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201201"
+                },
+                {
+                    "code": "00203360",
+                    "name": "Penetration Testing",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "10203210"
+                },
+                {
+                    "code": "10203362",
+                    "name": "Ethical Hacking",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "00203360"
+                },
+                {
+                    "code": "00203400",
+                    "name": "Risk Analysis & Systems Testing",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 4,
+                    "prereq": "00203280"
+                },
+                {
+                    "code": "00203420",
+                    "name": "Secure Coding",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 4,
+                    "prereq": "10204282"
+                },
+                {
+                    "code": "10203491",
+                    "name": "Capstone Project I",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": ">= 90 CH"
+                },
+                {
+                    "code": "10203492",
+                    "name": "Capstone Project II",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "10203491"
+                },
+                {
+                    "code": "10203390",
+                    "name": "HNC Training",
+                    "ch": 12,
+                    "level": 3,
+                    "prereq": ">= 85 CH"
+                },
+                {
+                    "code": "10203490",
+                    "name": "HND Training",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "10203390"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "10203421",
+                    "name": "Web Security",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203210 & 40201260"
+                },
+                {
+                    "code": "10203411",
+                    "name": "Internet of Things Security",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203210"
+                },
+                {
+                    "code": "10203410",
+                    "name": "Mobile and Wireless Security",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203210"
+                },
+                {
+                    "code": "10203401",
+                    "name": "Incident Response Management",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203420 & 00203400"
+                },
+                {
+                    "code": "10203402",
+                    "name": "Ethical Issues in Cyber Security",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203362"
+                },
+                {
+                    "code": "40201450",
+                    "name": "Cloud Computing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203180 & 40201341"
+                },
+                {
+                    "code": "00204414",
+                    "name": "Data Analytics for IT Professionals",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204312"
+                },
+                {
+                    "code": "00204456",
+                    "name": "Artificial Intelligence for IT Professionals",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204312"
+                },
+                {
+                    "code": "10203420",
+                    "name": "Secure System Design and Development",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00203420"
+                },
+                {
+                    "code": "10203470",
+                    "name": "Special Topics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "Department Approval"
+                }
+            ]
+        },
+        "data_science": {
+            "total_credits": 135,
+            "shared_credits": 45,
+            "core_credits": 90,
+            "department_requirements": [
+                {
+                    "code": "10203180",
+                    "name": "Networking",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "40201201",
+                    "name": "Data Structures & Algorithms",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "10204282",
+                    "name": "Database Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201341",
+                    "name": "Operating Systems",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201201"
+                },
+                {
+                    "code": "10204312",
+                    "name": "Business Intelligence",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "10204282"
+                },
+                {
+                    "code": "00201391",
+                    "name": "Computing Research Project",
+                    "ch": 6,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201290"
+                },
+                {
+                    "code": "00203280",
+                    "name": "Security",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "10204250",
+                    "name": "Artificial Intelligence & Intelligent Systems",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40303121"
+                },
+                {
+                    "code": "00204280",
+                    "name": "Principles of Data Science and Computing Systems",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 2,
+                    "prereq": "40303121"
+                },
+                {
+                    "code": "10204281",
+                    "name": "Data Science Programming",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "10204210",
+                    "name": "Data Analytics",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40303121"
+                },
+                {
+                    "code": "00204430",
+                    "name": "Data Mining",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "10204210"
+                },
+                {
+                    "code": "10204330",
+                    "name": "Modeling and Simulation",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "10204250"
+                },
+                {
+                    "code": "10204350",
+                    "name": "Machine Learning",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "00204280 & 10204210"
+                },
+                {
+                    "code": "10204351",
+                    "name": "Natural Language Processing",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 3,
+                    "prereq": "10204250"
+                },
+                {
+                    "code": "00204310",
+                    "name": "Software Development Lifecycle (SDLC)",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "00204311",
+                    "name": "Big Data Analytics and Visualization",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 3,
+                    "prereq": "00204310"
+                },
+                {
+                    "code": "10204450",
+                    "name": "Deep Learning",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 4,
+                    "prereq": "10204350"
+                },
+                {
+                    "code": "10204491",
+                    "name": "Capstone Project I",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": ">= 90 CH"
+                },
+                {
+                    "code": "10204492",
+                    "name": "Capstone Project II",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "10204491"
+                },
+                {
+                    "code": "10204390",
+                    "name": "HNC Training",
+                    "ch": 12,
+                    "level": 3,
+                    "prereq": ">= 85 CH"
+                },
+                {
+                    "code": "10204490",
+                    "name": "HND Training",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "10204390"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "00204410",
+                    "name": "Health Informatics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204210"
+                },
+                {
+                    "code": "00204411",
+                    "name": "Time Series Analysis",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204210"
+                },
+                {
+                    "code": "00204412",
+                    "name": "Applied Analytical Models",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40303221"
+                },
+                {
+                    "code": "10204431",
+                    "name": "Information Retrieval",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40303221"
+                },
+                {
+                    "code": "00204432",
+                    "name": "Bioinformatics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204350"
+                },
+                {
+                    "code": "00204413",
+                    "name": "Analytical Methods",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40303221"
+                },
+                {
+                    "code": "00204433",
+                    "name": "Data Engineering",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204210"
+                },
+                {
+                    "code": "10204451",
+                    "name": "Pattern Recognition",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204250"
+                },
+                {
+                    "code": "10204452",
+                    "name": "Computer Vision",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40303221"
+                },
+                {
+                    "code": "10204453",
+                    "name": "Robotics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204250"
+                },
+                {
+                    "code": "10204454",
+                    "name": "Optimization Theory",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "40201201 & 40303221"
+                },
+                {
+                    "code": "10204455",
+                    "name": "Machine Learning Operations",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10204350"
+                },
+                {
+                    "code": "40201450",
+                    "name": "Cloud Computing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "10203180 & 40201341"
+                },
+                {
+                    "code": "10204470",
+                    "name": "Special Topics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "Department Approval"
+                }
+            ]
+        },
+        "game_design": {
+            "total_credits": 72,
+            "shared_credits": 27,
+            "core_credits": 45,
+            "note": "Technical degree structure. Includes specific 10 CH University and 17 CH College requirements.",
+            "university_requirements": [
+                {
+                    "code": "30301111",
+                    "name": "Arabic Language & Communication Skills",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "30301110"
+                },
+                {
+                    "code": "30301121",
+                    "name": "English Pre-Intermediate Intensive + Lab",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30301120"
+                },
+                {
+                    "code": "30301122",
+                    "name": "English Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301121"
+                },
+                {
+                    "code": "30302129",
+                    "name": "Military Sciences",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "40302111",
+                    "name": "Professional Skills",
+                    "ch": 1,
+                    "level": 1
+                }
+            ],
+            "college_requirements": [
+                {
+                    "code": "30303111",
+                    "name": "Functional Maths",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30303110"
+                },
+                {
+                    "code": "40201100",
+                    "name": "Programming",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "40201290",
+                    "name": "Planning a Computing Project",
+                    "ch": 4,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40302211"
+                },
+                {
+                    "code": "40302211",
+                    "name": "Professional Practice",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40302111 & 30301122"
+                },
+                {
+                    "code": "40303130",
+                    "name": "Fundamentals of Computing",
+                    "ch": 4,
+                    "level": 1
+                }
+            ],
+            "department_requirements": [
+                {
+                    "code": "201120",
+                    "name": "Game Design",
+                    "ch": 3,
+                    "level": 1
+                },
+                {
+                    "code": "201160",
+                    "name": "Creative Games Development",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "201120"
+                },
+                {
+                    "code": "201262",
+                    "name": "Games Engine",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "201160"
+                },
+                {
+                    "code": "201263",
+                    "name": "Advanced Scripting for Games",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "201262"
+                },
+                {
+                    "code": "201264",
+                    "name": "Immersive Technology Development",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "201262"
+                },
+                {
+                    "code": "201270",
+                    "name": "Special Topics in Game Development",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "201262"
+                },
+                {
+                    "code": "203280",
+                    "name": "Security",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "10203180",
+                    "name": "Networking",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "10204282",
+                    "name": "Database Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201220",
+                    "name": "Software Development Lifecycles",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "40201260",
+                    "name": "Website Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40303121",
+                    "name": "Maths for Computing",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 1,
+                    "prereq": "30303111"
+                }
+            ],
+            "work_market_requirements": [
+                {
+                    "code": "7102",
+                    "name": "Career Readiness Workshop",
+                    "ch": 0,
+                    "level": 1
+                },
+                {
+                    "code": "201290",
+                    "name": "Apprenticeship 1 for Game Design and Development",
+                    "ch": 6,
+                    "level": 2,
+                    "prereq": "7102"
+                },
+                {
+                    "code": "201293",
+                    "name": "Apprenticeship 2 for Game Design and Development",
+                    "ch": 6,
+                    "level": 2,
+                    "prereq": "201290"
+                }
+            ]
+        },
+        "electrical_engineering": {
+            "total_credits": 166,
+            "university_requirements": [
+                {
+                    "code": "30301121",
+                    "name": "Pre-Intermediate English Intensive + Lab",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30301120"
+                },
+                {
+                    "code": "30301122",
+                    "name": "English Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301121"
+                },
+                {
+                    "code": "30301123",
+                    "name": "English Upper-Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301122"
+                },
+                {
+                    "code": "30301124",
+                    "name": "English Advanced",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "30301123"
+                },
+                {
+                    "code": "40302111",
+                    "name": "Professional Skills",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "40302211",
+                    "name": "Professional Practice",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40302111"
+                },
+                {
+                    "code": "40302231",
+                    "name": "Entrepreneurship Bootcamp",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "30301123 & 40302211"
+                },
+                {
+                    "code": "30302232",
+                    "name": "Leadership Camp",
+                    "ch": 1,
+                    "level": 3,
+                    "prereq": "40302231"
+                },
+                {
+                    "code": "30301111",
+                    "name": "Arabic Language & Communication Skills",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "30301110"
+                },
+                {
+                    "code": "30302129",
+                    "name": "Military Science",
+                    "ch": 1,
+                    "level": 1
+                }
+            ],
+            "college_requirements": [
+                {
+                    "code": "30303111",
+                    "name": "Functional Math",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "HTU Placement"
+                },
+                {
+                    "code": "30303112",
+                    "name": "Functional Physics",
+                    "ch": 3,
+                    "level": 1
+                },
+                {
+                    "code": "40303130",
+                    "name": "Fundamentals of Computing",
+                    "ch": 4,
+                    "level": 1
+                },
+                {
+                    "code": "00101100",
+                    "name": "Introduction to Engineering Drawing",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00103101",
+                    "name": "STEM Lab I",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00102102",
+                    "name": "STEM Lab II",
+                    "ch": 1,
+                    "level": 2,
+                    "prereq": "00103101"
+                },
+                {
+                    "code": "00101103",
+                    "name": "Workshop I",
+                    "ch": 2,
+                    "level": 1
+                },
+                {
+                    "code": "00101104",
+                    "name": "Workshop II",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "00101103"
+                },
+                {
+                    "code": "00103110",
+                    "name": "Engineering Math",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30303111"
+                },
+                {
+                    "code": "00102111",
+                    "name": "Engineering Science",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "30303112"
+                },
+                {
+                    "code": "00101112",
+                    "name": "Engineering Design",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101100"
+                },
+                {
+                    "code": "00102220",
+                    "name": "Managing a Professional Engineering Project",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101112"
+                },
+                {
+                    "code": "00103375",
+                    "name": "Introduction to AI and Data Sciences",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40303130 & 00103110"
+                }
+            ],
+            "department_requirements": [
+                {
+                    "code": "00103205",
+                    "name": "Advanced Workshop for Electrical Engineers",
+                    "ch": 1,
+                    "level": 2,
+                    "prereq": "00101104"
+                },
+                {
+                    "code": "00103230",
+                    "name": "Electrical and Electronic Principles",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00103282",
+                    "name": "Digital Design",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40303130"
+                },
+                {
+                    "code": "00103240",
+                    "name": "Electronic Circuits and Devices",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00103250",
+                    "name": "Instrumentation and Control Systems",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00103213",
+                    "name": "Further Mathematics",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103110"
+                },
+                {
+                    "code": "00103383",
+                    "name": "Programmable Logic Controllers",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103282, 00103250"
+                },
+                {
+                    "code": "00102321",
+                    "name": "Professional Engineering Management",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00102220"
+                },
+                {
+                    "code": "00103331",
+                    "name": "Industrial Power, Electronics and Storage",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103240"
+                },
+                {
+                    "code": "00103351",
+                    "name": "Industrial Systems",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103250, 00103282"
+                },
+                {
+                    "code": "00103232",
+                    "name": "Further Electrical, Electronic and Digital Principles",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103230, 00103213"
+                },
+                {
+                    "code": "00103352",
+                    "name": "Further Control Systems",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103250, 00103213"
+                },
+                {
+                    "code": "00103490",
+                    "name": "Research Project for Electrical Engineers",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "90 credit hours completed"
+                },
+                {
+                    "code": "00103568",
+                    "name": "Engineering Electromagnetics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103230, 00103213"
+                },
+                {
+                    "code": "00103367",
+                    "name": "Telecommunication Principles",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103282, 00103110"
+                },
+                {
+                    "code": "00103333",
+                    "name": "Electrical Machines",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232"
+                },
+                {
+                    "code": "00103534",
+                    "name": "Power Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232"
+                },
+                {
+                    "code": "00103581",
+                    "name": "Embedded Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103282"
+                },
+                {
+                    "code": "00102541",
+                    "name": "Photovoltaic Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232"
+                },
+                {
+                    "code": "00103546",
+                    "name": "Advanced Electronics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103240"
+                },
+                {
+                    "code": "00103566",
+                    "name": "Speech and Image Processing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103375, 00103213"
+                },
+                {
+                    "code": "00103553",
+                    "name": "Industry 4.0",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00103351, 00103367"
+                },
+                {
+                    "code": "00102523",
+                    "name": "Health, Safety, and Environment",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00102321"
+                },
+                {
+                    "code": "00103595",
+                    "name": "Capstone Project for Electrical Engineering",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00103490"
+                },
+                {
+                    "code": "00103596",
+                    "name": "Capstone Project for Electrical Engineering Continuation",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "00103595"
+                },
+                {
+                    "code": "00103497",
+                    "name": "Practical Training for Electrical Engineering (PATH)",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "100 CHs completed"
+                },
+                {
+                    "code": "00103498",
+                    "name": "Practical Training for Electrical Engineering (PATH) Continuation",
+                    "ch": 12,
+                    "level": 4,
+                    "prereq": "00103497"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "00103574",
+                    "name": "Algorithms and Optimization",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103375, 00103213"
+                },
+                {
+                    "code": "00103571",
+                    "name": "Data Analytics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103375, 00103213"
+                },
+                {
+                    "code": "00103572",
+                    "name": "Artificial Intelligence and Engineering Applications",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103375, 00103213"
+                },
+                {
+                    "code": "00103573",
+                    "name": "Machine Learning",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103375, 00103213"
+                },
+                {
+                    "code": "00101535",
+                    "name": "Mechatronics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103250"
+                },
+                {
+                    "code": "00103554",
+                    "name": "Mobile Robotics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103250"
+                },
+                {
+                    "code": "00103555",
+                    "name": "Industrial Robotics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103250"
+                },
+                {
+                    "code": "00102544",
+                    "name": "Green Buildings",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00102551",
+                    "name": "Smart Grids",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103331"
+                },
+                {
+                    "code": "00102505",
+                    "name": "Energy Storage",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103331"
+                },
+                {
+                    "code": "00103522",
+                    "name": "Electrical Installations for Buildings",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232"
+                },
+                {
+                    "code": "00102552",
+                    "name": "Electric and Hybrid Vehicles",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103333"
+                },
+                {
+                    "code": "00103539",
+                    "name": "Power Electronics and Drives",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103333, 00103232"
+                },
+                {
+                    "code": "00103535",
+                    "name": "Power System Quality, Reliability and Protection",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103534"
+                },
+                {
+                    "code": "00103537",
+                    "name": "Special Topics in Power Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103534"
+                },
+                {
+                    "code": "00103545",
+                    "name": "Special Topics in Clinical Engineering",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103240"
+                },
+                {
+                    "code": "00103565",
+                    "name": "Special Topics in Communications",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103367"
+                },
+                {
+                    "code": "00103584",
+                    "name": "Special Topics in Computer Engineering",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103375"
+                }
+            ]
+        },
+        "energy_engineering": {
+            "total_credits": 166,
+            "university_requirements": [
+                {
+                    "code": "30301121",
+                    "name": "Pre-Intermediate English Intensive + Lab",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30301120"
+                },
+                {
+                    "code": "30301122",
+                    "name": "English Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301121"
+                },
+                {
+                    "code": "30301123",
+                    "name": "English Upper-Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301122"
+                },
+                {
+                    "code": "30301124",
+                    "name": "English Advanced",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "30301123"
+                },
+                {
+                    "code": "40302111",
+                    "name": "Professional Skills",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "40302112",
+                    "name": "Professional Practice",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40302111"
+                },
+                {
+                    "code": "40302231",
+                    "name": "Entrepreneurship Bootcamp",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "30301123 & 40302211"
+                },
+                {
+                    "code": "30302232",
+                    "name": "Leadership Camp",
+                    "ch": 1,
+                    "level": 3,
+                    "prereq": "40302231"
+                },
+                {
+                    "code": "30301111",
+                    "name": "Arabic Language & Communication Skills",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "30301110"
+                },
+                {
+                    "code": "30302129",
+                    "name": "Military Science",
+                    "ch": 1,
+                    "level": 1
+                }
+            ],
+            "college_requirements": [
+                {
+                    "code": "30303111",
+                    "name": "Functional Math",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "HTU Placement"
+                },
+                {
+                    "code": "30303112",
+                    "name": "Functional Physics",
+                    "ch": 3,
+                    "level": 1
+                },
+                {
+                    "code": "40303130",
+                    "name": "Fundamentals of Computing",
+                    "ch": 4,
+                    "level": 1
+                },
+                {
+                    "code": "00101100",
+                    "name": "Introduction to Engineering Drawing",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00103101",
+                    "name": "STEM Lab I",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00102102",
+                    "name": "STEM Lab II",
+                    "ch": 1,
+                    "level": 2,
+                    "prereq": "00103101"
+                },
+                {
+                    "code": "00101103",
+                    "name": "Workshop I",
+                    "ch": 2,
+                    "level": 1
+                },
+                {
+                    "code": "00101104",
+                    "name": "Workshop II",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "00101103"
+                },
+                {
+                    "code": "00103110",
+                    "name": "Engineering Math",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30303111"
+                },
+                {
+                    "code": "00102111",
+                    "name": "Engineering Science",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "30303112"
+                },
+                {
+                    "code": "00101112",
+                    "name": "Engineering Design",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101100"
+                },
+                {
+                    "code": "00102220",
+                    "name": "Managing a Professional Engineering Project",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101112"
+                },
+                {
+                    "code": "00103375",
+                    "name": "Introduction to AI and Data Sciences",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40303130 & 00103110"
+                }
+            ],
+            "department_requirements": [
+                {
+                    "code": "00102205",
+                    "name": "Advanced Workshop for Energy Engineers",
+                    "ch": 1,
+                    "level": 2,
+                    "prereq": "00101104"
+                },
+                {
+                    "code": "00101240",
+                    "name": "Fundamentals of Thermodynamics and Heat Engines",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00101241",
+                    "name": "Fluid Mechanics",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00103230",
+                    "name": "Electrical and Electronic Principles",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00103240",
+                    "name": "Electronic Circuits and Devices",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00101442",
+                    "name": "Heat and Mass Transfer",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00103250",
+                    "name": "Instrumentation and Control Systems",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00103213",
+                    "name": "Further Mathematics",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103110"
+                },
+                {
+                    "code": "00102321",
+                    "name": "Professional Engineering Management",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00102220"
+                },
+                {
+                    "code": "00101366",
+                    "name": "Lean Manufacturing",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00101112"
+                },
+                {
+                    "code": "00101343",
+                    "name": "Further Thermodynamics",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00103331",
+                    "name": "Industrial Power, Electronics and Storage",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103240"
+                },
+                {
+                    "code": "00103232",
+                    "name": "Further Electrical, Electronic and Digital Principles",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103230, 00103213"
+                },
+                {
+                    "code": "00102490",
+                    "name": "Research Project for Energy Engineers",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "Department Approval"
+                },
+                {
+                    "code": "00102330",
+                    "name": "Energy Resources and Conversion",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00102340",
+                    "name": "Renewable Energy Systems and Technologies",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00103534",
+                    "name": "Power Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232"
+                },
+                {
+                    "code": "00102532",
+                    "name": "Energy Efficiency and Management",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102330"
+                },
+                {
+                    "code": "00101345",
+                    "name": "Heating, Ventilation and Air Conditioning (HVAC)",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00102531",
+                    "name": "Energy Economics, Policy, and Regulations",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102330"
+                },
+                {
+                    "code": "00102541",
+                    "name": "Photovoltaic Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232 & 00102340"
+                },
+                {
+                    "code": "00102523",
+                    "name": "Health, safety, and Environment",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00102321"
+                },
+                {
+                    "code": "00102594",
+                    "name": "Capstone Project for Energy Engineers",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00102490"
+                },
+                {
+                    "code": "00102595",
+                    "name": "Capstone Project for Energy Engineers continuation",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "00102594"
+                },
+                {
+                    "code": "00102496",
+                    "name": "Practical Training for Energy Engineers (PATH)",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "30302231 & 30301123"
+                },
+                {
+                    "code": "00102497",
+                    "name": "Practical Training for Energy Engineers (PATH) continuation",
+                    "ch": 12,
+                    "level": 4,
+                    "prereq": "00102496"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "00102522",
+                    "name": "Maintenance Engineering",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102321"
+                },
+                {
+                    "code": "00102542",
+                    "name": "Solar Thermal Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101242"
+                },
+                {
+                    "code": "00102543",
+                    "name": "Wind Energy",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103333"
+                },
+                {
+                    "code": "00102544",
+                    "name": "Green Buildings",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00102545",
+                    "name": "Sustainability",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102340"
+                },
+                {
+                    "code": "00102550",
+                    "name": "Energy Storage",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103331"
+                },
+                {
+                    "code": "00102551",
+                    "name": "Smart Grids",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103331, 00103534"
+                },
+                {
+                    "code": "00102552",
+                    "name": "Electric and Hybrid Vehicles",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103333"
+                },
+                {
+                    "code": "00102553",
+                    "name": "Energy Simulation in buildings",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101545"
+                },
+                {
+                    "code": "00103333",
+                    "name": "Electrical Machines",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103232"
+                }
+            ]
+        },
+        "industrial_engineering": {
+            "total_credits": 166,
+            "university_requirements": [
+                {
+                    "code": "30301121",
+                    "name": "Pre-Intermediate English Intensive + Lab",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30301120"
+                },
+                {
+                    "code": "30301122",
+                    "name": "English Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301121"
+                },
+                {
+                    "code": "30301123",
+                    "name": "English Upper-Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301122"
+                },
+                {
+                    "code": "30301124",
+                    "name": "English Advanced",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "30301123"
+                },
+                {
+                    "code": "40302111",
+                    "name": "Professional Skills",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "40302211",
+                    "name": "Professional Practice",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40302111"
+                },
+                {
+                    "code": "40302231",
+                    "name": "Entrepreneurship Bootcamp",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "30301123 & 40302211"
+                },
+                {
+                    "code": "30302232",
+                    "name": "Leadership Camp",
+                    "ch": 1,
+                    "level": 3,
+                    "prereq": "40302231"
+                },
+                {
+                    "code": "30301111",
+                    "name": "Arabic Language & Communication Skills",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "30301110"
+                },
+                {
+                    "code": "30302129",
+                    "name": "Military Science",
+                    "ch": 1,
+                    "level": 1
+                }
+            ],
+            "college_requirements": [
+                {
+                    "code": "30303111",
+                    "name": "Functional Math",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "HTU Placement"
+                },
+                {
+                    "code": "30303112",
+                    "name": "Functional Physics",
+                    "ch": 3,
+                    "level": 1
+                },
+                {
+                    "code": "40303130",
+                    "name": "Fundamentals of Computing",
+                    "ch": 4,
+                    "level": 1
+                },
+                {
+                    "code": "00101100",
+                    "name": "Introduction to Engineering Drawing",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00103101",
+                    "name": "STEM Lab I",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00102102",
+                    "name": "STEM Lab II",
+                    "ch": 1,
+                    "level": 2,
+                    "prereq": "00103101"
+                },
+                {
+                    "code": "00101103",
+                    "name": "Workshop I",
+                    "ch": 2,
+                    "level": 1
+                },
+                {
+                    "code": "00101104",
+                    "name": "Workshop II",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "00101103"
+                },
+                {
+                    "code": "00103110",
+                    "name": "Engineering Math",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30303111"
+                },
+                {
+                    "code": "00102111",
+                    "name": "Engineering Science",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "30303112"
+                },
+                {
+                    "code": "00101112",
+                    "name": "Engineering Design",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101100"
+                },
+                {
+                    "code": "00102220",
+                    "name": "Managing a Professional Engineering Project",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101112"
+                },
+                {
+                    "code": "00106200",
+                    "name": "Intro to AI and Data Science",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40303130 & 00103110"
+                }
+            ],
+            "department_requirements": [
+                {
+                    "code": "103230",
+                    "name": "Electrical and Electronics Principles",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "103250",
+                    "name": "Instrumentation and Control",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "103230"
+                },
+                {
+                    "code": "106231",
+                    "name": "Quality and Process Improvement",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "106230"
+                },
+                {
+                    "code": "106230",
+                    "name": "Statistical Process Control",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103110"
+                },
+                {
+                    "code": "106201",
+                    "name": "Data Analytics",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00106200"
+                },
+                {
+                    "code": "106502",
+                    "name": "Business Process Support",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106201"
+                },
+                {
+                    "code": "106310",
+                    "name": "Operations Research",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "106201"
+                },
+                {
+                    "code": "103553",
+                    "name": "Industry 4.0",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "103250"
+                },
+                {
+                    "code": "106260",
+                    "name": "Financial Analysis",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00103110"
+                },
+                {
+                    "code": "106561",
+                    "name": "Industrial Cost analysis",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106260"
+                },
+                {
+                    "code": "106321",
+                    "name": "Supply Chain Management",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106320"
+                },
+                {
+                    "code": "106522",
+                    "name": "Logistics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106321"
+                },
+                {
+                    "code": "106511",
+                    "name": "Facility and Asset Management",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106310"
+                },
+                {
+                    "code": "106591",
+                    "name": "Capstone Project for IE I",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "106490"
+                },
+                {
+                    "code": "106592",
+                    "name": "Capstone Project for IE II",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "106591"
+                },
+                {
+                    "code": "106512",
+                    "name": "Decision Analysis and Strategy",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106511"
+                },
+                {
+                    "code": "106523",
+                    "name": "ERP Systems",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "106321"
+                },
+                {
+                    "code": "103213",
+                    "name": "Further Math",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103110"
+                },
+                {
+                    "code": "102321",
+                    "name": "Professional Engr. Management",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102220"
+                },
+                {
+                    "code": "106340",
+                    "name": "Sustainability",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "102321"
+                },
+                {
+                    "code": "106332",
+                    "name": "Lean Manufacturing",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "101362"
+                },
+                {
+                    "code": "101362",
+                    "name": "Advanced Manufacturing Technology",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "106231"
+                },
+                {
+                    "code": "106320",
+                    "name": "Manufacturing Systems Engineering",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "106201"
+                },
+                {
+                    "code": "106490",
+                    "name": "Research Project for IE",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "100 hrs completed"
+                },
+                {
+                    "code": "106493",
+                    "name": "Apprenticeship for Industrial Engineering I",
+                    "ch": 6,
+                    "level": 3,
+                    "prereq": "100 CH completed"
+                },
+                {
+                    "code": "106494",
+                    "name": "Apprenticeship for Industrial Engineering II",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "106493"
+                },
+                {
+                    "code": "106495",
+                    "name": "Apprenticeship for Industrial Engineering III",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "106494"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "00103555",
+                    "name": "Industrial Robotics",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00106563",
+                    "name": "Principles of Sales and Marketing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106561"
+                },
+                {
+                    "code": "00102522",
+                    "name": "Maintenance Engineering",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00106513",
+                    "name": "Special Topics in Optimization and Decision Making",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106310"
+                },
+                {
+                    "code": "00106504",
+                    "name": "Special Topics in Industrial Engineering",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00106503",
+                    "name": "Machine Learning Operations",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106502"
+                },
+                {
+                    "code": "00102523",
+                    "name": "Health, Safety and Environment",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00106550",
+                    "name": "Ergonomics",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00106562",
+                    "name": "Business and Labor Law",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00103383",
+                    "name": "Programming Logic Controllers",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "103250"
+                },
+                {
+                    "code": "00106533",
+                    "name": "Industrial Engineering application in healthcare",
+                    "ch": 3,
+                    "level": 4
+                },
+                {
+                    "code": "00106570",
+                    "name": "Introduction to electronics manufacturing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "101362"
+                },
+                {
+                    "code": "00106524",
+                    "name": "Supply Chain Risk, Disruption, and Resilience",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106321"
+                },
+                {
+                    "code": "00106525",
+                    "name": "Supply Chain Technologies",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106321"
+                },
+                {
+                    "code": "00106526",
+                    "name": "E-commerce and Omni-channel Logistics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "106321"
+                }
+            ]
+        },
+        "mechanical_engineering": {
+            "total_credits": 166,
+            "university_requirements": [
+                {
+                    "code": "30301121",
+                    "name": "Pre-Intermediate English Intensive + Lab",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30301120"
+                },
+                {
+                    "code": "30301122",
+                    "name": "English Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301121"
+                },
+                {
+                    "code": "30301123",
+                    "name": "English Upper-Intermediate",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "30301122"
+                },
+                {
+                    "code": "30301124",
+                    "name": "English Advanced",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "30301123"
+                },
+                {
+                    "code": "40302111",
+                    "name": "Professional Skills",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "40302211",
+                    "name": "Professional Practice",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40302111"
+                },
+                {
+                    "code": "40302231",
+                    "name": "Entrepreneurship Bootcamp",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "30301123 & 40302211"
+                },
+                {
+                    "code": "30302232",
+                    "name": "Leadership Camp",
+                    "ch": 1,
+                    "level": 3,
+                    "prereq": "40302231"
+                },
+                {
+                    "code": "30301111",
+                    "name": "Arabic Language & Communication Skills",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "30301110"
+                },
+                {
+                    "code": "30302129",
+                    "name": "Military Science",
+                    "ch": 1,
+                    "level": 1
+                }
+            ],
+            "college_requirements": [
+                {
+                    "code": "30303111",
+                    "name": "Functional Math",
+                    "ch": 3,
+                    "level": 1,
+                    "prereq": "HTU Placement"
+                },
+                {
+                    "code": "30303112",
+                    "name": "Functional Physics",
+                    "ch": 3,
+                    "level": 1
+                },
+                {
+                    "code": "40303130",
+                    "name": "Fundamentals of Computing",
+                    "ch": 4,
+                    "level": 1
+                },
+                {
+                    "code": "00101100",
+                    "name": "Introduction to Engineering Drawing",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00103101",
+                    "name": "STEM Lab I",
+                    "ch": 1,
+                    "level": 1
+                },
+                {
+                    "code": "00102102",
+                    "name": "STEM Lab II",
+                    "ch": 1,
+                    "level": 2,
+                    "prereq": "00103101"
+                },
+                {
+                    "code": "00101103",
+                    "name": "Workshop I",
+                    "ch": 2,
+                    "level": 1
+                },
+                {
+                    "code": "00101104",
+                    "name": "Workshop II",
+                    "ch": 1,
+                    "level": 1,
+                    "prereq": "00101103"
+                },
+                {
+                    "code": "00103110",
+                    "name": "Engineering Math",
+                    "ch": 4,
+                    "level": 1,
+                    "prereq": "30303111"
+                },
+                {
+                    "code": "00102111",
+                    "name": "Engineering Science",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "30303112"
+                },
+                {
+                    "code": "00101112",
+                    "name": "Engineering Design",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101100"
+                },
+                {
+                    "code": "00102220",
+                    "name": "Managing a Professional Engineering Project",
+                    "ch": 4,
+                    "level": 2,
+                    "prereq": "00101112"
+                },
+                {
+                    "code": "00106200",
+                    "name": "Intro to AI and Data Science",
+                    "ch": 3,
+                    "level": 2,
+                    "prereq": "40303130 & 00103110"
+                }
+            ],
+            "department_requirements": [
+                {
+                    "code": "00101230",
+                    "name": "Mechanical Principles",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "30303112"
+                },
+                {
+                    "code": "00101240",
+                    "name": "Fundamentals of Thermodynamics and Heat Engines",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00101260",
+                    "name": "Materials, Properties and Testing",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00101241",
+                    "name": "Fluid Mechanics",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00101490",
+                    "name": "Research Project for Mechanical Engineering",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "90 CH completed"
+                },
+                {
+                    "code": "00101332",
+                    "name": "Advanced Mechanical Principles",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00101230"
+                },
+                {
+                    "code": "00101351",
+                    "name": "Virtual Engineering",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00101332 & 00103213"
+                },
+                {
+                    "code": "00101343",
+                    "name": "Further Thermodynamics",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00101362",
+                    "name": "Advanced Manufacturing Technology",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00101361"
+                },
+                {
+                    "code": "00102321",
+                    "name": "Professional Engineering Management",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00102220"
+                },
+                {
+                    "code": "00103213",
+                    "name": "Further Mathematics",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00103110"
+                },
+                {
+                    "code": "00101557",
+                    "name": "Machine Design",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101230"
+                },
+                {
+                    "code": "00101552",
+                    "name": "Modelling and Simulation for Engineers",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101351"
+                },
+                {
+                    "code": "00101361",
+                    "name": "Manufacturing Processes",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101260"
+                },
+                {
+                    "code": "00101345",
+                    "name": "Heating, Ventilation and Air Conditioning (HVAC)",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101343"
+                },
+                {
+                    "code": "00101442",
+                    "name": "Heat and Mass Transfer",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00103250",
+                    "name": "Instrumentation and control systems",
+                    "ch": 4,
+                    "level": 4,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00101231",
+                    "name": "Dynamics and Vibrations",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "00101230"
+                },
+                {
+                    "code": "00103230",
+                    "name": "Electrical and Electronic Principles",
+                    "ch": 4,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00101205",
+                    "name": "Advanced Workshop for Mechanical Engineering",
+                    "ch": 1,
+                    "level": 3,
+                    "prereq": "00101104"
+                },
+                {
+                    "code": "00102523",
+                    "name": "Health, Safety, and Environment",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00102321"
+                },
+                {
+                    "code": "00101594",
+                    "name": "Capstone Project for Mechanical Engineering",
+                    "ch": 1,
+                    "level": 4,
+                    "prereq": "00101490"
+                },
+                {
+                    "code": "00101598",
+                    "name": "Capstone Project for Mechanical Engineering Continuation",
+                    "ch": 2,
+                    "level": 4,
+                    "prereq": "00101594"
+                },
+                {
+                    "code": "00101291",
+                    "name": "Apprenticeship for Mechanical Engineering I",
+                    "ch": 6,
+                    "level": 3,
+                    "prereq": "100 CH completed"
+                },
+                {
+                    "code": "00101392",
+                    "name": "Apprenticeship for Mechanical Engineering II",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "00101291"
+                },
+                {
+                    "code": "00101393",
+                    "name": "Apprenticeship for Mechanical Engineering III",
+                    "ch": 6,
+                    "level": 4,
+                    "prereq": "00101392"
+                }
+            ],
+            "electives": [
+                {
+                    "code": "00101533",
+                    "name": "Pneumatics and Hydraulic Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101241"
+                },
+                {
+                    "code": "00101563",
+                    "name": "Digital and Additive Manufacturing",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101361"
+                },
+                {
+                    "code": "00101564",
+                    "name": "Advanced Materials",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101260"
+                },
+                {
+                    "code": "00101535",
+                    "name": "Mechatronics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00102522",
+                    "name": "Maintenance Engineering",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00102321"
+                },
+                {
+                    "code": "00101546",
+                    "name": "Advances in Heating, Ventilation and Air Conditioning",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101345"
+                },
+                {
+                    "code": "00101565",
+                    "name": "Composite Materials",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101260"
+                },
+                {
+                    "code": "00101534",
+                    "name": "Robotic Systems in Engineering",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103230"
+                },
+                {
+                    "code": "00102340",
+                    "name": "Renewable Energy Systems and Technologies",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00102111"
+                },
+                {
+                    "code": "00102542",
+                    "name": "Solar Thermal Systems",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101442"
+                },
+                {
+                    "code": "00101544",
+                    "name": "Advanced Heat and Mass Transfer",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101442"
+                },
+                {
+                    "code": "00101570",
+                    "name": "Building Services",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00102330",
+                    "name": "Energy Resources and Conversion",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00101240"
+                },
+                {
+                    "code": "00101537",
+                    "name": "Spacecraft Systems and Design",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": ">100 Cr. Hrs."
+                },
+                {
+                    "code": "00103554",
+                    "name": "Mobile Robotics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103250 or 00101535"
+                },
+                {
+                    "code": "00103555",
+                    "name": "Industrial Robotics",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103250"
+                },
+                {
+                    "code": "00103583",
+                    "name": "Programmable Logic Controller",
+                    "ch": 3,
+                    "level": 4,
+                    "prereq": "00103250"
+                }
+            ]
+        }
+    },
+    "shared": {
+        "university_requirements": [
+            {
+                "code": "30301121",
+                "name": "English Pre-Intermediate Intensive + Lab",
+                "ch": 4,
+                "framework": "HTU",
+                "level": 1,
+                "prereq": "30301120"
+            },
+            {
+                "code": "30301122",
+                "name": "English Intermediate",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 1,
+                "prereq": "30301121"
+            },
+            {
+                "code": "30301123",
+                "name": "English Upper-Intermediate",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 1,
+                "prereq": "30301122"
+            },
+            {
+                "code": "30301124",
+                "name": "English Advanced",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 2,
+                "prereq": "30301123"
+            },
+            {
+                "code": "40302111",
+                "name": "Professional Skills",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 1
+            },
+            {
+                "code": "40302211",
+                "name": "Professional Practice",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 2,
+                "prereq": "40302111 AND 30301122"
+            },
+            {
+                "code": "40302231",
+                "name": "Entrepreneurship Bootcamp",
+                "ch": 4,
+                "framework": "HTU",
+                "level": 3,
+                "prereq": "30301123 AND 40302211"
+            },
+            {
+                "code": "30301111",
+                "name": "Arabic Language & Communication Skills",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 1
+            },
+            {
+                "code": "30302129",
+                "name": "Military Science",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 1
+            },
+            {
+                "code": "30302232",
+                "name": "Leadership Camp",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 3,
+                "prereq": "40302231"
+            }
+        ],
+        "university_electives": [
+            {
+                "code": "UE-I",
+                "name": "University Elective I",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 2,
+                "description": "Free-choice elective \u2014 any approved university course"
+            },
+            {
+                "code": "UE-II",
+                "name": "University Elective II",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 3,
+                "description": "Free-choice elective \u2014 any approved university course"
+            },
+            {
+                "code": "UE-III",
+                "name": "University Elective III",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 3,
+                "description": "Free-choice elective \u2014 any approved university course"
+            }
+        ],
+        "college_requirements": [
+            {
+                "code": "30303111",
+                "name": "Functional Math",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 1,
+                "prereq": "30303110"
+            },
+            {
+                "code": "40303121",
+                "name": "Maths for Computing",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "30303111"
+            },
+            {
+                "code": "40303130",
+                "name": "Fundamentals of Computing",
+                "ch": 4,
+                "framework": "HTU",
+                "level": 1
+            },
+            {
+                "code": "40201100",
+                "name": "Programming",
+                "ch": 3,
+                "framework": "HNC",
+                "level": 1,
+                "prereq": "40303130"
+            },
+            {
+                "code": "40303221",
+                "name": "Discrete Maths",
+                "ch": 3,
+                "framework": "HND",
+                "level": 2,
+                "prereq": "40303121"
+            },
+            {
+                "code": "40201290",
+                "name": "Planning a Computing Project",
+                "ch": 4,
+                "framework": "HNC",
+                "level": 2,
+                "prereq": "40302211"
+            },
+            {
+                "code": "30303121",
+                "name": "STEM Lab I",
+                "ch": 1,
+                "framework": "HTU",
+                "level": 1
+            }
+        ]
+    }
+}

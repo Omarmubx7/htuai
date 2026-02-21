@@ -189,7 +189,6 @@ export default function HomeClient() {
 
                             <div className="w-px h-4 bg-white/8 hidden sm:block" />
 
-                            {/* Planner link hidden for now
                             <Link
                                 href="/planner"
                                 className="flex items-center gap-1.5 text-xs font-medium text-white/40 hover:text-violet-400 transition-colors px-2 py-1 rounded-md hover:bg-violet-500/5 group"
@@ -197,9 +196,6 @@ export default function HomeClient() {
                                 <Sparkles className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                                 <span>Semester Planner</span>
                             </Link>
-
-                            <div className="w-px h-4 bg-white/8 hidden sm:block" />
-                            */}
 
                             <div className="w-px h-4 bg-white/8 hidden sm:block" />
 

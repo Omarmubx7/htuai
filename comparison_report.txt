@@ -1,8 +1,0 @@
-Comparision Report: Student Plan vs Official Plan
---------------------------------------------------
-Total Student Courses: 48
-Total Official Courses: 48
---------------------------------------------------
-
-[DIFFERENCES] Attribute mismatches in common courses:
-  - 40201490: Credits differ (Student: 3 vs Official: 6)

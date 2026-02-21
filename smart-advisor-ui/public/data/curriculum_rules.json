@@ -13,7 +13,7 @@
         },
         "mechanical_engineering": {
             "total_credits": 166,
-            "max_dept_electives": 4,
+            "max_dept_electives": 3,
             "max_uni_electives": 3,
             "level_count": 5,
             "major_keys": [

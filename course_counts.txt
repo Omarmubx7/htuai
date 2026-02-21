@@ -1,5 +1,0 @@
-Major                | Total  | HTU   | HNC   | HND  
---------------------------------------------------
-Computer Science     | 48     | 34    | 5     | 9    
-Data Science & AI    | 53     | 43    | 5     | 5    
-Cybersecurity        | 49     | 40    | 4     | 5    

@@ -278,3 +278,112 @@ export async function updateUserDetails(id: number, data: Partial<DBUser>) {
         WHERE id = ${id}
     `;
 }
+
+// ─── Planner Persistence ──────────────────────────────────────────────────
+
+export async function initPlannerTables() {
+    await sql`
+        CREATE TABLE IF NOT EXISTS planner_semesters (
+            id TEXT PRIMARY KEY,
+            student_id TEXT NOT NULL,
+            name TEXT NOT NULL DEFAULT 'Spring 2026',
+            courses TEXT NOT NULL DEFAULT '[]',
+            study_sessions TEXT NOT NULL DEFAULT '[]',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+    await sql`
+        CREATE INDEX IF NOT EXISTS idx_planner_student ON planner_semesters (student_id);
+    `;
+    await sql`
+        CREATE TABLE IF NOT EXISTS integration_tokens (
+            id SERIAL PRIMARY KEY,
+            student_id TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            access_token TEXT NOT NULL,
+            refresh_token TEXT,
+            expires_at BIGINT,
+            metadata TEXT DEFAULT '{}',
+            updated_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(student_id, provider)
+        );
+    `;
+}
+
+export async function loadPlanner(studentId: string) {
+    try {
+        const { rows } = await sql`
+            SELECT * FROM planner_semesters
+            WHERE student_id = ${studentId}
+            ORDER BY updated_at DESC LIMIT 1
+        `;
+        if (rows.length === 0) return null;
+        return {
+            id: rows[0].id,
+            name: rows[0].name,
+            courses: JSON.parse(rows[0].courses),
+            studySessions: JSON.parse(rows[0].study_sessions),
+        };
+    } catch {
+        return null;
+    }
+}
+
+export async function savePlanner(
+    studentId: string,
+    data: { id: string; name?: string; courses: any[]; studySessions: any[] }
+) {
+    const coursesJson = JSON.stringify(data.courses);
+    const sessionsJson = JSON.stringify(data.studySessions);
+    await sql`
+        INSERT INTO planner_semesters (id, student_id, name, courses, study_sessions, updated_at)
+        VALUES (${data.id}, ${studentId}, ${data.name || 'Spring 2026'}, ${coursesJson}, ${sessionsJson}, NOW())
+        ON CONFLICT (id) DO UPDATE SET
+            courses = EXCLUDED.courses,
+            study_sessions = EXCLUDED.study_sessions,
+            name = EXCLUDED.name,
+            updated_at = NOW()
+    `;
+}
+
+export async function deletePlanner(studentId: string) {
+    await sql`DELETE FROM planner_semesters WHERE student_id = ${studentId}`;
+}
+
+export async function saveIntegrationToken(
+    studentId: string,
+    provider: string,
+    accessToken: string,
+    refreshToken?: string,
+    expiresAt?: number,
+    metadata?: Record<string, any>
+) {
+    await sql`
+        INSERT INTO integration_tokens (student_id, provider, access_token, refresh_token, expires_at, metadata, updated_at)
+        VALUES (${studentId}, ${provider}, ${accessToken}, ${refreshToken || null}, ${expiresAt || null}, ${JSON.stringify(metadata || {})}, NOW())
+        ON CONFLICT (student_id, provider) DO UPDATE SET
+            access_token = EXCLUDED.access_token,
+            refresh_token = COALESCE(EXCLUDED.refresh_token, integration_tokens.refresh_token),
+            expires_at = EXCLUDED.expires_at,
+            metadata = EXCLUDED.metadata,
+            updated_at = NOW()
+    `;
+}
+
+export async function getIntegrationToken(studentId: string, provider: string) {
+    const { rows } = await sql`
+        SELECT * FROM integration_tokens WHERE student_id = ${studentId} AND provider = ${provider}
+    `;
+    if (rows.length === 0) return null;
+    return {
+        accessToken: rows[0].access_token,
+        refreshToken: rows[0].refresh_token,
+        expiresAt: rows[0].expires_at ? Number(rows[0].expires_at) : null,
+        metadata: JSON.parse(rows[0].metadata || '{}'),
+    };
+}
+
+export async function deleteIntegrationToken(studentId: string, provider: string) {
+    await sql`DELETE FROM integration_tokens WHERE student_id = ${studentId} AND provider = ${provider}`;
+}

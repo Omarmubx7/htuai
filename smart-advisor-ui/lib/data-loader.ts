@@ -2,31 +2,26 @@ import path from 'path';
 import fs from 'fs/promises';
 import { CourseData, Course } from '@/types';
 
-export async function getCourseData(): Promise<CourseData> {
+export async function getCourseData(majorKey: string = 'data_science'): Promise<CourseData> {
     const dataDir = path.join(process.cwd(), 'public/data');
-
-    const files = {
-        cs: 'computer_science.json',
-        ai: 'data_science.json',
-        cyber: 'cybersecurity.json'
-    };
-
-    // Default to Data Science/AI for now (or make it dynamic)
-    const filePath = path.join(dataDir, files.ai);
+    const filePath = path.join(dataDir, 'curriculum.json');
 
     try {
         const fileContents = await fs.readFile(filePath, 'utf8');
         const jsonData = JSON.parse(fileContents);
-        // The JSON structure has a root key like "data_science_ai"
-        const rootKey = Object.keys(jsonData)[0];
-        return jsonData[rootKey] as CourseData;
+
+        // Structure is { majors: { [key]: { ... } }, shared: { ... } }
+        const majorData = jsonData.majors[majorKey] || jsonData.majors['data_science'];
+
+        return majorData as CourseData;
     } catch (error) {
         console.error("Error loading course data:", error);
         return {
             university_requirements: [],
             college_requirements: [],
             department_requirements: [],
-            electives: []
+            electives: [],
+            university_electives: []
         };
     }
 }
