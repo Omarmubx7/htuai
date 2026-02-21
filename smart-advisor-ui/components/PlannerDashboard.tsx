@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
     BookOpen, Clock, Trophy, Plus,
@@ -19,11 +19,11 @@ import WeeklySummary from "./WeeklySummary";
 
 const COLORS: Record<string, { bg: string; border: string; text: string }> = {
     emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400" },
-    blue:    { bg: "bg-blue-500/10",    border: "border-blue-500/20",    text: "text-blue-400" },
-    violet:  { bg: "bg-violet-500/10",  border: "border-violet-500/20",  text: "text-violet-400" },
-    amber:   { bg: "bg-amber-500/10",   border: "border-amber-500/20",   text: "text-amber-400" },
-    red:     { bg: "bg-red-500/10",     border: "border-red-500/20",     text: "text-red-400" },
-    gray:    { bg: "bg-gray-500/10",    border: "border-gray-500/20",    text: "text-gray-400" },
+    blue: { bg: "bg-blue-500/10", border: "border-blue-500/20", text: "text-blue-400" },
+    violet: { bg: "bg-violet-500/10", border: "border-violet-500/20", text: "text-violet-400" },
+    amber: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400" },
+    red: { bg: "bg-red-500/10", border: "border-red-500/20", text: "text-red-400" },
+    gray: { bg: "bg-gray-500/10", border: "border-gray-500/20", text: "text-gray-400" },
 };
 const gc = (key: string) => COLORS[key] || COLORS.gray;
 
@@ -121,17 +121,17 @@ export default function PlannerDashboard({
     const insightIcon = (type: Insight["type"]) => {
         switch (type) {
             case "warning": return <AlertTriangle className="w-4 h-4 text-red-400" />;
-            case "info":    return <Info className="w-4 h-4 text-blue-400" />;
+            case "info": return <Info className="w-4 h-4 text-blue-400" />;
             case "success": return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-            case "tip":     return <Lightbulb className="w-4 h-4 text-amber-400" />;
+            case "tip": return <Lightbulb className="w-4 h-4 text-amber-400" />;
         }
     };
     const insightBorder = (type: Insight["type"]) => {
         switch (type) {
             case "warning": return "border-red-500/20 bg-red-500/5";
-            case "info":    return "border-blue-500/20 bg-blue-500/5";
+            case "info": return "border-blue-500/20 bg-blue-500/5";
             case "success": return "border-emerald-500/20 bg-emerald-500/5";
-            case "tip":     return "border-amber-500/20 bg-amber-500/5";
+            case "tip": return "border-amber-500/20 bg-amber-500/5";
         }
     };
 
@@ -256,13 +256,12 @@ export default function PlannerDashboard({
                                         <td className="py-3 px-4">
                                             <button
                                                 onClick={() => toggleStatus(course.id)}
-                                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${
-                                                    course.status === "Completed"
-                                                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                                                        : course.status === "At Risk"
+                                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${course.status === "Completed"
+                                                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                                    : course.status === "At Risk"
                                                         ? "bg-red-500/10 border-red-500/20 text-red-400"
                                                         : "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                                                }`}
+                                                    }`}
                                             >
                                                 {course.status}
                                             </button>
@@ -441,11 +440,31 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     const [gcalLoading, setGcalLoading] = useState(false);
     const [notionLoading, setNotionLoading] = useState(false);
+    const [statusLoading, setStatusLoading] = useState(true);
+    const [notionConnected, setNotionConnected] = useState(false);
+    const [gcalConnected, setGcalConnected] = useState(false);
     const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
     const autoSyncedRef = useRef(false);
 
+    const fetchStatus = useCallback(async () => {
+        try {
+            const res = await fetch("/api/integrations/status");
+            if (res.ok) {
+                const data = await res.json();
+                setNotionConnected(data.notion);
+                setGcalConnected(data.google_calendar);
+            }
+        } catch (e) {
+            console.error("Failed to fetch integration status:", e);
+        } finally {
+            setStatusLoading(false);
+        }
+    }, []);
+
     // Handle URL params after OAuth returns
     useEffect(() => {
+        fetchStatus();
+
         if (autoSyncedRef.current) return;
         const params = new URLSearchParams(window.location.search);
         const connected = params.get("connected");
@@ -467,8 +486,10 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         }
         if (connected === "google") {
             setMessage({ text: "Google Calendar connected! Click Sync to push exam dates.", ok: true });
+            setGcalConnected(true);
         }
         if (connected === "notion" && courses.length > 0) {
+            setNotionConnected(true);
             autoSyncedRef.current = true;
             (async () => {
                 setNotionLoading(true);
@@ -478,7 +499,6 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ courses }),
-                        // semesterName will be derived from the saved metadata on the server
                     });
                     const data = await res.json();
                     if (res.ok) {
@@ -492,7 +512,7 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
                 setNotionLoading(false);
             })();
         }
-    }, [courses]);
+    }, [courses, fetchStatus]);
 
     const connectGoogleCalendar = () => {
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -507,6 +527,7 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     };
 
     const syncGoogleCalendar = async () => {
+        if (!gcalConnected) return;
         setGcalLoading(true);
         setMessage(null);
         try {
@@ -539,6 +560,7 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     };
 
     const syncNotion = async () => {
+        if (!notionConnected) return;
         setNotionLoading(true);
         setMessage(null);
         try {
@@ -560,6 +582,7 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     };
 
     const initNotionPage = async () => {
+        if (!notionConnected) return;
         setNotionLoading(true);
         setMessage(null);
         try {
@@ -587,23 +610,31 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Google Calendar */}
-                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3">
+                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden">
+                    {gcalConnected && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Connected</span>
+                        </div>
+                    )}
+
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-blue-400" />
                         <span className="text-sm font-semibold">Google Calendar</span>
                     </div>
-                    <p className="text-xs text-white/30">Push midterm & final dates directly as calendar events with reminders.</p>
+                    <p className="text-xs text-white/30">Push midterm & final dates to your calendar with exam reminders.</p>
                     <div className="flex gap-2">
                         <button
                             onClick={connectGoogleCalendar}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all flex items-center justify-center gap-1.5"
+                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${gcalConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 text-white"
+                                }`}
                         >
-                            <ExternalLink className="w-3 h-3" /> Connect
+                            <ExternalLink className="w-3 h-3" /> {gcalConnected ? "Reconnect" : "Connect"}
                         </button>
                         <button
                             onClick={syncGoogleCalendar}
-                            disabled={gcalLoading}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                            disabled={gcalLoading || !gcalConnected}
+                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-20 disabled:cursor-not-allowed"
                         >
                             {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Calendar className="w-3 h-3" />} Sync
                         </button>
@@ -611,30 +642,38 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
                 </div>
 
                 {/* Notion */}
-                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3">
+                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden">
+                    {notionConnected && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Connected</span>
+                        </div>
+                    )}
+
                     <div className="flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-white" />
                         <span className="text-sm font-semibold">Notion</span>
                     </div>
-                    <p className="text-xs text-white/30">Creates a Study Plan page with all your courses. Select any page to share when Notion asks.</p>
+                    <p className="text-xs text-white/30">Sync your study plan to Notion. Select any page to share when connecting.</p>
                     <div className="flex gap-2">
                         <button
                             onClick={connectNotion}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all flex items-center justify-center gap-1.5"
+                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${notionConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-white/30 hover:bg-white/5 text-white"
+                                }`}
                         >
-                            <ExternalLink className="w-3 h-3" /> Connect
+                            <ExternalLink className="w-3 h-3" /> {notionConnected ? "Reconnect" : "Connect"}
                         </button>
                         <button
                             onClick={() => initNotionPage()}
-                            disabled={notionLoading}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-violet-500/20 hover:border-violet-500/40 hover:bg-violet-500/5 text-violet-400 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                            disabled={notionLoading || !notionConnected}
+                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-violet-500/20 hover:border-violet-500/40 hover:bg-violet-500/5 text-violet-400 transition-all flex items-center justify-center gap-1.5 disabled:opacity-10 disabled:grayscale disabled:cursor-not-allowed"
                         >
                             {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} New Page
                         </button>
                         <button
                             onClick={syncNotion}
-                            disabled={notionLoading}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                            disabled={notionLoading || !notionConnected}
+                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-10 disabled:grayscale disabled:cursor-not-allowed"
                         >
                             {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <BookOpen className="w-3 h-3" />} Sync
                         </button>
@@ -642,11 +681,10 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
                 </div>
             </div>
             {message && (
-                <div className={`mt-3 px-4 py-2.5 rounded-xl text-xs font-medium border ${
-                    message.ok
-                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/10 border-red-500/20 text-red-400"
-                }`}>
+                <div className={`mt-3 px-4 py-2.5 rounded-xl text-xs font-medium border ${message.ok
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                    : "bg-red-500/10 border-red-500/20 text-red-400"
+                    }`}>
                     {message.text}
                 </div>
             )}
