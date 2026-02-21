@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "get_courses_returns_sorted_course_list",
+    "description": "Verify that GET /api/courses returns a 200 status with a sorted array of courses containing name, code, and credit hours without requiring authentication."
+  },
+  {
+    "id": "TC002",
+    "title": "get_profile_returns_student_major_with_auth",
+    "description": "Verify that GET /api/profile/{studentId} returns the student's saved major when called with a valid session matching the studentId, and returns 401 Unauthorized otherwise."
+  },
+  {
+    "id": "TC003",
+    "title": "post_profile_save_updates_student_major",
+    "description": "Verify that POST /api/profile/{studentId}/save updates the student's major when called with valid session and valid major in the request body, and returns 400 for invalid input or 401 for unauthorized access."
+  },
+  {
+    "id": "TC004",
+    "title": "get_progress_returns_completed_courses_with_auth",
+    "description": "Verify that GET /api/progress/{studentId}?major=X returns the list of completed courses for the student and major when called with valid session matching the studentId, and returns 401 Unauthorized otherwise."
+  },
+  {
+    "id": "TC005",
+    "title": "post_progress_save_enforces_prerequisites_and_saves_courses",
+    "description": "Verify that POST /api/progress/{studentId}/save saves completed courses when prerequisites are met and returns 400 error if any course prerequisites are not met, with proper authorization checks."
+  },
+  {
+    "id": "TC006",
+    "title": "get_planner_loads_user_planner_with_auth",
+    "description": "Verify that GET /api/planner returns the authenticated user's semester planner data with 200 status, and returns 401 Unauthorized if no valid session is provided."
+  },
+  {
+    "id": "TC007",
+    "title": "post_planner_saves_or_updates_planner_data",
+    "description": "Verify that POST /api/planner saves or updates the semester planner data when called with valid session and valid payload, and returns 400 for invalid payload or 401 for unauthorized access."
+  },
+  {
+    "id": "TC008",
+    "title": "post_google_calendar_pushes_exam_events",
+    "description": "Verify that POST /api/integrations/google-calendar pushes midterm and final exam events to Google Calendar when called with valid session and stored OAuth token, and returns 401 if token is missing."
+  },
+  {
+    "id": "TC009",
+    "title": "post_notion_syncs_courses_to_notion_database",
+    "description": "Verify that POST /api/integrations/notion syncs planner courses to the user's Notion database when called with valid session and stored OAuth token, and returns 401 if token is missing."
+  },
+  {
+    "id": "TC010",
+    "title": "get_admin_stats_requires_valid_admin_secret",
+    "description": "Verify that GET /api/admin/stats returns comprehensive analytics data when called with valid x-admin-secret header, and returns 401 Unauthorized if the header is missing or invalid."
+  }
+]

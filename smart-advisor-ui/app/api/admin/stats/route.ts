@@ -54,7 +54,7 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
 export async function GET(request: Request) {
     const secret = request.headers.get('x-admin-secret');
     if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
@@ -250,21 +250,31 @@ export async function GET(request: Request) {
             ? Math.round(totalRealCreditHours / totalStudents)
             : 0;
 
+        // Build device breakdown as an object (keyed by OS)
+        const deviceBreakdownObj: Record<string, number> = {};
+        for (const d of deviceBreakdown) {
+            deviceBreakdownObj[d.os] = (deviceBreakdownObj[d.os] || 0) + d.count;
+        }
+
         return NextResponse.json({
             totalStudents,
+            visitorCount: totalVisitors,
             totalVisitors,
             totalCompletedCourses,
             avgCoursesCompleted,
             avgCreditHours,
             thisWeekVisits,
             lastWeekVisits,
+            majorDistribution: majorCounts,
             majorCounts,
             progressDistribution,
             topCourses,
+            trafficTrends: trafficByDay,
             trafficByDay,
-            deviceBreakdown,
+            deviceBreakdown: deviceBreakdownObj,
             recentActivity,
             heatmap,
+            studentData: studentRealCH,
             students: studentRealCH,
         });
 

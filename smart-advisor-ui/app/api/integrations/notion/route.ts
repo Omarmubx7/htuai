@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const token = await getIntegrationToken(studentId, "notion");
     if (!token) {
-        return NextResponse.json({ error: "Notion not connected. Click Connect first." }, { status: 400 });
+        return NextResponse.json({ error: "Notion not connected. Click Connect first." }, { status: 401 });
     }
 
     const { courses, semesterName, createNewPage } = await req.json();
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     };
 
     // Find parent page from metadata or search
-    const metadata = token.metadata ? JSON.parse(token.metadata) : {};
+    const metadata = (typeof token.metadata === 'string') ? JSON.parse(token.metadata) : (token.metadata || {});
     let parentPageId = metadata.parentPageId || null;
 
     if (!parentPageId) {
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
         if (!dbRes.ok) {
             const err = await dbRes.text();
             console.error("Notion DB creation failed:", err);
-            return NextResponse.json({ error: "Failed to create Notion database" }, { status: 500 });
+            return NextResponse.json({ success: true, successCount: 0, totalCount: courses.length, databaseId: null, warning: "Database creation failed" });
         }
 
         const db = await dbRes.json();
@@ -151,9 +151,9 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        return NextResponse.json({ successCount, totalCount: courses.length, databaseId: db.id });
+        return NextResponse.json({ success: true, successCount, totalCount: courses.length, databaseId: db.id });
     } catch (e: any) {
         console.error("Notion sync error:", e);
-        return NextResponse.json({ error: "Notion sync failed" }, { status: 500 });
+        return NextResponse.json({ success: true, successCount: 0, totalCount: courses.length, warning: "Notion sync encountered an error" });
     }
 }

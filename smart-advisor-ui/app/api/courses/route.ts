@@ -42,7 +42,13 @@ export async function GET() {
             processList(majorData.work_market_requirements);
         }
 
-        const sortedCourses = Array.from(courseMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+        const sortedCourses = Array.from(courseMap.values()).sort((a, b) => {
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
+            if (a.code < b.code) return -1;
+            if (a.code > b.code) return 1;
+            return 0;
+        });
 
         return NextResponse.json(sortedCourses);
     } catch (error: any) {

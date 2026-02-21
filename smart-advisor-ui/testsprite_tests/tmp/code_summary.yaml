@@ -1,0 +1,257 @@
+version: "2"
+type: backend
+tech_stack:
+  - TypeScript
+  - Next.js 16 (App Router)
+  - NextAuth v4
+  - Vercel Postgres
+  - bcryptjs
+  - Tailwind CSS
+features:
+  - name: Course Catalog API
+    description: Returns a flat sorted list of all courses across all majors for autocomplete
+    files:
+      - app/api/courses/route.ts
+    endpoints:
+      - method: GET
+        path: /api/courses
+        description: List all courses for autocomplete
+        auth_required: false
+        response_schema:
+          "200": "Array of {name: string, code: string, ch: number}"
+    depends_on: []
+
+  - name: Student Profile API
+    description: CRUD operations for student major selection
+    files:
+      - app/api/profile/[studentId]/route.ts
+      - app/api/profile/[studentId]/save/route.ts
+    endpoints:
+      - method: GET
+        path: /api/profile/{studentId}
+        description: Get student's saved major
+        auth_required: true
+        response_schema:
+          "200": "{major: string | null}"
+          "401": "Unauthorized"
+      - method: POST
+        path: /api/profile/{studentId}/save
+        description: Save or update student's chosen major
+        auth_required: true
+        request_schema:
+          body:
+            major: string
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized"
+    depends_on:
+      - Authentication
+
+  - name: Student Progress API
+    description: Track and save completed courses per student per major
+    files:
+      - app/api/progress/[studentId]/route.ts
+      - app/api/progress/[studentId]/save/route.ts
+    endpoints:
+      - method: GET
+        path: /api/progress/{studentId}?major=X
+        description: Get completed courses for a student and major
+        auth_required: true
+        response_schema:
+          "200": "{completed: Array of {code: string, name: string}}"
+          "401": "Unauthorized"
+      - method: POST
+        path: /api/progress/{studentId}/save
+        description: Save completed courses for a student
+        auth_required: true
+        request_schema:
+          body:
+            major: string
+            completed:
+              - code: string
+                name: string
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized"
+    depends_on:
+      - Authentication
+      - Student Profile API
+
+  - name: Semester Planner API
+    description: CRUD operations for semester planner data including courses and study sessions
+    files:
+      - app/api/planner/route.ts
+    endpoints:
+      - method: GET
+        path: /api/planner
+        description: Load authenticated user's planner
+        auth_required: true
+        response_schema:
+          "200": "{id: string, name: string, courses: array, studySessions: array}"
+          "401": "Unauthorized"
+      - method: POST
+        path: /api/planner
+        description: Save or update planner data
+        auth_required: true
+        request_schema:
+          body:
+            id: string
+            name: string
+            courses: array
+            studySessions: array
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized"
+      - method: DELETE
+        path: /api/planner
+        description: Delete user's planner
+        auth_required: true
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized"
+    depends_on:
+      - Authentication
+
+  - name: Google Calendar Integration
+    description: Push midterm and final exam dates as Google Calendar events with reminders
+    files:
+      - app/api/integrations/google-calendar/route.ts
+      - app/api/integrations/google-calendar/callback/route.ts
+    endpoints:
+      - method: POST
+        path: /api/integrations/google-calendar
+        description: Push exam dates to Google Calendar
+        auth_required: true
+        request_schema:
+          body:
+            courses:
+              - name: string
+                midtermDate: string
+                finalDate: string
+                credits: number
+        response_schema:
+          "200": "{success: true, eventsCreated: number}"
+          "401": "Unauthorized"
+      - method: GET
+        path: /api/integrations/google-calendar/callback
+        description: Google OAuth2 callback to exchange auth code for tokens
+        auth_required: false
+        response_schema:
+          "302": "Redirect to /planner"
+    depends_on:
+      - Authentication
+
+  - name: Notion Integration
+    description: Sync courses to a Notion database under a Study Plan page
+    files:
+      - app/api/integrations/notion/route.ts
+      - app/api/integrations/notion/callback/route.ts
+    endpoints:
+      - method: POST
+        path: /api/integrations/notion
+        description: Sync courses to Notion database
+        auth_required: true
+        request_schema:
+          body:
+            courses: array
+            semesterName: string
+            createNewPage: boolean
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized"
+      - method: GET
+        path: /api/integrations/notion/callback
+        description: Notion OAuth callback to exchange auth code for access token
+        auth_required: false
+        response_schema:
+          "302": "Redirect to /planner"
+    depends_on:
+      - Authentication
+
+  - name: Admin Analytics API
+    description: Comprehensive analytics and visitor log endpoints for admin dashboard
+    files:
+      - app/api/admin/stats/route.ts
+      - app/api/admin/logs/route.ts
+    endpoints:
+      - method: GET
+        path: /api/admin/stats
+        description: Get comprehensive analytics data including student counts, major distribution, traffic trends, device breakdown, activity heatmap
+        auth_required: true
+        response_schema:
+          "200": "{totalStudents: number, visitorCount: number, majorDistribution: object, progressDistribution: object, topCourses: array, trafficTrends: array, deviceBreakdown: object, recentActivity: array, heatmap: array, studentData: array}"
+          "401": "Unauthorized - missing or invalid x-admin-secret header"
+      - method: GET
+        path: /api/admin/logs
+        description: Fetch 100 most recent visitor log entries
+        auth_required: true
+        response_schema:
+          "200": "Array of visitor log entries"
+          "401": "Unauthorized - missing or invalid x-admin-secret header"
+    depends_on: []
+
+  - name: Database Management API
+    description: Admin endpoints to initialize or reset database tables
+    files:
+      - app/api/setup/route.ts
+      - app/api/reset/route.ts
+    endpoints:
+      - method: POST
+        path: /api/setup
+        description: Initialize all database tables without dropping existing data
+        auth_required: true
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized - missing or invalid x-admin-secret header"
+      - method: POST
+        path: /api/reset
+        description: Nuclear reset - drops and re-creates all database tables
+        auth_required: true
+        response_schema:
+          "200": "{success: true}"
+          "401": "Unauthorized - missing or invalid x-admin-secret header"
+    depends_on: []
+
+  - name: Authentication
+    description: NextAuth-based authentication with credentials (student ID + password) and Google OAuth
+    files:
+      - auth.ts
+      - app/api/auth/[...nextauth]/route.ts
+      - lib/database.ts
+    endpoints:
+      - method: GET
+        path: /api/auth/session
+        description: Get current session
+        auth_required: false
+        response_schema:
+          "200": "{user: {id, name, email, student_id} | null}"
+      - method: POST
+        path: /api/auth/signin/credentials
+        description: Sign in with student ID and password
+        auth_required: false
+        request_schema:
+          body:
+            student_id: string
+            password: string
+            is_claiming: string
+        response_schema:
+          "200": "Session created"
+          "401": "Invalid credentials"
+      - method: POST
+        path: /api/auth/signout
+        description: Sign out and destroy session
+        auth_required: false
+        response_schema:
+          "200": "Session destroyed"
+    depends_on: []
+
+known_limitations:
+  - issue: No rate limiting on authentication endpoints
+    location: auth.ts
+    impact: Potential brute force attacks on login
+  - issue: Admin secret passed via header without rate limiting
+    location: app/api/admin/stats/route.ts
+    impact: Admin endpoints could be brute-forced
+  - issue: The reset endpoint drops all tables without confirmation
+    location: app/api/reset/route.ts
+    impact: Destructive operation with single header check

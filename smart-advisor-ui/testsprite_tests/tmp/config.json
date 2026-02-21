@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "smart-advisor-ui",
+    "projectPath": "c:\\Users\\omara\\htuai\\smart-advisor-ui",
+    "testIds": [],
+    "additionalInstruction": "The dev server is running on port 3000. Test user credentials: student_id=S12345, password=secret. The test user has integration tokens for both notion and google_calendar. Custom auth endpoint at /api/auth/signin/credentials accepts POST with {student_id, password}. Admin stats endpoint requires header x-admin-secret: ADMIN_SECRET. Prerequisites: course PREFIXnnn where nnn>101 requires PREFIX+(nnn-1) to be completed. Progress save body format: {major, completed} where completed is array of objects with code property.",
+    "envs": {
+      "API_KEY": "sk-user-ggigq8H5DdI7xc05O27TKB9b1dtbSl3B--lOIp_dDTW4oMaTDeVWRW5WGZRrXpmu5uwdmQz8aq3UT9nZ3oD_k8EvBws2Cwa3q7K4dr6D0FPCgtsxg4gYioBgsAoYrjzk5TU"
+    }
+  },
+  "serverPort": 52718,
+  "proxy": "http://970ad65c-2db6-4850-abf0-c0887ca75b4f:HJmcFX5Lcl1xz0VB9Vuff2rMRSs0HM8H@tun.testsprite.com:8080"
+}

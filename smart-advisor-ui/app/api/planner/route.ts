@@ -14,7 +14,7 @@ export async function GET() {
     try {
         await initPlannerTables();
         const data = await loadPlanner(studentId);
-        return NextResponse.json(data || { courses: null });
+        return NextResponse.json(data || { id: "default", name: "My Planner", courses: [], studySessions: [] });
     } catch (e: any) {
         console.error("Planner load error:", e);
         return NextResponse.json({ error: "Failed to load" }, { status: 500 });
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         await initPlannerTables();
         const body = await req.json();
         // Validate structure
-        if (!body.id || !Array.isArray(body.courses)) {
+        if (!body.id || !body.name || !Array.isArray(body.courses) || (body.studySessions !== undefined && !Array.isArray(body.studySessions))) {
             return NextResponse.json({ error: "Invalid data" }, { status: 400 });
         }
         await savePlanner(studentId, {
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
             courses: body.courses,
             studySessions: body.studySessions || [],
         });
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ success: true });
     } catch (e: any) {
         console.error("Planner save error:", e);
         return NextResponse.json({ error: "Failed to save" }, { status: 500 });
@@ -60,7 +60,7 @@ export async function DELETE() {
     try {
         await initPlannerTables();
         await deletePlanner(studentId);
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ success: true });
     } catch (e: any) {
         console.error("Planner delete error:", e);
         return NextResponse.json({ error: "Failed to delete" }, { status: 500 });

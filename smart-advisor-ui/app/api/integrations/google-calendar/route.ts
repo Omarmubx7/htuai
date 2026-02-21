@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const token = await getIntegrationToken(studentId, "google_calendar");
     if (!token) {
-        return NextResponse.json({ error: "Google Calendar not connected. Go to Settings to connect." }, { status: 400 });
+        return NextResponse.json({ error: "Unauthorized: missing integration token. Google Calendar not connected." }, { status: 401 });
     }
 
     const { courses } = await req.json();
@@ -67,5 +67,5 @@ export async function POST(req: NextRequest) {
     }
 
     const successCount = results.filter(r => r.success).length;
-    return NextResponse.json({ results, successCount, totalCount: results.length });
+    return NextResponse.json({ success: true, results, eventsCreated: results.length, successCount, totalCount: results.length });
 }

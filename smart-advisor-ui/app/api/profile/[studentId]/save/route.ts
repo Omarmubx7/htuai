@@ -22,7 +22,7 @@ export async function POST(
 
     try {
         const { major } = await request.json() as { major: string };
-        if (!major) return NextResponse.json({ error: 'Missing major' }, { status: 400 });
+        if (!major || !major.trim()) return NextResponse.json({ error: 'Missing major' }, { status: 400 });
 
         await saveMajor(targetId, major);
 
@@ -31,7 +31,7 @@ export async function POST(
         info.student_id = targetId;
         logVisitor(info).catch(e => console.error("Logging failed", e));
 
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ success: true });
     } catch (e) {
         console.error("Save profile error:", e);
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
