@@ -7,7 +7,7 @@ import StudentLogin from "@/components/StudentLogin";
 import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
 import { CourseData } from "@/types";
-import { LogOut, Settings2, Sparkles, Share2 } from "lucide-react";
+import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
@@ -21,6 +21,7 @@ export default function HomeClient() {
     const [courseData, setCourseData] = useState<CourseData | null>(null);
     const [rules, setRules] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         if (status === "loading") return;
@@ -160,19 +161,18 @@ export default function HomeClient() {
                 className="min-h-screen bg-black mesh-gradient"
             >
                 {/* Sticky top bar */}
-                <header className="sticky top-0 z-50 border-b border-white/[0.05] bg-black/40 backdrop-blur-2xl">
+                <header className="sticky top-0 z-50 border-b border-white/[0.05] bg-black/40 backdrop-blur-3xl">
                     <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
-                        {/* Left: Brand + Navigation */}
+                        {/* Left: Brand */}
                         <div className="flex items-center gap-8">
                             <div className="flex items-center gap-2 group cursor-default">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)]">
                                     <Sparkles className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-sm font-bold tracking-tight text-white">HTU Advisor</span>
+                                <span className="text-sm font-black tracking-tight text-white uppercase italic">HTU Advisor</span>
                             </div>
 
-                            <nav className="hidden md:flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+                            <nav className="hidden lg:flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
                                 <Link
                                     href="/"
                                     className="px-4 py-1.5 text-xs font-bold text-white bg-white/10 rounded-xl transition-all shadow-sm"
@@ -192,54 +192,139 @@ export default function HomeClient() {
                             </nav>
                         </div>
 
-                        {/* Right: User + System */}
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-3 pr-6 border-r border-white/5">
-                                <div className="flex flex-col items-end">
-                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{studentId}</span>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-bold text-white/80">{majorInfo.label}</span>
-                                        <span className="text-sm">{majorInfo.icon}</span>
+                        {/* Right: Desktop Actions & Mobile Trigger */}
+                        <div className="flex items-center gap-4">
+                            {/* Desktop only user info */}
+                            <div className="hidden md:flex items-center gap-6">
+                                <div className="flex items-center gap-3 pr-6 border-r border-white/5">
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">{studentId}</span>
+                                        <div className="flex items-center gap-1.5 leading-none">
+                                            <span className="text-[11px] font-bold text-white/80">{majorInfo.label}</span>
+                                            <span className="text-xs">{majorInfo.icon}</span>
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={handleMajorChange}
+                                        className="p-2 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 text-white/40 hover:text-white transition-all"
+                                        title="Edit Profile"
+                                    >
+                                        <Settings2 className="w-4 h-4" />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={handleMajorChange}
-                                    className="p-2 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 text-white/40 hover:text-white transition-all"
-                                    title="Edit Profile"
-                                >
-                                    <Settings2 className="w-4 h-4" />
-                                </button>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-red-400 transition-all group"
+                                    >
+                                        <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                                        Log out
+                                    </button>
+
+                                    <button
+                                        className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
+                                        onClick={() => {
+                                            const url = "https://htuai.mubx.dev";
+                                            const text = "Track your HTU courses and degree progress";
+                                            if (navigator.share) {
+                                                navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
+                                            } else {
+                                                navigator.clipboard.writeText(url).then(() => {
+                                                    const btn = document.getElementById('share-btn');
+                                                    if (btn) btn.innerHTML = '<span class="text-[10px]">Copied!</span>';
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        <Share2 className="w-4 h-4" id="share-btn" />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-red-400 transition-all group"
-                                >
-                                    <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                                    Log out
-                                </button>
-
-                                <button
-                                    className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
-                                    onClick={() => {
-                                        const url = "https://htuai.mubx.dev";
-                                        const text = "Track your HTU courses and degree progress";
-                                        if (navigator.share) {
-                                            navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
-                                        } else {
-                                            navigator.clipboard.writeText(url).then(() => {
-                                                const btn = document.getElementById('share-btn');
-                                                if (btn) btn.innerHTML = '<span class="text-[10px]">Copied!</span>';
-                                            });
-                                        }
-                                    }}
-                                >
-                                    <Share2 className="w-4 h-4" id="share-btn" />
-                                </button>
-                            </div>
+                            {/* Mobile Hamburger Trigger */}
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="md:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white transition-all"
+                            >
+                                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                            </button>
                         </div>
                     </div>
+
+                    {/* Mobile Menu Drawer */}
+                    <AnimatePresence>
+                        {isMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="md:hidden border-t border-white/5 bg-black/60 backdrop-blur-3xl overflow-hidden"
+                            >
+                                <div className="px-6 py-8 space-y-8">
+                                    {/* Mobile Nav Links */}
+                                    <div className="space-y-3 font-black">
+                                        <Link
+                                            href="/"
+                                            onClick={() => setIsMenuOpen(false)}
+                                            className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 text-white"
+                                        >
+                                            <span className="text-sm uppercase tracking-widest">Course Tracker</span>
+                                            <Sparkles className="w-4 h-4 text-violet-400" />
+                                        </Link>
+                                        {session?.user && ((session.user as any).student_id === '123456' || session.user.email === 'omarmubaidincs@gmail.com') && (
+                                            <Link
+                                                href="/planner"
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className="flex items-center justify-between p-4 rounded-2xl bg-violet-600/10 border border-violet-500/20 text-violet-400"
+                                            >
+                                                <span className="text-sm uppercase tracking-widest">Semester Planner</span>
+                                                <Sparkles className="w-4 h-4" />
+                                            </Link>
+                                        )}
+                                    </div>
+
+                                    {/* Mobile User Info */}
+                                    <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">{studentId}</p>
+                                                <p className="text-lg font-black text-white">{majorInfo.label}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => { handleMajorChange(); setIsMenuOpen(false); }}
+                                                className="p-3 rounded-2xl bg-white/5 text-white/40 hover:text-white transition-colors"
+                                            >
+                                                <Settings2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex gap-2 pt-2">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black uppercase tracking-widest"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                Log Out
+                                            </button>
+                                            <button
+                                                className="w-14 flex items-center justify-center rounded-2xl bg-white text-black active:scale-95 transition-all"
+                                                onClick={() => {
+                                                    const url = "https://htuai.mubx.dev";
+                                                    const text = "Track your HTU courses and degree progress";
+                                                    if (navigator.share) {
+                                                        navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
+                                                    }
+                                                }}
+                                            >
+                                                <Share2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </header>
 
                 {/* Content */}
