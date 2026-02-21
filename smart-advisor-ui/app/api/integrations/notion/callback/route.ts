@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { saveIntegrationToken, initPlannerTables } from "@/lib/database";
+import { getBaseUrl } from "@/lib/env";
 
 function getSemesterLabel(): string {
     const now = new Date();
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
             body: JSON.stringify({
                 grant_type: "authorization_code",
                 code,
-                redirect_uri: `${process.env.NEXTAUTH_URL}/api/integrations/notion/callback`,
+                redirect_uri: `${getBaseUrl()}/api/integrations/notion/callback`,
             }),
         });
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { saveIntegrationToken, initPlannerTables } from "@/lib/database";
+import { getBaseUrl } from "@/lib/env";
 
 // GET /api/integrations/google-calendar/callback?code=...
 // Google redirects here after the user authorizes
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
                 code,
                 client_id: process.env.GOOGLE_CLIENT_ID!,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-                redirect_uri: `${process.env.NEXTAUTH_URL}/api/integrations/google-calendar/callback`,
+                redirect_uri: `${getBaseUrl()}/api/integrations/google-calendar/callback`,
                 grant_type: "authorization_code",
             }),
         });
