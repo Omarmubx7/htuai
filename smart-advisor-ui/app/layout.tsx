@@ -33,16 +33,23 @@ export default async function RootLayout({
         <Providers>
           {children}
         </Providers>
-        <footer className="fixed bottom-4 left-0 right-0 text-center text-xs text-white/20 select-none z-50 pointer-events-none">
-          Made by{' '}
-          <a
-            href="https://mubx.dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white/40 pointer-events-auto transition-colors font-medium"
-          >
-            mubx
-          </a>
+        <footer className="fixed bottom-4 left-0 right-0 px-6 flex flex-col md:flex-row items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-widest text-white/20 select-none z-50 pointer-events-none">
+          <div className="flex items-center gap-4 pointer-events-auto">
+            <a href="/privacy" className="hover:text-white/40 transition-colors">Privacy</a>
+            <div className="w-1 h-1 rounded-full bg-white/10" />
+            <a href="/terms" className="hover:text-white/40 transition-colors">Terms</a>
+          </div>
+          <div className="pointer-events-auto">
+            Made by{' '}
+            <a
+              href="https://mubx.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/40 hover:text-white transition-colors"
+            >
+              mubx
+            </a>
+          </div>
         </footer>
         <Analytics />
       </body>

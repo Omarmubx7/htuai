@@ -180,7 +180,7 @@ export default function HomeClient() {
                                     Course Tracker
                                 </Link>
                                 {/* TOGGLE PLANNER VISIBILITY: Change 'false' to 'true' when ready to show to everyone */}
-                                {false && (
+                                {true && (
                                     <Link
                                         href="/planner"
                                         className="px-4 py-1.5 text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all flex items-center gap-2"
