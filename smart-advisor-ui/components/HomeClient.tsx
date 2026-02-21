@@ -223,7 +223,7 @@ export default function HomeClient() {
                                 <button
                                     className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
                                     onClick={() => {
-                                        const url = "https://htuai.vercel.app";
+                                        const url = "https://htuai.mubx.dev";
                                         const text = "Track your HTU courses and degree progress";
                                         if (navigator.share) {
                                             navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
