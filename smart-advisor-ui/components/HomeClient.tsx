@@ -179,8 +179,8 @@ export default function HomeClient() {
                                 >
                                     Course Tracker
                                 </Link>
-                                {/* RESTRICTED VISIBILITY: Only visible for test user and admin during verification */}
-                                {session?.user && ['123456', (session.user as any).student_id].includes((session.user as any).student_id) && (
+                                {/* RESTRICTED VISIBILITY: Only visible for test user '123456' and main admin during verification */}
+                                {session?.user && ((session.user as any).student_id === '123456' || session.user.email === 'omarmubaidincs@gmail.com') && (
                                     <Link
                                         href="/planner"
                                         className="px-4 py-1.5 text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all flex items-center gap-2"
