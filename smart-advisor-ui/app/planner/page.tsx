@@ -19,6 +19,7 @@ export interface PlannerCourse {
     midtermDate?: string;
     finalDate?: string;
     professor?: string;
+    location?: string;
     status: "In Progress" | "Completed" | "At Risk";
     grade?: string | null;
 }
@@ -51,6 +52,7 @@ export default function PlannerPage() {
     const { data: session, status: authStatus } = useSession();
     const isAuthenticated = authStatus === "authenticated";
     const [data, setData] = useState<SemesterData | null>(null);
+    const [allSemesters, setAllSemesters] = useState<SemesterData[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [syncStatus, setSyncStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,10 +74,22 @@ export default function PlannerPage() {
                                 courses: remote.courses,
                                 studySessions: remote.studySessions || [],
                             });
-                            setIsLoaded(true);
-                            setSyncStatus("saved");
-                            return;
                         }
+                    }
+
+                    // Fetch all history for KPIs
+                    const historyRes = await fetch("/api/planner?all=true");
+                    if (historyRes.ok) {
+                        const history = await historyRes.json();
+                        setAllSemesters(history);
+                        if (!data && history.length > 0) {
+                            // If data wasn't set by solo load, use latest from history
+                            const latest = history[0];
+                            setData(latest);
+                        }
+                        setIsLoaded(true);
+                        setSyncStatus("saved");
+                        return;
                     }
                 } catch (e) {
                     console.error("Failed to load from DB:", e);
@@ -88,7 +102,7 @@ export default function PlannerPage() {
                     const parsed = JSON.parse(saved);
                     if (!parsed.id) parsed.id = generateId();
                     setData(parsed);
-                } catch {}
+                } catch { }
             } else {
                 saved = localStorage.getItem(LEGACY_KEY);
                 if (saved) {
@@ -100,7 +114,7 @@ export default function PlannerPage() {
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
                             localStorage.removeItem(LEGACY_KEY);
                         }
-                    } catch {}
+                    } catch { }
                 }
             }
             setIsLoaded(true);
@@ -157,7 +171,7 @@ export default function PlannerPage() {
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(LEGACY_KEY);
             if (isAuthenticated) {
-                try { await fetch("/api/planner", { method: "DELETE" }); } catch {}
+                try { await fetch("/api/planner", { method: "DELETE" }); } catch { }
             }
         }
     };
@@ -228,6 +242,7 @@ export default function PlannerPage() {
                             <PlannerDashboard
                                 courses={data.courses}
                                 studySessions={data.studySessions}
+                                allSemesters={allSemesters}
                                 onUpdateCourses={handleUpdateCourses}
                                 onAddStudySession={handleAddStudySession}
                                 onDeleteStudySession={handleDeleteStudySession}

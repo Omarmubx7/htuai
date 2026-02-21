@@ -91,6 +91,7 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }) {
             if (token.sub && session.user) {
                 (session.user as any).id = token.sub;
+                (session.user as any).provider = (token as any).provider;
                 const dbUser = await getUserByEmail(session.user.email || "") || await getUserByStudentId(session.user.name || "");
                 if (dbUser) {
                     (session.user as any).student_id = dbUser.student_id;
@@ -98,9 +99,12 @@ export const authOptions: NextAuthOptions = {
             }
             return session;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
             if (user) {
                 (token as any).student_id = (user as any).student_id;
+            }
+            if (account) {
+                (token as any).provider = account.provider;
             }
             return token;
         }

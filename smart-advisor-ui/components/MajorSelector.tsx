@@ -81,7 +81,7 @@ function MajorCard({ major, onSelect }: { major: typeof MAJORS[number]; onSelect
                     style={{ color: accent }}>
                     {major.label}
                 </h2>
-                <p className="text-[13px] text-white/30 mb-5 leading-relaxed">
+                <p className="text-[13px] text-white/60 mb-5 leading-relaxed">
                     {major.description}
                 </p>
                 <div className="flex items-center gap-1.5 text-xs font-medium transition-all duration-200 group-hover:gap-2.5"
@@ -125,7 +125,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                     <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-none">
                         Choose your major
                     </h1>
-                    <p className="text-white/35 text-sm sm:text-base max-w-md mx-auto">
+                    <p className="text-white/50 text-sm sm:text-base max-w-md mx-auto">
                         This is permanent — your courses and progress are tied to it.
                     </p>
                 </motion.div>
@@ -135,7 +135,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                     <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
                         className="flex items-center gap-4 mb-6">
-                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/30 whitespace-nowrap">
+                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50 whitespace-nowrap">
                             School of Computing & Informatics
                         </h2>
                         <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
@@ -157,7 +157,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                     <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.35 }}
                         className="flex items-center gap-4 mb-6">
-                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/30 whitespace-nowrap">
+                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50 whitespace-nowrap">
                             College of Engineering
                         </h2>
                         <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
@@ -184,10 +184,10 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                     <p className="text-white/15 text-[11px]">
                         Your selection cannot be changed without admin assistance.
                     </p>
-                    <p className="text-white/10 text-[11px]">
+                    <p className="text-white/65 text-[11px]">
                         made by{" "}
                         <a href="https://mubx.dev" target="_blank" rel="noopener noreferrer"
-                           className="text-white/25 hover:text-white/50 font-semibold transition-colors duration-200">
+                            className="text-white/50 hover:text-white/50 font-semibold transition-colors duration-200">
                             mubx
                         </a>
                     </p>

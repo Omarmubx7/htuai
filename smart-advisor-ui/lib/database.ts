@@ -387,3 +387,22 @@ export async function getIntegrationToken(studentId: string, provider: string) {
 export async function deleteIntegrationToken(studentId: string, provider: string) {
     await sql`DELETE FROM integration_tokens WHERE student_id = ${studentId} AND provider = ${provider}`;
 }
+
+export async function loadAllSemesters(studentId: string) {
+    try {
+        const { rows } = await sql`
+            SELECT * FROM planner_semesters
+            WHERE student_id = ${studentId}
+            ORDER BY updated_at DESC
+        `;
+        return rows.map(r => ({
+            id: r.id,
+            name: r.name,
+            courses: JSON.parse(r.courses),
+            studySessions: JSON.parse(r.study_sessions),
+            updatedAt: r.updated_at
+        }));
+    } catch {
+        return [];
+    }
+}

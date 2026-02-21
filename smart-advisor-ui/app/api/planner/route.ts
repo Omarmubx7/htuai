@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { loadPlanner, savePlanner, deletePlanner, initPlannerTables } from "@/lib/database";
+import { loadPlanner, savePlanner, deletePlanner, initPlannerTables, loadAllSemesters } from "@/lib/database";
 
 // GET — load planner for current user
-export async function GET() {
+export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -13,6 +13,14 @@ export async function GET() {
 
     try {
         await initPlannerTables();
+        const { searchParams } = new URL(req.url);
+        const all = searchParams.get("all") === "true";
+
+        if (all) {
+            const data = await loadAllSemesters(studentId);
+            return NextResponse.json(data);
+        }
+
         const data = await loadPlanner(studentId);
         return NextResponse.json(data || { id: "default", name: "My Planner", courses: [], studySessions: [] });
     } catch (e: any) {

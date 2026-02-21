@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     BookOpen, Clock, Trophy, Plus,
     Trash2, GraduationCap, CheckCircle2,
     AlertTriangle, Lightbulb, Info,
-    BarChart3, Calendar, Settings, ExternalLink, Loader2
+    BarChart3, Calendar, Settings, ExternalLink, Loader2, Globe, Sparkles
 } from "lucide-react";
-import { PlannerCourse, StudySession } from "@/app/planner/page";
+import { PlannerCourse, StudySession, SemesterData } from "@/app/planner/page";
 import {
     calculateGPA, getClassification, GRADE_MAP,
     SCORED_GRADES, generateInsights, type Insight, type HTUGrade
@@ -32,14 +32,30 @@ const gc = (key: string) => COLORS[key] || COLORS.gray;
 interface PlannerDashboardProps {
     courses: PlannerCourse[];
     studySessions: StudySession[];
+    allSemesters?: SemesterData[];
     onUpdateCourses: (courses: PlannerCourse[]) => void;
     onAddStudySession: (session: StudySession) => void;
     onDeleteStudySession: (id: string) => void;
 }
 
 export default function PlannerDashboard({
-    courses, studySessions, onUpdateCourses, onAddStudySession, onDeleteStudySession
+    courses, studySessions, allSemesters = [], onUpdateCourses, onAddStudySession, onDeleteStudySession
 }: PlannerDashboardProps) {
+
+    // ── Onboarding state ───────────────────────────────────────────────
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    useEffect(() => {
+        const hasSeenOnboarding = localStorage.getItem("htuai_planner_onboarding");
+        if (!hasSeenOnboarding) {
+            setShowOnboarding(true);
+        }
+    }, []);
+
+    const dismissOnboarding = () => {
+        localStorage.setItem("htuai_planner_onboarding", "true");
+        setShowOnboarding(false);
+    };
 
     // ── Study-log form state ────────────────────────────────────────────
     const [logCourseId, setLogCourseId] = useState(courses[0]?.id || "");
@@ -75,6 +91,27 @@ export default function PlannerDashboard({
         return map;
     }, [studySessions]);
 
+    // ── Historical KPIs ────────────────────────────────────────────────
+    const historicalStats = useMemo(() => {
+        if (!allSemesters || allSemesters.length === 0) return null;
+
+        const semesterGrades = allSemesters.map(sem => {
+            const graded = sem.courses.filter(c => c.grade && SCORED_GRADES.includes(c.grade as HTUGrade));
+            const gpa = calculateGPA(graded.map(c => ({ credits: c.credits, grade: c.grade! })));
+            return {
+                name: sem.name || "Unknown Semester",
+                gpa,
+                courseCount: sem.courses.length,
+                indicator: gpa >= 2.8 ? "Good" : gpa >= 2.4 ? "Average" : gpa > 0 ? "At Risk" : "N/A"
+            };
+        });
+
+        const totalGraded = allSemesters.flatMap(s => s.courses.filter(c => c.grade && SCORED_GRADES.includes(c.grade as HTUGrade)));
+        const cumulativeGPA = calculateGPA(totalGraded.map(c => ({ credits: c.credits, grade: c.grade! })));
+
+        return { semesterGrades, cumulativeGPA };
+    }, [allSemesters]);
+
     // ── Handlers ────────────────────────────────────────────────────────
     const updateGrade = (id: string, grade: string) => {
         onUpdateCourses(courses.map(c => {
@@ -88,8 +125,8 @@ export default function PlannerDashboard({
         }));
     };
 
-    const updateDate = (id: string, field: "midtermDate" | "finalDate", value: string) => {
-        onUpdateCourses(courses.map(c => c.id === id ? { ...c, [field]: value || undefined } : c));
+    const updateField = (id: string, field: keyof PlannerCourse, value: any) => {
+        onUpdateCourses(courses.map(c => c.id === id ? { ...c, [field]: value } : c));
     };
 
     const toggleStatus = (id: string) => {
@@ -141,9 +178,11 @@ export default function PlannerDashboard({
 
     return (
         <div className="space-y-8">
+            <GetStartedModal isOpen={showOnboarding} onClose={dismissOnboarding} />
 
             {/* ════ Stats Overview ════ */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {/* ════ Stats Overview ════ */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {/* GPA */}
                 <StatCard
                     icon={<GraduationCap className="w-5 h-5 text-violet-400" />}
@@ -180,88 +219,133 @@ export default function PlannerDashboard({
                     value={weeklyHours > 0 ? weeklyHours.toFixed(1) : "0"}
                     label="Hrs/Week"
                 />
+                {/* Cumulative GPA (KPI) */}
+                {historicalStats && historicalStats.cumulativeGPA > 0 && (
+                    <StatCard
+                        icon={<Sparkles className="w-5 h-5 text-emerald-400" />}
+                        bg="bg-emerald-500/10" border="border-emerald-500/20"
+                        value={historicalStats.cumulativeGPA.toFixed(2)}
+                        label="Total GPA"
+                    />
+                )}
             </div>
 
             {/* ════ Course Table ════ */}
-            <section>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-4">Courses</h3>
-                <div className="glass-card-premium rounded-3xl border border-white/5 overflow-hidden overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[720px]">
+            <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
+                        <BookOpen className="w-3.5 h-3.5" /> Semester Courses
+                    </h3>
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{courses.length} courses tracked</span>
+                </div>
+
+                <div className="glass-card-premium rounded-[2.5rem] border border-white/[0.05] overflow-hidden overflow-x-auto shadow-2xl bg-black/20">
+                    <table className="w-full text-left border-collapse min-w-[1100px]">
                         <thead>
-                            <tr className="border-b border-white/5 bg-white/[0.02]">
-                                <Th>Course</Th>
-                                <Th className="w-14">CH</Th>
-                                <Th className="w-36">Grade</Th>
-                                <Th className="w-36">Midterm</Th>
-                                <Th className="w-36">Final</Th>
-                                <Th className="w-16">Hours</Th>
-                                <Th className="w-28">Status</Th>
+                            <tr className="border-b border-white/[0.05] bg-white/[0.02]">
+                                <Th className="pl-8">Course Details</Th>
+                                <Th className="w-20 text-center">Credits</Th>
+                                <Th className="w-44 text-center">Grade / Score</Th>
+                                <Th className="w-40 text-center">Midterm</Th>
+                                <Th className="w-40 text-center">Final Exam</Th>
+                                <Th className="w-44 text-center">Instructor</Th>
+                                <Th className="w-44 text-center">Location</Th>
+                                <Th className="w-24 text-center">Study Hrs</Th>
+                                <Th className="w-32 pr-8 text-right">Status</Th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-white/[0.03]">
                             {courses.map(course => {
                                 const gradeInfo = course.grade ? GRADE_MAP[course.grade] : null;
                                 const gColor = gradeInfo ? gc(gradeInfo.colorKey) : null;
                                 return (
-                                    <tr key={course.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                    <tr key={course.id} className="group hover:bg-white/[0.02] transition-colors">
                                         {/* Name */}
-                                        <td className="py-3 px-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${gColor ? gColor.bg : "bg-violet-500/50"}`} />
-                                                <span className="text-sm font-medium">{course.name}</span>
+                                        <td className="py-5 px-8">
+                                            <div className="flex flex-col gap-0.5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-2 h-2 rounded-full ${gColor ? gColor.bg : "bg-violet-500/40"} shadow-[0_0_10px_rgba(139,92,246,0.2)]`} />
+                                                    <span className="text-sm font-bold text-white tracking-tight">{course.name}</span>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-white/20 ml-5 uppercase tracking-widest">{course.id}</span>
                                             </div>
                                         </td>
                                         {/* Credits */}
-                                        <td className="py-3 px-4 text-xs font-mono text-white/40">{course.credits}</td>
+                                        <td className="py-5 px-4 text-center">
+                                            <span className="text-xs font-black text-white/40">{course.credits}</span>
+                                        </td>
                                         {/* Grade */}
-                                        <td className="py-3 px-4">
+                                        <td className="py-5 px-4">
                                             <select
                                                 value={course.grade || ""}
                                                 onChange={e => updateGrade(course.id, e.target.value)}
-                                                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs font-medium text-white outline-none focus:border-violet-500/40 transition-colors w-full cursor-pointer"
+                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full cursor-pointer appearance-none text-center"
                                                 style={{ colorScheme: "dark" }}
                                             >
-                                                <option value="" className="bg-[#111]">Not set</option>
-                                                <option value="D" className="bg-[#111]">D — Distinction</option>
-                                                <option value="M" className="bg-[#111]">M — Merit</option>
-                                                <option value="P" className="bg-[#111]">P — Pass</option>
-                                                <option value="U" className="bg-[#111]">U — Unclassified</option>
+                                                <option value="" className="bg-[#0a0a0a]">N/A</option>
+                                                <option value="D" className="bg-[#0a0a0a]">Distinction (D)</option>
+                                                <option value="M" className="bg-[#0a0a0a]">Merit (M)</option>
+                                                <option value="P" className="bg-[#0a0a0a]">Pass (P)</option>
+                                                <option value="U" className="bg-[#0a0a0a]">Unclassified (U)</option>
                                             </select>
                                         </td>
                                         {/* Midterm Date */}
-                                        <td className="py-3 px-4">
+                                        <td className="py-5 px-4">
                                             <input
                                                 type="date"
                                                 value={course.midtermDate || ""}
-                                                onChange={e => updateDate(course.id, "midtermDate", e.target.value)}
-                                                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white outline-none focus:border-violet-500/40 transition-colors w-full"
+                                                onChange={e => updateField(course.id, "midtermDate", e.target.value || undefined)}
+                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
                                                 style={{ colorScheme: "dark" }}
                                             />
                                         </td>
                                         {/* Final Date */}
-                                        <td className="py-3 px-4">
+                                        <td className="py-5 px-4">
                                             <input
                                                 type="date"
                                                 value={course.finalDate || ""}
-                                                onChange={e => updateDate(course.id, "finalDate", e.target.value)}
-                                                className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white outline-none focus:border-violet-500/40 transition-colors w-full"
+                                                onChange={e => updateField(course.id, "finalDate", e.target.value || undefined)}
+                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
                                                 style={{ colorScheme: "dark" }}
                                             />
                                         </td>
+                                        {/* Instructor */}
+                                        <td className="py-5 px-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Dr. Name"
+                                                value={course.professor || ""}
+                                                onChange={e => updateField(course.id, "professor", e.target.value)}
+                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/10 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                            />
+                                        </td>
+                                        {/* Location */}
+                                        <td className="py-5 px-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Room/Lab"
+                                                value={course.location || ""}
+                                                onChange={e => updateField(course.id, "location", e.target.value)}
+                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/10 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                            />
+                                        </td>
                                         {/* Study Hours */}
-                                        <td className="py-3 px-4 text-xs font-mono text-white/40 text-center">
-                                            {(courseHours[course.id] || 0).toFixed(1)}
+                                        <td className="py-5 px-4 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <span className="text-xs font-black text-white">{(courseHours[course.id] || 0).toFixed(1)}</span>
+                                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-tighter">Hours</span>
+                                            </div>
                                         </td>
                                         {/* Status */}
-                                        <td className="py-3 px-4">
+                                        <td className="py-5 px-8 text-right">
                                             <button
                                                 onClick={() => toggleStatus(course.id)}
-                                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${course.status === "Completed"
+                                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${course.status === "Completed"
                                                     ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                                                     : course.status === "At Risk"
                                                         ? "bg-red-500/10 border-red-500/20 text-red-400"
                                                         : "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                                                    }`}
+                                                    } hover:scale-105 active:scale-95`}
                                             >
                                                 {course.status}
                                             </button>
@@ -274,12 +358,54 @@ export default function PlannerDashboard({
                 </div>
             </section>
 
+            {/* ════ Academic Performance Track (KPIs) ════ */}
+            {historicalStats && historicalStats.semesterGrades.length >= 1 && (
+                <section className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
+                        <Trophy className="w-3.5 h-3.5" /> Academic Performance Track
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {historicalStats.semesterGrades.map((sem, idx) => (
+                            <div key={idx} className="glass-card-premium p-5 rounded-3xl border border-white/5 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <GraduationCap className="w-12 h-12 text-white" />
+                                </div>
+                                <div className="space-y-3 relative z-10">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{sem.name}</span>
+                                        <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${sem.indicator === "Good" ? "bg-emerald-500/10 text-emerald-400" :
+                                            sem.indicator === "Average" ? "bg-blue-500/10 text-blue-400" :
+                                                "bg-red-500/10 text-red-400"
+                                            }`}>
+                                            {sem.indicator === "Good" ? "Good Semester" : sem.indicator}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-2xl font-black text-white">{sem.gpa.toFixed(2)}</span>
+                                        <span className="text-[10px] font-bold text-white/20 uppercase">GPA</span>
+                                    </div>
+                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all duration-1000 ${sem.gpa >= 3.2 ? "bg-emerald-500" : sem.gpa >= 2.4 ? "bg-violet-500" : "bg-red-500"}`}
+                                            style={{ width: `${(sem.gpa / 4) * 100}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-tight">
+                                        {sem.courseCount} Courses Completed
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
             {/* ════ Study Log + Insights ════ */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* ── Study Log ── */}
                 <section>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-4 flex items-center gap-2">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
                         <BarChart3 className="w-3.5 h-3.5" /> Study Log
                     </h3>
                     <div className="glass-card-premium rounded-2xl border border-white/5 p-5 space-y-4">
@@ -356,7 +482,7 @@ export default function PlannerDashboard({
 
                 {/* ── Smart Insights ── */}
                 <section>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-4 flex items-center gap-2">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
                         <Lightbulb className="w-3.5 h-3.5" /> Smart Insights
                     </h3>
                     <div className="space-y-3">
@@ -398,7 +524,7 @@ export default function PlannerDashboard({
                                 </div>
                                 <div>
                                     <div className="text-xs font-semibold">{info.label}</div>
-                                    <div className="text-[10px] text-white/30">{info.points.toFixed(1)} pts</div>
+                                    <div className="text-[10px] text-white/50">{info.points.toFixed(1)} pts</div>
                                 </div>
                             </div>
                         );
@@ -437,7 +563,10 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 
 // ── Integration Panel ───────────────────────────────────────────────────
 
+import { useSession } from "next-auth/react";
+
 function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
+    const { data: session } = useSession();
     const [gcalLoading, setGcalLoading] = useState(false);
     const [notionLoading, setNotionLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(true);
@@ -445,6 +574,8 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     const [gcalConnected, setGcalConnected] = useState(false);
     const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
     const autoSyncedRef = useRef(false);
+
+    const isGoogleAuth = (session?.user as any)?.provider === "google";
 
     const fetchStatus = useCallback(async () => {
         try {
@@ -461,7 +592,6 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         }
     }, []);
 
-    // Handle URL params after OAuth returns
     useEffect(() => {
         fetchStatus();
 
@@ -621,91 +751,250 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         setNotionLoading(false);
     };
 
+    const steps = [
+        {
+            id: 1,
+            title: "Auth Connection",
+            desc: isGoogleAuth ? "Signed in with Google" : "Connect your Google Account",
+            isDone: isGoogleAuth,
+            actionLabel: isGoogleAuth ? "Linked" : "Link Google",
+            onClick: isGoogleAuth ? undefined : connectGoogleCalendar,
+            icon: <Globe className="w-4 h-4" />
+        },
+        {
+            id: 2,
+            title: "Calendar Access",
+            desc: "Add exam dates to your calendar",
+            isDone: gcalConnected,
+            actionLabel: gcalConnected ? "Connected" : "Connect",
+            onClick: connectGoogleCalendar,
+            icon: <Calendar className="w-4 h-4" />,
+            disabled: !isGoogleAuth && !gcalConnected // Must at least be logged in or connecting
+        },
+        {
+            id: 3,
+            title: "Notion Workspace",
+            desc: "Build a structured study hub",
+            isDone: notionConnected,
+            actionLabel: notionConnected ? "Connected" : "Connect",
+            onClick: connectNotion,
+            icon: <BookOpen className="w-4 h-4" />,
+            disabled: !gcalConnected && !notionConnected // Encourage calendar first but not strictly required by API
+        }
+    ];
+
     return (
-        <section>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-4 flex items-center gap-2">
-                <Settings className="w-3.5 h-3.5" /> Integrations
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Google Calendar */}
-                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden">
-                    {gcalConnected && (
-                        <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
-                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Connected</span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm font-semibold">Google Calendar</span>
+        <section className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
+                    <Settings className="w-3.5 h-3.5" /> Integration Journey
+                </h3>
+                <div className="flex items-center gap-1">
+                    <div className="h-1 w-12 rounded-full bg-white/5 overflow-hidden">
+                        <div
+                            className="h-full bg-violet-500 transition-all duration-500"
+                            style={{ width: `${(steps.filter(s => s.isDone).length / steps.length) * 100}%` }}
+                        />
                     </div>
-                    <p className="text-xs text-white/30">Push midterm & final dates to your calendar with exam reminders.</p>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={connectGoogleCalendar}
-                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${gcalConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 text-white"
-                                }`}
-                        >
-                            <ExternalLink className="w-3 h-3" /> {gcalConnected ? "Reconnect" : "Connect"}
-                        </button>
-                        <button
-                            onClick={syncGoogleCalendar}
-                            disabled={gcalLoading || !gcalConnected}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-20 disabled:cursor-not-allowed"
-                        >
-                            {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Calendar className="w-3 h-3" />} Sync
-                        </button>
-                    </div>
-                </div>
-
-                {/* Notion */}
-                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden">
-                    {notionConnected && (
-                        <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
-                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Connected</span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-white" />
-                        <span className="text-sm font-semibold">Notion</span>
-                    </div>
-                    <p className="text-xs text-white/30">Sync your study plan to Notion. Select any page to share when connecting.</p>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={connectNotion}
-                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${notionConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-white/30 hover:bg-white/5 text-white"
-                                }`}
-                        >
-                            <ExternalLink className="w-3 h-3" /> {notionConnected ? "Reconnect" : "Connect"}
-                        </button>
-                        <button
-                            onClick={() => initNotionPage()}
-                            disabled={notionLoading || !notionConnected}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-violet-500/20 hover:border-violet-500/40 hover:bg-violet-500/5 text-violet-400 transition-all flex items-center justify-center gap-1.5 disabled:opacity-10 disabled:grayscale disabled:cursor-not-allowed"
-                        >
-                            {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />} New Page
-                        </button>
-                        <button
-                            onClick={syncNotion}
-                            disabled={notionLoading || !notionConnected}
-                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-10 disabled:grayscale disabled:cursor-not-allowed"
-                        >
-                            {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <BookOpen className="w-3 h-3" />} Sync
-                        </button>
-                    </div>
+                    <span className="text-[10px] font-bold text-white/20 ml-2">
+                        {steps.filter(s => s.isDone).length}/{steps.length}
+                    </span>
                 </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {steps.map((step) => (
+                    <div
+                        key={step.id}
+                        className={`glass-card-premium p-5 rounded-3xl border transition-all relative overflow-hidden group ${step.isDone ? "border-emerald-500/20 bg-emerald-500/[0.02]" : "border-white/5 hover:border-white/10"
+                            } ${step.disabled ? "opacity-40 grayscale" : "opacity-100"}`}
+                    >
+                        {step.isDone && (
+                            <div className="absolute top-3 right-3">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                            </div>
+                        )}
+
+                        <div className="flex flex-col gap-4">
+                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border transition-colors ${step.isDone ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-white/5 border-white/5 text-white/40 group-hover:text-white group-hover:bg-white/10"
+                                }`}>
+                                {step.icon}
+                            </div>
+
+                            <div>
+                                <h4 className="text-sm font-bold text-white tracking-tight">{step.title}</h4>
+                                <p className="text-xs text-white/40 mt-1 leading-relaxed">{step.desc}</p>
+                            </div>
+
+                            <button
+                                onClick={step.onClick}
+                                disabled={step.disabled || (step.isDone && step.id === 1)}
+                                className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${step.isDone
+                                    ? "bg-transparent border border-emerald-500/20 text-emerald-400"
+                                    : "bg-white text-black hover:bg-white/90"
+                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                {step.isDone ? <CheckCircle2 className="w-3 h-3" /> : <ExternalLink className="w-3 h-3" />}
+                                {step.actionLabel}
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Quick Actions (only visible when steps are mostly done) */}
+            <AnimatePresence>
+                {(gcalConnected || notionConnected) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+                        {gcalConnected && (
+                            <div className="glass-card-premium p-4 rounded-2xl border border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                        <Calendar className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-xs font-bold">Push Exam Reminders</span>
+                                </div>
+                                <button
+                                    onClick={syncGoogleCalendar}
+                                    disabled={gcalLoading}
+                                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold transition-colors disabled:opacity-50"
+                                >
+                                    {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Calendar"}
+                                </button>
+                            </div>
+                        )}
+                        {notionConnected && (
+                            <div className="glass-card-premium p-4 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white">
+                                        <BookOpen className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-xs font-bold">Notion Hub</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => initNotionPage()}
+                                        disabled={notionLoading}
+                                        className="px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 text-[10px] font-bold transition-colors disabled:opacity-50"
+                                    >
+                                        {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "New Page"}
+                                    </button>
+                                    <button
+                                        onClick={syncNotion}
+                                        disabled={notionLoading}
+                                        className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-[10px] font-bold transition-colors disabled:opacity-50"
+                                    >
+                                        {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Data"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {message && (
-                <div className={`mt-3 px-4 py-2.5 rounded-xl text-xs font-medium border ${message.ok
+                <div className={`mt-3 px-4 py-3 rounded-2xl text-xs font-medium border flex items-start gap-3 ${message.ok
                     ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                     : "bg-red-500/10 border-red-500/20 text-red-400"
                     }`}>
-                    {message.text}
+                    {message.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}
+                    <div className="whitespace-pre-line">{message.text}</div>
                 </div>
             )}
         </section>
+    );
+}
+
+// ── Onboarding Modal ───────────────────────────────────────────────────
+
+function GetStartedModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="relative w-full max-w-xl glass-card-premium rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl"
+                    >
+                        {/* Decorative background Elements */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-600/20 rounded-full blur-[100px]" />
+                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px]" />
+
+                        <div className="relative p-10 md:p-12 space-y-10">
+                            <div className="space-y-4 text-center">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                                    <Sparkles className="w-3 h-3" /> Welcome to HTU AI
+                                </div>
+                                <h2 className="text-4xl font-black text-white tracking-tight leading-none text-gradient">
+                                    Your Academic Command Center
+                                </h2>
+                                <p className="text-sm text-white/40 font-medium max-w-sm mx-auto">
+                                    Let&apos;s get you settled into your new smart planner. Here&apos;s what you can do:
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6">
+                                <OnboardingFeature
+                                    icon={<BarChart3 className="w-5 h-5 text-violet-400" />}
+                                    title="Real-time GPA Tracking"
+                                    desc="Input your estimated grades to see your semester performance and academic standing instantly."
+                                />
+                                <OnboardingFeature
+                                    icon={<Calendar className="w-5 h-5 text-blue-400" />}
+                                    title="Exam Schedule Sync"
+                                    desc="Connect your Google Calendar to automatically push midterm and final exam reminders."
+                                />
+                                <OnboardingFeature
+                                    icon={<BookOpen className="w-5 h-5 text-emerald-400" />}
+                                    title="Notion Study Hub"
+                                    desc="Export your entire semester plan to a structured Notion workspace with just one click."
+                                />
+                            </div>
+
+                            <div className="space-y-4 pt-4">
+                                <button
+                                    onClick={onClose}
+                                    className="w-full py-4 rounded-2xl bg-white text-black font-black text-sm transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-white/5"
+                                >
+                                    Get Started
+                                </button>
+                                <p className="text-[10px] text-white/20 text-center font-bold uppercase tracking-widest">
+                                    Press anywhere to dismiss
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+}
+
+function OnboardingFeature({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+    return (
+        <div className="flex gap-5 items-start group">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0 transition-colors group-hover:border-white/10 group-hover:bg-white/10">
+                {icon}
+            </div>
+            <div className="space-y-1">
+                <h4 className="text-sm font-bold text-white tracking-tight">{title}</h4>
+                <p className="text-xs text-white/30 leading-relaxed">{desc}</p>
+            </div>
+        </div>
     );
 }

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
-import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Sparkles, Target, Star } from 'lucide-react';
+import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Sparkles, Target, Star, Info } from 'lucide-react';
 import StudentDashboard from './StudentDashboard';
 
 interface TranscriptViewProps {
@@ -156,74 +156,110 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
 
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 pt-10 pb-24">
+        <div className="w-full max-w-7xl mx-auto px-6 pt-10 pb-24 space-y-12">
 
             {/* Data notice banner */}
-            <div className="mb-6 flex items-start gap-3 px-4 py-3 rounded-2xl border border-amber-500/15 bg-amber-500/[0.04]">
-                <span className="text-amber-400 text-base mt-0.5">📋</span>
-                <p className="text-[12px] text-amber-200/70 leading-relaxed">
-                    Course data is still being updated. If you can&apos;t find a specific course, don&apos;t worry — we&apos;ll update it as soon as we receive the latest information from the university.
+            <div className="flex items-center gap-4 px-5 py-4 rounded-3xl border border-amber-500/10 bg-amber-500/[0.02] backdrop-blur-md">
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+                    <Info className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-amber-200/60 leading-relaxed max-w-2xl">
+                    <span className="text-amber-400 font-bold">Data Notice:</span> Course data is currently being audited. If any courses are missing or incorrect, they will be updated in the next sync.
                 </p>
             </div>
 
             {/* Page header + progress card */}
-            <div className="mb-12 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight mb-1">My Transcript</h1>
-                    <p className="text-white/35 text-sm">Track your progress, plan your journey.</p>
+            <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-1.5 h-6 bg-violet-600 rounded-full" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Degree Progress</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none text-gradient">
+                            My Transcript
+                        </h1>
+                    </div>
 
-                    {/* Save status */}
-                    <div className="flex items-center gap-3 mt-3">
-                        <AnimatePresence mode="wait">
-                            {saveStatus === 'saving' && (
-                                <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                    className="flex items-center gap-1.5 text-[11px] text-white/30">
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                    Saving…
-                                </motion.span>
-                            )}
-                            {saveStatus === 'saved' && (
-                                <motion.span key="saved" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                                    className="flex items-center gap-1.5 text-[11px] text-emerald-400/70">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    Saved
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
+                    {/* Actions row */}
+                    <div className="flex items-center gap-4">
+                        <div className="min-w-[100px] h-6 flex items-center">
+                            <AnimatePresence mode="wait">
+                                {saveStatus === 'saving' && (
+                                    <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                        className="flex items-center gap-2 text-xs font-bold text-white/30">
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        Syncing…
+                                    </motion.span>
+                                )}
+                                {saveStatus === 'saved' && (
+                                    <motion.span key="saved" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                                        className="flex items-center gap-2 text-xs font-bold text-emerald-400/70">
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        Cloud Synced
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        <div className="h-4 w-px bg-white/10" />
+
                         <button
                             onClick={resetProgress}
-                            className="flex items-center gap-1 text-[11px] text-white/20 hover:text-red-400/70 transition-colors"
+                            className="flex items-center gap-2 text-xs font-bold text-white/40 hover:text-red-400/70 transition-all hover:scale-105"
                         >
                             <RotateCcw className="w-3 h-3" />
-                            Reset
+                            Reset All
                         </button>
                     </div>
                 </div>
 
-                {/* Progress card */}
-                <div className="glass-card p-5 rounded-2xl w-full md:w-80 shrink-0">
-                    <div className="flex justify-between items-end mb-3">
-                        <span className="text-xs text-white/35 font-medium uppercase tracking-widest">Progress</span>
-                        <div className="text-right">
-                            <span className="text-xl font-bold text-white">{completedCredits}</span>
-                            <span className="text-white/30 text-sm"> / {totalCredits} CH</span>
+                {/* Progress Card (Premium version) */}
+                <div className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-[400px] shrink-0 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <Trophy className="w-24 h-24 text-white" />
+                    </div>
+
+                    <div className="relative z-10 space-y-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em]">Overall Progress</span>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-white">{completedCredits}</span>
+                                    <span className="text-sm font-bold text-white/40">/ {totalCredits} CH</span>
+                                </div>
+                            </div>
+                            <div className="w-12 h-12 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shadow-inner">
+                                <GraduationCap className="w-6 h-6" />
+                            </div>
                         </div>
-                    </div>
-                    <div className="h-1 bg-white/8 rounded-full overflow-hidden">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progress * 100}%` }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="h-full rounded-full"
-                            style={{ background: "linear-gradient(90deg, #8b5cf6, #6366f1)" }}
-                        />
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                        <p className="text-[11px] text-white/20">{Math.round(progress * 100)}% complete</p>
-                        <p className="text-[11px] text-white/30 font-medium">
-                            <span className="text-violet-400/80 font-bold">{completedCourses.size}</span>
-                            <span className="text-white/15"> / {allCourses.length} courses</span>
-                        </p>
+
+                        <div className="space-y-3">
+                            <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden border border-white/[0.05]">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress * 100}%` }}
+                                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                                    className="h-full rounded-full relative"
+                                    style={{ background: "linear-gradient(90deg, #8B5CF6, #EC4899)" }}
+                                >
+                                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                </motion.div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">
+                                        {Math.round(progress * 100)}% Complete
+                                    </p>
+                                </div>
+                                <p className="text-[10px] font-bold text-white/60 tracking-tight">
+                                    <span className="text-white font-black">{completedCourses.size}</span>
+                                    <span className="mx-1">/</span>
+                                    <span>{allCourses.length} Courses</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -238,21 +274,33 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
                 rules={rules}
             />
 
-            {/* View-mode toggle */}
-            <div className="flex gap-1 mb-10 p-1 glass-card rounded-xl w-fit">
-                {(["level", "category"] as const).map((mode) => (
-                    <button
-                        key={mode}
-                        onClick={() => setViewMode(mode)}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200
-                            ${viewMode === mode
-                                ? "bg-white text-black shadow-sm"
-                                : "text-white/35 hover:text-white/60"
-                            }`}
-                    >
-                        {mode === "level" ? "Year Level" : "Category"}
-                    </button>
-                ))}
+            {/* View-mode toggle and Section Header */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/[0.05]">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-white/40">
+                        {viewMode === 'level' ? <Trophy className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Curriculum View</h3>
+                        <p className="text-xs text-white/50 font-medium">Browse by {viewMode === 'level' ? 'academic year' : 'requirement type'}</p>
+                    </div>
+                </div>
+
+                <div className="flex p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-[1.25rem] shadow-inner backdrop-blur-xl">
+                    {(["level", "category"] as const).map((mode) => (
+                        <button
+                            key={mode}
+                            onClick={() => setViewMode(mode)}
+                            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all duration-300 relative group
+                                ${viewMode === mode
+                                    ? "text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                                    : "text-white/40 hover:text-white"
+                                }`}
+                        >
+                            {mode === "level" ? "Yearly Roadmap" : "Requirement Categories"}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Course Grid */}
@@ -274,7 +322,7 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
                                 ? <Trophy className="w-4 h-4 text-violet-400/60" />
                                 : style && <span style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
                             }
-                            <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
+                            <h2 className="text-sm font-semibold text-white/65 uppercase tracking-widest">
                                 {title}
                             </h2>
                             <div className="flex-1 h-px bg-white/5" />

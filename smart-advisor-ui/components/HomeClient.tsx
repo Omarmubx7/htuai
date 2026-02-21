@@ -155,102 +155,89 @@ export default function HomeClient() {
         <AnimatePresence mode="wait">
             <motion.div
                 key="transcript"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="min-h-screen bg-black"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="min-h-screen bg-black mesh-gradient"
             >
                 {/* Sticky top bar */}
-                <header className="sticky top-0 z-50 border-b border-white/5"
-                    style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(16px)" }}>
-                    <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+                <header className="sticky top-0 z-50 border-b border-white/[0.05] bg-black/40 backdrop-blur-2xl">
+                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-                        {/* Left: app name + student + major */}
-                        <div className="flex items-center gap-4">
-                            <span className="text-xs font-semibold text-white/50 tracking-tight hidden sm:block">
-                                HTU Tracker
-                            </span>
-
-                            <div className="w-px h-4 bg-white/8 hidden sm:block" />
-
-                            <Link
-                                href="/planner"
-                                className="flex items-center gap-1.5 text-xs font-medium text-white/40 hover:text-violet-400 transition-colors px-2 py-1 rounded-md hover:bg-violet-500/5 group"
-                            >
-                                <Sparkles className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                                <span>Semester Planner</span>
-                            </Link>
-
-                            <div className="w-px h-4 bg-white/8 hidden sm:block" />
-
-                            {/* Student ID */}
-                            <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-full bg-violet-500/20 border border-violet-500/25 flex items-center justify-center">
-                                    <span className="text-[9px] text-violet-300 font-bold">{studentId?.slice(-2)}</span>
+                        {/* Left: Brand + Navigation */}
+                        <div className="flex items-center gap-8">
+                            <div className="flex items-center gap-2 group cursor-default">
+                                <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+                                    <Sparkles className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-xs font-mono text-white/50">{studentId}</span>
+                                <span className="text-sm font-bold tracking-tight text-white">HTU Advisor</span>
                             </div>
 
-                            <div className="w-px h-4 bg-white/8" />
-
-                            {/* Major */}
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-sm">{majorInfo.icon}</span>
-                                <span className="text-xs font-medium text-white/60 hidden sm:block">{majorInfo.label}</span>
-                            </div>
+                            <nav className="hidden md:flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+                                <Link
+                                    href="/"
+                                    className="px-4 py-1.5 text-xs font-bold text-white bg-white/10 rounded-xl transition-all shadow-sm"
+                                >
+                                    Course Tracker
+                                </Link>
+                                {/* TOGGLE PLANNER VISIBILITY: Change 'false' to 'true' when ready to show to everyone */}
+                                {false && (
+                                    <Link
+                                        href="/planner"
+                                        className="px-4 py-1.5 text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all flex items-center gap-2"
+                                    >
+                                        <Sparkles className="w-3 h-3 text-violet-400" />
+                                        Semester Planner
+                                    </Link>
+                                )}
+                            </nav>
                         </div>
 
-                        {/* Right: Actions */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleMajorChange}
-                                className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-white/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
-                            >
-                                <Settings2 className="w-3 h-3" />
-                                Change Major
-                            </button>
+                        {/* Right: User + System */}
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-3 pr-6 border-r border-white/5">
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{studentId}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[11px] font-bold text-white/80">{majorInfo.label}</span>
+                                        <span className="text-sm">{majorInfo.icon}</span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleMajorChange}
+                                    className="p-2 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 text-white/40 hover:text-white transition-all"
+                                    title="Edit Profile"
+                                >
+                                    <Settings2 className="w-4 h-4" />
+                                </button>
+                            </div>
 
-                            <div className="w-px h-4 bg-white/8" />
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-red-400 transition-all group"
+                                >
+                                    <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                                    Log out
+                                </button>
 
-                            <button
-                                onClick={handleLogout}
-                                className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-white/60 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
-                            >
-                                <LogOut className="w-3 h-3" />
-                                Log out
-                            </button>
-
-                            <div className="w-px h-4 bg-white/8" />
-
-                            <button
-                                onClick={() => {
-                                    const url = "https://htuai.vercel.app";
-                                    const text = "Track your HTU courses and degree progress";
-                                    if (navigator.share) {
-                                        navigator.share({ title: "HTU Courses Tracker", text, url }).catch(() => { });
-                                    } else {
-                                        navigator.clipboard.writeText(url).then(() => {
-                                            const btn = document.getElementById('share-btn');
-                                            if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Share'; }, 1500); }
-                                        });
-                                    }
-                                }}
-                                className="flex items-center gap-1.5 text-[11px] text-white/25 hover:text-violet-400/70 transition-colors px-3 py-1.5 rounded-lg hover:bg-violet-500/5"
-                            >
-                                <Share2 className="w-3 h-3" />
-                                <span id="share-btn">Share</span>
-                            </button>
-
-                            <div className="w-px h-4 bg-white/8" />
-
-                            <a
-                                href="https://mubx.dev"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] text-white/20 hover:text-violet-400/70 transition-colors font-medium tracking-wide"
-                            >
-                                made by <span className="font-semibold">mubx</span>
-                            </a>
+                                <button
+                                    className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
+                                    onClick={() => {
+                                        const url = "https://htuai.vercel.app";
+                                        const text = "Track your HTU courses and degree progress";
+                                        if (navigator.share) {
+                                            navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
+                                        } else {
+                                            navigator.clipboard.writeText(url).then(() => {
+                                                const btn = document.getElementById('share-btn');
+                                                if (btn) btn.innerHTML = '<span class="text-[10px]">Copied!</span>';
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <Share2 className="w-4 h-4" id="share-btn" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </header>

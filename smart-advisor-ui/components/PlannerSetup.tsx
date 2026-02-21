@@ -92,7 +92,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
             if (ch === undefined || !code) {
                 const match = allAvailableCourses.find(c => c.name.toLowerCase() === name.toLowerCase());
                 ch = ch ?? match?.ch ?? 3;
-                code = code || match?.code;
+                code = code || match?.code || "";
             }
             return {
                 id: Math.random().toString(36).substr(2, 9),
@@ -114,10 +114,8 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
         ));
     };
 
-    const updateMidtermDate = (id: string, date: string) => {
-        setCourses(prev => prev.map(c =>
-            c.id === id ? { ...c, midtermDate: date || undefined } : c
-        ));
+    const updateCourse = (id: string, updates: Partial<PlannerCourse>) => {
+        setCourses(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
     };
 
     const finishSetup = () => {
@@ -130,7 +128,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                 <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
                     {step === 1 ? "Which courses are you taking?" : "Identify High-Stakes Assessments"}
                 </h2>
-                <p className="text-white/40 text-sm max-w-md mx-auto">
+                <p className="text-white/60 text-sm max-w-md mx-auto">
                     {step === 1
                         ? "Enter the names of the courses you're registered for this semester to build your workspace."
                         : "Research shows midterms are strong predictors of success. Mark courses that have a midterm exam."}
@@ -146,7 +144,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                         exit={{ opacity: 0, x: -20 }}
                         className="space-y-4"
                     >
-                        <div className="glass-card-premium p-6 rounded-3xl border border-white/5 space-y-3">
+                        <div className="glass-card-premium p-6 rounded-3xl border border-white/5 space-y-3 relative z-20">
                             {inputList.map((value, idx) => (
                                 <motion.div
                                     layout
@@ -163,7 +161,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                         onFocus={() => setActiveInput(idx)}
                                         onBlur={() => setTimeout(() => setActiveInput(null), 200)}
                                         placeholder="e.g. Data Structures"
-                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-3.5 pl-4 pr-12 text-white placeholder-white/20 outline-none transition-all focus:bg-white/[0.05] focus:border-violet-500/40 text-sm font-medium"
+                                        className="w-full bg-white/[0.05] border border-white/20 rounded-xl py-3.5 pl-4 pr-12 text-white placeholder-white/40 outline-none transition-all focus:bg-white/[0.08] focus:border-violet-500/60 text-sm font-medium"
                                     />
 
                                     {/* Autocomplete Dropdown */}
@@ -203,7 +201,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                     {inputList.length > 1 && (
                                         <button
                                             onClick={() => removeInput(idx)}
-                                            className="absolute right-3 p-1.5 text-white/20 hover:text-white/60 transition-colors"
+                                            className="absolute right-3 p-1.5 text-white/40 hover:text-white/70 transition-colors"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -213,7 +211,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
 
                             <button
                                 onClick={addInput}
-                                className="w-full py-3 rounded-xl border border-dashed border-white/10 text-white/30 text-xs font-bold uppercase tracking-widest hover:border-white/20 hover:text-white/50 transition-all flex items-center justify-center gap-2 group relative z-[0]"
+                                className="w-full py-3 rounded-xl border border-dashed border-white/10 text-white/30 text-xs font-bold uppercase tracking-widest hover:border-white/20 hover:text-white/50 transition-all flex items-center justify-center gap-2 group"
                             >
                                 <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                                 Add Another Course
@@ -225,7 +223,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                         <button
                             disabled={inputList.every(v => v.trim() === "")}
                             onClick={proceedToStep2}
-                            className="w-full py-4 rounded-2xl bg-white text-black font-bold text-sm transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 disabled:opacity-50 relative z-0"
+                            className="w-full py-4 rounded-2xl bg-white text-black font-bold text-sm transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             Next Step
                             <ChevronRight className="w-4 h-4" />
@@ -254,7 +252,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                     >
                                         <div className="flex flex-col items-start text-left">
                                             <span className="text-sm font-semibold">{course.name}</span>
-                                            <span className="text-[10px] uppercase tracking-wider font-bold text-white/30 mt-0.5">
+                                            <span className="text-[10px] uppercase tracking-wider font-bold text-white/50 mt-0.5">
                                                 {course.hasMidterm ? "Includes Midterm" : "No Midterm"}
                                             </span>
                                         </div>
@@ -265,13 +263,37 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                             <Check className="w-3.5 h-3.5" />
                                         </div>
                                     </button>
+                                    {/* Optional Details: Location & Instructor */}
+                                    <div className="px-4 pb-4 grid grid-cols-2 gap-3 border-t border-white/[0.03] pt-4 mt-2">
+                                        <div className="space-y-1.5 text-left">
+                                            <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider pl-1">Instructor (Doctor)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Dr. Omar"
+                                                value={course.professor || ""}
+                                                onChange={(e) => updateCourse(course.id, { professor: e.target.value })}
+                                                className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-2 px-3 text-white text-xs placeholder-white/10 outline-none focus:border-violet-500/40 transition-all font-medium"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5 text-left">
+                                            <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider pl-1">Location (Room/Lab)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Lab 402"
+                                                value={course.location || ""}
+                                                onChange={(e) => updateCourse(course.id, { location: e.target.value })}
+                                                className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-2 px-3 text-white text-xs placeholder-white/10 outline-none focus:border-violet-500/40 transition-all font-medium"
+                                            />
+                                        </div>
+                                    </div>
+
                                     {course.hasMidterm && (
-                                        <div className="px-4 pb-4 flex items-center gap-3">
-                                            <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider shrink-0">Midterm Date:</label>
+                                        <div className="px-4 pb-4 flex items-center gap-3 border-t border-white/[0.03] pt-4">
+                                            <label className="text-[10px] text-white/65 font-bold uppercase tracking-wider shrink-0">Midterm Date:</label>
                                             <input
                                                 type="date"
                                                 value={course.midtermDate || ""}
-                                                onChange={(e) => updateMidtermDate(course.id, e.target.value)}
+                                                onChange={(e) => updateCourse(course.id, { midtermDate: e.target.value || undefined })}
                                                 onClick={(e) => e.stopPropagation()}
                                                 className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-violet-500/40 transition-colors flex-1"
                                                 style={{ colorScheme: "dark" }}
