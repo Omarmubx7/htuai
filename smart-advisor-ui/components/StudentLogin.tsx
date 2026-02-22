@@ -188,7 +188,7 @@ export default function StudentLogin() {
                             <button
                                 type="button"
                                 onClick={() => { setIsClaiming(!isClaiming); setError(""); }}
-                                className="text-[10px] uppercase tracking-wider font-bold text-violet-400/60 hover:text-violet-400 transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-2"
+                                className="text-[11px] sm:text-[10px] uppercase tracking-wider font-bold text-violet-400/60 hover:text-violet-400 transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
                             >
                                 {isClaiming
                                     ? "Already have an account? Login"

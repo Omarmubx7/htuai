@@ -329,13 +329,15 @@ export default function HomeClient() {
                                 <div className="flex flex-col items-end">
                                     <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">{studentId}</span>
                                     {majorInfo && (
-                                        <div className="hidden sm:flex items-center gap-2">
+                                        <div className="flex items-center gap-2">
                                             <button
                                                 onClick={handleMajorChange}
-                                                className="group flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+                                                className="group flex items-center gap-2 px-2 py-1.5 sm:py-1 rounded-xl sm:rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
                                             >
-                                                <Settings2 className="w-3 h-3 text-white/40 group-hover:text-white transition-colors" />
-                                                <span className="text-[11px] font-bold text-white/80 group-hover:text-white">{majorInfo.label}</span>
+                                                <Settings2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-white/40 group-hover:text-white transition-colors" />
+                                                <span className="text-[10px] sm:text-[11px] font-bold text-white/80 group-hover:text-white truncate max-w-[80px] sm:max-w-none">
+                                                    {majorInfo.label}
+                                                </span>
                                                 <span className="text-xs">{majorInfo.icon}</span>
                                             </button>
                                         </div>
@@ -347,10 +349,10 @@ export default function HomeClient() {
 
                                 <button
                                     onClick={() => signOut()}
-                                    className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+                                    className="p-3 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
                                     title="Sign out"
                                 >
-                                    <LogOut className="w-4.5 h-4.5" />
+                                    <LogOut className="w-5 h-5 sm:w-4.5 sm:h-4.5" />
                                 </button>
                             </div>
                         </div>

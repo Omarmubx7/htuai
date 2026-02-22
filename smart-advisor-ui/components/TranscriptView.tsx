@@ -166,9 +166,9 @@ export default function TranscriptView({
 
                         <button
                             onClick={resetProgress}
-                            className="flex items-center gap-2 text-xs font-bold text-white/40 hover:text-red-400/70 transition-all hover:scale-105"
+                            className="flex items-center gap-2 text-sm sm:text-xs font-bold text-white/40 hover:text-red-400/70 transition-all hover:scale-105 p-2 sm:p-0 -ml-2 sm:ml-0"
                         >
-                            <RotateCcw className="w-3 h-3" />
+                            <RotateCcw className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                             Reset All
                         </button>
                     </div>
