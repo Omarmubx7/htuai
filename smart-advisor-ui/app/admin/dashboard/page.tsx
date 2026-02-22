@@ -20,7 +20,7 @@ interface TopCourse { code: string; name: string; count: number; ch?: number }
 interface TrafficDay { date: string; count: number }
 interface DeviceEntry { os: string; browser: string; count: number }
 interface ActivityEntry { type: string; student_id: string; detail: string; time: string }
-interface StudentRow { student_id: string; major: string; count: number; ch?: number }
+interface StudentRow { student_id: string; major: string; count: number; ch?: number; goal?: number }
 interface HeatmapCell { day: number; hour: number; count: number }
 
 interface Stats {
@@ -39,6 +39,7 @@ interface Stats {
     recentActivity: ActivityEntry[];
     heatmap: HeatmapCell[];
     students: StudentRow[];
+    avgWeightedProgress?: number;
 }
 
 type SortKey = 'student_id' | 'major' | 'count' | 'ch';
@@ -349,7 +350,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                     badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#059669" delay={0.08} />
                 <StatCard icon={<Flame className="w-4 h-4" />} label="Avg Courses" value={animAvg} gradient="from-amber-500/20 to-orange-500/5" iconBg="#d97706" delay={0.12} />
-                <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg CH" value={`${animCH}/135`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.16} />
+                <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.16} />
             </div>
 
             {/* Traffic Chart — Professional SVG Area Chart */}
@@ -495,7 +496,8 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                     <tbody>
                         {students.map((s, i) => {
                             const realCH = s.ch ?? s.count * 3;
-                            const pct = Math.min(Math.round((realCH / 135) * 100), 100);
+                            const goal = s.goal || 135;
+                            const pct = Math.min(Math.round((realCH / goal) * 100), 100);
                             const barColor = pct >= 75 ? '#10b981' : pct >= 50 ? '#3b82f6' : pct >= 25 ? '#f59e0b' : '#ef4444';
                             return (
                                 <motion.tr key={`${s.student_id}-${s.major}`}
@@ -512,7 +514,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                                         </span>
                                     </td>
                                     <td className="py-3 pr-4 text-xs font-mono text-white/45 tabular-nums">{s.count}</td>
-                                    <td className="py-3 pr-4 text-xs font-mono text-white/35 tabular-nums">{realCH}<span className="text-white/15">/135</span></td>
+                                    <td className="py-3 pr-4 text-xs font-mono text-white/35 tabular-nums">{realCH}<span className="text-white/15">/{goal}</span></td>
                                     <td className="py-3">
                                         <div className="flex items-center gap-2.5">
                                             <div className="w-24 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
@@ -710,8 +712,12 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
             const totalCH = ms.reduce((s, x) => s + (x.ch ?? x.count * 3), 0);
             const chValues = ms.map(x => x.ch ?? x.count * 3);
             const buckets: [number, number, number, number] = [0, 0, 0, 0];
+
+            // Get goal for this major from the first student in the major, or fallback to 135
+            const majorGoal = ms[0]?.goal || 135;
+
             for (const ch of chValues) {
-                const pct = Math.min((ch / 135) * 100, 100);
+                const pct = Math.min((ch / majorGoal) * 100, 100);
                 if (pct <= 25) buckets[0]++;
                 else if (pct <= 50) buckets[1]++;
                 else if (pct <= 75) buckets[2]++;
@@ -721,7 +727,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                 count: ms.length,
                 avgCourses: ms.length > 0 ? Math.round(totalCourses / ms.length) : 0,
                 avgCH: ms.length > 0 ? Math.round(totalCH / ms.length) : 0,
-                avgProgress: ms.length > 0 ? Math.min(Math.round((totalCH / ms.length / 135) * 100), 100) : 0,
+                avgProgress: ms.length > 0 ? Math.min(Math.round((totalCH / ms.length / majorGoal) * 100), 100) : 0,
                 maxCH: chValues.length > 0 ? Math.max(...chValues) : 0,
                 minCH: chValues.length > 0 ? Math.min(...chValues) : 0,
                 progressBuckets: buckets,

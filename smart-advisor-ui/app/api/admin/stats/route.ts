@@ -6,22 +6,36 @@ import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
-/* ─── Load course catalog from JSON files (server-side) ────────── */
+/* ─── Load course catalog and rules from JSON files (server-side) ────────── */
 
 interface CourseEntry { code: string; name: string; ch: number; level?: number }
+interface MajorRules { total_credits: number; major_keys: string[] }
 
 let courseCache: Map<string, CourseEntry> | null = null;
+let rulesCache: Record<string, number> | null = null; // major_key -> total_credits
 
-async function getCourseMap(): Promise<Map<string, CourseEntry>> {
-    if (courseCache) return courseCache;
+async function getDashboardData() {
+    if (courseCache && rulesCache) return { courseMap: courseCache, majorGoals: rulesCache };
 
     const dataDir = path.join(process.cwd(), 'public', 'data');
-    const masterFile = path.join(dataDir, 'curriculum.json');
-    const map = new Map<string, CourseEntry>();
+    const curriculumFile = path.join(dataDir, 'curriculum.json');
+    const sharedFile = path.join(dataDir, 'shared.json');
+    const rulesFile = path.join(dataDir, 'curriculum_rules.json');
+
+    const courseMap = new Map<string, CourseEntry>();
+    const majorGoals: Record<string, number> = {};
 
     try {
-        const raw = await fs.readFile(masterFile, 'utf-8');
-        const json = JSON.parse(raw);
+        // 1. Load Curriculum & Shared Courses
+        const [currRaw, sharedRaw, rulesRaw] = await Promise.all([
+            fs.readFile(curriculumFile, 'utf-8'),
+            fs.readFile(sharedFile, 'utf-8'),
+            fs.readFile(rulesFile, 'utf-8'),
+        ]);
+
+        const currJson = JSON.parse(currRaw);
+        const sharedJson = JSON.parse(sharedRaw);
+        const rulesJson = JSON.parse(rulesRaw);
 
         const extractCourses = (obj: any) => {
             if (!obj || typeof obj !== 'object') return;
@@ -30,7 +44,7 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
                 if (Array.isArray(val)) {
                     for (const c of val) {
                         if (c && typeof c === 'object' && 'code' in c && 'ch' in c) {
-                            map.set(c.code, { code: c.code, name: c.name || c.code, ch: c.ch, level: c.level });
+                            courseMap.set(c.code, { code: c.code, name: c.name || c.code, ch: c.ch, level: c.level });
                         }
                     }
                 } else if (val && typeof val === 'object') {
@@ -39,16 +53,24 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
             }
         };
 
-        // Extract from shared and all majors
-        extractCourses(json.shared);
-        extractCourses(json.majors);
+        extractCourses(currJson);
+        extractCourses(sharedJson);
+
+        // 2. Load Major Credit Goals
+        for (const type in rulesJson.degree_types) {
+            const rule = rulesJson.degree_types[type];
+            for (const mKey of rule.major_keys) {
+                majorGoals[mKey] = rule.total_credits;
+            }
+        }
 
     } catch (e) {
-        console.error("Failed to load course map for stats:", e);
+        console.error("Failed to load dashboard data sources:", e);
     }
 
-    courseCache = map;
-    return map;
+    courseCache = courseMap;
+    rulesCache = majorGoals;
+    return { courseMap, majorGoals };
 }
 
 export async function GET(request: Request) {
@@ -58,80 +80,84 @@ export async function GET(request: Request) {
     }
 
     try {
-        const [students, courseMap] = await Promise.all([
+        const [students, { courseMap, majorGoals }] = await Promise.all([
             getAllStudents(),
-            getCourseMap(),
+            getDashboardData(),
         ]);
 
-        // ── 1. Total Students ────────────────────────────────────────
+        // ── 1. Totals ────────────────────────────────────────────────
         const totalStudents = students.length;
 
-        // ── 2. Major Distribution ────────────────────────────────────
+        // ── 2. Distributions ─────────────────────────────────────────
         const majorCounts: Record<string, number> = {};
-
-        // ── 3. Progress Distribution ─────────────────────────────────
         const progressDistribution: Record<string, number> = {
             "0-25%": 0, "26-50%": 0, "51-75%": 0, "76-100%": 0,
         };
-        const TOTAL_CREDITS = 135;
+
+        const courseCounts: Record<string, number> = {};
+        let totalWeightedProgress = 0;
+        let totalRealCreditHours = 0;
         let totalCompletedCourses = 0;
 
-        // ── 4. Course Counts (from completed arrays) ─────────────────
-        const courseCounts: Record<string, number> = {};
-
-        // ── 5. Compute REAL credit hours per student ─────────────────
-        let totalRealCreditHours = 0;
-        const studentRealCH: { student_id: string; major: string; count: number; ch: number }[] = [];
-
-        // Load all completed arrays to compute real CH
+        // ── 3. Load Progress Persistence for Depth Analysis ─────────
         let progressRows: { student_id: string; major: string; completed: string }[] = [];
         try {
             const { rows } = await sql`SELECT student_id, major, completed FROM student_progress`;
             progressRows = rows as { student_id: string; major: string; completed: string }[];
-        } catch { /* table might not exist yet */ }
+        } catch { /* ok */ }
 
-        // Build a lookup of student_id+major → real credit hours
-        const studentCHMap = new Map<string, number>();
-
+        // Map for quick lookup
+        const studentProgressMap = new Map<string, string[]>();
         for (const row of progressRows) {
-            let courses: (string | { code: string; name?: string })[] = [];
-            try { courses = JSON.parse(row.completed); } catch { continue; }
-
-            let studentCH = 0;
-            for (const c of courses) {
-                const code = typeof c === 'string' ? c : c.code;
-                const name = typeof c === 'object' && c.name ? c.name : code;
-                const key = `${code}||${name}`;
-                courseCounts[key] = (courseCounts[key] || 0) + 1;
-
-                // Look up real credit hours from course catalog
-                const catalogEntry = courseMap.get(code);
-                studentCH += catalogEntry ? catalogEntry.ch : 3; // fallback to 3 if not found
-            }
-
-            const mapKey = `${row.student_id}||${row.major}`;
-            studentCHMap.set(mapKey, studentCH);
-            totalRealCreditHours += studentCH;
+            try {
+                const courses = JSON.parse(row.completed);
+                studentProgressMap.set(`${row.student_id}||${row.major}`, courses);
+            } catch { continue; }
         }
 
-        // Process student summaries with real CH
+        const studentRealCH: { student_id: string; major: string; count: number; ch: number; goal: number }[] = [];
+
+        // ── 4. Process Every Student ─────────────────────────────────
         for (const s of students) {
             const major = s.major || "Unknown";
+            const goal = majorGoals[major] || 135; // Fallback to 135 if major not in rules
             majorCounts[major] = (majorCounts[major] || 0) + 1;
-            totalCompletedCourses += s.count;
 
-            const mapKey = `${s.student_id}||${s.major}`;
-            const realCH = studentCHMap.get(mapKey) ?? s.count * 3;
+            const completedList = studentProgressMap.get(`${s.student_id}||${s.major}`) || [];
 
-            studentRealCH.push({ ...s, ch: realCH });
+            let studentCH = 0;
+            for (const c of completedList) {
+                const code = typeof c === 'string' ? c : (c as any).code;
+                const name = typeof c === 'object' && (c as any).name ? (c as any).name : code;
+                const key = `${code}||${name}`;
 
-            const percent = Math.min((realCH / TOTAL_CREDITS) * 100, 100);
+                courseCounts[key] = (courseCounts[key] || 0) + 1;
+
+                const catalogEntry = courseMap.get(code);
+                studentCH += catalogEntry ? catalogEntry.ch : 3;
+            }
+
+            totalRealCreditHours += studentCH;
+            totalCompletedCourses += completedList.length;
+
+            const percent = Math.min((studentCH / goal) * 100, 100);
+            totalWeightedProgress += percent;
+
+            studentRealCH.push({
+                student_id: s.student_id,
+                major: s.major,
+                count: completedList.length,
+                ch: studentCH,
+                goal: goal
+            });
+
             if (percent <= 25) progressDistribution["0-25%"]++;
             else if (percent <= 50) progressDistribution["26-50%"]++;
             else if (percent <= 75) progressDistribution["51-75%"]++;
             else progressDistribution["76-100%"]++;
         }
 
+        // ── 5. Analytics & Formatting ────────────────────────────────
         const topCourses = Object.entries(courseCounts)
             .map(([key, count]) => {
                 const [code, name] = key.split('||');
@@ -145,136 +171,57 @@ export async function GET(request: Request) {
             })
             .sort((a, b) => b.count - a.count);
 
-        // ── 6. Visitor Traffic (last 30 days) ────────────────────────
-        let trafficByDay: { date: string; count: number }[] = [];
-        try {
-            const { rows } = await sql`
-                SELECT DATE(visited_at) as day, COUNT(*) as count
-                FROM visitor_logs
-                WHERE visited_at >= NOW() - INTERVAL '30 days'
-                GROUP BY DATE(visited_at)
-                ORDER BY day ASC
-            `;
-            trafficByDay = rows.map(r => ({
-                date: String(r.day).slice(0, 10),
-                count: Number(r.count),
-            }));
-        } catch { /* table might not exist */ }
-
-        // ── 7. Device / OS / Browser Breakdown ───────────────────────
-        let deviceBreakdown: { os: string; browser: string; count: number }[] = [];
+        // Traffic & Visitor data
+        let trafficTrends: any[] = [];
         let totalVisitors = 0;
-        try {
-            const { rows } = await sql`
-                SELECT
-                    COALESCE(os_name, 'Unknown') as os,
-                    COALESCE(browser_name, 'Unknown') as browser,
-                    COUNT(*) as count
-                FROM visitor_logs
-                GROUP BY os_name, browser_name
-                ORDER BY count DESC
-            `;
-            deviceBreakdown = rows.map(r => ({
-                os: String(r.os),
-                browser: String(r.browser),
-                count: Number(r.count),
-            }));
-
-            const { rows: totalRows } = await sql`SELECT COUNT(*) as total FROM visitor_logs`;
-            totalVisitors = Number(totalRows[0]?.total ?? 0);
-        } catch { /* table might not exist */ }
-
-        // ── 8. Recent Activity ───────────────────────────────────────
-        let recentActivity: { type: string; student_id: string; detail: string; time: string }[] = [];
-        try {
-            const { rows: visitRows } = await sql`
-                SELECT student_id, os_name, browser_name, device_model, visited_at
-                FROM visitor_logs
-                ORDER BY visited_at DESC
-                LIMIT 50
-            `;
-            for (const r of visitRows) {
-                const device = r.device_model || r.os_name || 'Unknown device';
-                const browser = r.browser_name || '';
-                recentActivity.push({
-                    type: 'visit',
-                    student_id: r.student_id || 'Anonymous',
-                    detail: `Visited from ${device}${browser ? ` (${browser})` : ''}`,
-                    time: String(r.visited_at),
-                });
-            }
-        } catch { /* ok */ }
-
-        // ── 9. Activity Heatmap (hour × day of week) ─────────────────
-        let heatmap: { day: number; hour: number; count: number }[] = [];
-        try {
-            const { rows } = await sql`
-                SELECT
-                    EXTRACT(DOW FROM visited_at)::int as day,
-                    EXTRACT(HOUR FROM visited_at)::int as hour,
-                    COUNT(*) as count
-                FROM visitor_logs
-                GROUP BY day, hour
-                ORDER BY day, hour
-            `;
-            heatmap = rows.map(r => ({
-                day: Number(r.day),
-                hour: Number(r.hour),
-                count: Number(r.count),
-            }));
-        } catch { /* ok */ }
-
-        // ── 10. Week-over-week comparison ─────────────────────────────
+        let deviceBreakdown: any[] = [];
+        let recentActivity: any[] = [];
+        let heatmap: any[] = [];
         let thisWeekVisits = 0;
         let lastWeekVisits = 0;
+
         try {
-            const { rows: tw } = await sql`
-                SELECT COUNT(*) as count FROM visitor_logs
-                WHERE visited_at >= DATE_TRUNC('week', NOW())
-            `;
-            thisWeekVisits = Number(tw[0]?.count ?? 0);
+            const [trafficRes, visitorCountRes, deviceRes, activityRes, heatmapRes, weekRes] = await Promise.all([
+                sql`SELECT DATE(visited_at) as day, COUNT(*) as count FROM visitor_logs WHERE visited_at >= NOW() - INTERVAL '30 days' GROUP BY DATE(visited_at) ORDER BY day ASC`,
+                sql`SELECT COUNT(*) as total FROM visitor_logs`,
+                sql`SELECT COALESCE(os_name, 'Unknown') as os, COALESCE(browser_name, 'Unknown') as browser, COUNT(*) as count FROM visitor_logs GROUP BY os_name, browser_name ORDER BY count DESC`,
+                sql`SELECT student_id, os_name, browser_name, device_model, visited_at FROM visitor_logs ORDER BY visited_at DESC LIMIT 50`,
+                sql`SELECT EXTRACT(DOW FROM visited_at)::int as day, EXTRACT(HOUR FROM visited_at)::int as hour, COUNT(*) as count FROM visitor_logs GROUP BY day, hour ORDER BY day, hour`,
+                sql`SELECT 
+                    (SELECT COUNT(*) FROM visitor_logs WHERE visited_at >= DATE_TRUNC('week', NOW())) as tw,
+                    (SELECT COUNT(*) FROM visitor_logs WHERE visited_at >= DATE_TRUNC('week', NOW()) - INTERVAL '7 days' AND visited_at < DATE_TRUNC('week', NOW())) as lw`
+            ]);
 
-            const { rows: lw } = await sql`
-                SELECT COUNT(*) as count FROM visitor_logs
-                WHERE visited_at >= DATE_TRUNC('week', NOW()) - INTERVAL '7 days'
-                AND visited_at < DATE_TRUNC('week', NOW())
-            `;
-            lastWeekVisits = Number(lw[0]?.count ?? 0);
-        } catch { /* ok */ }
-
-        // ── Computed Averages (REAL) ──────────────────────────────────
-        const avgCoursesCompleted = totalStudents > 0
-            ? Math.round(totalCompletedCourses / totalStudents)
-            : 0;
-        const avgCreditHours = totalStudents > 0
-            ? Math.round(totalRealCreditHours / totalStudents)
-            : 0;
-
-        // Build device breakdown as an object (keyed by OS)
-        const deviceBreakdownObj: Record<string, number> = {};
-        for (const d of deviceBreakdown) {
-            deviceBreakdownObj[d.os] = (deviceBreakdownObj[d.os] || 0) + d.count;
-        }
+            trafficTrends = trafficRes.rows.map(r => ({ date: String(r.day).slice(0, 10), count: Number(r.count) }));
+            totalVisitors = Number(visitorCountRes.rows[0]?.total ?? 0);
+            deviceBreakdown = deviceRes.rows.map(r => ({ os: String(r.os), browser: String(r.browser), count: Number(r.count) }));
+            recentActivity = activityRes.rows.map(r => ({
+                type: 'visit',
+                student_id: r.student_id || 'Anonymous',
+                detail: `Visited from ${r.device_model || r.os_name || 'Device'} (${r.browser_name || 'Browser'})`,
+                time: String(r.visited_at)
+            }));
+            heatmap = heatmapRes.rows.map(r => ({ day: Number(r.day), hour: Number(r.hour), count: Number(r.count) }));
+            thisWeekVisits = Number(weekRes.rows[0]?.tw ?? 0);
+            lastWeekVisits = Number(weekRes.rows[0]?.lw ?? 0);
+        } catch (e) { console.error("Database detail fetch failed:", e); }
 
         return NextResponse.json({
             totalStudents,
-            visitorCount: totalVisitors,
             totalVisitors,
             totalCompletedCourses,
-            avgCoursesCompleted,
-            avgCreditHours,
+            avgCoursesCompleted: totalStudents > 0 ? Math.round(totalCompletedCourses / totalStudents) : 0,
+            avgCreditHours: totalStudents > 0 ? Math.round(totalRealCreditHours / totalStudents) : 0,
+            avgWeightedProgress: totalStudents > 0 ? Math.round(totalWeightedProgress / totalStudents) : 0,
             thisWeekVisits,
             lastWeekVisits,
-            majorDistribution: majorCounts,
             majorCounts,
             progressDistribution,
             topCourses,
-            trafficTrends: trafficByDay,
-            trafficByDay,
-            deviceBreakdown: deviceBreakdown,
+            trafficByDay: trafficTrends,
+            deviceBreakdown,
             recentActivity,
             heatmap,
-            studentData: studentRealCH,
             students: studentRealCH,
         });
 
