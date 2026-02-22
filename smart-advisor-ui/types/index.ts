@@ -19,7 +19,12 @@ export interface CourseData {
 
 export type SemesterType = "Regular" | "Summer";
 
+export interface CompletedCourse {
+    code: string;
+    grade: number;
+}
+
 export interface Transcript {
-    completed: string[]; // List of course codes
+    completed: CompletedCourse[]; // List of course codes with grades
     gpa?: number;
 }

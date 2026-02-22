@@ -15,7 +15,7 @@ interface PrereqResult {
  */
 export function checkPrerequisites(
     course: Course,
-    completedCourses: Set<string>,
+    completedCourses: Map<string, any> | Set<string>,
     completedCredits: number = 0,
     allCourseCodes: Set<string> = new Set(),
     logicRules?: any

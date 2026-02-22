@@ -197,7 +197,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                     className="text-center mt-12 space-y-3"
                 >
                     <p className="text-white/15 text-[11px]">
-                        Your selection cannot be changed without admin assistance.
+                        You can change your major later from the dashboard settings.
                     </p>
                     <p className="text-white/65 text-[11px]">
                         made by{" "}

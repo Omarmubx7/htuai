@@ -10,15 +10,28 @@ import StudentDashboard from './StudentDashboard';
 
 interface TranscriptViewProps {
     data: CourseData;
-    studentId: string;   // university ID → database key
+    studentId: string;
     majorKey: string;
     rules: any;
+    completedCourses: Map<string, number>;
+    toggleCourse: (code: string) => void;
+    updateCourseGrade: (code: string, grade: number) => void;
+    saveStatus: "saved" | "saving" | null;
+    resetProgress: () => void;
 }
 
-export default function TranscriptView({ data, studentId, majorKey, rules }: TranscriptViewProps) {
-    const [completedCourses, setCompletedCourses] = useState<Set<string>>(new Set());
+export default function TranscriptView({
+    data,
+    studentId,
+    majorKey,
+    rules,
+    completedCourses,
+    toggleCourse,
+    updateCourseGrade,
+    saveStatus,
+    resetProgress
+}: TranscriptViewProps) {
     const [viewMode, setViewMode] = useState<"level" | "category">("level");
-    const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
 
     const allCourses = [
         ...data.university_requirements,
@@ -29,62 +42,9 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
         ...(data.work_market_requirements ?? [])
     ];
 
-    // Build code → name lookup
-    const courseNameMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
-
-    // Load progress from SERVER on mount or when student/major changes
-    useEffect(() => {
-        if (!studentId || !majorKey) return;
-        fetch(`/api/progress/${encodeURIComponent(studentId)}?major=${majorKey}`)
-            .then(r => r.json())
-            .then(({ completed }: { completed: (string | { code: string })[] }) => {
-                // Handle both legacy string[] and new {code, name}[] formats
-                const codes = completed.map(c => (typeof c === 'string' ? c : c.code));
-                setCompletedCourses(new Set(codes));
-            })
-            .catch(() => setCompletedCourses(new Set()));
-    }, [studentId, majorKey]);
-
-    const toggleCourse = useCallback((code: string) => {
-        setCompletedCourses(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(code)) newSet.delete(code);
-            else newSet.add(code);
-
-            // Save to server immediately
-            setSaveStatus("saving");
-
-            // Map codes to objects { code, name }
-            const completedObjects = [...newSet].map(c => ({
-                code: c,
-                name: courseNameMap[c] || "Unknown Course"
-            }));
-
-            fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ major: majorKey, completed: completedObjects }),
-            })
-                .then(() => { setSaveStatus("saved"); setTimeout(() => setSaveStatus(null), 1500); })
-                .catch(() => setSaveStatus(null));
-
-            return newSet;
-        });
-    }, [studentId, majorKey, courseNameMap]);
-
-    const resetProgress = () => {
-        setCompletedCourses(new Set());
-        fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ major: majorKey, completed: [] }),
-        });
-    };
-
-    // Build code → name lookup for prerequisite resolution
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
-    // Set of all codes in the curriculum — prereqs outside this are auto-satisfied
     const allCourseCodes = new Set(allCourses.map(c => c.code));
+
 
     // Determine rule set from majorKey
     const ruleSet = Object.values(rules.degree_types).find((rs: any) =>
@@ -92,18 +52,18 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
     ) as any || rules.degree_types.computing_bsc;
 
     const totalCredits = ruleSet.total_credits;
-    const MAX_DEPT_ELECTIVES = ruleSet.max_dept_electives;
-    const MAX_UNI_ELECTIVES = ruleSet.max_uni_electives;
+    const MAX_DEPT_ELECTIVES = ruleSet.max_dept_electives || 3;
+    const MAX_UNI_ELECTIVES = ruleSet.max_uni_electives || 3;
     const TOTAL_CAP = totalCredits;
 
     // ── University Electives: 3 slots × 1 CH = 3 CH max ─────────────────────
     const uniElectiveCodes = new Set((data.university_electives ?? []).map((c: Course) => c.code));
     // UE slots (UE-I, UE-II, UE-III) are always tickable — there are exactly 3, each 1 CH
-    const tickedUniElecCount = [...completedCourses].filter(c => uniElectiveCodes.has(c)).length;
+    const tickedUniElecCount = Array.from(completedCourses.keys()).filter(c => uniElectiveCodes.has(c)).length;
 
     // ── Department Electives: 3 slots × 3 CH = 9 CH max ─────────────────────
     const deptElectiveCodes = new Set(data.electives.map((c: Course) => c.code));
-    const tickedDeptElecCount = [...completedCourses].filter(c => deptElectiveCodes.has(c)).length;
+    const tickedDeptElecCount = Array.from(completedCourses.keys()).filter(c => deptElectiveCodes.has(c)).length;
     const deptElecCapReached = tickedDeptElecCount >= MAX_DEPT_ELECTIVES;
 
     // ── Completed credits — respect elective caps so total never exceeds 135 ──
@@ -386,6 +346,7 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
                                         key={course.code}
                                         course={course}
                                         isCompleted={completedCourses.has(course.code)}
+                                        grade={completedCourses.get(course.code)}
                                         isLocked={isLocked}
                                         hasPrereqWarning={hasPrereqWarning}
                                         lockReason={lockReason}
@@ -393,6 +354,7 @@ export default function TranscriptView({ data, studentId, majorKey, rules }: Tra
                                         courseMap={courseMap}
                                         completedCredits={completedCredits}
                                         onToggle={() => toggleCourse(course.code)}
+                                        onGradeChange={(grade) => updateCourseGrade(course.code, grade)}
                                     />
                                 );
                             })}

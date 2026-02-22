@@ -14,7 +14,7 @@ import {
    ═══════════════════════════════════════════════════════════════════ */
 
 interface StudentDashboardProps {
-    completedCourses: Set<string>;
+    completedCourses: Map<string, any> | Set<string>;
     completedCredits: number;
     totalCredits: number;
     data: CourseData;
@@ -40,7 +40,7 @@ interface BadgeContext {
     completedCredits: number;
     completedCount: number;
     allCourses: Course[];
-    completedCourses: Set<string>;
+    completedCourses: Map<string, any> | Set<string>;
     totalCredits: number;
 }
 

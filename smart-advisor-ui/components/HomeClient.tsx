@@ -7,6 +7,7 @@ import StudentLogin from "@/components/StudentLogin";
 import LandingPage from "@/components/LandingPage";
 import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
+import InsightsView from "@/components/InsightsView"; // Added InsightsView import
 import { CourseData } from "@/types";
 import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
@@ -17,12 +18,18 @@ type AppState = "checking" | "landing" | "login" | "major-select" | "transcript"
 export default function HomeClient() {
     const { data: session, status } = useSession();
     const [appState, setAppState] = useState<AppState>("checking");
+    const [activeTab, setActiveTab] = useState<"Overview" | "Insights">("Overview");
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajorState] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);
     const [rules, setRules] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Progress State (Lifted for Insights)
+    const [completedCourses, setCompletedCourses] = useState<Map<string, number>>(new Map());
+    const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
+    const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map()); // Added courseNameMap state
 
     useEffect(() => {
         if (status === "loading") return;
@@ -40,6 +47,38 @@ export default function HomeClient() {
         }
     }, [status, session]);
 
+    // Effect to build courseNameMap when courseData changes
+    useEffect(() => {
+        if (courseData) {
+            const newMap = new Map<string, string>();
+            const categories = [
+                courseData.university_requirements,
+                courseData.college_requirements,
+                courseData.university_electives,
+                courseData.department_requirements,
+                courseData.electives,
+                courseData.work_market_requirements,
+            ];
+
+            categories.forEach(category => {
+                if (Array.isArray(category)) {
+                    category.forEach(item => {
+                        if (item.code && item.name) {
+                            newMap.set(item.code, item.name);
+                        } else if ((item as any).courses) {
+                            (item as any).courses.forEach((course: any) => {
+                                if (course.code && course.name) {
+                                    newMap.set(course.code, course.name);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            setCourseNameMap(newMap);
+        }
+    }, [courseData]);
+
     /** After login: fetch the student's saved major from the DB */
     async function loadProfile(id: string) {
         console.log(`[Advisor] Loading profile for: ${id}`);
@@ -53,10 +92,13 @@ export default function HomeClient() {
             }
             const { major: savedMajor } = await res.json();
             console.log(`[Advisor] Profile loaded. Major: ${savedMajor}`);
+
             if (savedMajor) {
                 setMajorState(savedMajor as MajorKey);
                 setAppState("transcript");
                 loadCourses(savedMajor as MajorKey);
+                // Load progress too
+                loadProgress(id, savedMajor as MajorKey);
             } else {
                 setAppState("major-select");
             }
@@ -65,6 +107,66 @@ export default function HomeClient() {
             setAppState("major-select");
         }
     }
+
+    async function loadProgress(id: string, majorKey: string) {
+        try {
+            const r = await fetch(`/api/progress/${encodeURIComponent(id)}?major=${majorKey}`);
+            const { completed } = await r.json();
+
+            const gradeMap = new Map<string, number>();
+            completed.forEach((c: any) => {
+                const code = typeof c === 'string' ? c : c.code;
+                const grade = typeof c === 'object' && c.grade !== undefined ? c.grade : 80;
+                gradeMap.set(code, grade);
+            });
+            setCompletedCourses(gradeMap);
+        } catch (e) {
+            setCompletedCourses(new Map());
+        }
+    }
+
+    const toggleCourse = async (code: string) => {
+        if (!studentId || !major) return;
+
+        const next = new Map(completedCourses);
+        if (next.has(code)) {
+            next.delete(code);
+        } else {
+            next.set(code, 80); // Default to 80% (3.0/4.0 approx)
+        }
+
+        setCompletedCourses(next);
+        saveProgressRemote(next);
+    };
+
+    const updateCourseGrade = (code: string, grade: number) => {
+        if (!studentId || !major) return;
+        const next = new Map(completedCourses);
+        next.set(code, grade);
+        setCompletedCourses(next);
+        saveProgressRemote(next);
+    };
+
+    const saveProgressRemote = async (currentProgress: Map<string, number>) => {
+        setSaveStatus("saving");
+        try {
+            const completedObjects = Array.from(currentProgress.entries()).map(([c, g]) => ({
+                code: c,
+                name: courseNameMap.get(c) || "",
+                grade: g
+            }));
+
+            await fetch(`/api/progress/${encodeURIComponent(studentId!)}/save`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ major, completed: completedObjects }),
+            });
+            setSaveStatus("saved");
+            setTimeout(() => setSaveStatus(null), 1500);
+        } catch (e) {
+            setSaveStatus(null);
+        }
+    };
 
     const handleLogout = () => {
         signOut();
@@ -215,31 +317,48 @@ export default function HomeClient() {
                                 <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTU Advisor</span>
                             </div>
 
-                            <nav className="hidden lg:flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
-                                {(["Overview", "Planning", "Insights"] as const).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        className="px-4 py-1.5 rounded-xl text-xs font-bold text-white/40 hover:text-white transition-all"
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
+                            <nav className="flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+                                {(["Overview", "Planning", "Insights"] as const).map((tab) => {
+                                    // Hide Planning for non-admin users
+                                    const isAdmin = session?.user &&
+                                        ((session.user as any).student_id === '123456' ||
+                                            session.user.email === 'omarmubaidincs@gmail.com');
+
+                                    if ((tab === "Planning" || tab === "Insights") && !isAdmin) return null;
+
+                                    return (
+                                        <button
+                                            key={tab}
+                                            onClick={() => tab !== "Planning" && setActiveTab(tab as any)}
+                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === tab
+                                                ? "bg-white/10 text-white shadow-sm"
+                                                : "text-white/40 hover:text-white"
+                                                }`}
+                                        >
+                                            {tab}
+                                        </button>
+                                    );
+                                })}
                             </nav>
 
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-3 pr-6 border-r border-white/5">
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">{studentId}</span>
-                                        {majorInfo && (
-                                            <div className="hidden sm:flex items-center gap-1.5 leading-none">
-                                                <span className="text-[11px] font-bold text-white/80">{majorInfo.label}</span>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">{studentId}</span>
+                                    {majorInfo && (
+                                        <div className="hidden sm:flex items-center gap-2">
+                                            <button
+                                                onClick={handleMajorChange}
+                                                className="group flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+                                            >
+                                                <Settings2 className="w-3 h-3 text-white/40 group-hover:text-white transition-colors" />
+                                                <span className="text-[11px] font-bold text-white/80 group-hover:text-white">{majorInfo.label}</span>
                                                 <span className="text-xs">{majorInfo.icon}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
-                                        {studentId?.substring(0, 2).toUpperCase()}
-                                    </div>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                                    {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
                                 <button
@@ -254,12 +373,52 @@ export default function HomeClient() {
                     </motion.header>
 
                     <main className="flex-1">
-                        <TranscriptView
-                            data={courseData}
-                            studentId={studentId!}
-                            majorKey={major!}
-                            rules={rules}
-                        />
+                        <AnimatePresence mode="wait">
+                            {activeTab === "Overview" ? (
+                                <motion.div
+                                    key="overview"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <TranscriptView
+                                        data={courseData}
+                                        studentId={studentId!}
+                                        majorKey={major!}
+                                        rules={rules}
+                                        completedCourses={completedCourses}
+                                        toggleCourse={toggleCourse}
+                                        updateCourseGrade={updateCourseGrade}
+                                        saveStatus={saveStatus}
+                                        resetProgress={() => {
+                                            setCompletedCourses(new Map());
+                                            fetch(`/api/progress/${encodeURIComponent(studentId!)}/save`, {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ major, completed: [] }),
+                                            });
+                                        }}
+                                    />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="insights"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="max-w-7xl mx-auto px-6 py-8"
+                                >
+                                    <InsightsView
+                                        data={courseData}
+                                        completedCourses={completedCourses}
+                                        majorKey={major!}
+                                        rules={rules}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </main>
                 </motion.div>
             )}
