@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import StudentLogin from "@/components/StudentLogin";
+import LandingPage from "@/components/LandingPage";
 import MajorSelector from "@/components/MajorSelector";
 import TranscriptView from "@/components/TranscriptView";
 import { CourseData } from "@/types";
@@ -11,7 +12,7 @@ import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
-type AppState = "checking" | "login" | "major-select" | "transcript";
+type AppState = "checking" | "landing" | "login" | "major-select" | "transcript";
 
 export default function HomeClient() {
     const { data: session, status } = useSession();
@@ -27,7 +28,7 @@ export default function HomeClient() {
         if (status === "loading") return;
 
         if (status === "unauthenticated") {
-            setAppState("login");
+            setAppState("landing");
         } else if (status === "authenticated" && session?.user) {
             const sid = (session.user as any).student_id || session.user.name;
             if (sid) {
@@ -137,203 +138,131 @@ export default function HomeClient() {
 
     // ─── Render ──────────────────────────────────────────────────────────────
 
-    if (appState === "checking") return <Spinner />;
-    if (appState === "login") return <StudentLogin />;
+    // ─── Render ──────────────────────────────────────────────────────────────
 
-    if (appState === "major-select") {
-        return (
-            <AnimatePresence mode="wait">
-                <motion.div key="selector" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <MajorSelector onSelect={handleMajorSelect} />
-                </motion.div>
-            </AnimatePresence>
-        );
-    }
-
-    const majorInfo = MAJORS.find(m => m.key === major) ?? MAJORS[0];
+    const majorInfo = major ? MAJORS.find(m => m.key === major) : null;
 
     return (
         <AnimatePresence mode="wait">
-            <motion.div
-                key="transcript"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="min-h-screen bg-black mesh-gradient"
-            >
-                {/* Sticky top bar */}
-                <header className="sticky top-0 z-50 border-b border-white/[0.05] bg-black/40 backdrop-blur-3xl">
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                        {/* Left: Brand */}
-                        <div className="flex items-center gap-8">
-                            <div className="flex items-center gap-2 group cursor-default">
+            {appState === "checking" && (
+                <motion.div
+                    key="checking"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                    <Spinner />
+                </motion.div>
+            )}
+
+            {appState === "landing" && (
+                <motion.div
+                    key="landing"
+                    initial={{ opacity: 0, scale: 1.02 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
+                    <LandingPage onGetStarted={() => setAppState("login")} />
+                </motion.div>
+            )}
+
+            {appState === "login" && (
+                <motion.div
+                    key="login"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
+                    <StudentLogin />
+                </motion.div>
+            )}
+
+            {appState === "major-select" && (
+                <motion.div
+                    key="major-select"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                >
+                    <MajorSelector onSelect={handleMajorSelect} />
+                </motion.div>
+            )}
+
+            {appState === "transcript" && courseData && rules && (
+                <motion.div
+                    key="transcript"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="min-h-screen flex flex-col pt-20"
+                >
+                    {/* Header: fixed at top with high z-index */}
+                    <motion.header
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="fixed top-0 left-0 right-0 z-[60] h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5"
+                    >
+                        <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+                            {/* Brand section */}
+                            <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
                                     <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-5 h-5 object-contain" />
                                 </div>
-                                <span className="text-sm font-black tracking-tight text-white uppercase italic">HTU Advisor</span>
+                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTU Advisor</span>
                             </div>
 
                             <nav className="hidden lg:flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
-                                <Link
-                                    href="/"
-                                    className="px-4 py-1.5 text-xs font-bold text-white bg-white/10 rounded-xl transition-all shadow-sm"
-                                >
-                                    Course Tracker
-                                </Link>
-                                {/* RESTRICTED VISIBILITY: Only visible for test user '123456' and main admin during verification */}
-                                {session?.user && ((session.user as any).student_id === '123456' || session.user.email === 'omarmubaidincs@gmail.com') && (
-                                    <Link
-                                        href="/planner"
-                                        className="px-4 py-1.5 text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all flex items-center gap-2"
+                                {(["Overview", "Planning", "Insights"] as const).map((tab) => (
+                                    <button
+                                        key={tab}
+                                        className="px-4 py-1.5 rounded-xl text-xs font-bold text-white/40 hover:text-white transition-all"
                                     >
-                                        <Sparkles className="w-3 h-3 text-violet-400" />
-                                        Semester Planner
-                                    </Link>
-                                )}
+                                        {tab}
+                                    </button>
+                                ))}
                             </nav>
-                        </div>
 
-                        {/* Right: Desktop Actions & Mobile Trigger */}
-                        <div className="flex items-center gap-4">
-                            {/* Desktop only user info */}
-                            <div className="hidden md:flex items-center gap-6">
+                            <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-3 pr-6 border-r border-white/5">
                                     <div className="flex flex-col items-end">
                                         <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">{studentId}</span>
-                                        <div className="flex items-center gap-1.5 leading-none">
-                                            <span className="text-[11px] font-bold text-white/80">{majorInfo.label}</span>
-                                            <span className="text-xs">{majorInfo.icon}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={handleMajorChange}
-                                        className="p-2 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 text-white/40 hover:text-white transition-all"
-                                        title="Edit Profile"
-                                    >
-                                        <Settings2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleLogout}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-red-400 transition-all group"
-                                    >
-                                        <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                                        Log out
-                                    </button>
-
-                                    <button
-                                        className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
-                                        onClick={() => {
-                                            const url = "https://htuai.mubx.dev";
-                                            const text = "Track your HTU courses and degree progress";
-                                            if (navigator.share) {
-                                                navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
-                                            } else {
-                                                navigator.clipboard.writeText(url).then(() => {
-                                                    const btn = document.getElementById('share-btn');
-                                                    if (btn) btn.innerHTML = '<span class="text-[10px]">Copied!</span>';
-                                                });
-                                            }
-                                        }}
-                                    >
-                                        <Share2 className="w-4 h-4" id="share-btn" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Mobile Hamburger Trigger */}
-                            <button
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="md:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white transition-all"
-                            >
-                                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Mobile Menu Drawer */}
-                    <AnimatePresence>
-                        {isMenuOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="md:hidden border-t border-white/5 bg-black/60 backdrop-blur-3xl overflow-hidden"
-                            >
-                                <div className="px-6 py-8 space-y-8">
-                                    {/* Mobile Nav Links */}
-                                    <div className="space-y-3 font-black">
-                                        <Link
-                                            href="/"
-                                            onClick={() => setIsMenuOpen(false)}
-                                            className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 text-white"
-                                        >
-                                            <span className="text-sm uppercase tracking-widest">Course Tracker</span>
-                                            <Sparkles className="w-4 h-4 text-violet-400" />
-                                        </Link>
-                                        {session?.user && ((session.user as any).student_id === '123456' || session.user.email === 'omarmubaidincs@gmail.com') && (
-                                            <Link
-                                                href="/planner"
-                                                onClick={() => setIsMenuOpen(false)}
-                                                className="flex items-center justify-between p-4 rounded-2xl bg-violet-600/10 border border-violet-500/20 text-violet-400"
-                                            >
-                                                <span className="text-sm uppercase tracking-widest">Semester Planner</span>
-                                                <Sparkles className="w-4 h-4" />
-                                            </Link>
+                                        {majorInfo && (
+                                            <div className="hidden sm:flex items-center gap-1.5 leading-none">
+                                                <span className="text-[11px] font-bold text-white/80">{majorInfo.label}</span>
+                                                <span className="text-xs">{majorInfo.icon}</span>
+                                            </div>
                                         )}
                                     </div>
-
-                                    {/* Mobile User Info */}
-                                    <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="space-y-1">
-                                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">{studentId}</p>
-                                                <p className="text-lg font-black text-white">{majorInfo.label}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => { handleMajorChange(); setIsMenuOpen(false); }}
-                                                className="p-3 rounded-2xl bg-white/5 text-white/40 hover:text-white transition-colors"
-                                            >
-                                                <Settings2 className="w-5 h-5" />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex gap-2 pt-2">
-                                            <button
-                                                onClick={handleLogout}
-                                                className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black uppercase tracking-widest"
-                                            >
-                                                <LogOut className="w-4 h-4" />
-                                                Log Out
-                                            </button>
-                                            <button
-                                                className="w-14 flex items-center justify-center rounded-2xl bg-white text-black active:scale-95 transition-all"
-                                                onClick={() => {
-                                                    const url = "https://htuai.mubx.dev";
-                                                    const text = "Track your HTU courses and degree progress";
-                                                    if (navigator.share) {
-                                                        navigator.share({ title: "HTU Advisor", text, url }).catch(() => { });
-                                                    }
-                                                }}
-                                            >
-                                                <Share2 className="w-5 h-5" />
-                                            </button>
-                                        </div>
+                                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                                        {studentId?.substring(0, 2).toUpperCase()}
                                     </div>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </header>
 
-                {/* Content */}
-                {loading ? (
-                    <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>
-                ) : courseData && major && rules ? (
-                    <TranscriptView data={courseData} studentId={studentId!} majorKey={major} rules={rules} />
-                ) : null}
-            </motion.div>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+                                    title="Sign out"
+                                >
+                                    <LogOut className="w-4.5 h-4.5" />
+                                </button>
+                            </div>
+                        </div>
+                    </motion.header>
+
+                    <main className="flex-1">
+                        <TranscriptView
+                            data={courseData}
+                            studentId={studentId!}
+                            majorKey={major!}
+                            rules={rules}
+                        />
+                    </main>
+                </motion.div>
+            )}
         </AnimatePresence>
     );
 }

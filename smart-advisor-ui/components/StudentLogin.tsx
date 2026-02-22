@@ -85,7 +85,7 @@ export default function StudentLogin() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="text-[32px] font-extrabold text-white mb-2 tracking-tight leading-none"
+                                className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight leading-none"
                             >
                                 {isClaiming ? "Start Your HTU Journey" : "HTU Advisor Login"}
                             </motion.h1>

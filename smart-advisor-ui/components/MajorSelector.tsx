@@ -10,11 +10,26 @@ interface MajorSelectorProps {
 
 const container = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.05,
+            delayChildren: 0.1
+        }
+    },
 };
 const item = {
-    hidden: { opacity: 0, y: 24, scale: 0.96 },
-    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", damping: 20, stiffness: 200 } },
+    hidden: { opacity: 0, y: 15, scale: 0.98 },
+    show: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            type: "spring",
+            stiffness: 260,
+            damping: 20
+        }
+    },
 } as const;
 
 /** Per-major accent glow colour */
@@ -144,7 +159,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                         variants={container}
                         initial="hidden"
                         animate="show"
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                     >
                         {MAJORS.filter(m => m.school === "Computing").map((major) => (
                             <MajorCard key={major.key} major={major} onSelect={onSelect} />
@@ -166,7 +181,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                         variants={container}
                         initial="hidden"
                         animate="show"
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                     >
                         {MAJORS.filter(m => m.school === "Engineering").map((major) => (
                             <MajorCard key={major.key} major={major} onSelect={onSelect} />
