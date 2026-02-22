@@ -87,7 +87,7 @@ export default function StudentLogin() {
                                 exit={{ opacity: 0, y: -10 }}
                                 className="text-[32px] font-extrabold text-white mb-2 tracking-tight leading-none"
                             >
-                                {isClaiming ? "Claim Your Spot" : "Welcome Back"}
+                                {isClaiming ? "Start Your HTU Journey" : "HTU Advisor Login"}
                             </motion.h1>
                         </AnimatePresence>
                         <p className="text-sm text-white/50 font-semibold">

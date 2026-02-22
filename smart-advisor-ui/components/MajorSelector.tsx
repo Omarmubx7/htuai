@@ -123,7 +123,7 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                         </span>
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-none">
-                        Choose your major
+                        Setup Your Academic Profile
                     </h1>
                     <p className="text-white/50 text-sm sm:text-base max-w-md mx-auto">
                         This is permanent — your courses and progress are tied to it.
