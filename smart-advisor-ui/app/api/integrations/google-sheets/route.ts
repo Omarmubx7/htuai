@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { getIntegrationToken, saveIntegrationToken } from "@/lib/database";
+import { getIntegrationToken, saveIntegrationToken, initPlannerTables } from "@/lib/database";
 
 /**
  * Refresh a Google access token using the stored refresh token.
@@ -67,7 +67,9 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+
+    await initPlannerTables();
     const token = await getIntegrationToken(studentId, "google_sheets");
 
     if (!token) {

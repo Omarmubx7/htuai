@@ -589,8 +589,9 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
             const res = await fetch("/api/integrations/status");
             if (res.ok) {
                 const data = await res.json();
-                setGcalConnected(data.google_calendar);
-                setSheetsConnected(data.google_sheets);
+                // Use functional updates so a URL-param-set 'true' is never overridden to false
+                setGcalConnected(prev => prev || data.google_calendar);
+                setSheetsConnected(prev => prev || data.google_sheets);
             }
         } catch (e) {
             console.error("Failed to fetch integration status:", e);

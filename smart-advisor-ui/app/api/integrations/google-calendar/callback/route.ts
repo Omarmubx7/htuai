@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/planner?error=unauthorized", req.url));
     }
 
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
 
