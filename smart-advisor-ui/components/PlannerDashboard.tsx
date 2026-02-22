@@ -599,14 +599,16 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
         }
     }, []);
 
+    // Handle OAuth callback params (runs once on mount)
     useEffect(() => {
-        fetchStatus();
-
-        if (autoSyncedRef.current) return;
         const params = new URLSearchParams(window.location.search);
         const connected = params.get("connected");
         const error = params.get("error");
-        if (!connected && !error) return;
+        if (!connected && !error) {
+            // No callback params — fetch status from server
+            fetchStatus();
+            return;
+        }
 
         const url = new URL(window.location.href);
         url.searchParams.delete("connected");
@@ -615,6 +617,7 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
 
         if (error) {
             setMessage({ text: `Integration error: ${error.replace(/_/g, " ")}`, ok: false });
+            fetchStatus();
             return;
         }
         if (connected === "google") {
@@ -626,7 +629,9 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
             setSheetsConnected(true);
             setAutoSyncSheets(true);
         }
-    }, [courses, fetchStatus]);
+        // Fetch remaining statuses without overriding the one just connected
+        fetchStatus();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const connectGoogleCalendar = () => {
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
