@@ -8,7 +8,7 @@ import {
     AlertTriangle, Lightbulb, Info,
     BarChart3, Calendar, Settings, ExternalLink, Loader2, Globe, Sparkles
 } from "lucide-react";
-import { PlannerCourse, StudySession, SemesterData } from "@/app/planner/page";
+import { PlannerCourse, StudySession, SemesterData } from "@/types";
 import {
     calculateGPA, getClassification, GRADE_MAP,
     SCORED_GRADES, generateInsights, type Insight, type HTUGrade

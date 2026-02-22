@@ -4,10 +4,11 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Course, CourseData } from "@/types";
 import {
-    GraduationCap, Target, BookOpen, TrendingUp,
+    GraduationCap, Target, BookOpen, TrendingUp as GpaIcon,
     Zap, Award, Star, Crown, Trophy, Rocket, Lock,
     ChevronRight, Sparkles
 } from "lucide-react";
+import { calculateGPA, getClassification, GRADE_MAP } from "@/lib/grading";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Props
@@ -158,6 +159,7 @@ export default function StudentDashboard({
         return "Academic Aspirant";
     }, [progressPct]);
 
+
     // ── Graduation estimate ──────────────────────────────────────────
     const graduationEstimate = useMemo(() => {
         if (completedCredits >= totalCredits) return "Graduated! 🎉";
@@ -306,7 +308,7 @@ export default function StudentDashboard({
                 </div>
             </div>
             {/* ── Stats Row ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard
                     icon={<Zap className="w-4 h-4" />}
                     label="Credit Hours"
@@ -316,12 +318,12 @@ export default function StudentDashboard({
                     delay={0}
                 />
                 <StatCard
-                    icon={<TrendingUp className="w-4 h-4" />}
+                    icon={<Sparkles className="w-4 h-4" />}
                     label="Degree Progress"
                     value={`${progressPct}%`}
                     sub="complete"
                     color="#3b82f6"
-                    delay={0.05}
+                    delay={0.06}
                     progress={progress}
                 />
                 <StatCard
@@ -330,7 +332,7 @@ export default function StudentDashboard({
                     value={graduationEstimate}
                     sub={completedCredits > 0 ? `${totalCredits - completedCredits} CH left` : ""}
                     color="#10b981"
-                    delay={0.1}
+                    delay={0.09}
                     isText
                 />
                 <StatCard
@@ -339,7 +341,7 @@ export default function StudentDashboard({
                     value={`${earnedCount}`}
                     sub={`/ ${BADGES.length}`}
                     color="#f59e0b"
-                    delay={0.15}
+                    delay={0.12}
                 />
             </div>
 
@@ -465,7 +467,7 @@ export default function StudentDashboard({
    Stat Card Sub-component
    ═══════════════════════════════════════════════════════════════════ */
 
-function StatCard({ icon, label, value, sub, color, delay, progress, isText }: {
+function StatCard({ icon, label, value, sub, color, delay, progress, isText, isRating, ratingLabel, motivation }: {
     icon: React.ReactNode;
     label: string;
     value: string;
@@ -474,6 +476,9 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText }: {
     delay: number;
     progress?: number;
     isText?: boolean;
+    isRating?: boolean;
+    ratingLabel?: string;
+    motivation?: string;
 }) {
     return (
         <motion.div
@@ -498,12 +503,25 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText }: {
                     </div>
                     <span className="text-[9px] text-white/25 uppercase font-bold tracking-widest">{label}</span>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                    <span className={`font-bold text-white ${isText ? "text-sm" : "text-xl"} tabular-nums tracking-tight`}>
+                <div className="flex items-baseline gap-1.5 min-w-0">
+                    <span className={`font-bold text-white ${isText ? "text-[12px] sm:text-sm" : "text-xl"} tabular-nums tracking-tight truncate`}>
                         {value}
                     </span>
-                    {sub && <span className="text-[10px] text-white/20 font-medium">{sub}</span>}
+                    {sub && <span className="text-[10px] text-white/20 font-medium truncate">{sub}</span>}
                 </div>
+
+                {isRating && ratingLabel && (
+                    <div className="mt-1 flex flex-col">
+                        <span className="text-[9px] font-black uppercase tracking-tighter" style={{ color }}>
+                            {ratingLabel}
+                        </span>
+                        {motivation && (
+                            <span className="text-[8px] font-medium text-white/40 italic leading-tight mt-0.5">
+                                &ldquo;{motivation}&rdquo;
+                            </span>
+                        )}
+                    </div>
+                )}
 
                 {/* Mini progress bar for Degree Progress card */}
                 {progress !== undefined && (

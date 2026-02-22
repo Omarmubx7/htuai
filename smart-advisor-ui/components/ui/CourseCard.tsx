@@ -7,7 +7,7 @@ import { Course } from "../../types";
 interface CourseCardProps {
     course: Course;
     isCompleted: boolean;
-    grade?: number;
+    grade?: string;
     isLocked: boolean;
     hasPrereqWarning?: boolean;
     lockReason?: string;
@@ -15,7 +15,6 @@ interface CourseCardProps {
     courseMap?: Record<string, string>;
     completedCredits?: number;
     onToggle: () => void;
-    onGradeChange?: (grade: number) => void;
 }
 
 function parsePrereqCodes(prereq: string): string[] {
@@ -42,7 +41,7 @@ function extractRequiredCH(prereq: string): number | null {
 export default function CourseCard({
     course,
     isCompleted,
-    grade = 80,
+    grade = "M",
     isLocked,
     hasPrereqWarning,
     lockReason,
@@ -50,8 +49,8 @@ export default function CourseCard({
     courseMap = {},
     completedCredits = 0,
     onToggle,
-    onGradeChange,
 }: CourseCardProps) {
+    const grades: string[] = ["D", "M", "P", "U"];
     const prereqCodes = course.prereq ? parsePrereqCodes(course.prereq) : [];
     const requiredCH = course.prereq ? extractRequiredCH(course.prereq) : null;
     const hasCHRule = requiredCH !== null;
@@ -110,26 +109,14 @@ export default function CourseCard({
             </h3>
 
             {/* Code + Credits + Optional Grade */}
-            <div className="flex justify-between items-center mt-2.5">
-                <span className="text-[10px] text-white/20 font-mono tracking-wider">{course.code}</span>
-                <div className="flex items-center gap-1.5">
-                    {isCompleted && onGradeChange && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20"
-                            onClick={(e) => e.stopPropagation()}>
-                            <span className="text-[10px] font-bold text-violet-400">{grade}%</span>
-                            <input
-                                type="range"
-                                min="60"
-                                max="100"
-                                value={grade}
-                                onChange={(e) => onGradeChange(parseInt(e.target.value))}
-                                className="w-12 h-1 accent-violet-500 cursor-pointer"
-                            />
-                        </div>
-                    )}
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border
+            <div className="flex flex-wrap items-center justify-between gap-y-2 mt-4 pt-1">
+                <span className="text-[11px] text-white/30 font-mono font-medium tracking-[0.1em]">{course.code}</span>
+
+                <div className="flex items-center gap-2">
+
+                    <span className={`text-[10px] font-black tracking-wider px-3 py-2 rounded-2xl border
                         ${isCompleted
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/90"
                             : "bg-white/5 border-white/8 text-white/40"
                         }`}>
                         {course.ch} CH

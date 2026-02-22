@@ -9,38 +9,92 @@ export interface GradeInfo {
 }
 
 export const GRADE_MAP: Record<string, GradeInfo> = {
-    D:  { label: "Distinction",             points: 4.0, colorKey: "emerald" },
-    M:  { label: "Merit",                   points: 3.2, colorKey: "blue" },
-    P:  { label: "Pass",                    points: 2.4, colorKey: "amber" },
-    U:  { label: "Unclassified",            points: 0,   colorKey: "red" },
-    WF: { label: "Withdrawal w/ Failure",   points: 0,   colorKey: "red" },
-    TC: { label: "Transfer Credits",        points: 0,   colorKey: "gray" },
-    X:  { label: "Not in Plan",             points: 0,   colorKey: "gray" },
+    D: { label: "Distinction", points: 4.0, colorKey: "emerald" },
+    M: { label: "Merit", points: 3.2, colorKey: "blue" },
+    P: { label: "Pass", points: 2.4, colorKey: "amber" },
+    U: { label: "Unclassified", points: 1.6, colorKey: "red" },
+    WF: { label: "Withdrawal with Failure", points: 0, colorKey: "red" },
+    TC: { label: "Transfer Credits", points: 0, colorKey: "gray" },
+    X: { label: "Course not Included in the Study Plan", points: 0, colorKey: "gray" },
 };
 
 export const SCORED_GRADES: HTUGrade[] = ["D", "M", "P", "U"];
 export const MIN_PASS_POINTS = 2.4;
 
 export const CUMULATIVE_CLASSIFICATIONS = [
-    { min: 3.6,  max: 4.0,  label: "Excellent (EX)", short: "EX",   colorKey: "emerald" },
-    { min: 3.2,  max: 3.59, label: "Very Good (VG)", short: "VG",   colorKey: "blue" },
-    { min: 2.8,  max: 3.19, label: "Good",           short: "Good", colorKey: "violet" },
-    { min: 2.4,  max: 2.79, label: "Satisfactory",   short: "SAT",  colorKey: "amber" },
-    { min: 0,    max: 2.39, label: "Below Minimum",  short: "LOW",  colorKey: "red" },
+    { min: 3.6, max: 4.0, label: "Excellent (EX)", short: "EX", colorKey: "emerald", motivation: "Elite status! You're crushing it." },
+    { min: 3.2, max: 3.59, label: "Very Good (VG)", short: "VG", colorKey: "blue", motivation: "Outstanding! Keep pushing for Distinction." },
+    { min: 2.8, max: 3.19, label: "Good", short: "Good", colorKey: "violet", motivation: "Solid performance. You're doing great!" },
+    { min: 2.4, max: 2.79, label: "Satisfactory", short: "SAT", colorKey: "amber", motivation: "On the right track. Every credit counts!" },
+    { min: 0, max: 2.39, label: "Below Minimum", short: "LOW", colorKey: "red", motivation: "Keep your head up. Focus on the next goal." },
 ];
+
+// ── GPA Logic ──────────────────────────────────────────
 
 export function gradeToPoints(grade: string): number {
     return GRADE_MAP[grade]?.points ?? 0;
 }
 
-export function calculateGPA(
-    courses: { credits: number; grade: string }[]
+/**
+ * Semester GPA logic (as requested)
+ */
+export function calculateSemesterGpa(courses: { grade: string; credits: number }[]): number {
+    let totalQualityPoints = 0;
+    let totalCredits = 0;
+
+    const scored = courses.filter(c => SCORED_GRADES.includes(c.grade as HTUGrade));
+
+    for (const course of scored) {
+        const points = gradeToPoints(course.grade);
+        totalQualityPoints += points * course.credits;
+        totalCredits += course.credits;
+    }
+
+    if (totalCredits === 0) return 0;
+    const gpa = totalQualityPoints / totalCredits;
+    return Math.round(gpa * 100) / 100; // Rounding to 2 decimal places
+}
+
+/**
+ * Cumulative GPA logic (as requested)
+ * Accumulates previous history with current semester results
+ */
+export function calculateCumulativeGpa(
+    oldGpa: number,
+    oldCredits: number,
+    currentCourses: { grade: string; credits: number }[]
 ): number {
-    const graded = courses.filter(c => SCORED_GRADES.includes(c.grade as HTUGrade));
-    const totalCH = graded.reduce((s, c) => s + c.credits, 0);
-    if (totalCH === 0) return 0;
-    const weighted = graded.reduce((s, c) => s + c.credits * gradeToPoints(c.grade), 0);
-    return Math.round((weighted / totalCH) * 100) / 100;
+    // 1) Old total quality points
+    const oldQualityPoints = oldGpa * oldCredits;
+
+    // 2) New semester quality points and credits
+    let newQualityPoints = 0;
+    let newCredits = 0;
+
+    const scored = currentCourses.filter(c => SCORED_GRADES.includes(c.grade as HTUGrade));
+
+    for (const course of scored) {
+        const points = gradeToPoints(course.grade);
+        newQualityPoints += points * course.credits;
+        newCredits += course.credits;
+    }
+
+    // 3) New totals
+    const totalQualityPoints = oldQualityPoints + newQualityPoints;
+    const totalCredits = oldCredits + newCredits;
+
+    if (totalCredits === 0) return 0;
+
+    // 4) New cumulative GPA
+    const gpa = totalQualityPoints / totalCredits;
+    return Math.round(gpa * 100) / 100;
+}
+
+/**
+ * Compatibility wrapper for existing dashboard logic
+ */
+export function calculateGPA(courses: { credits: number; grade: string }[]): number {
+    return calculateSemesterGpa(courses);
 }
 
 export function getClassification(gpa: number) {

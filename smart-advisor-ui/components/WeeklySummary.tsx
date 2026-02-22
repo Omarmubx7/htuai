@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Calendar, TrendingUp, TrendingDown, Clock, BookOpen, AlertTriangle } from "lucide-react";
-import { PlannerCourse, StudySession } from "@/app/planner/page";
+import { PlannerCourse, StudySession } from "@/types";
 
 interface WeeklySummaryProps {
     courses: PlannerCourse[];

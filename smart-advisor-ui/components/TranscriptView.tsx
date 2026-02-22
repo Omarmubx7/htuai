@@ -13,9 +13,9 @@ interface TranscriptViewProps {
     studentId: string;
     majorKey: string;
     rules: any;
-    completedCourses: Map<string, number>;
+    completedCourses: Map<string, string>;
     toggleCourse: (code: string) => void;
-    updateCourseGrade: (code: string, grade: number) => void;
+    updateCourseGrade: (code: string, grade: string) => void;
     saveStatus: "saved" | "saving" | null;
     resetProgress: () => void;
 }
@@ -116,7 +116,7 @@ export default function TranscriptView({
 
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-6 pt-10 pb-24 space-y-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-24 space-y-8 sm:space-y-12">
 
             {/* Data notice banner */}
             <div className="flex items-center gap-4 px-5 py-4 rounded-3xl border border-amber-500/10 bg-amber-500/[0.02] backdrop-blur-md">
@@ -136,7 +136,7 @@ export default function TranscriptView({
                             <div className="w-1.5 h-6 bg-violet-600 rounded-full" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Degree Progress</span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none text-gradient">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-none text-gradient">
                             My Transcript
                         </h1>
                     </div>
@@ -246,18 +246,18 @@ export default function TranscriptView({
                     </div>
                 </div>
 
-                <div className="flex p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-[1.25rem] shadow-inner backdrop-blur-xl">
+                <div className="flex p-1 bg-white/[0.03] border border-white/[0.05] rounded-xl sm:rounded-[1.25rem] shadow-inner backdrop-blur-xl w-full sm:w-auto">
                     {(["level", "category"] as const).map((mode) => (
                         <button
                             key={mode}
                             onClick={() => setViewMode(mode)}
-                            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all duration-300 relative group
+                            className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 relative group
                                 ${viewMode === mode
                                     ? "text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                                     : "text-white/40 hover:text-white"
                                 }`}
                         >
-                            {mode === "level" ? "Yearly Roadmap" : "Requirement Categories"}
+                            {mode === "level" ? "Roadmap" : "Categories"}
                         </button>
                     ))}
                 </div>
@@ -354,7 +354,6 @@ export default function TranscriptView({
                                         courseMap={courseMap}
                                         completedCredits={completedCredits}
                                         onToggle={() => toggleCourse(course.code)}
-                                        onGradeChange={(grade) => updateCourseGrade(course.code, grade)}
                                     />
                                 );
                             })}

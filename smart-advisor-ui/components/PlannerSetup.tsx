@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, ChevronRight, Check, AlertCircle, Sparkles } from "lucide-react";
-import { PlannerCourse } from "@/app/planner/page";
+import { PlannerCourse } from "@/types";
 
 interface PlannerSetupProps {
     onComplete: (courses: PlannerCourse[]) => void;

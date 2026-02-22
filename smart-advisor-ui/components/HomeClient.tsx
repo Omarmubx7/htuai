@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import StudentLogin from "@/components/StudentLogin";
 import LandingPage from "@/components/LandingPage";
-import MajorSelector from "@/components/MajorSelector";
-import TranscriptView from "@/components/TranscriptView";
-import InsightsView from "@/components/InsightsView"; // Added InsightsView import
+import MajorSelector from "./MajorSelector";
+import TranscriptView from "./TranscriptView";
+import StudyPlannerView from "./StudyPlannerView";
 import { CourseData } from "@/types";
 import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
@@ -18,7 +18,7 @@ type AppState = "checking" | "landing" | "login" | "major-select" | "transcript"
 export default function HomeClient() {
     const { data: session, status } = useSession();
     const [appState, setAppState] = useState<AppState>("checking");
-    const [activeTab, setActiveTab] = useState<"Overview" | "Insights">("Overview");
+    const [activeTab, setActiveTab] = useState<"Overview">("Overview");
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajorState] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);
@@ -27,7 +27,7 @@ export default function HomeClient() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Progress State (Lifted for Insights)
-    const [completedCourses, setCompletedCourses] = useState<Map<string, number>>(new Map());
+    const [completedCourses, setCompletedCourses] = useState<Map<string, string>>(new Map());
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map()); // Added courseNameMap state
 
@@ -113,10 +113,18 @@ export default function HomeClient() {
             const r = await fetch(`/api/progress/${encodeURIComponent(id)}?major=${majorKey}`);
             const { completed } = await r.json();
 
-            const gradeMap = new Map<string, number>();
+            const gradeMap = new Map<string, string>();
             completed.forEach((c: any) => {
                 const code = typeof c === 'string' ? c : c.code;
-                const grade = typeof c === 'object' && c.grade !== undefined ? c.grade : 80;
+                let grade = typeof c === 'object' && c.grade !== undefined ? String(c.grade) : "M";
+                // Legacy check: if it's numeric, map it to something sensible
+                if (!isNaN(Number(grade)) && grade !== "WF") {
+                    const n = Number(grade);
+                    if (n >= 90) grade = "D";
+                    else if (n >= 80) grade = "M";
+                    else if (n >= 70) grade = "P";
+                    else grade = "U";
+                }
                 gradeMap.set(code, grade);
             });
             setCompletedCourses(gradeMap);
@@ -132,14 +140,14 @@ export default function HomeClient() {
         if (next.has(code)) {
             next.delete(code);
         } else {
-            next.set(code, 80); // Default to 80% (3.0/4.0 approx)
+            next.set(code, "M"); // Default to Merit
         }
 
         setCompletedCourses(next);
         saveProgressRemote(next);
     };
 
-    const updateCourseGrade = (code: string, grade: number) => {
+    const updateCourseGrade = (code: string, grade: string) => {
         if (!studentId || !major) return;
         const next = new Map(completedCourses);
         next.set(code, grade);
@@ -147,7 +155,7 @@ export default function HomeClient() {
         saveProgressRemote(next);
     };
 
-    const saveProgressRemote = async (currentProgress: Map<string, number>) => {
+    const saveProgressRemote = async (currentProgress: Map<string, string>) => {
         setSaveStatus("saving");
         try {
             const completedObjects = Array.from(currentProgress.entries()).map(([c, g]) => ({
@@ -240,8 +248,6 @@ export default function HomeClient() {
 
     // ─── Render ──────────────────────────────────────────────────────────────
 
-    // ─── Render ──────────────────────────────────────────────────────────────
-
     const majorInfo = major ? MAJORS.find(m => m.key === major) : null;
 
     return (
@@ -317,29 +323,7 @@ export default function HomeClient() {
                                 <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTU Advisor</span>
                             </div>
 
-                            <nav className="flex items-center gap-1 p-1 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
-                                {(["Overview", "Planning", "Insights"] as const).map((tab) => {
-                                    // Hide Planning for non-admin users
-                                    const isAdmin = session?.user &&
-                                        ((session.user as any).student_id === '123456' ||
-                                            session.user.email === 'omarmubaidincs@gmail.com');
-
-                                    if ((tab === "Planning" || tab === "Insights") && !isAdmin) return null;
-
-                                    return (
-                                        <button
-                                            key={tab}
-                                            onClick={() => tab !== "Planning" && setActiveTab(tab as any)}
-                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === tab
-                                                ? "bg-white/10 text-white shadow-sm"
-                                                : "text-white/40 hover:text-white"
-                                                }`}
-                                        >
-                                            {tab}
-                                        </button>
-                                    );
-                                })}
-                            </nav>
+                            {/* Navigation hidden as only overview is available here */}
 
                             <div className="flex items-center gap-3">
                                 <div className="flex flex-col items-end">
@@ -374,50 +358,32 @@ export default function HomeClient() {
 
                     <main className="flex-1">
                         <AnimatePresence mode="wait">
-                            {activeTab === "Overview" ? (
-                                <motion.div
-                                    key="overview"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <TranscriptView
-                                        data={courseData}
-                                        studentId={studentId!}
-                                        majorKey={major!}
-                                        rules={rules}
-                                        completedCourses={completedCourses}
-                                        toggleCourse={toggleCourse}
-                                        updateCourseGrade={updateCourseGrade}
-                                        saveStatus={saveStatus}
-                                        resetProgress={() => {
-                                            setCompletedCourses(new Map());
-                                            fetch(`/api/progress/${encodeURIComponent(studentId!)}/save`, {
-                                                method: "POST",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({ major, completed: [] }),
-                                            });
-                                        }}
-                                    />
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="insights"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="max-w-7xl mx-auto px-6 py-8"
-                                >
-                                    <InsightsView
-                                        data={courseData}
-                                        completedCourses={completedCourses}
-                                        majorKey={major!}
-                                        rules={rules}
-                                    />
-                                </motion.div>
-                            )}
+                            <motion.div
+                                key="overview"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <TranscriptView
+                                    data={courseData}
+                                    studentId={studentId!}
+                                    majorKey={major!}
+                                    rules={rules}
+                                    completedCourses={completedCourses}
+                                    toggleCourse={toggleCourse}
+                                    updateCourseGrade={updateCourseGrade}
+                                    saveStatus={saveStatus}
+                                    resetProgress={() => {
+                                        setCompletedCourses(new Map());
+                                        fetch(`/api/progress/${encodeURIComponent(studentId!)}/save`, {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ major, completed: [] }),
+                                        });
+                                    }}
+                                />
+                            </motion.div>
                         </AnimatePresence>
                     </main>
                 </motion.div>
