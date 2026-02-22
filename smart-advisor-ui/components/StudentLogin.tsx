@@ -69,7 +69,7 @@ export default function StudentLogin() {
                         transition={{ delay: 0.2 }}
                         className="pill-badge-premium"
                     >
-                        <Sparkles className="w-3.5 h-3.5 fill-violet-400/20" />
+                        <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-4 h-4" />
                         HTU Smart Advisor
                     </motion.div>
                 </div>

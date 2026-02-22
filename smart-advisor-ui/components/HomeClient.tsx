@@ -166,8 +166,8 @@ export default function HomeClient() {
                         {/* Left: Brand */}
                         <div className="flex items-center gap-8">
                             <div className="flex items-center gap-2 group cursor-default">
-                                <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.3)]">
-                                    <Sparkles className="w-4 h-4 text-white" />
+                                <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
+                                    <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-5 h-5 object-contain" />
                                 </div>
                                 <span className="text-sm font-black tracking-tight text-white uppercase italic">HTU Advisor</span>
                             </div>
