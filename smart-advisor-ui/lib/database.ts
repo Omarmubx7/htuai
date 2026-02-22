@@ -309,6 +309,8 @@ export async function initPlannerTables() {
             UNIQUE(student_id, provider)
         );
     `;
+    // Supported providers: google_calendar, google_sheets
+    // metadata stores provider-specific data (e.g. spreadsheetId for google_sheets)
 }
 
 export async function loadPlanner(studentId: string) {

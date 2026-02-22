@@ -58,7 +58,7 @@ export default function TermsPage() {
                             <HelpCircle className="w-5 h-5 text-violet-400" /> External Integrations
                         </h2>
                         <p>
-                            Our integrations with Notion and Google Calendar are optional features. Use of these features is subject to the respective terms and privacy policies of Notion Labs, Inc. and Google LLC.
+                            Our integrations with Google Calendar and Google Sheets are optional features. Use of these features is subject to the terms and privacy policies of Google LLC.
                         </p>
                     </section>
 

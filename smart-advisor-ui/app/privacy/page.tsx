@@ -47,8 +47,8 @@ export default function PrivacyPage() {
                                 When you choose to use our integrations, we handle your data with extreme care:
                             </p>
                             <ul className="list-disc pl-6 space-y-2 text-sm">
-                                <li><span className="text-white font-bold">Notion:</span> We only access the pages you explicitly share with the integration to create your Study Hub.</li>
                                 <li><span className="text-white font-bold">Google Calendar:</span> We only request permission to add midterm and final exam dates to your primary calendar.</li>
+                                <li><span className="text-white font-bold">Google Sheets:</span> We only access spreadsheets created by the integration to sync your planner data.</li>
                             </ul>
                             <p className="text-xs text-white/40 italic">
                                 We do not store your external passwords. All connections are handled via secure OAuth tokens.

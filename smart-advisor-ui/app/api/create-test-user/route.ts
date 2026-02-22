@@ -23,7 +23,6 @@ export async function POST() {
     }
 
     // Ensure integration tokens exist for testing
-    await saveIntegrationToken(studentId, "notion", "test-notion-token", undefined, undefined, { parentPageId: "test-page-id", semester: "Test" });
     await saveIntegrationToken(studentId, "google_calendar", "test-gcal-token", undefined, undefined, {});
 
     return NextResponse.json({ message: "Test user created", id: userId });

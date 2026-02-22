@@ -508,7 +508,7 @@ export default function PlannerDashboard({
             <WeeklySummary courses={courses} studySessions={studySessions} />
 
             {/* ════ Integrations ════ */}
-            <IntegrationPanel courses={courses} />
+            <IntegrationPanel courses={courses} studySessions={studySessions} />
 
             {/* ════ HTU Grading Scale Reference ════ */}
             <section>
@@ -565,13 +565,20 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 
 import { useSession } from "next-auth/react";
 
-function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
+function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]; studySessions: StudySession[] }) {
     const { data: session } = useSession();
     const [gcalLoading, setGcalLoading] = useState(false);
-    const [notionLoading, setNotionLoading] = useState(false);
+    const [sheetsLoading, setSheetsLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(true);
-    const [notionConnected, setNotionConnected] = useState(false);
     const [gcalConnected, setGcalConnected] = useState(false);
+    const [sheetsConnected, setSheetsConnected] = useState(false);
+    const [autoSyncSheets, setAutoSyncSheets] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('htuai_sheets_autosync') !== 'false';
+        }
+        return true;
+    });
+    const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
     const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
     const autoSyncedRef = useRef(false);
 
@@ -582,8 +589,8 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             const res = await fetch("/api/integrations/status");
             if (res.ok) {
                 const data = await res.json();
-                setNotionConnected(data.notion);
                 setGcalConnected(data.google_calendar);
+                setSheetsConnected(data.google_sheets);
             }
         } catch (e) {
             console.error("Failed to fetch integration status:", e);
@@ -606,10 +613,6 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         url.searchParams.delete("error");
         window.history.replaceState({}, "", url.pathname + url.search);
 
-        if (error === "notion_no_pages") {
-            setMessage({ text: "Notion requires you to share at least one page. When the Notion popup appears, select a page (any page works) — the Study Plan will be created inside it.", ok: false });
-            return;
-        }
         if (error) {
             setMessage({ text: `Integration error: ${error.replace(/_/g, " ")}`, ok: false });
             return;
@@ -618,29 +621,10 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             setMessage({ text: "Google Calendar connected! Click Sync to push exam dates.", ok: true });
             setGcalConnected(true);
         }
-        if (connected === "notion" && courses.length > 0) {
-            setNotionConnected(true);
-            autoSyncedRef.current = true;
-            (async () => {
-                setNotionLoading(true);
-                setMessage({ text: "Auto-syncing courses to Notion…", ok: true });
-                try {
-                    const res = await fetch("/api/integrations/notion", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ courses }),
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        setMessage({ text: `Connected & synced ${data.successCount} courses to Notion`, ok: true });
-                    } else {
-                        setMessage({ text: data.error || "Connected but sync failed", ok: false });
-                    }
-                } catch {
-                    setMessage({ text: "Connected but auto-sync failed", ok: false });
-                }
-                setNotionLoading(false);
-            })();
+        if (connected === "google_sheets") {
+            setMessage({ text: "Google Sheets connected! Seamless Sync is now active.", ok: true });
+            setSheetsConnected(true);
+            setAutoSyncSheets(true);
         }
     }, [courses, fetchStatus]);
 
@@ -684,79 +668,55 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         setGcalLoading(false);
     };
 
-    const connectNotion = () => {
-        const clientId = process.env.NEXT_PUBLIC_NOTION_CLIENT_ID;
-        const templateId = process.env.NEXT_PUBLIC_NOTION_TEMPLATE_ID; // Allow auto-provisioning
-
+    const connectGoogleSheets = () => {
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
         if (!clientId) {
-            setMessage({ text: "Notion not configured yet.", ok: false });
+            setMessage({ text: "Google configuration missing.", ok: false });
             return;
         }
-        const redirect = `${window.location.origin}/api/integrations/notion/callback`;
-        let url = `https://api.notion.com/v1/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&owner=user`;
-
-        if (templateId) {
-            url += `&template_id=${templateId}`;
-        }
-
+        const redirect = `${window.location.origin}/api/integrations/google-sheets/callback`;
+        const scope = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file";
+        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
         window.location.href = url;
     };
 
-    const syncNotion = async () => {
-        if (!notionConnected) {
-            setMessage({ text: "Follow the correct order: \n1. Click 'Connect' to authorize Notion \n2. Click 'Sync' to export courses.", ok: false });
-            return;
+    const toggleAutoSync = useCallback((enabled: boolean) => {
+        setAutoSyncSheets(enabled);
+        localStorage.setItem('htuai_sheets_autosync', String(enabled));
+        if (enabled && sheetsConnected) {
+            setMessage({ text: "Seamless Sync enabled — changes will auto-sync to Google Sheets.", ok: true });
         }
-        setNotionLoading(true);
-        setMessage(null);
-        try {
-            const res = await fetch("/api/integrations/notion", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ courses }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setMessage({ text: `Synced ${data.successCount} courses to Notion`, ok: true });
-            } else {
-                const errorMsg = res.status === 401
-                    ? "Connection lost. Follow the correct order: 1. Reconnect Notion, then 2. Try Sync again."
-                    : (data.error || "Failed to sync");
-                setMessage({ text: errorMsg, ok: false });
-            }
-        } catch {
-            setMessage({ text: "Sync failed. Follow the correct order: 1. Connect, 2. Sync.", ok: false });
-        }
-        setNotionLoading(false);
-    };
+    }, [sheetsConnected]);
 
-    const initNotionPage = async () => {
-        if (!notionConnected) {
-            setMessage({ text: "Follow the correct order: \n1. Click 'Connect' to authorize Notion \n2. Click 'New Page' to create the hub.", ok: false });
-            return;
-        }
-        setNotionLoading(true);
-        setMessage(null);
+    const syncGoogleSheets = useCallback(async (silent = false) => {
+        if (!sheetsConnected) return;
+        if (!silent) setSheetsLoading(true);
         try {
-            const res = await fetch("/api/integrations/notion", {
+            const res = await fetch("/api/integrations/google-sheets", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ courses, createNewPage: true }),
+                body: JSON.stringify({ courses, studySessions }),
             });
-            const data = await res.json();
             if (res.ok) {
-                setMessage({ text: `Created new Study Plan page with ${data.successCount} courses`, ok: true });
-            } else {
-                const errorMsg = res.status === 401
-                    ? "Connection lost. Follow the correct order: 1. Reconnect Notion, then 2. Create New Page."
-                    : (data.error || "Failed to create page");
-                setMessage({ text: errorMsg, ok: false });
+                setLastSyncTime(new Date().toLocaleTimeString());
+                if (!silent) setMessage({ text: "Google Sheets updated successfully!", ok: true });
+            } else if (!silent) {
+                const data = await res.json().catch(() => ({}));
+                setMessage({ text: data.error || "Sync to Sheets failed.", ok: false });
             }
         } catch {
-            setMessage({ text: "Network error. Follow the correct order: 1. Connect, 2. New Page.", ok: false });
+            if (!silent) setMessage({ text: "Auto-sync to Sheets failed.", ok: false });
         }
-        setNotionLoading(false);
-    };
+        if (!silent) setSheetsLoading(false);
+    }, [courses, studySessions, sheetsConnected]);
+
+    // Background auto-sync trigger
+    useEffect(() => {
+        if (sheetsConnected && autoSyncSheets && courses.length > 0) {
+            const timer = setTimeout(() => syncGoogleSheets(true), 3000); // 3s debounce
+            return () => clearTimeout(timer);
+        }
+    }, [courses, studySessions, sheetsConnected, autoSyncSheets, syncGoogleSheets]);
 
     const steps = [
         {
@@ -780,13 +740,13 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         },
         {
             id: 3,
-            title: "Notion Workspace",
-            desc: "Build a structured study hub",
-            isDone: notionConnected,
-            actionLabel: notionConnected ? "Connected" : "Connect",
-            onClick: connectNotion,
-            icon: <BookOpen className="w-4 h-4" />,
-            disabled: !gcalConnected && !notionConnected // Encourage calendar first but not strictly required by API
+            title: "Seamless Sync",
+            desc: "Auto-sync everything to Google Sheets",
+            isDone: sheetsConnected,
+            actionLabel: sheetsConnected ? "Synced" : "Connect",
+            onClick: connectGoogleSheets,
+            icon: <BarChart3 className="w-4 h-4" />,
+            disabled: !isGoogleAuth && !sheetsConnected
         }
     ];
 
@@ -851,12 +811,52 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
 
             {/* Quick Actions (only visible when steps are mostly done) */}
             <AnimatePresence>
-                {(gcalConnected || notionConnected) && (
+                {(gcalConnected || sheetsConnected) && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
+                        {/* Google Sheets Seamless Sync */}
+                        {sheetsConnected && (
+                            <div className="glass-card-premium p-4 rounded-2xl border border-emerald-500/10 flex items-center justify-between gap-3 md:col-span-2">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                        autoSyncSheets ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/40"
+                                    }`}>
+                                        {sheetsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-xs font-bold block">Seamless Sync</span>
+                                        <span className="text-[10px] text-white/30 block truncate">
+                                            {sheetsLoading ? "Syncing…" : lastSyncTime ? `Last synced ${lastSyncTime}` : "Auto-sync to Google Sheets"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <button
+                                        onClick={() => syncGoogleSheets(false)}
+                                        disabled={sheetsLoading}
+                                        className="px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 text-[10px] font-bold transition-colors disabled:opacity-50"
+                                    >
+                                        {sheetsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Now"}
+                                    </button>
+                                    {/* Toggle Switch */}
+                                    <button
+                                        role="switch"
+                                        aria-checked={autoSyncSheets}
+                                        onClick={() => toggleAutoSync(!autoSyncSheets)}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                            autoSyncSheets ? "bg-emerald-500" : "bg-white/10"
+                                        }`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            autoSyncSheets ? "translate-x-6" : "translate-x-1"
+                                        }`} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         {gcalConnected && (
                             <div className="glass-card-premium p-4 rounded-2xl border border-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -872,32 +872,6 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
                                 >
                                     {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Calendar"}
                                 </button>
-                            </div>
-                        )}
-                        {notionConnected && (
-                            <div className="glass-card-premium p-4 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white">
-                                        <BookOpen className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-xs font-bold">Notion Hub</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => initNotionPage()}
-                                        disabled={notionLoading}
-                                        className="px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 text-[10px] font-bold transition-colors disabled:opacity-50"
-                                    >
-                                        {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "New Page"}
-                                    </button>
-                                    <button
-                                        onClick={syncNotion}
-                                        disabled={notionLoading}
-                                        className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-[10px] font-bold transition-colors disabled:opacity-50"
-                                    >
-                                        {notionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Data"}
-                                    </button>
-                                </div>
                             </div>
                         )}
                     </motion.div>
@@ -967,9 +941,9 @@ function GetStartedModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                                     desc="Connect your Google Calendar to automatically push midterm and final exam reminders."
                                 />
                                 <OnboardingFeature
-                                    icon={<BookOpen className="w-5 h-5 text-emerald-400" />}
-                                    title="Notion Study Hub"
-                                    desc="Export your entire semester plan to a structured Notion workspace with just one click."
+                                    icon={<BarChart3 className="w-5 h-5 text-emerald-400" />}
+                                    title="Google Sheets Sync"
+                                    desc="Auto-sync your courses and study logs to Google Sheets in the background."
                                 />
                             </div>
 

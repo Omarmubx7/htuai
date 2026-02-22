@@ -2,7 +2,7 @@
 
 ## 1. Product Overview
 
-**HTU Smart Advisor** is a Next.js academic advising and course-tracking platform built for Al Hussein Technical University (HTU). It allows students to track their degree progress across 8 majors, plan semesters, calculate GPA, and integrate with Google Calendar and Notion. It includes an admin analytics dashboard.
+**HTU Smart Advisor** is a Next.js academic advising and course-tracking platform built for Al Hussein Technical University (HTU). It allows students to track their degree progress across 8 majors, plan semesters, calculate GPA, and integrate with Google Calendar and Google Sheets. It includes an admin analytics dashboard.
 
 **Tech Stack:** Next.js 16 (App Router), NextAuth 4, Vercel Postgres, bcryptjs, TypeScript, Tailwind CSS, Framer Motion.
 
@@ -57,10 +57,10 @@
 - **POST /api/integrations/google-calendar:** Pushes midterm & final exam dates as Google Calendar events with reminders (1 day + 1 hour before). Body: `{ courses: [{ name, midtermDate?, finalDate?, credits }] }`. Requires stored Google OAuth token.
 - **GET /api/integrations/google-calendar/callback:** OAuth2 callback — exchanges authorization code for tokens, saves to DB, redirects to `/planner`.
 
-### 3.7 Notion Integration
+### 3.7 Google Sheets Integration
 
-- **POST /api/integrations/notion:** Syncs courses to a Notion database. Body: `{ courses[], semesterName?, createNewPage? }`. Requires stored Notion OAuth token.
-- **GET /api/integrations/notion/callback:** OAuth2 callback — exchanges auth code for access token, creates "Study Plan" page, redirects to `/planner`.
+- **POST /api/integrations/google-sheets:** Syncs courses and study sessions to a Google Sheets spreadsheet. Body: `{ courses[], studySessions[] }`. Requires stored Google OAuth token. Auto-provisions a spreadsheet with "Courses" and "Study Logs" sheets if none exists.
+- **GET /api/integrations/google-sheets/callback:** OAuth2 callback — exchanges auth code for access token, saves to DB, redirects to `/planner`.
 
 ### 3.8 Admin Dashboard
 
@@ -89,8 +89,8 @@
 | DELETE | `/api/planner` | Session | Delete planner |
 | POST | `/api/integrations/google-calendar` | Session + OAuth token | Push exam dates to Google Calendar |
 | GET | `/api/integrations/google-calendar/callback` | OAuth flow | Google OAuth callback |
-| POST | `/api/integrations/notion` | Session + OAuth token | Sync courses to Notion |
-| GET | `/api/integrations/notion/callback` | OAuth flow | Notion OAuth callback |
+| POST | `/api/integrations/google-sheets` | Session + OAuth token | Sync planner data to Google Sheets |
+| GET | `/api/integrations/google-sheets/callback` | OAuth flow | Google Sheets OAuth callback |
 | GET | `/api/admin/stats` | Admin secret | Get analytics data |
 | GET | `/api/admin/logs` | Admin secret | Get visitor logs |
 | POST | `/api/setup` | Admin secret | Initialize DB tables |
@@ -123,7 +123,7 @@
 6. GPA uses HTU's D (4.0) / M (3.2) / P (2.4) / U (0.0) grading scale.
 7. Admin endpoints require `x-admin-secret` header matching the `ADMIN_SECRET` environment variable.
 8. The `/api/reset` endpoint drops ALL tables — it is destructive and admin-only.
-9. Integration tokens (Google Calendar, Notion) are stored per-student and per-provider.
+9. Integration tokens (Google Calendar, Google Sheets) are stored per-student and per-provider.
 10. Visitor logging captures IP, device info, OS, and browser on each page load.
 
 ---
