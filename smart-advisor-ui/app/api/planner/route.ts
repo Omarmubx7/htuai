@@ -41,12 +41,12 @@ export async function POST(req: NextRequest) {
         await initPlannerTables();
         const body = await req.json();
         // Validate structure
-        if (!body.id || !body.name || !Array.isArray(body.courses) || (body.studySessions !== undefined && !Array.isArray(body.studySessions))) {
+        if (!body.id || !Array.isArray(body.courses) || (body.studySessions !== undefined && !Array.isArray(body.studySessions))) {
             return NextResponse.json({ error: "Invalid data" }, { status: 400 });
         }
         await savePlanner(studentId, {
             id: body.id,
-            name: body.name,
+            name: body.name || "My Planner",
             courses: body.courses,
             studySessions: body.studySessions || [],
         });

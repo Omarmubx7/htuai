@@ -35,11 +35,12 @@ interface PlannerDashboardProps {
     allSemesters?: SemesterData[];
     onUpdateCourses: (courses: PlannerCourse[]) => void;
     onAddStudySession: (session: StudySession) => void;
+    onUpdateStudySession: (session: StudySession) => void;
     onDeleteStudySession: (id: string) => void;
 }
 
 export default function PlannerDashboard({
-    courses, studySessions, allSemesters = [], onUpdateCourses, onAddStudySession, onDeleteStudySession
+    courses, studySessions, allSemesters = [], onUpdateCourses, onAddStudySession, onUpdateStudySession, onDeleteStudySession
 }: PlannerDashboardProps) {
 
     // ── Onboarding state ───────────────────────────────────────────────
@@ -134,6 +135,51 @@ export default function PlannerDashboard({
             "In Progress": "Completed", "Completed": "At Risk", "At Risk": "In Progress"
         };
         onUpdateCourses(courses.map(c => c.id === id ? { ...c, status: order[c.status] } : c));
+    };
+
+    // ── Add Course state ────────────────────────────────────────────────
+    const [showAddCourse, setShowAddCourse] = useState(false);
+    const [newCourseName, setNewCourseName] = useState("");
+    const [newCourseCredits, setNewCourseCredits] = useState("3");
+
+    const addCourse = () => {
+        const name = newCourseName.trim();
+        if (!name) return;
+        const credits = parseInt(newCourseCredits) || 3;
+        onUpdateCourses([...courses, {
+            id: Math.random().toString(36).substr(2, 9),
+            name,
+            credits,
+            hasMidterm: false,
+            status: "In Progress",
+        }]);
+        setNewCourseName("");
+        setNewCourseCredits("3");
+        setShowAddCourse(false);
+    };
+
+    const deleteCourse = (id: string) => {
+        onUpdateCourses(courses.filter(c => c.id !== id));
+    };
+
+    // ── Edit study session state ────────────────────────────────────────
+    const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+    const [editSessionHours, setEditSessionHours] = useState("");
+    const [editSessionNotes, setEditSessionNotes] = useState("");
+    const [editSessionDate, setEditSessionDate] = useState("");
+
+    const startEditSession = (s: StudySession) => {
+        setEditingSessionId(s.id);
+        setEditSessionHours(String(s.hours));
+        setEditSessionNotes(s.notes || "");
+        setEditSessionDate(s.date);
+    };
+
+    const saveEditSession = (s: StudySession) => {
+        const hrs = parseFloat(editSessionHours);
+        if (isNaN(hrs) || hrs <= 0) return;
+        onUpdateStudySession({ ...s, hours: hrs, notes: editSessionNotes || undefined, date: editSessionDate });
+        setEditingSessionId(null);
     };
 
     const addSession = () => {
@@ -236,8 +282,68 @@ export default function PlannerDashboard({
                     <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
                         <BookOpen className="w-3.5 h-3.5" /> Semester Courses
                     </h3>
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{courses.length} courses tracked</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{courses.length} courses tracked</span>
+                        <button
+                            onClick={() => setShowAddCourse(!showAddCourse)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+                        >
+                            <Plus className="w-3 h-3" /> Add Course
+                        </button>
+                    </div>
                 </div>
+
+                {/* Add Course Form */}
+                <AnimatePresence>
+                    {showAddCourse && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="glass-card-premium p-4 rounded-2xl border border-violet-500/20 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                                <div className="flex-1 space-y-1">
+                                    <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Course Name</label>
+                                    <input
+                                        autoFocus
+                                        value={newCourseName}
+                                        onChange={e => setNewCourseName(e.target.value)}
+                                        onKeyDown={e => e.key === "Enter" && addCourse()}
+                                        placeholder="e.g. Data Structures"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/20 outline-none focus:border-violet-500/40"
+                                    />
+                                </div>
+                                <div className="w-24 space-y-1">
+                                    <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Credits</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="6"
+                                        value={newCourseCredits}
+                                        onChange={e => setNewCourseCredits(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-violet-500/40"
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={addCourse}
+                                        disabled={!newCourseName.trim()}
+                                        className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Add
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAddCourse(false)}
+                                        className="px-3 py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white text-xs font-bold transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <div className="glass-card-premium rounded-[2.5rem] border border-white/5 overflow-hidden overflow-x-auto shadow-2xl bg-black/20">
                     <table className="w-full text-left border-collapse min-w-275">
@@ -251,7 +357,8 @@ export default function PlannerDashboard({
                                 <Th className="w-44 text-center">Instructor</Th>
                                 <Th className="w-44 text-center">Location</Th>
                                 <Th className="w-24 text-center">Study Hrs</Th>
-                                <Th className="w-32 pr-8 text-right">Status</Th>
+                                <Th className="w-32 text-center">Status</Th>
+                                <Th className="w-16 pr-8 text-right"></Th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/3">
@@ -337,7 +444,7 @@ export default function PlannerDashboard({
                                             </div>
                                         </td>
                                         {/* Status */}
-                                        <td className="py-5 px-8 text-right">
+                                        <td className="py-5 px-4 text-center">
                                             <button
                                                 onClick={() => toggleStatus(course.id)}
                                                 className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${course.status === "Completed"
@@ -348,6 +455,18 @@ export default function PlannerDashboard({
                                                     } hover:scale-105 active:scale-95`}
                                             >
                                                 {course.status}
+                                            </button>
+                                        </td>
+                                        {/* Delete */}
+                                        <td className="py-5 pr-8 text-right">
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm(`Remove "${course.name}" from your planner?`)) deleteCourse(course.id);
+                                                }}
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                title="Remove course"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </td>
                                     </tr>
@@ -456,20 +575,77 @@ export default function PlannerDashboard({
                             <div className="space-y-2 max-h-64 overflow-y-auto">
                                 {recentSessions.map(s => {
                                     const course = courses.find(c => c.id === s.courseId);
+                                    const isEditing = editingSessionId === s.id;
                                     return (
-                                        <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/2 border border-white/5 group">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-medium">{course?.name || "Unknown"}</span>
-                                                <span className="text-[10px] text-white/30">
-                                                    {s.date} &middot; {s.hours}h{s.notes ? ` · ${s.notes}` : ""}
-                                                </span>
-                                            </div>
-                                            <button
-                                                onClick={() => onDeleteStudySession(s.id)}
-                                                className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all p-1"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
+                                        <div key={s.id} className="py-2 px-3 rounded-xl bg-white/2 border border-white/5 group">
+                                            {isEditing ? (
+                                                <div className="space-y-2">
+                                                    <div className="text-xs font-medium text-violet-400">{course?.name || "Unknown"}</div>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <input
+                                                            type="date"
+                                                            value={editSessionDate}
+                                                            onChange={e => setEditSessionDate(e.target.value)}
+                                                            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-[11px] text-white outline-none focus:border-violet-500/40"
+                                                            style={{ colorScheme: "dark" }}
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            min="0.25"
+                                                            step="0.25"
+                                                            value={editSessionHours}
+                                                            onChange={e => setEditSessionHours(e.target.value)}
+                                                            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-[11px] text-white outline-none focus:border-violet-500/40"
+                                                            placeholder="Hours"
+                                                        />
+                                                        <input
+                                                            value={editSessionNotes}
+                                                            onChange={e => setEditSessionNotes(e.target.value)}
+                                                            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-[11px] text-white placeholder-white/20 outline-none focus:border-violet-500/40"
+                                                            placeholder="Notes"
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-2 justify-end">
+                                                        <button
+                                                            onClick={() => setEditingSessionId(null)}
+                                                            className="px-2.5 py-1 rounded-lg border border-white/10 text-[10px] font-bold text-white/40 hover:text-white transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            onClick={() => saveEditSession(s)}
+                                                            className="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-[10px] font-bold text-white transition-colors"
+                                                        >
+                                                            Save
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-medium">{course?.name || "Unknown"}</span>
+                                                        <span className="text-[10px] text-white/30">
+                                                            {s.date} &middot; {s.hours}h{s.notes ? ` · ${s.notes}` : ""}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => startEditSession(s)}
+                                                            className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-violet-400 transition-all p-1"
+                                                            title="Edit session"
+                                                        >
+                                                            <Settings className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => onDeleteStudySession(s.id)}
+                                                            className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all p-1"
+                                                            title="Delete session"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}

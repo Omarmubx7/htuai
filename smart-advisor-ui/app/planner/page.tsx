@@ -109,15 +109,17 @@ export default function PlannerPage() {
     }, [isAuthenticated]);
 
     const persist = useCallback((updated: SemesterData) => {
+        // Ensure name is always set for DB persistence
+        if (!updated.name) updated.name = "My Planner";
         setData(updated);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-        // Debounced DB save
+        // Debounced DB save (500ms for snappy feel)
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(() => saveToDb(updated), 1200);
+        saveTimerRef.current = setTimeout(() => saveToDb(updated), 500);
     }, [saveToDb]);
 
     const handleSetupComplete = (courses: PlannerCourse[]) => {
-        persist({ id: generateId(), courses, studySessions: [] });
+        persist({ id: generateId(), name: "My Planner", courses, studySessions: [] });
     };
 
     const handleUpdateCourses = (courses: PlannerCourse[]) => {
@@ -133,6 +135,11 @@ export default function PlannerPage() {
     const handleDeleteStudySession = (id: string) => {
         if (!data) return;
         persist({ ...data, studySessions: data.studySessions.filter(s => s.id !== id) });
+    };
+
+    const handleUpdateStudySession = (updated: StudySession) => {
+        if (!data) return;
+        persist({ ...data, studySessions: data.studySessions.map(s => s.id === updated.id ? updated : s) });
     };
 
     const handleReset = async () => {
@@ -215,6 +222,7 @@ export default function PlannerPage() {
                                 allSemesters={allSemesters}
                                 onUpdateCourses={handleUpdateCourses}
                                 onAddStudySession={handleAddStudySession}
+                                onUpdateStudySession={handleUpdateStudySession}
                                 onDeleteStudySession={handleDeleteStudySession}
                             />
                         </motion.div>
