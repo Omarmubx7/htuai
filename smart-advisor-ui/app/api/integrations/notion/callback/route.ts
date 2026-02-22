@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     const studentId = (session.user as any).student_id || session.user.name;
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
+    const duplicatedTemplateId = req.nextUrl.searchParams.get("duplicated_template_id");
 
     if (error || !code) {
         return NextResponse.redirect(new URL("/planner?error=notion_denied", req.url));
@@ -100,7 +101,7 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        if (!workspaceParentId) {
+        if (!workspaceParentId && !duplicatedTemplateId) {
             // Save token anyway so user doesn't have to re-auth, just needs to share pages
             await saveIntegrationToken(
                 studentId,
@@ -116,7 +117,7 @@ export async function GET(req: NextRequest) {
         // Create the "Study Plan YYYY/YYYY" page — this becomes the parent for the courses database
         const semester = getSemesterLabel();
         const pageTitle = `📚 Study Plan ${semester}`;
-        let studyPlanPageId = workspaceParentId; // fallback
+        let studyPlanPageId = duplicatedTemplateId || workspaceParentId; // Prioritize duplicated template if exists
 
         try {
             const pageRes = await fetch("https://api.notion.com/v1/pages", {

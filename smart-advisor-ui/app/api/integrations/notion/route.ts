@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     if (!parentPageId) {
         return NextResponse.json({
-            error: "No accessible Notion page found. Reconnect Notion and make sure to select pages to share when prompted.",
+            error: "No accessible Notion page found. Please click 'Connect' again and ensure you select at least one page to share, or use an HTU template.",
         }, { status: 400 });
     }
 
@@ -89,18 +89,26 @@ export async function POST(req: NextRequest) {
                     "Course": { title: {} },
                     "Code": { rich_text: {} },
                     "Credits": { number: {} },
-                    "Grade": { select: { options: [
-                        { name: "D", color: "green" },
-                        { name: "M", color: "blue" },
-                        { name: "P", color: "yellow" },
-                        { name: "U", color: "red" },
-                        { name: "—", color: "gray" },
-                    ]}},
-                    "Status": { select: { options: [
-                        { name: "Completed", color: "green" },
-                        { name: "In Progress", color: "blue" },
-                        { name: "Planned", color: "gray" },
-                    ]}},
+                    "Grade": {
+                        select: {
+                            options: [
+                                { name: "D", color: "green" },
+                                { name: "M", color: "blue" },
+                                { name: "P", color: "yellow" },
+                                { name: "U", color: "red" },
+                                { name: "—", color: "gray" },
+                            ]
+                        }
+                    },
+                    "Status": {
+                        select: {
+                            options: [
+                                { name: "Completed", color: "green" },
+                                { name: "In Progress", color: "blue" },
+                                { name: "Planned", color: "gray" },
+                            ]
+                        }
+                    },
                     "Midterm Date": { date: {} },
                     "Final Date": { date: {} },
                 },
