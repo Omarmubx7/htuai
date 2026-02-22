@@ -239,10 +239,10 @@ export default function PlannerDashboard({
                     <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{courses.length} courses tracked</span>
                 </div>
 
-                <div className="glass-card-premium rounded-[2.5rem] border border-white/[0.05] overflow-hidden overflow-x-auto shadow-2xl bg-black/20">
-                    <table className="w-full text-left border-collapse min-w-[1100px]">
+                <div className="glass-card-premium rounded-[2.5rem] border border-white/5 overflow-hidden overflow-x-auto shadow-2xl bg-black/20">
+                    <table className="w-full text-left border-collapse min-w-275">
                         <thead>
-                            <tr className="border-b border-white/[0.05] bg-white/[0.02]">
+                            <tr className="border-b border-white/5 bg-white/2">
                                 <Th className="pl-8">Course Details</Th>
                                 <Th className="w-20 text-center">Credits</Th>
                                 <Th className="w-44 text-center">Grade / Score</Th>
@@ -254,12 +254,12 @@ export default function PlannerDashboard({
                                 <Th className="w-32 pr-8 text-right">Status</Th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/[0.03]">
+                        <tbody className="divide-y divide-white/3">
                             {courses.map(course => {
                                 const gradeInfo = course.grade ? GRADE_MAP[course.grade] : null;
                                 const gColor = gradeInfo ? gc(gradeInfo.colorKey) : null;
                                 return (
-                                    <tr key={course.id} className="group hover:bg-white/[0.02] transition-colors">
+                                    <tr key={course.id} className="group hover:bg-white/2 transition-colors">
                                         {/* Name */}
                                         <td className="py-5 px-8">
                                             <div className="flex flex-col gap-0.5">
@@ -457,7 +457,7 @@ export default function PlannerDashboard({
                                 {recentSessions.map(s => {
                                     const course = courses.find(c => c.id === s.courseId);
                                     return (
-                                        <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/[0.02] border border-white/5 group">
+                                        <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/2 border border-white/5 group">
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-medium">{course?.name || "Unknown"}</span>
                                                 <span className="text-[10px] text-white/30">
@@ -773,7 +773,7 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
                 {steps.map((step) => (
                     <div
                         key={step.id}
-                        className={`glass-card-premium p-5 rounded-3xl border transition-all relative overflow-hidden group ${step.isDone ? "border-emerald-500/20 bg-emerald-500/[0.02]" : "border-white/5 hover:border-white/10"
+                        className={`glass-card-premium p-5 rounded-3xl border transition-all relative overflow-hidden group ${step.isDone ? "border-emerald-500/20 bg-emerald-500/2" : "border-white/5 hover:border-white/10"
                             } ${step.disabled ? "opacity-40 grayscale" : "opacity-100"}`}
                     >
                         {step.isDone && (
@@ -897,7 +897,7 @@ function GetStartedModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -912,7 +912,7 @@ function GetStartedModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                         className="relative w-full max-w-xl glass-card-premium rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl"
                     >
                         {/* Decorative background Elements */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-violet-500 to-transparent" />
                         <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-600/20 rounded-full blur-[100px]" />
                         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px]" />
 
