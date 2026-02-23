@@ -131,6 +131,14 @@ export default function StudyPlannerView() {
         persist({ ...data, studySessions: data.studySessions.filter(s => s.id !== id) });
     };
 
+    const handleUpdateStudySession = (session: StudySession) => {
+        if (!data) return;
+        persist({
+            ...data,
+            studySessions: data.studySessions.map(s => s.id === session.id ? session : s)
+        });
+    };
+
     const handleReset = async () => {
         if (confirm("Reset your planner? All data will be lost.")) {
             setData(null);
@@ -195,6 +203,7 @@ export default function StudyPlannerView() {
                             allSemesters={allSemesters}
                             onUpdateCourses={handleUpdateCourses}
                             onAddStudySession={handleAddStudySession}
+                            onUpdateStudySession={handleUpdateStudySession}
                             onDeleteStudySession={handleDeleteStudySession}
                         />
                     </motion.div>
