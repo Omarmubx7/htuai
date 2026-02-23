@@ -42,11 +42,16 @@ interface PlannerDashboardProps {
     onDeleteStudySession: (id: string) => void;
     currentSemesterId?: string;
     trackerCredits?: number;
+    isGcalConnected?: boolean;
+    isGcalLoading?: boolean;
+    isAutoSyncing?: boolean;
+    onManualSync?: () => void;
 }
 
 export default function PlannerDashboard({
     courses, studySessions, allSemesters = [], onUpdateCourses, onAddStudySession, onUpdateStudySession, onDeleteStudySession,
-    currentSemesterId, trackerCredits = 0
+    currentSemesterId, trackerCredits = 0,
+    isGcalConnected = false, isGcalLoading = false, isAutoSyncing = false, onManualSync
 }: PlannerDashboardProps) {
 
     // ── Onboarding state ───────────────────────────────────────────────
@@ -993,7 +998,13 @@ export default function PlannerDashboard({
                 <WeeklySummary courses={courses} studySessions={studySessions} />
 
                 {/* ════ Integrations ════ */}
-                <IntegrationPanel courses={courses} />
+                <IntegrationPanel
+                    courses={courses}
+                    isGcalConnected={isGcalConnected}
+                    isGcalLoading={isGcalLoading}
+                    isAutoSyncing={isAutoSyncing}
+                    onManualSync={onManualSync}
+                />
 
                 {/* ════ Graduation Roadmap ════ */}
                 <div className={`${mobileTab === "roadmap" ? "block" : "hidden sm:block"}`}>
@@ -1057,45 +1068,16 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 
 // ── Integration Panel ───────────────────────────────────────────────────
 
-function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
-    const [gcalLoading, setGcalLoading] = useState(false);
-    const [statusLoading, setStatusLoading] = useState(true);
-    const [gcalConnected, setGcalConnected] = useState(false);
+interface IntegrationPanelProps {
+    courses: PlannerCourse[];
+    isGcalConnected: boolean;
+    isGcalLoading: boolean;
+    isAutoSyncing: boolean;
+    onManualSync?: () => void;
+}
+
+function IntegrationPanel({ courses, isGcalConnected, isGcalLoading, isAutoSyncing, onManualSync }: IntegrationPanelProps) {
     const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
-
-    const fetchStatus = useCallback(async () => {
-        try {
-            const res = await fetch("/api/integrations/status");
-            if (res.ok) {
-                const data = await res.json();
-                setGcalConnected(data.google_calendar);
-            }
-        } catch (e) {
-            console.error("Failed to fetch integration status:", e);
-        } finally {
-            setStatusLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchStatus();
-        const params = new URLSearchParams(window.location.search);
-        const connected = params.get("connected");
-        const error = params.get("error");
-        if (!connected && !error) return;
-        const url = new URL(window.location.href);
-        url.searchParams.delete("connected");
-        url.searchParams.delete("error");
-        window.history.replaceState({}, "", url.pathname + url.search);
-        if (error) {
-            setMessage({ text: `Integration error: ${error.replace(/_/g, " ")}`, ok: false });
-            return;
-        }
-        if (connected === "google") {
-            setMessage({ text: "Google Calendar connected! Click Sync to push exam dates.", ok: true });
-            setGcalConnected(true);
-        }
-    }, [fetchStatus]);
 
     const connectGoogleCalendar = () => {
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -1109,32 +1091,14 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
         window.location.href = url;
     };
 
-    const syncGoogleCalendar = async () => {
-        if (!gcalConnected) {
+    const handleSync = async () => {
+        if (!isGcalConnected) {
             setMessage({ text: "Follow the correct order: \n1. Click 'Connect' to authorize Google \n2. Click 'Sync' to push your dates.", ok: false });
             return;
         }
-        setGcalLoading(true);
-        setMessage(null);
-        try {
-            const res = await fetch("/api/integrations/google-calendar", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ courses }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setMessage({ text: `Synced ${data.successCount}/${data.totalCount} events to Google Calendar`, ok: true });
-            } else {
-                const errorMsg = res.status === 401
-                    ? "Connection lost. Please follow the correct order: 1. Reconnect Google, then 2. Try Sync again."
-                    : (data.error || "Failed to sync");
-                setMessage({ text: errorMsg, ok: false });
-            }
-        } catch {
-            setMessage({ text: "Sync failed. Follow the correct order: 1. Connect, 2. Sync.", ok: false });
+        if (onManualSync) {
+            onManualSync();
         }
-        setGcalLoading(false);
     };
 
     return (
@@ -1144,30 +1108,32 @@ function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden">
-                    {gcalConnected && (
+                    {isGcalConnected && (
                         <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
-                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Connected</span>
+                            <div className={`w-1 h-1 rounded-full ${isAutoSyncing ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
+                            <span className={`text-[9px] font-bold uppercase tracking-tighter ${isAutoSyncing ? "text-amber-400" : "text-emerald-400"}`}>
+                                {isAutoSyncing ? "Syncing..." : "Connected"}
+                            </span>
                         </div>
                     )}
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-blue-400" />
                         <span className="text-sm font-semibold">Google Calendar</span>
                     </div>
-                    <p className="text-xs text-white/30">Push midterm & final dates to your calendar with exam reminders.</p>
+                    <p className="text-xs text-white/30">Auto-syncs exam dates to your calendar with smart reminders.</p>
                     <div className="flex gap-2">
                         <button
                             onClick={connectGoogleCalendar}
-                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${gcalConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 text-white"}`}
+                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${isGcalConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 text-white"}`}
                         >
-                            <ExternalLink className="w-3 h-3" /> {gcalConnected ? "Reconnect" : "Connect"}
+                            <ExternalLink className="w-3 h-3" /> {isGcalConnected ? "Reconnect" : "Connect"}
                         </button>
                         <button
-                            onClick={syncGoogleCalendar}
-                            disabled={gcalLoading || !gcalConnected}
+                            onClick={handleSync}
+                            disabled={isGcalLoading || !isGcalConnected || isAutoSyncing}
                             className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-20 disabled:cursor-not-allowed"
                         >
-                            {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Calendar className="w-3 h-3" />} Sync
+                            {(isGcalLoading || isAutoSyncing) ? <Loader2 className="w-3 h-3 animate-spin" /> : <Calendar className="w-3 h-3" />} Sync
                         </button>
                     </div>
                 </div>

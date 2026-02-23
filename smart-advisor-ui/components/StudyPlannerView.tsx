@@ -22,11 +22,29 @@ export default function StudyPlannerView() {
     const [allSemesters, setAllSemesters] = useState<SemesterData[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [syncStatus, setSyncStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+    const [isGcalConnected, setIsGcalConnected] = useState(false);
+    const [gcalLoading, setGcalLoading] = useState(false);
+    const [isAutoSyncing, setIsAutoSyncing] = useState(false);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const autoSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const fetchIntegrationStatus = useCallback(async () => {
+        if (!isAuthenticated) return;
+        try {
+            const res = await fetch("/api/integrations/status");
+            if (res.ok) {
+                const data = await res.json();
+                setIsGcalConnected(data.google_calendar);
+            }
+        } catch (e) {
+            console.error("Failed to fetch integration status:", e);
+        }
+    }, [isAuthenticated]);
 
     // ── Load data (DB if authenticated, localStorage fallback) ──
     useEffect(() => {
         if (authStatus === "loading") return;
+        fetchIntegrationStatus();
 
         async function load() {
             if (isAuthenticated) {
@@ -87,7 +105,39 @@ export default function StudyPlannerView() {
             setIsLoaded(true);
         }
         load();
-    }, [authStatus, isAuthenticated]);
+    }, [authStatus, isAuthenticated, fetchIntegrationStatus]);
+
+    // ── Google Calendar Sync (Debounced Auto-Sync) ──
+    const syncGoogleCalendar = useCallback(async (coursesToSync: PlannerCourse[]) => {
+        if (!isGcalConnected || !isAuthenticated) return;
+        setIsAutoSyncing(true);
+        try {
+            const res = await fetch("/api/integrations/google-calendar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ courses: coursesToSync }),
+            });
+            if (res.ok) {
+                const result = await res.json();
+                if (result.updatedCourses && data) {
+                    // Update courses with new event IDs without triggering another sync
+                    const mergedCourses = data.courses.map(c => {
+                        const updated = result.updatedCourses.find((uc: any) => uc.id === c.id);
+                        return updated ? { ...c, ...updated } : c;
+                    });
+
+                    // Direct set to avoid loop
+                    setData(prev => prev ? { ...prev, courses: mergedCourses } : null);
+                    // Still persist to DB to save the event IDs
+                    saveToDb({ ...data, courses: mergedCourses });
+                }
+            }
+        } catch (e) {
+            console.error("Auto-sync failed:", e);
+        } finally {
+            setIsAutoSyncing(false);
+        }
+    }, [isGcalConnected, isAuthenticated, data]);
 
     // ── Debounced save to DB ──
     const saveToDb = useCallback(async (semester: SemesterData) => {
@@ -108,9 +158,17 @@ export default function StudyPlannerView() {
     const persist = useCallback((updated: SemesterData) => {
         setData(updated);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+        // Timer for DB Save
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(() => saveToDb(updated), 1200);
-    }, [saveToDb]);
+        saveTimerRef.current = setTimeout(() => saveToDb(updated), 1500);
+
+        // Timer for Google Calendar Auto-Sync (10 seconds)
+        if (isGcalConnected) {
+            if (autoSyncTimerRef.current) clearTimeout(autoSyncTimerRef.current);
+            autoSyncTimerRef.current = setTimeout(() => syncGoogleCalendar(updated.courses), 10000);
+        }
+    }, [saveToDb, syncGoogleCalendar, isGcalConnected]);
 
     const handleSetupComplete = (courses: PlannerCourse[]) => {
         persist({ id: generateId(), courses, studySessions: [] });
@@ -205,6 +263,10 @@ export default function StudyPlannerView() {
                             onAddStudySession={handleAddStudySession}
                             onUpdateStudySession={handleUpdateStudySession}
                             onDeleteStudySession={handleDeleteStudySession}
+                            isGcalConnected={isGcalConnected}
+                            isGcalLoading={gcalLoading}
+                            isAutoSyncing={isAutoSyncing}
+                            onManualSync={() => syncGoogleCalendar(data.courses)}
                         />
                     </motion.div>
                 )}

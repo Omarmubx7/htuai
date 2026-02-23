@@ -21,13 +21,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    const results: { course: string; type: string; success: boolean; error?: string }[] = [];
+    const results: { course: string; type: string; success: boolean; eventId?: string; error?: string }[] = [];
+    const updatedCourses: any[] = [];
 
     for (const course of courses) {
+        const updatedCourse = { ...course };
+        let courseChanged = false;
+
         for (const [field, type] of [["midtermDate", "Midterm"], ["finalDate", "Final"]] as const) {
             const date = course[field];
             if (!date) continue;
 
+            const existingEventId = type === "Midterm" ? course.midtermEventId : course.finalEventId;
             const event = {
                 summary: `${course.name} — ${type}`,
                 description: `${type} exam for ${course.name} (${course.credits} CH)`,
@@ -43,29 +48,62 @@ export async function POST(req: NextRequest) {
             };
 
             try {
-                const res = await fetch(
-                    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-                    {
+                let res;
+                let method = "POST";
+                let url = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+
+                if (existingEventId) {
+                    method = "PATCH";
+                    url = `${url}/${existingEventId}`;
+                }
+
+                res = await fetch(url, {
+                    method,
+                    headers: {
+                        Authorization: `Bearer ${token.accessToken}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(event),
+                });
+
+                // If PATCH failed with 404, the event might have been deleted manually. Fallback to POST.
+                if (!res.ok && res.status === 404 && existingEventId) {
+                    res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
                         method: "POST",
                         headers: {
                             Authorization: `Bearer ${token.accessToken}`,
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify(event),
-                    }
-                );
+                    });
+                }
+
                 if (!res.ok) {
                     const err = await res.text();
                     results.push({ course: course.name, type, success: false, error: err });
                 } else {
-                    results.push({ course: course.name, type, success: true });
+                    const data = await res.json();
+                    const newEventId = data.id;
+                    results.push({ course: course.name, type, success: true, eventId: newEventId });
+
+                    if (type === "Midterm") updatedCourse.midtermEventId = newEventId;
+                    else updatedCourse.finalEventId = newEventId;
+                    courseChanged = true;
                 }
             } catch (e: any) {
                 results.push({ course: course.name, type, success: false, error: e.message });
             }
         }
+        updatedCourses.push(updatedCourse);
     }
 
     const successCount = results.filter(r => r.success).length;
-    return NextResponse.json({ success: true, results, eventsCreated: results.length, successCount, totalCount: results.length });
+    return NextResponse.json({
+        success: true,
+        results,
+        updatedCourses,
+        eventsProcessed: results.length,
+        successCount,
+        totalCount: results.length
+    });
 }

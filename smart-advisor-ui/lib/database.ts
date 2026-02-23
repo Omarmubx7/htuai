@@ -326,6 +326,8 @@ export async function initPlannerTables() {
             location TEXT,
             midterm_date TEXT,
             final_date TEXT,
+            midterm_event_id TEXT,
+            final_event_id TEXT,
             color TEXT,
             updated_at TIMESTAMP DEFAULT NOW()
         );
@@ -383,6 +385,8 @@ export async function loadPlanner(studentId: string) {
                 location: c.location,
                 midtermDate: c.midterm_date,
                 finalDate: c.final_date,
+                midtermEventId: c.midterm_event_id,
+                finalEventId: c.final_event_id,
                 color: c.color
             })),
             studySessions: sessionRows.map(s => ({
@@ -417,10 +421,12 @@ export async function savePlanner(
         await sql`
             INSERT INTO planner_courses (
                 id, student_id, semester_id, code, name, credits, grade, status, 
-                professor, location, midterm_date, final_date, color, updated_at
+                professor, location, midterm_date, final_date, 
+                midterm_event_id, final_event_id, color, updated_at
             ) VALUES (
                 ${c.id}, ${studentId}, ${semesterId}, ${c.code || null}, ${c.name}, ${c.credits || 3}, ${c.grade || null}, ${c.status || 'In Progress'},
-                ${c.professor || null}, ${c.location || null}, ${c.midtermDate || null}, ${c.finalDate || null}, ${c.color || null}, NOW()
+                ${c.professor || null}, ${c.location || null}, ${c.midtermDate || null}, ${c.finalDate || null}, 
+                ${c.midtermEventId || null}, ${c.finalEventId || null}, ${c.color || null}, NOW()
             )
         `;
     }

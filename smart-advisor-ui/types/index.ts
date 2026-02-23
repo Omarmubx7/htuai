@@ -41,6 +41,8 @@ export interface PlannerCourse {
     location?: string;
     status: "In Progress" | "Completed" | "At Risk";
     grade?: string | null;
+    midtermEventId?: string;
+    finalEventId?: string;
 }
 
 export interface StudySession {
