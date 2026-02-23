@@ -58,7 +58,8 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-6xl sm:text-7xl md:text-9xl font-black text-white tracking-tighter leading-[0.9] px-4"
+                        className="text-6xl sm:text-7xl md:text-9xl font-bold text-white tracking-[-0.04em] leading-[0.9] px-4"
+                        style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}
                     >
                         <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-400 to-blue-500 drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">HTUAI</span>
                     </motion.h1>

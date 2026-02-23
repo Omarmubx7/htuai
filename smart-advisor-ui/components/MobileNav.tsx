@@ -8,9 +8,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
     { label: "Home", icon: Home, href: "/" },
-    { label: "Courses", icon: BookOpen, href: "/?tab=tracker" },
     { label: "Planner", icon: Sparkles, href: "/planner" },
-    { label: "Profile", icon: User, href: "/profile" },
 ];
 
 export default function MobileNav() {

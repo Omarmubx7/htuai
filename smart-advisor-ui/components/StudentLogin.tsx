@@ -70,7 +70,7 @@ export default function StudentLogin() {
                         className="pill-badge-premium"
                     >
                         <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4" />
-                        HTUAI Advisor
+                        HTUAI
                     </motion.div>
                 </div>
 
@@ -87,13 +87,13 @@ export default function StudentLogin() {
                                 exit={{ opacity: 0, y: -10 }}
                                 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight leading-none"
                             >
-                                {isClaiming ? "Start Your HTU Journey" : "HTU Advisor Login"}
+                                {isClaiming ? "Start Your HTU Journey" : "HTUAI Login"}
                             </motion.h1>
                         </AnimatePresence>
                         <p className="text-sm text-white/50 font-semibold">
                             {isClaiming
                                 ? "Link your university ID to start tracking."
-                                : "Sign in to access your advisor dashboard."}
+                                : "Sign in to access your HTUAI dashboard."}
                         </p>
                     </div>
 
