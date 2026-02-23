@@ -101,7 +101,7 @@ export default function StudentLogin() {
                         <div className="space-y-4">
                             <div className="relative group">
                                 <label htmlFor="student_id" className="sr-only">University ID</label>
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-violet-400/50 transition-colors">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-violet-400/70 transition-colors">
                                     <User className="w-4.5 h-4.5" aria-hidden="true" />
                                 </div>
                                 <input
@@ -114,13 +114,13 @@ export default function StudentLogin() {
                                     aria-required="true"
                                     aria-invalid={!!error}
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="w-full bg-white/3 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/40 outline-none transition-all focus:bg-white/5 focus:border-violet-500/40 text-sm font-medium"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/60 outline-none transition-all focus:bg-white/8 focus:border-violet-500/50 text-sm font-medium"
                                 />
                             </div>
 
                             <div className="relative group">
                                 <label htmlFor="password" className="sr-only">Password</label>
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-violet-400/50 transition-colors">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-violet-400/70 transition-colors">
                                     <Lock className="w-4.5 h-4.5" aria-hidden="true" />
                                 </div>
                                 <input
@@ -133,7 +133,7 @@ export default function StudentLogin() {
                                     aria-required="true"
                                     aria-invalid={!!error}
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="w-full bg-white/3 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/40 outline-none transition-all focus:bg-white/5 focus:border-violet-500/40 text-sm font-medium"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/60 outline-none transition-all focus:bg-white/8 focus:border-violet-500/50 text-sm font-medium"
                                 />
                             </div>
                         </div>
@@ -156,7 +156,7 @@ export default function StudentLogin() {
                             whileTap={{ scale: 0.98 }}
                             type="submit"
                             aria-label={isClaiming ? "Verify and Claim Account" : "Sign into Dashboard"}
-                            className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white/3 text-black font-bold text-sm transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
+                            className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white/10 text-white/90 font-bold text-sm transition-all hover:bg-white/15 hover:shadow-[0_0_30px_rgba(139,92,246,0.15)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2 border border-white/10"
                         >
                             {loading ? "Initializing..." : isClaiming ? "Verify & Claim" : "Enter Dashboard"}
                             {!loading && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />}
@@ -165,8 +165,8 @@ export default function StudentLogin() {
 
                     <div className="relative my-10 px-4">
                         <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-white/5" /></div>
-                        <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest text-white/20">
-                            <span className="bg-[#121212] px-3 py-1 rounded-full border border-white/5">Universal Login</span>
+                        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                            <span className="bg-[#030303] px-4 py-1.5 rounded-full border border-white/10">Universal Login</span>
                         </div>
                     </div>
 
@@ -188,7 +188,7 @@ export default function StudentLogin() {
                             <button
                                 type="button"
                                 onClick={() => { setIsClaiming(!isClaiming); setError(""); }}
-                                className="text-[11px] sm:text-[10px] uppercase tracking-wider font-bold text-violet-400/60 hover:text-violet-400 transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
+                                className="text-[11px] sm:text-[10px] uppercase tracking-wider font-bold text-violet-400/80 hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
                             >
                                 {isClaiming
                                     ? "Already have an account? Login"

@@ -17,9 +17,10 @@ export default function TermsPage() {
                 </Link>
 
                 <header className="space-y-4 mb-16">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
-                            <Scale className="w-6 h-6" />
+                    <div className="flex items-center gap-4">
+                        <div className="relative group/logo">
+                            <div className="absolute -inset-2 bg-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
+                            <img src="/HTUAIlogo.svg" alt="HTUAI" className="w-12 h-12 relative z-10" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gradient">
                             Terms of Service
@@ -34,7 +35,7 @@ export default function TermsPage() {
                             <CheckCircle2 className="w-5 h-5 text-violet-400" /> Acceptance of Terms
                         </h2>
                         <p>
-                            By using HTU Courses Tracker (the &quot;Service&quot;), you agree to be bound by these Terms of Service. This Service is provided for educational organization purposes for students.
+                            By using HTUAI (the &quot;Service&quot;), you agree to be bound by these Terms of Service. This Service is provided for educational organization purposes for students.
                         </p>
                     </section>
 
@@ -58,8 +59,13 @@ export default function TermsPage() {
                             <HelpCircle className="w-5 h-5 text-violet-400" /> External Integrations
                         </h2>
                         <p>
-                            Our integrations with Google Calendar and Google Sheets are optional features. Use of these features is subject to the terms and privacy policies of Google LLC.
+                            Our integrations with Google Calendar and Google Sheets are optional features designed to sync your academic schedule and data. Your use of these features is governed by these Terms and Google&apos;s Terms of Service.
                         </p>
+                        <ul className="list-disc pl-6 space-y-2 text-sm text-white/50">
+                            <li>You maintain full ownership of your Google data.</li>
+                            <li>The Service only accesses the specific scopes you authorize during the OAuth consent process.</li>
+                            <li>You can revoke access at any time through your Google Account security settings.</li>
+                        </ul>
                     </section>
 
                     <footer className="pt-12 border-t border-white/5">

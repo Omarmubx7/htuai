@@ -11,12 +11,12 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://htuai.mubx.dev'),
-  title: "HTUAI — Academic Planner & Course Tracker",
+  title: "HTUAI — Academic Planner",
   description: "The ultimate tool for HTU students to track degree progress, plan semesters, and calculate GPA. Built for Al Hussein Technical University (Jordan).",
   keywords: [
     "HTU",
     "Al Hussein Technical University",
-    "HTU Courses Tracker",
+    "HTUAI",
     "HTUAI",
     "Academic Planner Jordan",
     "GPA Calculator HTU",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
         url: "/HTUAIlogo.svg",
         width: 1200,
         height: 630,
-        alt: "HTU Smart Advisor",
+        alt: "HTUAI",
       },
     ],
   },
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     images: ["/HTUAIlogo.svg"],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/HTUAIlogo.svg",
     apple: "/HTUAIlogo.svg",
   },
 };
@@ -88,7 +88,7 @@ export default async function RootLayout({
                   "price": "0",
                   "priceCurrency": "JOD"
                 },
-                "description": "Comprehensive academic advisor and course tracker for Al Hussein Technical University (HTU) students in Jordan.",
+                "description": "Comprehensive academic advisor and planner for Al Hussein Technical University (HTU) students in Jordan.",
                 "author": {
                   "@type": "Person",
                   "name": "mubx",

@@ -237,9 +237,8 @@ function DashboardInner() {
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                                style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa)' }}>
-                                <Zap className="w-4 h-4 text-white" />
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-600/10 border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.2)] overflow-hidden">
+                                <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4 object-contain" />
                             </div>
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
                                 style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.2)' }}>
@@ -319,8 +318,8 @@ function DashboardInner() {
                     )}
                 </AnimatePresence>
 
-                <div className="text-center text-[10px] text-white/10 pt-6 pb-10 font-medium tracking-wider uppercase">
-                    HTU Smart Advisor · Admin Dashboard
+                <div className="text-center text-[10px] text-white/10 pt-6 pb-10 font-bold tracking-widest uppercase">
+                    HTUAI &middot; Admin Dashboard
                 </div>
             </div>
         </div>

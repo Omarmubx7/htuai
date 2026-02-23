@@ -318,9 +318,9 @@ export default function HomeClient() {
                             {/* Brand section */}
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                    <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-5 h-5 object-contain" />
+                                    <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-5 h-5 object-contain" />
                                 </div>
-                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTU Advisor</span>
+                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTUAI</span>
                             </div>
 
                             {/* Navigation */}
