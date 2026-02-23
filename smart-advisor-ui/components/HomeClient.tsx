@@ -316,63 +316,56 @@ export default function HomeClient() {
                     >
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             {/* Brand section */}
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-lg bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                        <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4 object-contain" />
-                                    </div>
-                                    <span style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }} className="text-lg font-bold tracking-[-0.03em] text-white">HTUAI</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
+                                    <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-5 h-5 object-contain" />
                                 </div>
-                                <span className="hidden sm:block text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] mt-0.5">Use HTUAI to manage your semester and track your uni life</span>
+                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTU Advisor</span>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                {majorInfo && (
-                                    <button
-                                        onClick={handleMajorChange}
-                                        className="group flex items-center gap-2 px-3 py-1.5 sm:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
-                                    >
-                                        <Settings2 className="w-3.5 h-3.5 text-white/40 group-hover:text-white transition-colors" />
-                                        <span className="hidden sm:block text-[11px] font-bold text-white/80 group-hover:text-white">
-                                            {majorInfo.label}
-                                        </span>
-                                        <span className="text-xs">{majorInfo.icon}</span>
-                                    </button>
-                                )}
+                            {/* Navigation */}
+                            <div className="hidden sm:flex items-center">
+                                <Link href="/planner" className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Semester Planner
+                                </Link>
+                            </div>
 
-                                <button
-                                    onClick={() => {
-                                        if (navigator.share) {
-                                            navigator.share({
-                                                title: 'HTUAI',
-                                                text: 'Use HTUAI to manage your semester and track your uni life!',
-                                                url: window.location.href,
-                                            }).catch(() => { });
-                                        }
-                                    }}
-                                    className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                                    title="Share"
-                                >
-                                    <Share2 className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
-                                </button>
-
-                                <div className="w-px h-6 bg-white/5 mx-1 hidden sm:block" />
-
-                                <div className="hidden sm:flex flex-col items-end">
+                            <div className="flex items-center gap-3">
+                                <div className="flex flex-col items-end">
                                     <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none mb-1">{studentId}</span>
+                                    {majorInfo && (
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={handleMajorChange}
+                                                className="group flex items-center gap-2 px-2 py-1.5 sm:py-1 rounded-xl sm:rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+                                            >
+                                                <Settings2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-white/40 group-hover:text-white transition-colors" />
+                                                <span className="text-[10px] sm:text-[11px] font-bold text-white/80 group-hover:text-white truncate max-w-20 sm:max-w-none">
+                                                    {majorInfo.label}
+                                                </span>
+                                                <span className="text-xs">{majorInfo.icon}</span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-
-                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                                <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
                                     {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
+                                <Link
+                                    href="/planner"
+                                    className="sm:hidden p-3 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
+                                    title="Semester Planner"
+                                >
+                                    <Sparkles className="w-5 h-5" />
+                                </Link>
                                 <button
                                     onClick={() => signOut()}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all group"
+                                    className="p-3 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
                                     title="Sign out"
                                 >
-                                    <LogOut className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
-                                    <span className="hidden md:block text-[11px] font-bold uppercase tracking-widest group-hover:text-red-400">Log Out</span>
+                                    <LogOut className="w-5 h-5 sm:w-4.5 sm:h-4.5" />
                                 </button>
                             </div>
                         </div>

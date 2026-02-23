@@ -67,10 +67,34 @@ export default function PlannerDashboard({
     };
 
     // ── Study-log form state ────────────────────────────────────────────
+    // For desktop/global log form
     const [logCourseId, setLogCourseId] = useState(courses[0]?.id || "");
     const [logHours, setLogHours] = useState("");
     const [logNotes, setLogNotes] = useState("");
     const [logDate, setLogDate] = useState(new Date().toISOString().split("T")[0]);
+
+    // For mobile: per-course log state
+    const [mobileLogState, setMobileLogState] = useState(() => {
+        const state: Record<string, { hours: string; date: string; notes: string }> = {};
+        courses.forEach(c => {
+            state[c.id] = { hours: "", date: new Date().toISOString().split("T")[0], notes: "" };
+        });
+        return state;
+    });
+    // Keep state in sync if courses change
+    useEffect(() => {
+        setMobileLogState(prev => {
+            const next = { ...prev };
+            courses.forEach(c => {
+                if (!next[c.id]) next[c.id] = { hours: "", date: new Date().toISOString().split("T")[0], notes: "" };
+            });
+            // Remove state for deleted courses
+            Object.keys(next).forEach(id => {
+                if (!courses.find(c => c.id === id)) delete next[id];
+            });
+            return next;
+        });
+    }, [courses]);
 
     // ── Computed ────────────────────────────────────────────────────────
     const gradedCourses = useMemo(
@@ -605,6 +629,22 @@ export default function PlannerDashboard({
                         {courses.map(course => {
                             const gradeInfo = course.grade ? GRADE_MAP[course.grade] : null;
                             const gColor = gradeInfo ? gc(gradeInfo.colorKey) : null;
+                            const logState = mobileLogState[course.id] || { hours: "", date: new Date().toISOString().split("T")[0], notes: "" };
+                            const handleMobileLog = () => {
+                                const hrs = parseFloat(logState.hours);
+                                if (!course.id || isNaN(hrs) || hrs <= 0) return;
+                                onAddStudySession({
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    courseId: course.id,
+                                    date: logState.date,
+                                    hours: hrs,
+                                    notes: logState.notes || undefined,
+                                });
+                                setMobileLogState(prev => ({
+                                    ...prev,
+                                    [course.id]: { ...prev[course.id], hours: "", notes: "" }
+                                }));
+                            };
                             return (
                                 <div key={course.id} className="p-4 space-y-3">
                                     <div className="flex items-start justify-between gap-2">
@@ -658,11 +698,74 @@ export default function PlannerDashboard({
                                             <option value="Completed" className="bg-[#0a0a0a]">Completed</option>
                                             <option value="At Risk" className="bg-[#0a0a0a]">At Risk</option>
                                         </select>
+                                        {/* Midterm Date */}
+                                        <input
+                                            type="date"
+                                            value={course.midtermDate || ""}
+                                            onChange={e => updateField(course.id, "midtermDate", e.target.value || undefined)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center col-span-2"
+                                            style={{ colorScheme: "dark" }}
+                                        />
+                                        {/* Final Date */}
+                                        <input
+                                            type="date"
+                                            value={course.finalDate || ""}
+                                            onChange={e => updateField(course.id, "finalDate", e.target.value || undefined)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center col-span-2"
+                                            style={{ colorScheme: "dark" }}
+                                        />
+                                        {/* Instructor */}
+                                        <input
+                                            type="text"
+                                            placeholder="Dr. Name"
+                                            value={course.professor || ""}
+                                            onChange={e => updateField(course.id, "professor", e.target.value)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center col-span-2"
+                                        />
+                                        {/* Location */}
+                                        <input
+                                            type="text"
+                                            placeholder="Room/Lab"
+                                            value={course.location || ""}
+                                            onChange={e => updateField(course.id, "location", e.target.value)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center col-span-2"
+                                        />
                                     </div>
                                     <div className="flex items-center gap-3 text-[10px] font-bold text-white/40">
                                         <span><Clock className="w-3 h-3 inline mr-1" />{(courseHours[course.id] || 0).toFixed(1)}h studied</span>
                                         {course.professor && <span>&middot; {course.professor}</span>}
                                         {course.location && <span>&middot; {course.location}</span>}
+                                    </div>
+                                    {/* Study Log for this course */}
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <input
+                                            type="number"
+                                            min="0.25"
+                                            step="0.25"
+                                            placeholder="Hours"
+                                            value={logState.hours}
+                                            onChange={e => setMobileLogState(prev => ({ ...prev, [course.id]: { ...prev[course.id], hours: e.target.value } }))}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40"
+                                        />
+                                        <input
+                                            type="date"
+                                            value={logState.date}
+                                            onChange={e => setMobileLogState(prev => ({ ...prev, [course.id]: { ...prev[course.id], date: e.target.value } }))}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-violet-500/40"
+                                            style={{ colorScheme: "dark" }}
+                                        />
+                                        <input
+                                            placeholder="Notes (optional)"
+                                            value={logState.notes}
+                                            onChange={e => setMobileLogState(prev => ({ ...prev, [course.id]: { ...prev[course.id], notes: e.target.value } }))}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40 col-span-2"
+                                        />
+                                        <button
+                                            onClick={handleMobileLog}
+                                            className="bg-violet-600 hover:bg-violet-500 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1.5 col-span-2"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" /> Log
+                                        </button>
                                     </div>
                                 </div>
                             );
