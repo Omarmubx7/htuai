@@ -12,8 +12,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cour
 
   try {
     await initPlannerTables();
-    const notes = await getCourseNotes(studentId, courseId);
-    return NextResponse.json({ notes });
+    const notesStr = await getCourseNotes(studentId, courseId);
+
+    // Check if notes are already JSON
+    let notes = notesStr;
+    try {
+      if (notesStr && (notesStr.startsWith('{"') || notesStr.startsWith('['))) {
+        notes = JSON.parse(notesStr);
+      }
+    } catch {
+      // Keep as string if parsing fails
+    }
+
+    return NextResponse.json({
+      notes,
+      updatedAt: new Date().toISOString() // In a real app, this would come from the DB
+    });
   } catch (e) {
     console.error("Notes GET Error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -29,9 +43,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
   const { notes } = await req.json();
 
   try {
+    const notesStr = typeof notes === 'string' ? notes : JSON.stringify(notes);
     await initPlannerTables();
-    await saveCourseNotes(studentId, courseId, notes);
-    return NextResponse.json({ success: true });
+    await saveCourseNotes(studentId, courseId, notesStr);
+    return NextResponse.json({ success: true, updatedAt: new Date().toISOString() });
   } catch (e) {
     console.error("Notes POST Error:", e);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

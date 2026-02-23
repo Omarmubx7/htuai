@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { getClientInfo } from "@/lib/client-info";
 import { logVisitor } from "@/lib/database";
 import { Providers } from "@/components/Providers";
+import MobileNav from "@/components/MobileNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -71,7 +72,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${inter.className} min-h-screen flex flex-col pb-[120px] sm:pb-0`}>
         <Providers>
           <script
             type="application/ld+json"
@@ -100,6 +101,7 @@ export default async function RootLayout({
           <main className="flex-1 flex flex-col">
             {children}
           </main>
+          <MobileNav />
         </Providers>
         <footer className="w-full px-6 py-8 mt-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-bold uppercase tracking-widest text-white/20 select-none border-t border-white/5 bg-black/20 backdrop-blur-sm z-50">
           <div className="flex items-center gap-4">
