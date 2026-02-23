@@ -408,33 +408,7 @@ export default function PlannerDashboard({
                     </div>
                 </section>
 
-                {/* ════ Graduation Roadmap ════ */}
-                <div className={`${mobileTab === "roadmap" ? "block" : "hidden sm:block"}`}>
-                    <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
-                            <Target className="w-3.5 h-3.5" /> Graduation Roadmap
-                        </h3>
-                        <button
-                            onClick={toggleRoadmap}
-                            className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors flex items-center gap-1.5"
-                        >
-                            {showRoadmap ? "Hide Planner" : "Show Planner"}
-                            <ChevronDown className={`w-3 h-3 transition-transform ${showRoadmap ? "rotate-180" : ""}`} />
-                        </button>
-                    </div>
-                    <AnimatePresence>
-                        {showRoadmap && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="overflow-hidden"
-                            >
-                                <GraduationCalculator earnedCredits={historicalStats?.totalEarnedCredits || 0} />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                {/* Graduation Roadmap Hidden per request */}
 
                 {/* ════ Course Table ════ */}
                 <section className={`${(mobileTab === "courses" || mobileTab === "overview") ? "block" : "hidden sm:block"} space-y-4`}>
@@ -1025,62 +999,10 @@ export default function PlannerDashboard({
                         </div>
                     </section>
 
-                    {/* ── Smart Insights ── */}
-                    <section className={`${mobileTab === "overview" ? "block" : "hidden sm:block"}`}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
-                                <Lightbulb className="w-3.5 h-3.5" /> Smart Insights
-                            </h3>
-                            <button
-                                onClick={toggleInsights}
-                                className="text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-                            >
-                                {showInsights ? "Hide" : "Show"}
-                            </button>
-                        </div>
-                        <AnimatePresence>
-                            {showInsights && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-3 overflow-hidden"
-                                >
-                                    {insights.length > 0 ? insights.map((insight, i) => (
-                                        <div key={i} className={`p-4 rounded-2xl border ${insightBorder(insight.type)} flex items-start gap-3`}>
-                                            <div className="mt-0.5 shrink-0">{insightIcon(insight.type)}</div>
-                                            <div>
-                                                <div className="text-sm font-semibold">{insight.title}</div>
-                                                <div className="text-xs text-white/40 mt-0.5">{insight.description}</div>
-                                            </div>
-                                        </div>
-                                    )) : (
-                                        <div className="glass-card-premium rounded-2xl border border-white/5 p-6 text-center">
-                                            <CheckCircle2 className="w-8 h-8 text-emerald-500/30 mx-auto mb-2" />
-                                            <p className="text-xs text-white/30">Everything looks good! Add grades and study hours for insights.</p>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </section>
+                    {/* Smart Insights Hidden per request */}
                 </div>
 
-                {/* ════ This Week Summary ════ */}
-                <div className={`${mobileTab === "overview" ? "block" : "hidden sm:block"}`}>
-                    <WeeklySummary courses={courses} studySessions={studySessions} />
-                </div>
-
-                {/* ════ Integrations ════ */}
-                <div className={`${mobileTab === "overview" ? "block" : "hidden sm:block"}`}>
-                    <IntegrationPanel
-                        courses={courses}
-                        isGcalConnected={isGcalConnected}
-                        isGcalLoading={isGcalLoading}
-                        isAutoSyncing={isAutoSyncing}
-                        onManualSync={onManualSync}
-                    />
-                </div>
+                {/* Planner features hidden per request */}
 
                 {/* Mobile View Bottom Tabs */}
                 <div className="sm:hidden fixed bottom-4 left-4 right-4 z-[100]">
@@ -1089,7 +1011,6 @@ export default function PlannerDashboard({
                             { id: "overview", label: "Overview", icon: Layout },
                             { id: "courses", label: "Courses", icon: BookOpen },
                             { id: "log", label: "Log", icon: Clock },
-                            { id: "roadmap", label: "Roadmap", icon: Target },
                         ].map(tab => (
                             <button
                                 key={tab.id}

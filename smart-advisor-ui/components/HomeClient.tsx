@@ -323,12 +323,8 @@ export default function HomeClient() {
                                 <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTUAI</span>
                             </div>
 
-                            {/* Navigation */}
+                            {/* Navigation - Hidden per request */}
                             <div className="hidden sm:flex items-center">
-                                <Link href="/planner" className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all">
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                    Semester Planner
-                                </Link>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -353,13 +349,7 @@ export default function HomeClient() {
                                     {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
-                                <Link
-                                    href="/planner"
-                                    className="sm:hidden p-3 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
-                                    title="Semester Planner"
-                                >
-                                    <Sparkles className="w-5 h-5" />
-                                </Link>
+                                {/* Planner link hidden per request */}
                                 <button
                                     onClick={() => signOut()}
                                     className="p-3 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
