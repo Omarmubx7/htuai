@@ -391,7 +391,7 @@ export default function PlannerDashboard({
                 </div>
 
                 {/* ════ Course Table ════ */}
-                <section className={`${mobileTab === "courses" ? "block" : "hidden sm:block"} space-y-4`}>
+                <section className={`${(mobileTab === "courses" || mobileTab === "overview") ? "block" : "hidden sm:block"} space-y-4`}>
                     <div className="flex items-center justify-between">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
                             <BookOpen className="w-3.5 h-3.5" /> Semester Courses
@@ -1020,10 +1020,10 @@ export default function PlannerDashboard({
                 </div>
 
                 {/* Mobile View Bottom Tabs */}
-                <div className="sm:hidden fixed bottom-6 left-4 right-4 z-50">
-                    <div className="glass-card-premium rounded-2xl border border-white/10 flex items-center justify-between p-1 shadow-2xl backdrop-blur-3xl">
+                <div className="sm:hidden fixed bottom-4 left-4 right-4 z-[100]">
+                    <div className="glass-card-premium rounded-2xl border border-white/20 flex items-center justify-between p-1.5 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl ring-1 ring-white/10">
                         {[
-                            { id: "overview", label: "Overview", icon: BarChart3 },
+                            { id: "overview", label: "Overview", icon: Layout },
                             { id: "courses", label: "Courses", icon: BookOpen },
                             { id: "log", label: "Log", icon: Clock },
                             { id: "roadmap", label: "Roadmap", icon: Target },
@@ -1034,10 +1034,10 @@ export default function PlannerDashboard({
                                     setMobileTab(tab.id as any);
                                     window.scrollTo({ top: 0, behavior: "smooth" });
                                 }}
-                                className={`flex flex-col items-center justify-center py-2 px-1 flex-1 gap-1 rounded-xl transition-all ${mobileTab === tab.id ? "bg-white/5 text-violet-400" : "text-white/20"
+                                className={`flex flex-col items-center justify-center p-2 flex-1 gap-1 rounded-xl transition-all ${mobileTab === tab.id ? "bg-white/10 text-violet-400" : "text-white/40"
                                     }`}
                             >
-                                <tab.icon className="w-4 h-4" />
+                                <tab.icon className="w-5 h-5 shadow-sm" />
                                 <span className="text-[9px] font-black uppercase tracking-tight">{tab.label}</span>
                             </button>
                         ))}
