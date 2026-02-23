@@ -60,14 +60,20 @@ export default function PlannerDashboard({
     const { toast } = useToast();
 
     useEffect(() => {
-        const hasSeenOnboarding = localStorage.getItem("htuai_planner_onboarding");
-        if (!hasSeenOnboarding) {
-            setShowOnboarding(true);
+        try {
+            const hasSeenOnboarding = localStorage.getItem("htuai_planner_onboarding");
+            if (!hasSeenOnboarding) {
+                setShowOnboarding(true);
+            }
+        } catch (e) {
+            console.warn("Storage access denied:", e);
         }
     }, []);
 
     const dismissOnboarding = () => {
-        localStorage.setItem("htuai_planner_onboarding", "true");
+        try {
+            localStorage.setItem("htuai_planner_onboarding", "true");
+        } catch { }
         setShowOnboarding(false);
     };
 
@@ -385,7 +391,7 @@ export default function PlannerDashboard({
                 </div>
 
                 {/* ════ Course Table ════ */}
-                <section className="space-y-4">
+                <section className={`${mobileTab === "courses" ? "block" : "hidden sm:block"} space-y-4`}>
                     <div className="flex items-center justify-between">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
                             <BookOpen className="w-3.5 h-3.5" /> Semester Courses
@@ -395,7 +401,10 @@ export default function PlannerDashboard({
                             <motion.button
                                 whileHover={{ scale: 1.1, rotate: 5 }}
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() => { localStorage.removeItem("htuai_planner_onboarding"); setShowOnboarding(true); }}
+                                onClick={() => {
+                                    try { localStorage.removeItem("htuai_planner_onboarding"); } catch { }
+                                    setShowOnboarding(true);
+                                }}
                                 className="p-1.5 rounded-xl text-white/20 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
                                 title="Show help"
                             >
@@ -995,20 +1004,19 @@ export default function PlannerDashboard({
                 </div>
 
                 {/* ════ This Week Summary ════ */}
-                <WeeklySummary courses={courses} studySessions={studySessions} />
+                <div className={`${mobileTab === "overview" ? "block" : "hidden sm:block"}`}>
+                    <WeeklySummary courses={courses} studySessions={studySessions} />
+                </div>
 
                 {/* ════ Integrations ════ */}
-                <IntegrationPanel
-                    courses={courses}
-                    isGcalConnected={isGcalConnected}
-                    isGcalLoading={isGcalLoading}
-                    isAutoSyncing={isAutoSyncing}
-                    onManualSync={onManualSync}
-                />
-
-                {/* ════ Graduation Roadmap ════ */}
-                <div className={`${mobileTab === "roadmap" ? "block" : "hidden sm:block"}`}>
-                    <GraduationCalculator earnedCredits={historicalStats?.totalEarnedCredits || 0} />
+                <div className={`${mobileTab === "overview" ? "block" : "hidden sm:block"}`}>
+                    <IntegrationPanel
+                        courses={courses}
+                        isGcalConnected={isGcalConnected}
+                        isGcalLoading={isGcalLoading}
+                        isAutoSyncing={isAutoSyncing}
+                        onManualSync={onManualSync}
+                    />
                 </div>
 
                 {/* Mobile View Bottom Tabs */}

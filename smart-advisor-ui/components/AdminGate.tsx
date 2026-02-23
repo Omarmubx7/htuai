@@ -9,7 +9,11 @@ export const useAdminSecret = () => useContext(AdminSecretContext);
 export default function AdminGate({ children }: { children: ReactNode }) {
     const [secret, setSecret] = useState<string | null>(() => {
         if (typeof window !== 'undefined') {
-            return sessionStorage.getItem('admin_secret');
+            try {
+                return sessionStorage.getItem('admin_secret');
+            } catch {
+                return null;
+            }
         }
         return null;
     });
@@ -27,7 +31,9 @@ export default function AdminGate({ children }: { children: ReactNode }) {
                 headers: { 'x-admin-secret': input.trim() }
             });
             if (res.ok) {
-                sessionStorage.setItem('admin_secret', input.trim());
+                try {
+                    sessionStorage.setItem('admin_secret', input.trim());
+                } catch { }
                 setSecret(input.trim());
             } else {
                 setError('Invalid admin secret');
