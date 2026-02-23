@@ -43,6 +43,7 @@ interface Stats {
     plannerStats?: {
         totalHours: string;
         activeStudents: number;
+        avgCompletion: number;
     };
 }
 
@@ -353,6 +354,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                     badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
                 <StatCard icon={<Clock className="w-4 h-4" />} label="Study Hours" value={stats.plannerStats?.totalHours || "0"} gradient="from-amber-500/20 to-orange-500/5" iconBg="#d97706" delay={0.08} />
                 <StatCard icon={<Zap className="w-4 h-4" />} label="Active Planners" value={stats.plannerStats?.activeStudents || 0} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#059669" delay={0.12} />
+                <StatCard icon={<ArrowUpRight className="w-4 h-4" />} label="Planner Avg" value={`${stats.plannerStats?.avgCompletion || 0}%`} gradient="from-indigo-500/20 to-blue-500/5" iconBg="#6366f1" delay={0.14} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.16} />
                 <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.2} />
             </div>

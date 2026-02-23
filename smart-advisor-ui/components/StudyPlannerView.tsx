@@ -80,27 +80,31 @@ export default function StudyPlannerView() {
                 }
             }
             // Fallback: localStorage
-            let saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (!parsed.id) parsed.id = generateId();
-                    setData(parsed);
-                } catch { }
-            } else {
-                // Legacy migration
-                saved = localStorage.getItem(LEGACY_KEY);
+            try {
+                let saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
                     try {
-                        const courses = JSON.parse(saved);
-                        if (Array.isArray(courses)) {
-                            const migrated: SemesterData = { id: generateId(), courses, studySessions: [] };
-                            setData(migrated);
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-                            localStorage.removeItem(LEGACY_KEY);
-                        }
+                        const parsed = JSON.parse(saved);
+                        if (!parsed.id) parsed.id = generateId();
+                        setData(parsed);
                     } catch { }
+                } else {
+                    // Legacy migration
+                    saved = localStorage.getItem(LEGACY_KEY);
+                    if (saved) {
+                        try {
+                            const courses = JSON.parse(saved);
+                            if (Array.isArray(courses)) {
+                                const migrated: SemesterData = { id: generateId(), courses, studySessions: [] };
+                                setData(migrated);
+                                localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+                                localStorage.removeItem(LEGACY_KEY);
+                            }
+                        } catch { }
+                    }
                 }
+            } catch (e) {
+                console.warn("localStorage access denied:", e);
             }
             setIsLoaded(true);
         }

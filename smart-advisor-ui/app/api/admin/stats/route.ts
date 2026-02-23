@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { getAllStudents } from '@/lib/database';
+import { getAllStudents, initDB, initPlannerTables } from '@/lib/database';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -58,6 +58,7 @@ export async function GET(request: Request) {
     }
 
     try {
+        await Promise.all([initDB(), initPlannerTables()]);
         const [students, courseMap] = await Promise.all([
             getAllStudents(),
             getCourseMap(),
@@ -242,15 +243,37 @@ export async function GET(request: Request) {
             lastWeekVisits = Number(lw[0]?.count ?? 0);
         } catch { /* ok */ }
 
-        // ── 11. Study Planner Stats ───────────────────────────────────
         let plannerTotalHours = 0;
         let plannerActiveStudents = 0;
+        let plannerStatsObj = {
+            totalHours: '0.0',
+            activeStudents: 0,
+            avgCompletion: 0
+        };
+
         try {
             const { rows: hoursRows } = await sql`SELECT SUM(hours) as total FROM planner_study_sessions`;
             plannerTotalHours = Number(hoursRows[0]?.total ?? 0);
 
             const { rows: activeRows } = await sql`SELECT COUNT(DISTINCT student_id) as total FROM planner_semesters`;
             plannerActiveStudents = Number(activeRows[0]?.total ?? 0);
+
+            const { rows: completionRows } = await sql`
+                SELECT 
+                    COUNT(*) as total,
+                    COUNT(*) FILTER (WHERE status = 'Completed') as completed
+                FROM planner_courses
+            `;
+            let avgCompletion = 0;
+            const totalC = Number(completionRows[0]?.total ?? 0);
+            const compC = Number(completionRows[0]?.completed ?? 0);
+            avgCompletion = totalC > 0 ? Math.round((compC / totalC) * 100) : 0;
+
+            plannerStatsObj = {
+                totalHours: plannerTotalHours.toFixed(1),
+                activeStudents: plannerActiveStudents,
+                avgCompletion
+            };
         } catch { /* ok */ }
 
         // ── 12. Planner Recent Activity ───────────────────────────────
@@ -309,10 +332,7 @@ export async function GET(request: Request) {
             heatmap,
             studentData: studentRealCH,
             students: studentRealCH,
-            plannerStats: {
-                totalHours: plannerTotalHours.toFixed(1),
-                activeStudents: plannerActiveStudents,
-            }
+            plannerStats: plannerStatsObj
         });
 
     } catch (e) {

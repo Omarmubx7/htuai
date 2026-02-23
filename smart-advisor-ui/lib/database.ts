@@ -342,6 +342,7 @@ export async function initPlannerTables() {
             date TEXT NOT NULL,
             hours REAL DEFAULT 0,
             notes TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
         );
     `;
@@ -356,6 +357,15 @@ export async function initPlannerTables() {
             PRIMARY KEY (student_id, course_id)
         );
     `;
+
+    // ── Migrations for existing tables ──
+    try {
+        await sql`ALTER TABLE planner_courses ADD COLUMN IF NOT EXISTS midterm_event_id TEXT;`;
+        await sql`ALTER TABLE planner_courses ADD COLUMN IF NOT EXISTS final_event_id TEXT;`;
+        await sql`ALTER TABLE planner_study_sessions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`;
+    } catch (e) {
+        console.warn("DB Migration Warning (non-critical):", e);
+    }
 }
 
 export async function loadPlanner(studentId: string) {
