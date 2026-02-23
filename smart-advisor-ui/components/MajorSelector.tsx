@@ -133,8 +133,8 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                 >
                     <div className="flex justify-center mb-6">
                         <span className="pill-badge">
-                            <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-4 h-4" />
-                            HTU Courses Tracker
+                            <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4" />
+                            HTUAI Advisor
                         </span>
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-none">

@@ -62,130 +62,120 @@ export default function CourseCard({
 
     return (
         <motion.div
-            whileHover={isLocked ? {} : { y: -4, scale: 1.01 }}
-            whileTap={isLocked ? {} : { scale: 0.985 }}
+            whileHover={isLocked ? {} : { y: -6, scale: 1.02, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
+            whileTap={isLocked ? {} : { scale: 0.98 }}
             className={`
-                relative p-4 rounded-2xl border transition-all duration-200 select-none overflow-hidden
+                relative p-5 rounded-[28px] border transition-all duration-500 select-none overflow-hidden group/card animate-shimmer
                 ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                 ${isCompleted
-                    ? "border-emerald-500/20 bg-emerald-500/5"
+                    ? "border-emerald-500/30 bg-emerald-500/4 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.2)]"
                     : isLocked
-                        ? "border-white/5 bg-white/[0.02] opacity-50"
+                        ? "border-white/5 bg-white/1 opacity-40"
                         : hasPrereqWarning
-                            ? "border-amber-500/20 bg-amber-500/5 hover:border-amber-500/30"
-                            : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.05]"
+                            ? "border-amber-500/20 bg-amber-500/3 hover:border-amber-500/40"
+                            : "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4"
                 }
             `}
-            style={{ backdropFilter: "blur(12px)" }}
+            style={{ backdropFilter: "blur(24px)" }}
             onClick={handleClick}
             title={lockReason}
         >
-            {/* Completed glow */}
-            {isCompleted && (
-                <div className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16,185,129,0.08), transparent)" }} />
-            )}
+            {/* Completed/Hover Glows */}
+            <div className={`absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none
+                ${isCompleted ? "bg-linear-to-b from-emerald-500/10 to-transparent" : "bg-linear-to-b from-white/5 to-transparent"}`}
+            />
 
             {/* Top Row */}
-            <div className="flex justify-between items-start mb-3">
-                <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full border tracking-widest uppercase ${accent.badge}`}>
-                    <span className={`w-1 h-1 rounded-full ${accent.dot}`} />
+            <div className="flex justify-between items-start mb-4 relative z-10">
+                <span className={`inline-flex items-center gap-2 text-[9px] font-black px-2.5 py-1 rounded-full border tracking-[0.15em] uppercase transition-colors ${accent.badge}`}>
+                    <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
                     {course.framework}
                 </span>
-                {isLocked ? (
-                    <Lock className="w-3.5 h-3.5 text-white/20 shrink-0" />
-                ) : hasPrereqWarning ? (
-                    <AlertCircle className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
-                ) : isCompleted ? (
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                ) : (
-                    <Circle className="w-3.5 h-3.5 text-white/20 shrink-0" />
-                )}
+                <div className="p-1 px-1.5 rounded-lg bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
+                    {isLocked ? (
+                        <Lock className="w-3.5 h-3.5 text-white/10 shrink-0" />
+                    ) : hasPrereqWarning ? (
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
+                    ) : isCompleted ? (
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    ) : (
+                        <Circle className="w-3.5 h-3.5 text-white/10 shrink-0" />
+                    )}
+                </div>
             </div>
 
             {/* Course Name */}
-            <h3 className={`font-semibold text-sm leading-snug mb-1 tracking-tight ${isCompleted ? "text-emerald-100" : "text-white/90"}`}>
+            <h3 className={`font-bold text-base leading-tight mb-2 tracking-tight relative z-10 transition-colors ${isCompleted ? "text-white" : "text-white/80 group-hover/card:text-white"}`}>
                 {course.name}
             </h3>
 
-            {/* Code + Credits + Optional Grade */}
-            <div className="flex flex-wrap items-center justify-between gap-y-2 mt-4 pt-1">
-                <span className="text-[11px] text-white/30 font-mono font-medium tracking-[0.1em]">{course.code}</span>
+            {/* Code + Credits */}
+            <div className="flex flex-wrap items-center justify-between gap-y-2 mt-5 relative z-10">
+                <span className="text-[10px] text-white/20 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors">{course.code}</span>
 
                 <div className="flex items-center gap-2">
-
-                    <span className={`text-[10px] font-black tracking-wider px-3 py-2 rounded-2xl border
+                    <span className={`text-[10px] font-black tracking-widest px-3 py-1.5 rounded-xl border transition-all duration-500
                         ${isCompleted
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/90"
-                            : "bg-white/5 border-white/8 text-white/40"
+                            ? "bg-white/5 border-white/10 text-white/80"
+                            : "bg-white/3 border-white/10 text-white/30 group-hover/card:border-white/20 group-hover/card:text-white/60"
                         }`}>
                         {course.ch} CH
                     </span>
                 </div>
             </div>
 
-            {/* Prerequisites */}
+            {/* Prerequisites Section */}
             {(prereqCodes.length > 0 || hasCHRule || hasOtherText) && (
-                <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
-                    <p className="text-[9px] text-white/25 uppercase tracking-widest font-semibold">Prerequisites</p>
+                <div className="mt-4 pt-4 border-t border-white/5 space-y-3 relative z-10">
+                    <div className="flex items-center justify-between">
+                        <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">Prerequisites</p>
+                        {hasCHRule && <span className="text-[8px] font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
+                    </div>
 
-                    {/* CH progress bar */}
+                    {/* Progress Bar for CH Rule */}
                     {hasCHRule && requiredCH !== null && (
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between">
-                                <span className={`text-[10px] ${completedCredits >= requiredCH ? "text-emerald-400" : "text-white/40"}`}>
-                                    {completedCredits} / {requiredCH} CH
+                        <div className="h-1 bg-white/3 rounded-full overflow-hidden border border-white/5">
+                            <motion.div
+                                className={`h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] transition-all duration-1000 ${completedCredits >= requiredCH ? "bg-emerald-500" : "bg-violet-500"}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(100, (completedCredits / requiredCH) * 100)}%` }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Prereq Chips */}
+                    <div className="flex flex-wrap gap-1.5">
+                        {prereqCodes.map((code) => {
+                            const name = courseMap[code];
+                            const isMissing = missingPrereqs.includes(code);
+                            return (
+                                <span key={code} title={name ?? code}
+                                    className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all
+                                        ${isMissing
+                                            ? "bg-red-500/10 border-red-500/20 text-red-400/60"
+                                            : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60"
+                                        }`}>
+                                    {isMissing
+                                        ? <AlertCircle className="w-2.5 h-2.5 opacity-50" />
+                                        : <CheckCircle className="w-2.5 h-2.5 opacity-50" />}
+                                    <span className="truncate max-w-35">{name ?? code}</span>
                                 </span>
-                                {completedCredits < requiredCH && (
-                                    <span className="text-[10px] text-white/25">{requiredCH - completedCredits} left</span>
-                                )}
-                            </div>
-                            <div className="h-0.5 bg-white/8 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-700 ${completedCredits >= requiredCH ? "bg-emerald-500" : "bg-violet-500"}`}
-                                    style={{ width: `${Math.min(100, (completedCredits / requiredCH) * 100)}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Course-code prereqs */}
-                    {prereqCodes.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                            {prereqCodes.map((code) => {
-                                const name = courseMap[code];
-                                const isMissing = missingPrereqs.includes(code);
-                                return (
-                                    <span key={code} title={name ?? code}
-                                        className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border
-                                            ${isMissing
-                                                ? "bg-red-500/8 border-red-500/20 text-red-400/70"
-                                                : "bg-emerald-500/8 border-emerald-500/20 text-emerald-400/70"
-                                            }`}>
-                                        {isMissing
-                                            ? <AlertCircle className="w-2.5 h-2.5" />
-                                            : <CheckCircle className="w-2.5 h-2.5" />}
-                                        <span className="truncate max-w-[130px]">{name ?? code}</span>
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    {/* Other textual prereqs (dept approval etc.) */}
-                    {hasOtherText && (
-                        <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-amber-500/8 border-amber-500/20 text-amber-400/70">
-                            <AlertCircle className="w-2.5 h-2.5" />
-                            {course.prereq}
-                        </span>
-                    )}
+                            );
+                        })}
+                        {hasOtherText && (
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60">
+                                <AlertCircle className="w-2.5 h-2.5 opacity-50" />
+                                {course.prereq}
+                            </span>
+                        )}
+                    </div>
                 </div>
             )}
 
             {/* No prerequisites */}
             {!course.prereq && (
-                <div className="mt-3 pt-3 border-t border-white/5">
-                    <span className="text-[10px] text-white/20 italic">No prerequisites</span>
+                <div className="mt-3 pt-3 border-t border-white/5 relative z-10 transition-colors">
+                    <span className="text-[10px] text-white/20 italic group-hover/card:text-white/40">No prerequisites</span>
                 </div>
             )}
         </motion.div>

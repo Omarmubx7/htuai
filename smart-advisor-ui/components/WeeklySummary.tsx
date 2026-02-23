@@ -10,13 +10,19 @@ interface WeeklySummaryProps {
 }
 
 export default function WeeklySummary({ courses, studySessions }: WeeklySummaryProps) {
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay()); // Sunday
-    weekStart.setHours(0, 0, 0, 0);
+    const now = useMemo(() => new Date(), []);
+    const weekStart = useMemo(() => {
+        const d = new Date(now);
+        d.setDate(now.getDate() - now.getDay()); // Sunday
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }, [now]);
 
-    const prevWeekStart = new Date(weekStart);
-    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    const prevWeekStart = useMemo(() => {
+        const d = new Date(weekStart);
+        d.setDate(d.getDate() - 7);
+        return d;
+    }, [weekStart]);
 
     const thisWeekSessions = useMemo(
         () => studySessions.filter(s => new Date(s.date) >= weekStart),
@@ -102,14 +108,14 @@ export default function WeeklySummary({ courses, studySessions }: WeeklySummaryP
                                 <div key={i} className="flex items-center gap-2">
                                     <AlertTriangle className={`w-3 h-3 shrink-0 ${d.type === "final" ? "text-red-400" : "text-amber-400"}`} />
                                     <span className="text-xs truncate">{d.label}</span>
-                                    <span className="text-[10px] text-white/20 ml-auto shrink-0">
+                                    <span className="text-[10px] text-white/30 ml-auto shrink-0">
                                         {d.date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                                     </span>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-xs text-white/20 mt-2">No deadlines this week</div>
+                        <div className="text-xs text-white/30 mt-2">No deadlines this week</div>
                     )}
                 </div>
 
@@ -122,7 +128,7 @@ export default function WeeklySummary({ courses, studySessions }: WeeklySummaryP
                                 <div key={c.id} className="flex items-center gap-2 text-xs text-white/40">
                                     <BookOpen className="w-3 h-3 text-amber-400/60 shrink-0" />
                                     <span className="truncate">{c.name}</span>
-                                    <span className="text-[10px] text-white/15 ml-auto">0h</span>
+                                    <span className="text-[10px] text-white/30 ml-auto">0h</span>
                                 </div>
                             ))}
                         </div>

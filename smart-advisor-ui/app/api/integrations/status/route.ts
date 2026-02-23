@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { getIntegrationToken, initPlannerTables } from "@/lib/database";
+import { getIntegrationToken } from "@/lib/database";
 
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-        return NextResponse.json({ google_calendar: false, google_sheets: false }, { status: 401 });
+        return NextResponse.json({ notion: false, google_calendar: false }, { status: 401 });
     }
 
-    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+    const studentId = (session.user as any).student_id || session.user.name;
     if (!studentId) {
-        return NextResponse.json({ google_calendar: false, google_sheets: false }, { status: 400 });
+        return NextResponse.json({ notion: false, google_calendar: false }, { status: 400 });
     }
 
-    try {
-        await initPlannerTables();
+    const [notionToken, googleToken] = await Promise.all([
+        getIntegrationToken(studentId, "notion"),
+        getIntegrationToken(studentId, "google_calendar")
+    ]);
 
-        const [googleToken, sheetsToken] = await Promise.all([
-            getIntegrationToken(studentId, "google_calendar"),
-            getIntegrationToken(studentId, "google_sheets")
-        ]);
-
-        return NextResponse.json({
-            google_calendar: !!googleToken,
-            google_sheets: !!sheetsToken
-        });
-    } catch (e) {
-        console.error("Failed to fetch integration status:", e);
-        return NextResponse.json({ google_calendar: false, google_sheets: false });
-    }
+    return NextResponse.json({
+        notion: !!notionToken,
+        google_calendar: !!googleToken
+    });
 }

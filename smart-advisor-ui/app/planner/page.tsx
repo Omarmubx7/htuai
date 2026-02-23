@@ -7,6 +7,8 @@ import { ArrowLeft, Sparkles, Cloud, CloudOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import PlannerSetup from "../../components/PlannerSetup";
 import PlannerDashboard from "../../components/PlannerDashboard";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import { useToast } from "../../components/ui/Toast";
 import { PlannerCourse, StudySession, SemesterData } from "@/types";
 
 // ── Storage ──────────────────────────────────────────────────────────────
@@ -25,13 +27,18 @@ export default function PlannerPage() {
     const [allSemesters, setAllSemesters] = useState<SemesterData[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [syncStatus, setSyncStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const { toast } = useToast();
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [trackerCredits, setTrackerCredits] = useState(0);
 
     // ── Load data (DB if authenticated, localStorage fallback) ──
     useEffect(() => {
         if (authStatus === "loading") return;
 
         async function load() {
+            let transcript = [];
+            let curriculum = [];
             if (isAuthenticated) {
                 try {
                     const res = await fetch("/api/planner");
@@ -59,8 +66,34 @@ export default function PlannerPage() {
                         }
                         setIsLoaded(true);
                         setSyncStatus("saved");
-                        return;
                     }
+
+                    // Fetch transcript progress
+                    const sid = (session?.user as any)?.student_id || session?.user?.name;
+                    const transcriptRes = await fetch(`/api/progress/${encodeURIComponent(sid)}`);
+                    let completedCodes: string[] = [];
+                    if (transcriptRes.ok) {
+                        const json = await transcriptRes.json();
+                        completedCodes = json.completed || [];
+                    }
+                    // Fetch curriculum
+                    const curriculumRes = await fetch("/api/courses");
+                    if (curriculumRes.ok) {
+                        curriculum = await curriculumRes.json();
+                    }
+                    // Calculate trackerCredits (Passed in tracker BUT NOT in current planner)
+                    let credits = 0;
+                    if (Array.isArray(completedCodes) && Array.isArray(curriculum)) {
+                        for (const code of completedCodes) {
+                            // Deduplicate: If the course is in the current planner, let the planner handle its state
+                            const isInPlanner = data?.courses.some(c => c.code === code);
+                            if (isInPlanner) continue;
+
+                            const match = curriculum.find(cur => cur.code === code);
+                            if (match) credits += match.ch;
+                        }
+                    }
+                    setTrackerCredits(credits);
                 } catch (e) {
                     console.error("Failed to load from DB:", e);
                 }
@@ -125,6 +158,24 @@ export default function PlannerPage() {
     const handleUpdateCourses = (courses: PlannerCourse[]) => {
         if (!data) return;
         persist({ ...data, courses });
+        // Sync completed courses to transcript API if authenticated
+        if (isAuthenticated && (session?.user as any)?.student_id) {
+            const completed = courses.filter(c => c.status === "Completed").map(c => c.code);
+            const major = (session?.user as any)?.major || "";
+            fetch(`/api/progress/${(session.user as any).student_id}/save`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ major, completed }),
+            }).then(res => {
+                if (!res.ok) {
+                    res.json().then(err => {
+                        toast("Course Tracker sync failed: " + (err.error || "Unknown error"), "error");
+                    });
+                }
+            }).catch(() => {
+                toast("Course Tracker sync failed", "error");
+            });
+        }
     };
 
     const handleAddStudySession = (session: StudySession) => {
@@ -143,20 +194,53 @@ export default function PlannerPage() {
     };
 
     const handleReset = async () => {
-        if (confirm("Reset your planner? All data will be lost.")) {
-            setData(null);
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(LEGACY_KEY);
-            if (isAuthenticated) {
-                try { await fetch("/api/planner", { method: "DELETE" }); } catch { }
-            }
+        setData(null);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_KEY);
+        if (isAuthenticated) {
+            try { await fetch("/api/planner", { method: "DELETE" }); } catch { }
         }
+        toast("Planner reset successfully", "success");
+        setShowResetConfirm(false);
     };
 
-    if (!isLoaded || authStatus === "loading") return <div className="min-h-screen bg-black" />;
+    if (!isLoaded || authStatus === "loading") return (
+        <div className="min-h-screen bg-black text-white">
+            <div className="sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+                    <Link
+                        href="/"
+                        className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
+                        title="Back to Tracker"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </Link>
+                    <div className="h-4 w-36 rounded-lg bg-white/5 animate-pulse" />
+                </div>
+            </div>
+            <div className="max-w-6xl mx-auto px-4 py-10 space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="h-20 rounded-2xl bg-white/3 border border-white/5 animate-pulse" />
+                    ))}
+                </div>
+                <div className="h-8 w-48 rounded-lg bg-white/5 animate-pulse" />
+                <div className="h-64 rounded-[2.5rem] bg-white/3 border border-white/5 animate-pulse" />
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-violet-500/30">
+            <ConfirmDialog
+                isOpen={showResetConfirm}
+                title="Reset Planner"
+                description="This will permanently delete all your courses, study sessions, and planner data. This cannot be undone."
+                confirmLabel="Reset Everything"
+                variant="danger"
+                onConfirm={handleReset}
+                onCancel={() => setShowResetConfirm(false)}
+            />
             {/* Background Glow */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-violet-600/5 rounded-full blur-[120px]" />
@@ -168,7 +252,8 @@ export default function PlannerPage() {
                     <div className="flex items-center gap-4">
                         <Link
                             href="/"
-                            className="p-2 -ml-2 rounded-full hover:bg-white/5 transition-colors text-white/40 hover:text-white"
+                            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
+                            title="Back to Tracker"
                         >
                             <ArrowLeft className="w-4 h-4" />
                         </Link>
@@ -176,6 +261,12 @@ export default function PlannerPage() {
                             <Sparkles className="w-4 h-4 text-violet-400" />
                             <h1 className="text-sm font-bold tracking-tight">Semester Planner</h1>
                         </div>
+                        <Link
+                            href="/"
+                            className="hidden sm:flex items-center gap-2 ml-4 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/30 hover:text-white hover:bg-white/5 transition-all uppercase tracking-wider"
+                        >
+                            Course Tracker
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -188,8 +279,8 @@ export default function PlannerPage() {
                         )}
                         {data && (
                             <button
-                                onClick={handleReset}
-                                className="text-[10px] uppercase tracking-wider font-bold text-white/20 hover:text-red-400/60 transition-colors"
+                                onClick={() => setShowResetConfirm(true)}
+                                className="text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-red-400/60 transition-colors"
                             >
                                 Reset
                             </button>
@@ -224,6 +315,8 @@ export default function PlannerPage() {
                                 onAddStudySession={handleAddStudySession}
                                 onUpdateStudySession={handleUpdateStudySession}
                                 onDeleteStudySession={handleDeleteStudySession}
+                                currentSemesterId={data.id}
+                                trackerCredits={trackerCredits}
                             />
                         </motion.div>
                     )}

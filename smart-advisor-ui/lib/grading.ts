@@ -56,6 +56,26 @@ export function calculateSemesterGpa(courses: { grade: string; credits: number }
 }
 
 /**
+ * Calculate CGPA from a list of courses with grades and credits.
+ */
+export function calculateCumulativeGpaFromHistory(allCourses: { grade: string; credits: number }[]): number {
+    let totalQualityPoints = 0;
+    let totalCredits = 0;
+
+    const scored = allCourses.filter(c => SCORED_GRADES.includes(c.grade as HTUGrade));
+
+    for (const course of scored) {
+        const points = gradeToPoints(course.grade);
+        totalQualityPoints += points * course.credits;
+        totalCredits += course.credits;
+    }
+
+    if (totalCredits === 0) return 0;
+    const gpa = totalQualityPoints / totalCredits;
+    return Math.round(gpa * 100) / 100;
+}
+
+/**
  * Cumulative GPA logic (as requested)
  * Accumulates previous history with current semester results
  */

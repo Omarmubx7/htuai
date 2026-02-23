@@ -6,14 +6,14 @@ import { MAJORS, MajorKey } from "@/lib/useMajor";
 import StudentLogin from "@/components/StudentLogin";
 import LandingPage from "@/components/LandingPage";
 import MajorSelector from "./MajorSelector";
-import TranscriptView from "./TranscriptView";
+import CourseTrackerView from "./CourseTrackerView";
 import StudyPlannerView from "./StudyPlannerView";
 import { CourseData } from "@/types";
 import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
-type AppState = "checking" | "landing" | "login" | "major-select" | "transcript";
+type AppState = "checking" | "landing" | "login" | "major-select" | "course-tracker";
 
 export default function HomeClient() {
     const { data: session, status } = useSession();
@@ -95,7 +95,7 @@ export default function HomeClient() {
 
             if (savedMajor) {
                 setMajorState(savedMajor as MajorKey);
-                setAppState("transcript");
+                setAppState("course-tracker");
                 loadCourses(savedMajor as MajorKey);
                 // Load progress too
                 loadProgress(id, savedMajor as MajorKey);
@@ -196,7 +196,7 @@ export default function HomeClient() {
             });
         }
         loadCourses(key);
-        setAppState("transcript");
+        setAppState("course-tracker");
     };
 
 
@@ -299,7 +299,7 @@ export default function HomeClient() {
                 </motion.div>
             )}
 
-            {appState === "transcript" && courseData && rules && (
+            {appState === "course-tracker" && courseData && rules && (
                 <motion.div
                     key="transcript"
                     initial={{ opacity: 0 }}
@@ -312,22 +312,28 @@ export default function HomeClient() {
                     <motion.header
                         initial={{ y: -20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="fixed top-0 left-0 right-0 z-[60] h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5"
+                        className="fixed top-0 left-0 right-0 z-60 h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5"
                     >
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             {/* Brand section */}
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                    <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-5 h-5 object-contain" />
+                                    <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-5 h-5 object-contain" />
                                 </div>
-                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTU Advisor</span>
+                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTUAI Advisor</span>
                             </div>
 
-                            {/* Navigation hidden as only overview is available here */}
+                            {/* Navigation */}
+                            <div className="hidden sm:flex items-center">
+                                <Link href="/planner" className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Semester Planner
+                                </Link>
+                            </div>
 
                             <div className="flex items-center gap-3">
                                 <div className="flex flex-col items-end">
-                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1">{studentId}</span>
+                                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none mb-1">{studentId}</span>
                                     {majorInfo && (
                                         <div className="flex items-center gap-2">
                                             <button
@@ -335,7 +341,7 @@ export default function HomeClient() {
                                                 className="group flex items-center gap-2 px-2 py-1.5 sm:py-1 rounded-xl sm:rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
                                             >
                                                 <Settings2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-white/40 group-hover:text-white transition-colors" />
-                                                <span className="text-[10px] sm:text-[11px] font-bold text-white/80 group-hover:text-white truncate max-w-[80px] sm:max-w-none">
+                                                <span className="text-[10px] sm:text-[11px] font-bold text-white/80 group-hover:text-white truncate max-w-20 sm:max-w-none">
                                                     {majorInfo.label}
                                                 </span>
                                                 <span className="text-xs">{majorInfo.icon}</span>
@@ -343,10 +349,17 @@ export default function HomeClient() {
                                         </div>
                                     )}
                                 </div>
-                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                                <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
                                     {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
+                                <Link
+                                    href="/planner"
+                                    className="sm:hidden p-3 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
+                                    title="Semester Planner"
+                                >
+                                    <Sparkles className="w-5 h-5" />
+                                </Link>
                                 <button
                                     onClick={() => signOut()}
                                     className="p-3 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
@@ -367,7 +380,7 @@ export default function HomeClient() {
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <TranscriptView
+                                <CourseTrackerView
                                     data={courseData}
                                     studentId={studentId!}
                                     majorKey={major!}
@@ -396,8 +409,32 @@ export default function HomeClient() {
 
 function Spinner() {
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-            <div className="w-6 h-6 border border-white/10 border-t-violet-500 rounded-full animate-spin" />
+        <div className="min-h-screen bg-black flex flex-col">
+            {/* Skeleton header */}
+            <div className="h-20 border-b border-white/5 bg-black/40 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-white/5 animate-pulse" />
+                        <div className="h-4 w-24 rounded-lg bg-white/5 animate-pulse" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="h-4 w-16 rounded-lg bg-white/5 animate-pulse" />
+                        <div className="w-10 h-10 rounded-2xl bg-white/5 animate-pulse" />
+                    </div>
+                </div>
+            </div>
+            {/* Skeleton content */}
+            <div className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full space-y-8">
+                <div className="space-y-3">
+                    <div className="h-6 w-32 rounded-lg bg-white/5 animate-pulse" />
+                    <div className="h-12 w-64 rounded-xl bg-white/5 animate-pulse" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[...Array(8)].map((_, i) => (
+                        <div key={i} className="h-24 rounded-2xl bg-white/3 border border-white/5 animate-pulse" />
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

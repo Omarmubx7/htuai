@@ -311,23 +311,90 @@ export async function initPlannerTables() {
     `;
     // Supported providers: google_calendar, google_sheets
     // metadata stores provider-specific data (e.g. spreadsheetId for google_sheets)
+
+    await sql`
+        CREATE TABLE IF NOT EXISTS planner_courses (
+            id TEXT PRIMARY KEY,
+            student_id TEXT NOT NULL,
+            semester_id TEXT NOT NULL,
+            code TEXT,
+            name TEXT NOT NULL,
+            credits INTEGER DEFAULT 3,
+            grade TEXT,
+            status TEXT DEFAULT 'In Progress',
+            professor TEXT,
+            location TEXT,
+            midterm_date TEXT,
+            final_date TEXT,
+            color TEXT,
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_planner_courses_student ON planner_courses (student_id);`;
+
+    await sql`
+        CREATE TABLE IF NOT EXISTS planner_study_sessions (
+            id TEXT PRIMARY KEY,
+            student_id TEXT NOT NULL,
+            course_id TEXT NOT NULL,
+            date TEXT NOT NULL,
+            hours REAL DEFAULT 0,
+            notes TEXT,
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_planner_sessions_student ON planner_study_sessions (student_id);`;
+
+    await sql`
+        CREATE TABLE IF NOT EXISTS course_notes (
+            student_id TEXT NOT NULL,
+            course_id TEXT NOT NULL,
+            notes TEXT,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (student_id, course_id)
+        );
+    `;
 }
 
 export async function loadPlanner(studentId: string) {
     try {
-        const { rows } = await sql`
+        const { rows: semesterRows } = await sql`
             SELECT * FROM planner_semesters
             WHERE student_id = ${studentId}
             ORDER BY updated_at DESC LIMIT 1
         `;
-        if (rows.length === 0) return null;
+        if (semesterRows.length === 0) return null;
+
+        const semesterId = semesterRows[0].id;
+        const { rows: courseRows } = await sql`SELECT * FROM planner_courses WHERE semester_id = ${semesterId}`;
+        const { rows: sessionRows } = await sql`SELECT * FROM planner_study_sessions WHERE student_id = ${studentId}`;
+
         return {
-            id: rows[0].id,
-            name: rows[0].name,
-            courses: JSON.parse(rows[0].courses),
-            studySessions: JSON.parse(rows[0].study_sessions),
+            id: semesterId,
+            name: semesterRows[0].name,
+            courses: courseRows.map(c => ({
+                id: c.id,
+                code: c.code,
+                name: c.name,
+                credits: c.credits,
+                grade: c.grade,
+                status: c.status,
+                professor: c.professor,
+                location: c.location,
+                midtermDate: c.midterm_date,
+                finalDate: c.final_date,
+                color: c.color
+            })),
+            studySessions: sessionRows.map(s => ({
+                id: s.id,
+                courseId: s.course_id,
+                date: s.date,
+                hours: s.hours,
+                notes: s.notes
+            })),
         };
-    } catch {
+    } catch (e) {
+        console.error("DB: loadPlanner error:", e);
         return null;
     }
 }
@@ -336,20 +403,44 @@ export async function savePlanner(
     studentId: string,
     data: { id: string; name?: string; courses: any[]; studySessions: any[] }
 ) {
-    const coursesJson = JSON.stringify(data.courses);
-    const sessionsJson = JSON.stringify(data.studySessions);
+    const semesterId = data.id;
+    // 1. Semester header
     await sql`
-        INSERT INTO planner_semesters (id, student_id, name, courses, study_sessions, updated_at)
-        VALUES (${data.id}, ${studentId}, ${data.name || 'Spring 2026'}, ${coursesJson}, ${sessionsJson}, NOW())
-        ON CONFLICT (id) DO UPDATE SET
-            courses = EXCLUDED.courses,
-            study_sessions = EXCLUDED.study_sessions,
-            name = EXCLUDED.name,
-            updated_at = NOW()
+        INSERT INTO planner_semesters (id, student_id, name, updated_at)
+        VALUES (${semesterId}, ${studentId}, ${data.name || 'Spring 2026'}, NOW())
+        ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, updated_at = NOW()
     `;
+
+    // 2. Courses (Clear and re-insert for simplicity in this MVP)
+    await sql`DELETE FROM planner_courses WHERE semester_id = ${semesterId}`;
+    for (const c of data.courses) {
+        await sql`
+            INSERT INTO planner_courses (
+                id, student_id, semester_id, code, name, credits, grade, status, 
+                professor, location, midterm_date, final_date, color, updated_at
+            ) VALUES (
+                ${c.id}, ${studentId}, ${semesterId}, ${c.code || null}, ${c.name}, ${c.credits || 3}, ${c.grade || null}, ${c.status || 'In Progress'},
+                ${c.professor || null}, ${c.location || null}, ${c.midtermDate || null}, ${c.finalDate || null}, ${c.color || null}, NOW()
+            )
+        `;
+    }
+
+    // 3. Study Sessions (Clear and re-insert for this student)
+    await sql`DELETE FROM planner_study_sessions WHERE student_id = ${studentId}`;
+    for (const s of data.studySessions) {
+        await sql`
+            INSERT INTO planner_study_sessions (
+                id, student_id, course_id, date, hours, notes, updated_at
+            ) VALUES (
+                ${s.id}, ${studentId}, ${s.courseId || s.course_id}, ${s.date}, ${s.hours || 0}, ${s.notes || null}, NOW()
+            )
+        `;
+    }
 }
 
 export async function deletePlanner(studentId: string) {
+    await sql`DELETE FROM planner_courses WHERE student_id = ${studentId}`;
+    await sql`DELETE FROM planner_study_sessions WHERE student_id = ${studentId}`;
     await sql`DELETE FROM planner_semesters WHERE student_id = ${studentId}`;
 }
 
@@ -397,14 +488,66 @@ export async function loadAllSemesters(studentId: string) {
             WHERE student_id = ${studentId}
             ORDER BY updated_at DESC
         `;
-        return rows.map(r => ({
-            id: r.id,
-            name: r.name,
-            courses: JSON.parse(r.courses),
-            studySessions: JSON.parse(r.study_sessions),
-            updatedAt: r.updated_at
+
+        const sessionsRes = await sql`SELECT * FROM planner_study_sessions WHERE student_id = ${studentId}`;
+        const allSessions = sessionsRes.rows.map(s => ({
+            id: s.id,
+            courseId: s.course_id,
+            date: s.date,
+            hours: s.hours,
+            notes: s.notes
         }));
-    } catch {
+
+        const result = [];
+        for (const sem of rows) {
+            const coursesRes = await sql`SELECT * FROM planner_courses WHERE semester_id = ${sem.id}`;
+            result.push({
+                id: sem.id,
+                name: sem.name,
+                courses: coursesRes.rows.map(c => ({
+                    id: c.id,
+                    code: c.code,
+                    name: c.name,
+                    credits: c.credits,
+                    grade: c.grade,
+                    status: c.status,
+                    professor: c.professor,
+                    location: c.location,
+                    midtermDate: c.midterm_date,
+                    finalDate: c.final_date,
+                    color: c.color
+                })),
+                studySessions: allSessions,
+                updatedAt: sem.updated_at
+            });
+        }
+        return result;
+    } catch (e) {
+        console.error("DB: loadAllSemesters error:", e);
         return [];
     }
+}
+
+export async function getCourseNotes(studentId: string, courseId: string): Promise<string | null> {
+    try {
+        const { rows } = await sql`
+            SELECT notes FROM course_notes 
+            WHERE student_id = ${studentId} AND course_id = ${courseId}
+            LIMIT 1
+        `;
+        return rows[0]?.notes || null;
+    } catch (e) {
+        console.error("DB: getCourseNotes error:", e);
+        return null;
+    }
+}
+
+export async function saveCourseNotes(studentId: string, courseId: string, notes: string): Promise<void> {
+    await sql`
+        INSERT INTO course_notes (student_id, course_id, notes, updated_at)
+        VALUES (${studentId}, ${courseId}, ${notes}, NOW())
+        ON CONFLICT (student_id, course_id) DO UPDATE SET
+            notes = EXCLUDED.notes,
+            updated_at = NOW()
+    `;
 }

@@ -125,7 +125,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
     return (
         <div className="max-w-2xl mx-auto">
             <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold mb-4 bg-linear-to-r from-white to-white/40 bg-clip-text text-transparent">
                     {step === 1 ? "Which courses are you taking?" : "Identify High-Stakes Assessments"}
                 </h2>
                 <p className="text-white/60 text-sm max-w-md mx-auto">
@@ -151,7 +151,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                     key={idx}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`relative flex items-center group ${activeInput === idx ? 'z-[60]' : 'z-10'}`}
+                                    className={`relative flex items-center group ${activeInput === idx ? 'z-50' : 'z-10'}`}
                                 >
                                     <input
                                         autoFocus={idx === inputList.length - 1}
@@ -161,7 +161,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                         onFocus={() => setActiveInput(idx)}
                                         onBlur={() => setTimeout(() => setActiveInput(null), 200)}
                                         placeholder="e.g. Data Structures"
-                                        className="w-full bg-white/[0.05] border border-white/20 rounded-xl py-3.5 pl-4 pr-12 text-white placeholder-white/40 outline-none transition-all focus:bg-white/[0.08] focus:border-violet-500/60 text-sm font-medium"
+                                        className="w-full bg-white/5 border border-white/20 rounded-xl py-3.5 pl-4 pr-12 text-white placeholder-white/40 outline-none transition-all focus:bg-white/10 focus:border-violet-500/60 text-sm font-medium"
                                     />
 
                                     {/* Autocomplete Dropdown */}
@@ -171,7 +171,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                                 initial={{ opacity: 0, y: -10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
-                                                className="absolute top-full left-0 right-0 mt-2 z-[100] bg-[#0A0A0A] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl max-h-[280px] overflow-y-auto"
+                                                className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#0A0A0A] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl max-h-72 overflow-y-auto"
                                             >
                                                 <div className="p-2 space-y-1">
                                                     {suggestions.map((course, sIdx) => (
@@ -243,7 +243,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                     key={course.id}
                                     className={`rounded-2xl border transition-all ${course.hasMidterm
                                         ? "bg-violet-500/10 border-violet-500/40"
-                                        : "bg-white/[0.02] border-white/5 hover:border-white/10"
+                                        : "bg-white/5 border-white/5 hover:border-white/10"
                                         }`}
                                 >
                                     <button
@@ -264,7 +264,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                         </div>
                                     </button>
                                     {/* Optional Details: Location & Instructor */}
-                                    <div className="px-4 pb-4 grid grid-cols-2 gap-3 border-t border-white/[0.03] pt-4 mt-2">
+                                    <div className="px-4 pb-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 mt-2">
                                         <div className="space-y-1.5 text-left">
                                             <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider pl-1">Instructor (Doctor)</label>
                                             <input
@@ -272,7 +272,7 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                                 placeholder="e.g. Dr. Omar"
                                                 value={course.professor || ""}
                                                 onChange={(e) => updateCourse(course.id, { professor: e.target.value })}
-                                                className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-2 px-3 text-white text-xs placeholder-white/10 outline-none focus:border-violet-500/40 transition-all font-medium"
+                                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-3 text-white text-xs placeholder-white/10 outline-none focus:border-violet-500/40 transition-all font-medium"
                                             />
                                         </div>
                                         <div className="space-y-1.5 text-left">
@@ -282,13 +282,13 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                                                 placeholder="e.g. Lab 402"
                                                 value={course.location || ""}
                                                 onChange={(e) => updateCourse(course.id, { location: e.target.value })}
-                                                className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-2 px-3 text-white text-xs placeholder-white/10 outline-none focus:border-violet-500/40 transition-all font-medium"
+                                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-3 text-white text-xs placeholder-white/10 outline-none focus:border-violet-500/40 transition-all font-medium"
                                             />
                                         </div>
                                     </div>
 
                                     {course.hasMidterm && (
-                                        <div className="px-4 pb-4 flex items-center gap-3 border-t border-white/[0.03] pt-4">
+                                        <div className="px-4 pb-4 flex items-center gap-3 border-t border-white/10 pt-4">
                                             <label className="text-[10px] text-white/65 font-bold uppercase tracking-wider shrink-0">Midterm Date:</label>
                                             <input
                                                 type="date"
@@ -314,13 +314,13 @@ export default function PlannerSetup({ onComplete }: PlannerSetupProps) {
                         <div className="flex gap-4">
                             <button
                                 onClick={() => setStep(1)}
-                                className="flex-1 py-4 rounded-2xl bg-white/[0.05] border border-white/10 text-white font-bold text-sm transition-all hover:bg-white/[0.08]"
+                                className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm transition-all hover:bg-white/10"
                             >
                                 Back
                             </button>
                             <button
                                 onClick={finishSetup}
-                                className="flex-[2] py-4 rounded-2xl bg-violet-600 text-white font-bold text-sm transition-all hover:bg-violet-500 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] flex items-center justify-center gap-2"
+                                className="flex-2 py-4 rounded-2xl bg-violet-600 text-white font-bold text-sm transition-all hover:bg-violet-500 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] flex items-center justify-center gap-2"
                             >
                                 Generate Workspace
                                 <Sparkles className="w-4 h-4" />

@@ -1,0 +1,104 @@
+Here’s a clean, optimized version of your requirements that you can paste directly into your AI editor.
+
+***
+
+## Prompt: Upgrade HTUAI Planner, Course Tracker, GPA System, and Notes
+
+I want you to update my **HTUAI** web app with the following features and UI/UX improvements.
+
+***
+
+### 1. Planner ↔ Course Tracker Sync + Semester Structure + GPA/CGPA
+
+1. **Rename & App Name**
+   - Rename every instance of **“Transcript”** in the app to **“Course Tracker”**.
+   - Use **HTUAI** as the app name everywhere.
+
+2. **Semester Structure**
+   Implement these fixed semester names and date ranges:
+
+   - **Winter Semester** (first semester): from **October to February**.  
+   - **Spring Semester** (second semester): from **March to June**.  
+   - **Summer Semester** (third/last semester): from **July to September**. [aleague](https://aleague.org/en/UniversityCalendars)
+
+   The planner and course tracker must use these names consistently in UI and logic.
+
+3. **Planner ↔ Course Tracker Sync**
+   - Create a **full sync** between the **Planner** and the **Course Tracker**:
+     - The **baseline progress** for the current semester must include:
+       - Overall semester progress, **plus**
+       - The **total hours** I add to the current semester.
+     - When a course is marked as **completed** in the planner, it should be **automatically checked/completed** in the Course Tracker.
+     - Any update in one place (Planner or Course Tracker) must stay **consistent** in the other.
+
+4. **Saving All Semester Progress (History)**
+   - The system must **save all semester progress** so I can track my performance throughout my entire university journey.
+   - It should:
+     - Allow input of **previous semesters** (starting with **Winter** as the first semester, then **Spring**, then later semesters).
+     - Keep a **history** of each semester with its courses, credits, grades, and GPA.
+   - This data should be used to correctly calculate:
+     - **Current semester GPA**.
+     - **Overall CGPA (cumulative GPA)** across **all** completed semesters. [play.google](https://play.google.com/store/apps/details?id=com.beingwela.gpa_cgpa_calculator_and_planner)
+
+5. **GPA / CGPA Logic**
+   - Follow standard GPA/CGPA math used in multi-semester GPA planners:
+     - Each course has credits and a grade → converted to grade points.
+     - Semester GPA = total grade points for the semester / total credits in that semester.
+     - CGPA = total grade points across all semesters / total credits across all semesters. [meetyourclass](https://meetyourclass.com/college-gpa-calculator)
+   - Whenever a new semester is added or edited, **recalculate**:
+     - The **current semester GPA**.
+     - The **overall CGPA**.
+   - Show both clearly in the UI:
+     - “Current Semester GPA”
+     - “Overall CGPA”
+
+***
+
+### 2. Marks Display and Color System
+
+Use the **same marks color system** already applied on the website, but enforce these rules everywhere:
+
+- Marks and colors:
+  - **D** = green  
+  - **M** = blue  
+  - **P** = yellow  
+  - **U** = red  
+- Only show the **first letter**, in **uppercase** (D, M, P, U) on **all devices**.
+- Use the **same styling, typography, spacing, and components** that the current website uses for these marks (no new style; extend the existing design system).
+
+***
+
+### 3. Advanced Notion-like Notes Experience
+
+The current notes space is too simple. I want a **Notion-like**, premium notes experience inside HTUAI.
+
+1. **Layout & Size**
+   - Make the notes area **bigger**, with an option to **take the whole page** (full-page editor mode).
+   - Ensure it is **fully responsive** and comfortable on desktop, tablet, and mobile.
+
+2. **Rich Text & Blocks**
+   - Add rich text editing with:
+     - Text colors and highlights  
+     - Headings and subheadings  
+     - Bullet lists and numbered lists  
+     - Bold, italic, underline, etc.
+   - Implement a **block-based editor** similar to Notion:
+     - Paragraph blocks, heading blocks, list blocks, quote blocks, callout/colored blocks, etc.
+     - Support drag-and-drop and block-level interactions.
+   - You can follow patterns from modern Notion-style editors (e.g., Tiptap Notion-like templates, Novel, BlockNote, etc.) for behavior and interactions. [tiptap](https://tiptap.dev/docs/ui-components/templates/notion-like-editor)
+
+3. **Usability & Premium UI/UX**
+   - Add a **clean, modern formatting toolbar** (top or floating) with clear icons.
+   - Use good spacing, line height, and subtle animations to make it feel **smooth and premium**.
+   - The experience should feel close to Notion in terms of:
+     - Flexibility
+     - Visual polish
+     - Ease of use [novel](https://novel.sh)
+   - Keep the visual language consistent with **HTUAI** (same fonts, colors, and design system as the rest of the app).
+
+***
+
+### 4. General Requirements
+
+- Keep everything **responsive**, **fast**, and aligned with **best UI/UX practices** for academic planners and productivity tools. [mishwani](https://mishwani.tech)
+- Do not introduce random new design languages; extend and refine the **existing HTUAI website design system** so the whole app feels unified.

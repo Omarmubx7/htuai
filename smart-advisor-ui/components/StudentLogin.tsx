@@ -59,7 +59,7 @@ export default function StudentLogin() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-[400px] z-10"
+                className="relative w-full max-w-100 z-10"
             >
                 {/* Badge */}
                 <div className="flex justify-center mb-10">
@@ -69,14 +69,14 @@ export default function StudentLogin() {
                         transition={{ delay: 0.2 }}
                         className="pill-badge-premium"
                     >
-                        <img src="/mubxlogo.svg" alt="Mubx Logo" className="w-4 h-4" />
-                        HTU Smart Advisor
+                        <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4" />
+                        HTUAI Advisor
                     </motion.div>
                 </div>
 
-                <div className="glass-card-premium rounded-[32px] p-8 md:p-10 border border-white/10 relative overflow-hidden">
+                <div className="glass-card-premium rounded-4xl p-8 md:p-10 border border-white/10 relative overflow-hidden">
                     {/* Subtle inner flare */}
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-violet-400/20 to-transparent" />
+                    <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-violet-400/20 to-transparent" />
 
                     <div className="text-center mb-10">
                         <AnimatePresence mode="wait">
@@ -114,7 +114,7 @@ export default function StudentLogin() {
                                     aria-required="true"
                                     aria-invalid={!!error}
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 outline-none transition-all focus:bg-white/[0.05] focus:border-violet-500/40 text-sm font-medium"
+                                    className="w-full bg-white/3 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/40 outline-none transition-all focus:bg-white/5 focus:border-violet-500/40 text-sm font-medium"
                                 />
                             </div>
 
@@ -133,7 +133,7 @@ export default function StudentLogin() {
                                     aria-required="true"
                                     aria-invalid={!!error}
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/20 outline-none transition-all focus:bg-white/[0.05] focus:border-violet-500/40 text-sm font-medium"
+                                    className="w-full bg-white/3 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/40 outline-none transition-all focus:bg-white/5 focus:border-violet-500/40 text-sm font-medium"
                                 />
                             </div>
                         </div>
@@ -156,7 +156,7 @@ export default function StudentLogin() {
                             whileTap={{ scale: 0.98 }}
                             type="submit"
                             aria-label={isClaiming ? "Verify and Claim Account" : "Sign into Dashboard"}
-                            className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white text-black font-bold text-sm transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
+                            className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white/3 text-black font-bold text-sm transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
                         >
                             {loading ? "Initializing..." : isClaiming ? "Verify & Claim" : "Enter Dashboard"}
                             {!loading && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />}
@@ -176,7 +176,7 @@ export default function StudentLogin() {
                             whileTap={{ scale: 0.99 }}
                             onClick={() => signIn("google")}
                             aria-label="Continue with Google"
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white text-sm font-semibold transition-all hover:bg-white/[0.05]"
+                            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/3 border border-white/5 text-white text-sm font-semibold transition-all hover:bg-white/5"
                         >
                             <div className="w-6 h-6 flex items-center justify-center bg-white/5 rounded-full" aria-hidden="true">
                                 <Chrome className="w-3.5 h-3.5 text-white/60" />

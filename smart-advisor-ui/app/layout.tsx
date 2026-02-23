@@ -10,13 +10,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://htuai.mubx.dev'),
-  title: "HTU Smart Advisor — Academic Planner & Course Tracker",
+  title: "HTUAI — Academic Planner & Course Tracker",
   description: "The ultimate tool for HTU students to track degree progress, plan semesters, and calculate GPA. Built for Al Hussein Technical University (Jordan).",
   keywords: [
     "HTU",
     "Al Hussein Technical University",
     "HTU Courses Tracker",
-    "HTU Smart Advisor",
+    "HTUAI",
     "Academic Planner Jordan",
     "GPA Calculator HTU",
     "Semester Planner",
@@ -28,15 +28,15 @@ export const metadata: Metadata = {
   authors: [{ name: "mubx", url: "https://mubx.dev" }],
   creator: "mubx",
   openGraph: {
-    title: "HTU Smart Advisor — Academic Planner",
+    title: "HTUAI — Academic Planner",
     description: "Track your HTU courses and degree progress with ease.",
     url: "https://htuai.mubx.dev",
-    siteName: "HTU Smart Advisor",
+    siteName: "HTUAI",
     locale: "ar_JO",
     type: "website",
     images: [
       {
-        url: "/mubxlogo.svg",
+        url: "/HTUAIlogo.svg",
         width: 1200,
         height: 630,
         alt: "HTU Smart Advisor",
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HTU Smart Advisor",
+    title: "HTUAI",
     description: "The official course tracker & planner for HTU students.",
-    images: ["/mubxlogo.svg"],
+    images: ["/HTUAIlogo.svg"],
   },
   icons: {
     icon: "/favicon.ico",
-    apple: "/mubxlogo.svg",
+    apple: "/HTUAIlogo.svg",
   },
 };
 
@@ -79,7 +79,7 @@ export default async function RootLayout({
               __html: JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "SoftwareApplication",
-                "name": "HTU Smart Advisor",
+                "name": "HTUAI",
                 "operatingSystem": "Web",
                 "applicationCategory": "EducationalApplication",
                 "offers": {

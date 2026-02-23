@@ -7,8 +7,10 @@ import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
 import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Sparkles, Target, Star, Info } from 'lucide-react';
 import StudentDashboard from './StudentDashboard';
+import ConfirmDialog from './ui/ConfirmDialog';
+import { useToast } from './ui/Toast';
 
-interface TranscriptViewProps {
+interface CourseTrackerViewProps {
     data: CourseData;
     studentId: string;
     majorKey: string;
@@ -20,7 +22,7 @@ interface TranscriptViewProps {
     resetProgress: () => void;
 }
 
-export default function TranscriptView({
+export default function CourseTrackerView({
     data,
     studentId,
     majorKey,
@@ -30,8 +32,10 @@ export default function TranscriptView({
     updateCourseGrade,
     saveStatus,
     resetProgress
-}: TranscriptViewProps) {
+}: CourseTrackerViewProps) {
     const [viewMode, setViewMode] = useState<"level" | "category">("level");
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const { toast } = useToast();
 
     const allCourses = [
         ...data.university_requirements,
@@ -117,9 +121,22 @@ export default function TranscriptView({
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-24 space-y-8 sm:space-y-12">
+            <ConfirmDialog
+                isOpen={showResetConfirm}
+                title="Reset All Progress"
+                description="This will clear all your completed courses and grades. You'll need to re-mark everything from scratch."
+                confirmLabel="Reset All"
+                variant="danger"
+                onConfirm={() => {
+                    resetProgress();
+                    toast("Progress reset successfully", "success");
+                    setShowResetConfirm(false);
+                }}
+                onCancel={() => setShowResetConfirm(false)}
+            />
 
             {/* Data notice banner */}
-            <div className="flex items-center gap-4 px-5 py-4 rounded-3xl border border-amber-500/10 bg-amber-500/[0.02] backdrop-blur-md">
+            <div className="flex items-center gap-4 px-5 py-4 rounded-3xl border border-amber-500/10 bg-amber-500/2 backdrop-blur-md">
                 <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
                     <Info className="w-4 h-4" />
                 </div>
@@ -137,13 +154,13 @@ export default function TranscriptView({
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Degree Progress</span>
                         </div>
                         <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-none text-gradient">
-                            My Transcript
+                            Course Tracker
                         </h1>
                     </div>
 
                     {/* Actions row */}
                     <div className="flex items-center gap-4">
-                        <div className="min-w-[100px] h-6 flex items-center">
+                        <div className="min-w-25 h-6 flex items-center">
                             <AnimatePresence mode="wait">
                                 {saveStatus === 'saving' && (
                                     <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -165,7 +182,7 @@ export default function TranscriptView({
                         <div className="h-4 w-px bg-white/10" />
 
                         <button
-                            onClick={resetProgress}
+                            onClick={() => setShowResetConfirm(true)}
                             className="flex items-center gap-2 text-sm sm:text-xs font-bold text-white/40 hover:text-red-400/70 transition-all hover:scale-105 p-2 sm:p-0 -ml-2 sm:ml-0"
                         >
                             <RotateCcw className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
@@ -175,7 +192,7 @@ export default function TranscriptView({
                 </div>
 
                 {/* Progress Card (Premium version) */}
-                <div className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-[400px] shrink-0 relative overflow-hidden group">
+                <div className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-100 shrink-0 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
                         <Trophy className="w-24 h-24 text-white" />
                     </div>
@@ -195,7 +212,7 @@ export default function TranscriptView({
                         </div>
 
                         <div className="space-y-3">
-                            <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden border border-white/[0.05]">
+                            <div className="h-1.5 bg-white/3 rounded-full overflow-hidden border border-white/5">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progress * 100}%` }}
@@ -235,9 +252,9 @@ export default function TranscriptView({
             />
 
             {/* View-mode toggle and Section Header */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/[0.05]">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-white/40">
+                    <div className="w-10 h-10 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-white/40">
                         {viewMode === 'level' ? <Trophy className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
                     </div>
                     <div>
@@ -246,7 +263,7 @@ export default function TranscriptView({
                     </div>
                 </div>
 
-                <div className="flex p-1 bg-white/[0.03] border border-white/[0.05] rounded-xl sm:rounded-[1.25rem] shadow-inner backdrop-blur-xl w-full sm:w-auto">
+                <div className="flex p-1 bg-white/3 border border-white/5 rounded-xl sm:rounded-[1.25rem] shadow-inner backdrop-blur-xl w-full sm:w-auto">
                     {(["level", "category"] as const).map((mode) => (
                         <button
                             key={mode}

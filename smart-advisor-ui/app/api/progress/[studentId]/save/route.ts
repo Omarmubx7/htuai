@@ -7,10 +7,14 @@ import { authOptions } from "@/auth";
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { studentId: string } }
+    { params }: { params: Promise<{ studentId: string }> }
 ) {
     const session = await getServerSession(authOptions);
     const { studentId: targetId } = await params;
+
+    // Debug log for session and targetId
+    console.log("[Transcript Sync] session.user:", session?.user);
+    console.log("[Transcript Sync] targetId:", targetId);
 
     if (!targetId || targetId.length < 3) {
         return NextResponse.json({ error: 'Invalid student ID' }, { status: 400 });
@@ -19,6 +23,7 @@ export async function POST(
     const authedSid = (session?.user as any)?.student_id || session?.user?.name;
 
     if (!session || authedSid !== targetId) {
+        console.log("[Transcript Sync] Unauthorized: authedSid:", authedSid, "targetId:", targetId);
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

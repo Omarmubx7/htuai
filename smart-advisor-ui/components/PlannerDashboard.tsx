@@ -6,14 +6,17 @@ import {
     BookOpen, Clock, Trophy, Plus,
     Trash2, GraduationCap, CheckCircle2,
     AlertTriangle, Lightbulb, Info,
-    BarChart3, Calendar, Settings, ExternalLink, Loader2, Globe, Sparkles
+    BarChart3, Calendar, Settings, Settings2, ExternalLink, Loader2, Globe, Sparkles, Search, HelpCircle, ChevronDown,
+    ChevronRight, Download, Layout, PieChart, Star, Zap
 } from "lucide-react";
 import { PlannerCourse, StudySession, SemesterData } from "@/types";
 import {
-    calculateGPA, getClassification, GRADE_MAP,
+    calculateGPA, calculateCumulativeGpaFromHistory, getClassification, GRADE_MAP,
     SCORED_GRADES, generateInsights, type Insight, type HTUGrade
 } from "@/lib/grading";
 import WeeklySummary from "./WeeklySummary";
+import ConfirmDialog from "./ui/ConfirmDialog";
+import { useToast } from "./ui/Toast";
 
 // ── Color mapping (Tailwind needs static class strings) ─────────────────
 
@@ -37,14 +40,19 @@ interface PlannerDashboardProps {
     onAddStudySession: (session: StudySession) => void;
     onUpdateStudySession: (session: StudySession) => void;
     onDeleteStudySession: (id: string) => void;
+    currentSemesterId?: string;
+    trackerCredits?: number;
 }
 
 export default function PlannerDashboard({
-    courses, studySessions, allSemesters = [], onUpdateCourses, onAddStudySession, onUpdateStudySession, onDeleteStudySession
+    courses, studySessions, allSemesters = [], onUpdateCourses, onAddStudySession, onUpdateStudySession, onDeleteStudySession,
+    currentSemesterId, trackerCredits = 0
 }: PlannerDashboardProps) {
 
     // ── Onboarding state ───────────────────────────────────────────────
     const [showOnboarding, setShowOnboarding] = useState(false);
+    const [confirmDeleteCourse, setConfirmDeleteCourse] = useState<PlannerCourse | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         const hasSeenOnboarding = localStorage.getItem("htuai_planner_onboarding");
@@ -94,24 +102,35 @@ export default function PlannerDashboard({
 
     // ── Historical KPIs ────────────────────────────────────────────────
     const historicalStats = useMemo(() => {
-        if (!allSemesters || allSemesters.length === 0) return null;
-
+        // 1. Semester GPAs
         const semesterGrades = allSemesters.map(sem => {
-            const graded = sem.courses.filter(c => c.grade && SCORED_GRADES.includes(c.grade as HTUGrade));
+            const isCurrent = sem.id === currentSemesterId;
+            const targetCourses = isCurrent ? courses : sem.courses;
+            const graded = targetCourses.filter(c => c.grade && SCORED_GRADES.includes(c.grade as HTUGrade));
             const gpa = calculateGPA(graded.map(c => ({ credits: c.credits, grade: c.grade! })));
             return {
                 name: sem.name || "Unknown Semester",
                 gpa,
-                courseCount: sem.courses.length,
+                courseCount: targetCourses.length,
                 indicator: gpa >= 2.8 ? "Good" : gpa >= 2.4 ? "Average" : gpa > 0 ? "At Risk" : "N/A"
             };
         });
 
-        const totalGraded = allSemesters.flatMap(s => s.courses.filter(c => c.grade && SCORED_GRADES.includes(c.grade as HTUGrade)));
-        const cumulativeGPA = calculateGPA(totalGraded.map(c => ({ credits: c.credits, grade: c.grade! })));
+        // 2. Cumulative GPA (precisely calculated from all history)
+        const totalGraded = allSemesters.flatMap(sem => {
+            const isCurrent = sem.id === currentSemesterId;
+            return (isCurrent ? courses : sem.courses).filter(c => c.grade && SCORED_GRADES.includes(c.grade as HTUGrade));
+        });
+        const cumulativeGPA = calculateCumulativeGpaFromHistory(totalGraded.map(c => ({ credits: c.credits, grade: c.grade! })));
 
-        return { semesterGrades, cumulativeGPA };
-    }, [allSemesters]);
+        // 3. Baseline Credits (Tracker Completed + Current Semester Passed)
+        const currentSemesterPassedCredits = courses
+            .filter(c => c.status === "Completed")
+            .reduce((sum, c) => sum + (c.credits || 0), 0);
+        const totalEarnedCredits = trackerCredits + currentSemesterPassedCredits;
+
+        return { semesterGrades, cumulativeGPA, totalEarnedCredits };
+    }, [allSemesters, courses, currentSemesterId, trackerCredits]);
 
     // ── Handlers ────────────────────────────────────────────────────────
     const updateGrade = (id: string, grade: string) => {
@@ -139,22 +158,54 @@ export default function PlannerDashboard({
 
     // ── Add Course state ────────────────────────────────────────────────
     const [showAddCourse, setShowAddCourse] = useState(false);
-    const [newCourseName, setNewCourseName] = useState("");
-    const [newCourseCredits, setNewCourseCredits] = useState("3");
+    const [courseSearchQuery, setCourseSearchQuery] = useState("");
+    const [allAvailableCourses, setAllAvailableCourses] = useState<{ name: string; code: string; ch: number }[]>([]);
+    const [courseSuggestions, setCourseSuggestions] = useState<{ name: string; code: string; ch: number }[]>([]);
+    const [courseSearchFocused, setCourseSearchFocused] = useState(false);
 
-    const addCourse = () => {
-        const name = newCourseName.trim();
-        if (!name) return;
-        const credits = parseInt(newCourseCredits) || 3;
+    // Fetch curriculum courses when the add-course panel opens
+    useEffect(() => {
+        if (showAddCourse && allAvailableCourses.length === 0) {
+            fetch("/api/courses")
+                .then(res => res.json())
+                .then(data => { if (Array.isArray(data)) setAllAvailableCourses(data); })
+                .catch(console.error);
+        }
+    }, [showAddCourse, allAvailableCourses.length]);
+
+    // Filter suggestions as user types
+    useEffect(() => {
+        if (courseSearchQuery.length < 2) { setCourseSuggestions([]); return; }
+        const q = courseSearchQuery.toLowerCase();
+        const filtered = allAvailableCourses.filter(c =>
+            c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
+        );
+        // Deduplicate by name
+        const unique = new Map<string, { name: string; code: string; ch: number }>();
+        filtered.forEach(c => {
+            const key = c.name.toLowerCase();
+            if (!unique.has(key) || c.code.length < unique.get(key)!.code.length) unique.set(key, c);
+        });
+        setCourseSuggestions(Array.from(unique.values()).slice(0, 8));
+    }, [courseSearchQuery, allAvailableCourses]);
+
+    const addCourseFromCurriculum = (course: { name: string; code: string; ch: number }) => {
+        // Prevent duplicates
+        if (courses.some(c => c.code === course.code || c.name.toLowerCase() === course.name.toLowerCase())) {
+            toast("Course already added", "error");
+            return;
+        }
         onUpdateCourses([...courses, {
             id: Math.random().toString(36).substr(2, 9),
-            name,
-            credits,
+            name: course.name,
+            code: course.code,
+            credits: course.ch,
             hasMidterm: false,
             status: "In Progress",
         }]);
-        setNewCourseName("");
-        setNewCourseCredits("3");
+        toast(`${course.name} added`, "success");
+        setCourseSearchQuery("");
+        setCourseSuggestions([]);
         setShowAddCourse(false);
     };
 
@@ -225,6 +276,20 @@ export default function PlannerDashboard({
     return (
         <div className="space-y-8">
             <GetStartedModal isOpen={showOnboarding} onClose={dismissOnboarding} />
+            <ConfirmDialog
+                isOpen={!!confirmDeleteCourse}
+                title="Remove Course"
+                description={`Remove "${confirmDeleteCourse?.name}" from your planner? This cannot be undone.`}
+                confirmLabel="Remove"
+                variant="danger"
+                onConfirm={() => {
+                    if (confirmDeleteCourse) {
+                        deleteCourse(confirmDeleteCourse.id);
+                        toast(`${confirmDeleteCourse.name} removed`, "success");
+                    }
+                }}
+                onCancel={() => setConfirmDeleteCourse(null)}
+            />
 
             {/* ════ Stats Overview ════ */}
             {/* ════ Stats Overview ════ */}
@@ -243,12 +308,12 @@ export default function PlannerDashboard({
                     value={gradedCourses.length > 0 ? classification.short : "—"}
                     label="Class"
                 />
-                {/* Credits */}
+                {/* Unified Baseline Credits */}
                 <StatCard
                     icon={<BookOpen className="w-5 h-5 text-blue-400" />}
                     bg="bg-blue-500/10" border="border-blue-500/20"
-                    value={String(totalCredits)}
-                    label="Credits"
+                    value={String(historicalStats.totalEarnedCredits)}
+                    label="Total Passed"
                 />
                 {/* At Risk */}
                 <StatCard
@@ -276,6 +341,9 @@ export default function PlannerDashboard({
                 )}
             </div>
 
+            {/* ════ Graduation Roadmap ════ */}
+            <GraduationCalculator earnedCredits={historicalStats?.totalEarnedCredits || 0} />
+
             {/* ════ Course Table ════ */}
             <section className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -285,6 +353,13 @@ export default function PlannerDashboard({
                     <div className="flex items-center gap-3">
                         <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{courses.length} courses tracked</span>
                         <button
+                            onClick={() => { localStorage.removeItem("htuai_planner_onboarding"); setShowOnboarding(true); }}
+                            className="p-1.5 rounded-xl text-white/20 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
+                            title="Show help"
+                        >
+                            <HelpCircle className="w-4 h-4" />
+                        </button>
+                        <button
                             onClick={() => setShowAddCourse(!showAddCourse)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
                         >
@@ -293,187 +368,306 @@ export default function PlannerDashboard({
                     </div>
                 </div>
 
-                {/* Add Course Form */}
+                {/* Add Course Search */}
                 <AnimatePresence>
                     {showAddCourse && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
+                            className="overflow-visible"
                         >
-                            <div className="glass-card-premium p-4 rounded-2xl border border-violet-500/20 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
-                                <div className="flex-1 space-y-1">
-                                    <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Course Name</label>
-                                    <input
-                                        autoFocus
-                                        value={newCourseName}
-                                        onChange={e => setNewCourseName(e.target.value)}
-                                        onKeyDown={e => e.key === "Enter" && addCourse()}
-                                        placeholder="e.g. Data Structures"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/20 outline-none focus:border-violet-500/40"
-                                    />
-                                </div>
-                                <div className="w-24 space-y-1">
-                                    <label className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Credits</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="6"
-                                        value={newCourseCredits}
-                                        onChange={e => setNewCourseCredits(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-violet-500/40"
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={addCourse}
-                                        disabled={!newCourseName.trim()}
-                                        className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                                    >
-                                        <Plus className="w-3.5 h-3.5" /> Add
-                                    </button>
-                                    <button
-                                        onClick={() => setShowAddCourse(false)}
-                                        className="px-3 py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white text-xs font-bold transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
+                            <div className="glass-card-premium p-4 rounded-2xl border border-violet-500/20 relative z-30">
+                                <div className="relative">
+                                    <div className="flex items-center gap-2">
+                                        <Search className="w-4 h-4 text-white/30 shrink-0" />
+                                        <input
+                                            autoFocus
+                                            value={courseSearchQuery}
+                                            onChange={e => setCourseSearchQuery(e.target.value)}
+                                            onFocus={() => setCourseSearchFocused(true)}
+                                            onBlur={() => setTimeout(() => setCourseSearchFocused(false), 200)}
+                                            placeholder="Search courses by name or code..."
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40"
+                                        />
+                                        <button
+                                            onClick={() => { setShowAddCourse(false); setCourseSearchQuery(""); setCourseSuggestions([]); }}
+                                            className="px-3 py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white text-xs font-bold transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+
+                                    {/* Suggestions dropdown */}
+                                    <AnimatePresence>
+                                        {courseSearchFocused && courseSuggestions.length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -6 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -6 }}
+                                                className="absolute top-full left-0 right-0 mt-2 z-100 bg-[#0A0A0A] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl max-h-80 overflow-y-auto"
+                                            >
+                                                <div className="p-2 space-y-1">
+                                                    {courseSuggestions.map((course, idx) => {
+                                                        const alreadyAdded = courses.some(c => c.code === course.code || c.name.toLowerCase() === course.name.toLowerCase());
+                                                        return (
+                                                            <button
+                                                                key={`${course.code}-${idx}`}
+                                                                onClick={() => !alreadyAdded && addCourseFromCurriculum(course)}
+                                                                disabled={alreadyAdded}
+                                                                className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between gap-3 group/item ${alreadyAdded ? "opacity-40 cursor-not-allowed" : "hover:bg-white/5"}`}
+                                                            >
+                                                                <div className="flex flex-col items-start gap-1 min-w-0">
+                                                                    <span className="text-sm font-semibold text-white group-hover/item:text-violet-400 transition-colors truncate">
+                                                                        {course.name}
+                                                                    </span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-[10px] text-white/30 font-mono uppercase tracking-widest">
+                                                                            {course.code}
+                                                                        </span>
+                                                                        <div className="h-px w-4 bg-white/5" />
+                                                                        <span className="text-[9px] text-violet-500/60 font-bold uppercase tracking-tighter">
+                                                                            {course.ch} Credits
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                {alreadyAdded ? (
+                                                                    <span className="text-[9px] text-emerald-400/60 font-bold uppercase tracking-wider shrink-0">Added</span>
+                                                                ) : (
+                                                                    <Plus className="w-4 h-4 text-white/10 group-hover/item:text-violet-400 transition-colors shrink-0" />
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {courseSearchQuery.length >= 2 && courseSuggestions.length === 0 && courseSearchFocused && (
+                                        <div className="mt-2 text-center py-3 text-[10px] text-white/20 font-bold uppercase tracking-wider">
+                                            No courses found for &ldquo;{courseSearchQuery}&rdquo;
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                <div className="glass-card-premium rounded-[2.5rem] border border-white/5 overflow-hidden overflow-x-auto shadow-2xl bg-black/20">
-                    <table className="w-full text-left border-collapse min-w-275">
-                        <thead>
-                            <tr className="border-b border-white/5 bg-white/2">
-                                <Th className="pl-8">Course Details</Th>
-                                <Th className="w-20 text-center">Credits</Th>
-                                <Th className="w-44 text-center">Grade / Score</Th>
-                                <Th className="w-40 text-center">Midterm</Th>
-                                <Th className="w-40 text-center">Final Exam</Th>
-                                <Th className="w-44 text-center">Instructor</Th>
-                                <Th className="w-44 text-center">Location</Th>
-                                <Th className="w-24 text-center">Study Hrs</Th>
-                                <Th className="w-32 text-center">Status</Th>
-                                <Th className="w-16 pr-8 text-right"></Th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/3">
-                            {courses.map(course => {
-                                const gradeInfo = course.grade ? GRADE_MAP[course.grade] : null;
-                                const gColor = gradeInfo ? gc(gradeInfo.colorKey) : null;
-                                return (
-                                    <tr key={course.id} className="group hover:bg-white/2 transition-colors">
-                                        {/* Name */}
-                                        <td className="py-5 px-8">
-                                            <div className="flex flex-col gap-0.5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-2 h-2 rounded-full ${gColor ? gColor.bg : "bg-violet-500/40"} shadow-[0_0_10px_rgba(139,92,246,0.2)]`} />
-                                                    <span className="text-sm font-bold text-white tracking-tight">{course.name}</span>
+                <div className="glass-card-premium rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-black/20">
+                    {/* Desktop Table */}
+                    <div className="hidden lg:block overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-275">
+                            <thead>
+                                <tr className="border-b border-white/5 bg-white/2">
+                                    <Th className="pl-8">Course Details</Th>
+                                    <Th className="w-20 text-center">Credits</Th>
+                                    <Th className="w-44 text-center">Grade / Score</Th>
+                                    <Th className="w-40 text-center">Midterm</Th>
+                                    <Th className="w-40 text-center">Final Exam</Th>
+                                    <Th className="w-44 text-center">Instructor</Th>
+                                    <Th className="w-44 text-center">Location</Th>
+                                    <Th className="w-24 text-center">Study Hrs</Th>
+                                    <Th className="w-32 text-center">Status</Th>
+                                    <Th className="w-16 pr-8 text-right">&nbsp;</Th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/3">
+                                {courses.map(course => {
+                                    const gradeInfo = course.grade ? GRADE_MAP[course.grade] : null;
+                                    const gColor = gradeInfo ? gc(gradeInfo.colorKey) : null;
+                                    return (
+                                        <tr key={course.id} className="group hover:bg-white/2 transition-colors">
+                                            {/* Name */}
+                                            <td className="py-5 px-8">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${gColor ? gColor.bg : "bg-violet-500/40"} shadow-[0_0_10px_rgba(139,92,246,0.2)]`} />
+                                                        <span className="text-sm font-bold text-white tracking-tight">{course.name}</span>
+                                                        <a
+                                                            href={`/courses/${course.id}/notes`}
+                                                            className="ml-2 px-2 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+                                                            title="Open notes for this course"
+                                                            target="_blank"
+                                                        >Notes</a>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-white/30 ml-5 uppercase tracking-widest">{course.id}</span>
                                                 </div>
-                                                <span className="text-[10px] font-bold text-white/20 ml-5 uppercase tracking-widest">{course.id}</span>
+                                            </td>
+                                            {/* Credits */}
+                                            <td className="py-5 px-4 text-center">
+                                                <span className="text-xs font-black text-white/50">{course.credits}</span>
+                                            </td>
+                                            {/* Grade (editable dropdown) */}
+                                            <td className="py-5 px-4 text-center">
+                                                <select
+                                                    value={course.grade || ""}
+                                                    onChange={e => updateGrade(course.id, e.target.value)}
+                                                    className={`px-3 py-1.5 rounded-xl text-lg font-black border transition-all cursor-pointer appearance-none text-center ${gColor ? gColor.text : "text-violet-400"} bg-white/5 border-white/10 focus:ring-2 focus:ring-violet-500/20`}
+                                                    style={{ colorScheme: "dark" }}
+                                                >
+                                                    <option value="" className="bg-[#0a0a0a] text-white/30">N/A</option>
+                                                    {["D", "M", "P", "U"].map(grade => {
+                                                        const info = GRADE_MAP[grade];
+                                                        return (
+                                                            <option key={grade} value={grade} className={info.colorKey ? gc(info.colorKey).text : "text-violet-400"}>
+                                                                {grade}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </td>
+                                            {/* Midterm Date */}
+                                            <td className="py-5 px-4">
+                                                <input
+                                                    type="date"
+                                                    value={course.midtermDate || ""}
+                                                    onChange={e => updateField(course.id, "midtermDate", e.target.value || undefined)}
+                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                    style={{ colorScheme: "dark" }}
+                                                />
+                                            </td>
+                                            {/* Final Date */}
+                                            <td className="py-5 px-4">
+                                                <input
+                                                    type="date"
+                                                    value={course.finalDate || ""}
+                                                    onChange={e => updateField(course.id, "finalDate", e.target.value || undefined)}
+                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                    style={{ colorScheme: "dark" }}
+                                                />
+                                            </td>
+                                            {/* Instructor */}
+                                            <td className="py-5 px-4">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Dr. Name"
+                                                    value={course.professor || ""}
+                                                    onChange={e => updateField(course.id, "professor", e.target.value)}
+                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                />
+                                            </td>
+                                            {/* Location */}
+                                            <td className="py-5 px-4">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Room/Lab"
+                                                    value={course.location || ""}
+                                                    onChange={e => updateField(course.id, "location", e.target.value)}
+                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                />
+                                            </td>
+                                            {/* Study Hours */}
+                                            <td className="py-5 px-4 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-xs font-black text-white">{(courseHours[course.id] || 0).toFixed(1)}</span>
+                                                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">Hours</span>
+                                                </div>
+                                            </td>
+                                            {/* Status */}
+                                            <td className="py-5 px-4 text-center">
+                                                <select
+                                                    value={course.status}
+                                                    onChange={e => updateField(course.id, "status", e.target.value)}
+                                                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all cursor-pointer appearance-none text-center ${course.status === "Completed"
+                                                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                                        : course.status === "At Risk"
+                                                            ? "bg-red-500/10 border-red-500/20 text-red-400"
+                                                            : "bg-blue-500/10 border-blue-500/20 text-blue-400"
+                                                        }`}
+                                                    style={{ colorScheme: "dark" }}
+                                                >
+                                                    <option value="In Progress" className="bg-[#0a0a0a] text-blue-400">In Progress</option>
+                                                    <option value="Completed" className="bg-[#0a0a0a] text-emerald-400">Completed</option>
+                                                    <option value="At Risk" className="bg-[#0a0a0a] text-red-400">At Risk</option>
+                                                </select>
+                                            </td>
+                                            {/* Delete */}
+                                            <td className="py-5 pr-8 text-right">
+                                                <button
+                                                    onClick={() => setConfirmDeleteCourse(course)}
+                                                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                    title="Remove course"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Card Layout */}
+                    <div className="lg:hidden divide-y divide-white/5">
+                        {courses.map(course => {
+                            const gradeInfo = course.grade ? GRADE_MAP[course.grade] : null;
+                            const gColor = gradeInfo ? gc(gradeInfo.colorKey) : null;
+                            return (
+                                <div key={course.id} className="p-4 space-y-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${gColor ? gColor.bg : "bg-violet-500/40"}`} />
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-sm font-bold text-white truncate">{course.name}</div>
+                                                    <a
+                                                        href={`/courses/${course.id}/notes`}
+                                                        className="ml-2 px-2 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+                                                        title="Open notes for this course"
+                                                        target="_blank"
+                                                    >Notes</a>
+                                                </div>
+                                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{course.id} &middot; {course.credits} CH</div>
                                             </div>
-                                        </td>
-                                        {/* Credits */}
-                                        <td className="py-5 px-4 text-center">
-                                            <span className="text-xs font-black text-white/40">{course.credits}</span>
-                                        </td>
-                                        {/* Grade */}
-                                        <td className="py-5 px-4">
-                                            <select
-                                                value={course.grade || ""}
-                                                onChange={e => updateGrade(course.id, e.target.value)}
-                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full cursor-pointer appearance-none text-center"
-                                                style={{ colorScheme: "dark" }}
-                                            >
-                                                <option value="" className="bg-[#0a0a0a]">N/A</option>
-                                                <option value="D" className="bg-[#0a0a0a]">Distinction (D)</option>
-                                                <option value="M" className="bg-[#0a0a0a]">Merit (M)</option>
-                                                <option value="P" className="bg-[#0a0a0a]">Pass (P)</option>
-                                                <option value="U" className="bg-[#0a0a0a]">Unclassified (U)</option>
-                                            </select>
-                                        </td>
-                                        {/* Midterm Date */}
-                                        <td className="py-5 px-4">
-                                            <input
-                                                type="date"
-                                                value={course.midtermDate || ""}
-                                                onChange={e => updateField(course.id, "midtermDate", e.target.value || undefined)}
-                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
-                                                style={{ colorScheme: "dark" }}
-                                            />
-                                        </td>
-                                        {/* Final Date */}
-                                        <td className="py-5 px-4">
-                                            <input
-                                                type="date"
-                                                value={course.finalDate || ""}
-                                                onChange={e => updateField(course.id, "finalDate", e.target.value || undefined)}
-                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
-                                                style={{ colorScheme: "dark" }}
-                                            />
-                                        </td>
-                                        {/* Instructor */}
-                                        <td className="py-5 px-4">
-                                            <input
-                                                type="text"
-                                                placeholder="Dr. Name"
-                                                value={course.professor || ""}
-                                                onChange={e => updateField(course.id, "professor", e.target.value)}
-                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/10 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
-                                            />
-                                        </td>
-                                        {/* Location */}
-                                        <td className="py-5 px-4">
-                                            <input
-                                                type="text"
-                                                placeholder="Room/Lab"
-                                                value={course.location || ""}
-                                                onChange={e => updateField(course.id, "location", e.target.value)}
-                                                className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/10 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
-                                            />
-                                        </td>
-                                        {/* Study Hours */}
-                                        <td className="py-5 px-4 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-xs font-black text-white">{(courseHours[course.id] || 0).toFixed(1)}</span>
-                                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-tighter">Hours</span>
-                                            </div>
-                                        </td>
-                                        {/* Status */}
-                                        <td className="py-5 px-4 text-center">
-                                            <button
-                                                onClick={() => toggleStatus(course.id)}
-                                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${course.status === "Completed"
-                                                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                                                    : course.status === "At Risk"
-                                                        ? "bg-red-500/10 border-red-500/20 text-red-400"
-                                                        : "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                                                    } hover:scale-105 active:scale-95`}
-                                            >
-                                                {course.status}
-                                            </button>
-                                        </td>
-                                        {/* Delete */}
-                                        <td className="py-5 pr-8 text-right">
-                                            <button
-                                                onClick={() => {
-                                                    if (confirm(`Remove "${course.name}" from your planner?`)) deleteCourse(course.id);
-                                                }}
-                                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                                                title="Remove course"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                        </div>
+                                        <button
+                                            onClick={() => setConfirmDeleteCourse(course)}
+                                            className="p-2 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <select
+                                            value={course.grade || ""}
+                                            onChange={e => updateGrade(course.id, e.target.value)}
+                                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-white outline-none focus:border-violet-500/40 appearance-none"
+                                            style={{ colorScheme: "dark" }}
+                                        >
+                                            <option value="" className="bg-[#0a0a0a]">Grade: N/A</option>
+                                            <option value="D" className="bg-[#0a0a0a]">Distinction</option>
+                                            <option value="M" className="bg-[#0a0a0a]">Merit</option>
+                                            <option value="P" className="bg-[#0a0a0a]">Pass</option>
+                                            <option value="U" className="bg-[#0a0a0a]">Unclassified</option>
+                                        </select>
+                                        <select
+                                            value={course.status}
+                                            onChange={e => updateField(course.id, "status", e.target.value)}
+                                            className={`rounded-xl px-3 py-2.5 text-xs font-black uppercase tracking-wider border appearance-none ${course.status === "Completed"
+                                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                                : course.status === "At Risk"
+                                                    ? "bg-red-500/10 border-red-500/20 text-red-400"
+                                                    : "bg-blue-500/10 border-blue-500/20 text-blue-400"
+                                                }`}
+                                            style={{ colorScheme: "dark" }}
+                                        >
+                                            <option value="In Progress" className="bg-[#0a0a0a]">In Progress</option>
+                                            <option value="Completed" className="bg-[#0a0a0a]">Completed</option>
+                                            <option value="At Risk" className="bg-[#0a0a0a]">At Risk</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[10px] font-bold text-white/40">
+                                        <span><Clock className="w-3 h-3 inline mr-1" />{(courseHours[course.id] || 0).toFixed(1)}h studied</span>
+                                        {course.professor && <span>&middot; {course.professor}</span>}
+                                        {course.location && <span>&middot; {course.location}</span>}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </section>
 
@@ -547,7 +741,7 @@ export default function PlannerDashboard({
                                 placeholder="Hours"
                                 value={logHours}
                                 onChange={e => setLogHours(e.target.value)}
-                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/20 outline-none focus:border-violet-500/40"
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40"
                             />
                             <input
                                 type="date"
@@ -560,7 +754,7 @@ export default function PlannerDashboard({
                                 placeholder="Notes (optional)"
                                 value={logNotes}
                                 onChange={e => setLogNotes(e.target.value)}
-                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/20 outline-none focus:border-violet-500/40"
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40"
                             />
                             <button
                                 onClick={addSession}
@@ -623,22 +817,29 @@ export default function PlannerDashboard({
                                             ) : (
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-medium">{course?.name || "Unknown"}</span>
-                                                        <span className="text-[10px] text-white/30">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-2 h-2 rounded-full ${course ? (() => {
+                                                                const gi = course.grade ? GRADE_MAP[course.grade] : null;
+                                                                return gi ? gc(gi.colorKey).bg : "bg-violet-500/40";
+                                                            })() : "bg-gray-500/40"
+                                                                }`} />
+                                                            <span className="text-xs font-medium">{course?.name || "Unknown"}</span>
+                                                        </div>
+                                                        <span className="text-[10px] text-white/40 ml-4">
                                                             {s.date} &middot; {s.hours}h{s.notes ? ` · ${s.notes}` : ""}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         <button
                                                             onClick={() => startEditSession(s)}
-                                                            className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-violet-400 transition-all p-1"
+                                                            className="sm:opacity-0 sm:group-hover:opacity-100 text-white/30 hover:text-violet-400 transition-all p-1"
                                                             title="Edit session"
                                                         >
                                                             <Settings className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
                                                             onClick={() => onDeleteStudySession(s.id)}
-                                                            className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all p-1"
+                                                            className="sm:opacity-0 sm:group-hover:opacity-100 text-white/30 hover:text-red-400 transition-all p-1"
                                                             title="Delete session"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
@@ -651,7 +852,13 @@ export default function PlannerDashboard({
                                 })}
                             </div>
                         ) : (
-                            <p className="text-xs text-white/20 text-center py-4">No study sessions yet. Log your first one above.</p>
+                            <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center">
+                                    <Clock className="w-5 h-5 text-white/20" />
+                                </div>
+                                <p className="text-xs text-white/30 text-center font-medium">No study sessions yet</p>
+                                <p className="text-[10px] text-white/20 text-center">Use the form above to log your first study session.</p>
+                            </div>
                         )}
                     </div>
                 </section>
@@ -684,7 +891,7 @@ export default function PlannerDashboard({
             <WeeklySummary courses={courses} studySessions={studySessions} />
 
             {/* ════ Integrations ════ */}
-            <IntegrationPanel courses={courses} studySessions={studySessions} />
+            <IntegrationPanel courses={courses} />
 
             {/* ════ HTU Grading Scale Reference ════ */}
             <section>
@@ -739,35 +946,18 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 
 // ── Integration Panel ───────────────────────────────────────────────────
 
-import { useSession } from "next-auth/react";
-
-function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]; studySessions: StudySession[] }) {
-    const { data: session } = useSession();
+function IntegrationPanel({ courses }: { courses: PlannerCourse[] }) {
     const [gcalLoading, setGcalLoading] = useState(false);
-    const [sheetsLoading, setSheetsLoading] = useState(false);
     const [statusLoading, setStatusLoading] = useState(true);
     const [gcalConnected, setGcalConnected] = useState(false);
-    const [sheetsConnected, setSheetsConnected] = useState(false);
-    const [autoSyncSheets, setAutoSyncSheets] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('htuai_sheets_autosync') !== 'false';
-        }
-        return true;
-    });
-    const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
     const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
-    const autoSyncedRef = useRef(false);
-
-    const isGoogleAuth = (session?.user as any)?.provider === "google";
 
     const fetchStatus = useCallback(async () => {
         try {
             const res = await fetch("/api/integrations/status");
             if (res.ok) {
                 const data = await res.json();
-                // Use functional updates so a URL-param-set 'true' is never overridden to false
-                setGcalConnected(prev => prev || data.google_calendar);
-                setSheetsConnected(prev => prev || data.google_sheets);
+                setGcalConnected(data.google_calendar);
             }
         } catch (e) {
             console.error("Failed to fetch integration status:", e);
@@ -776,16 +966,14 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
         }
     }, []);
 
-    // Handle OAuth callback params (runs once on mount)
+    // Handle URL params after OAuth returns
     useEffect(() => {
+        fetchStatus();
+
         const params = new URLSearchParams(window.location.search);
         const connected = params.get("connected");
         const error = params.get("error");
-        if (!connected && !error) {
-            // No callback params — fetch status from server
-            fetchStatus();
-            return;
-        }
+        if (!connected && !error) return;
 
         const url = new URL(window.location.href);
         url.searchParams.delete("connected");
@@ -794,21 +982,13 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
 
         if (error) {
             setMessage({ text: `Integration error: ${error.replace(/_/g, " ")}`, ok: false });
-            fetchStatus();
             return;
         }
         if (connected === "google") {
             setMessage({ text: "Google Calendar connected! Click Sync to push exam dates.", ok: true });
             setGcalConnected(true);
         }
-        if (connected === "google_sheets") {
-            setMessage({ text: "Google Sheets connected! Seamless Sync is now active.", ok: true });
-            setSheetsConnected(true);
-            setAutoSyncSheets(true);
-        }
-        // Fetch remaining statuses without overriding the one just connected
-        fetchStatus();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [fetchStatus]);
 
     const connectGoogleCalendar = () => {
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -850,230 +1030,60 @@ function IntegrationPanel({ courses, studySessions }: { courses: PlannerCourse[]
         setGcalLoading(false);
     };
 
-    const connectGoogleSheets = () => {
-        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-        if (!clientId) {
-            setMessage({ text: "Google configuration missing.", ok: false });
-            return;
-        }
-        const redirect = `${window.location.origin}/api/integrations/google-sheets/callback`;
-        const scope = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file";
-        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
-        window.location.href = url;
-    };
-
-    const toggleAutoSync = useCallback((enabled: boolean) => {
-        setAutoSyncSheets(enabled);
-        localStorage.setItem('htuai_sheets_autosync', String(enabled));
-        if (enabled && sheetsConnected) {
-            setMessage({ text: "Seamless Sync enabled — changes will auto-sync to Google Sheets.", ok: true });
-        }
-    }, [sheetsConnected]);
-
-    const syncGoogleSheets = useCallback(async (silent = false) => {
-        if (!sheetsConnected) return;
-        if (!silent) setSheetsLoading(true);
-        try {
-            const res = await fetch("/api/integrations/google-sheets", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ courses, studySessions }),
-            });
-            if (res.ok) {
-                setLastSyncTime(new Date().toLocaleTimeString());
-                if (!silent) setMessage({ text: "Google Sheets updated successfully!", ok: true });
-            } else if (!silent) {
-                const data = await res.json().catch(() => ({}));
-                setMessage({ text: data.error || "Sync to Sheets failed.", ok: false });
-            }
-        } catch {
-            if (!silent) setMessage({ text: "Auto-sync to Sheets failed.", ok: false });
-        }
-        if (!silent) setSheetsLoading(false);
-    }, [courses, studySessions, sheetsConnected]);
-
-    // Background auto-sync trigger
-    useEffect(() => {
-        if (sheetsConnected && autoSyncSheets && courses.length > 0) {
-            const timer = setTimeout(() => syncGoogleSheets(true), 3000); // 3s debounce
-            return () => clearTimeout(timer);
-        }
-    }, [courses, studySessions, sheetsConnected, autoSyncSheets, syncGoogleSheets]);
-
-    const steps = [
-        {
-            id: 1,
-            title: "Auth Connection",
-            desc: isGoogleAuth ? "Signed in with Google" : "Connect your Google Account",
-            isDone: isGoogleAuth,
-            actionLabel: isGoogleAuth ? "Linked" : "Link Google",
-            onClick: isGoogleAuth ? undefined : connectGoogleCalendar,
-            icon: <Globe className="w-4 h-4" />
-        },
-        {
-            id: 2,
-            title: "Calendar Access",
-            desc: "Add exam dates to your calendar",
-            isDone: gcalConnected,
-            actionLabel: gcalConnected ? "Connected" : "Connect",
-            onClick: connectGoogleCalendar,
-            icon: <Calendar className="w-4 h-4" />,
-            disabled: !isGoogleAuth && !gcalConnected // Must at least be logged in or connecting
-        },
-        {
-            id: 3,
-            title: "Seamless Sync",
-            desc: "Auto-sync everything to Google Sheets",
-            isDone: sheetsConnected,
-            actionLabel: sheetsConnected ? "Synced" : "Connect",
-            onClick: connectGoogleSheets,
-            icon: <BarChart3 className="w-4 h-4" />,
-            disabled: !isGoogleAuth && !sheetsConnected
-        }
-    ];
-
     return (
-        <section className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
-                    <Settings className="w-3.5 h-3.5" /> Integration Journey
-                </h3>
-                <div className="flex items-center gap-1">
-                    <div className="h-1 w-12 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                            className="h-full bg-violet-500 transition-all duration-500"
-                            style={{ width: `${(steps.filter(s => s.isDone).length / steps.length) * 100}%` }}
-                        />
+        <section>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-4 flex items-center gap-2">
+                <Settings className="w-3.5 h-3.5" /> Integrations
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Google Calendar */}
+                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden">
+                    {gcalConnected && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Connected</span>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-semibold">Google Calendar</span>
                     </div>
-                    <span className="text-[10px] font-bold text-white/20 ml-2">
-                        {steps.filter(s => s.isDone).length}/{steps.length}
-                    </span>
+                    <p className="text-xs text-white/30">Push midterm & final dates to your calendar with exam reminders.</p>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={connectGoogleCalendar}
+                            className={`flex-1 px-3 py-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 ${gcalConnected ? "border-white/5 text-white/40" : "border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 text-white"
+                                }`}
+                        >
+                            <ExternalLink className="w-3 h-3" /> {gcalConnected ? "Reconnect" : "Connect"}
+                        </button>
+                        <button
+                            onClick={syncGoogleCalendar}
+                            disabled={gcalLoading || !gcalConnected}
+                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center justify-center gap-1.5 disabled:opacity-20 disabled:cursor-not-allowed"
+                        >
+                            {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Calendar className="w-3 h-3" />} Sync
+                        </button>
+                    </div>
+                </div>
+
+                {/* Empty Slot for future integrations */}
+                <div className="glass-card-premium p-5 rounded-2xl border border-white/5 flex items-center justify-center opacity-20 border-dashed">
+                    <p className="text-[10px] font-bold uppercase tracking-widest">More coming soon</p>
                 </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {steps.map((step) => (
-                    <div
-                        key={step.id}
-                        className={`glass-card-premium p-5 rounded-3xl border transition-all relative overflow-hidden group ${step.isDone ? "border-emerald-500/20 bg-emerald-500/2" : "border-white/5 hover:border-white/10"
-                            } ${step.disabled ? "opacity-40 grayscale" : "opacity-100"}`}
-                    >
-                        {step.isDone && (
-                            <div className="absolute top-3 right-3">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            </div>
-                        )}
-
-                        <div className="flex flex-col gap-4">
-                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border transition-colors ${step.isDone ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-white/5 border-white/5 text-white/40 group-hover:text-white group-hover:bg-white/10"
-                                }`}>
-                                {step.icon}
-                            </div>
-
-                            <div>
-                                <h4 className="text-sm font-bold text-white tracking-tight">{step.title}</h4>
-                                <p className="text-xs text-white/40 mt-1 leading-relaxed">{step.desc}</p>
-                            </div>
-
-                            <button
-                                onClick={step.onClick}
-                                disabled={step.disabled || (step.isDone && step.id === 1)}
-                                className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${step.isDone
-                                    ? "bg-transparent border border-emerald-500/20 text-emerald-400"
-                                    : "bg-white text-black hover:bg-white/90"
-                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                            >
-                                {step.isDone ? <CheckCircle2 className="w-3 h-3" /> : <ExternalLink className="w-3 h-3" />}
-                                {step.actionLabel}
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Quick Actions (only visible when steps are mostly done) */}
-            <AnimatePresence>
-                {(gcalConnected || sheetsConnected) && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                    >
-                        {/* Google Sheets Seamless Sync */}
-                        {sheetsConnected && (
-                            <div className="glass-card-premium p-4 rounded-2xl border border-emerald-500/10 flex items-center justify-between gap-3 md:col-span-2">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                        autoSyncSheets ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/40"
-                                    }`}>
-                                        {sheetsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <span className="text-xs font-bold block">Seamless Sync</span>
-                                        <span className="text-[10px] text-white/30 block truncate">
-                                            {sheetsLoading ? "Syncing…" : lastSyncTime ? `Last synced ${lastSyncTime}` : "Auto-sync to Google Sheets"}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 shrink-0">
-                                    <button
-                                        onClick={() => syncGoogleSheets(false)}
-                                        disabled={sheetsLoading}
-                                        className="px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 text-[10px] font-bold transition-colors disabled:opacity-50"
-                                    >
-                                        {sheetsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Now"}
-                                    </button>
-                                    {/* Toggle Switch */}
-                                    <button
-                                        role="switch"
-                                        aria-checked={autoSyncSheets}
-                                        onClick={() => toggleAutoSync(!autoSyncSheets)}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                            autoSyncSheets ? "bg-emerald-500" : "bg-white/10"
-                                        }`}
-                                    >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                            autoSyncSheets ? "translate-x-6" : "translate-x-1"
-                                        }`} />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                        {gcalConnected && (
-                            <div className="glass-card-premium p-4 rounded-2xl border border-white/5 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                                        <Calendar className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-xs font-bold">Push Exam Reminders</span>
-                                </div>
-                                <button
-                                    onClick={syncGoogleCalendar}
-                                    disabled={gcalLoading}
-                                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold transition-colors disabled:opacity-50"
-                                >
-                                    {gcalLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Sync Calendar"}
-                                </button>
-                            </div>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             {message && (
-                <div className={`mt-3 px-4 py-3 rounded-2xl text-xs font-medium border flex items-start gap-3 ${message.ok
+                <div className={`mt-3 px-4 py-2.5 rounded-xl text-xs font-medium border ${message.ok
                     ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                     : "bg-red-500/10 border-red-500/20 text-red-400"
                     }`}>
-                    {message.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}
-                    <div className="whitespace-pre-line">{message.text}</div>
+                    {message.text}
                 </div>
             )}
         </section>
     );
 }
-
-// ── Onboarding Modal ───────────────────────────────────────────────────
 
 function GetStartedModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     return (
@@ -1104,28 +1114,28 @@ function GetStartedModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                                     <Sparkles className="w-3 h-3" /> Welcome to HTU AI
                                 </div>
                                 <h2 className="text-4xl font-black text-white tracking-tight leading-none text-gradient">
-                                    Your Academic Command Center
+                                    Academic Command Center
                                 </h2>
                                 <p className="text-sm text-white/40 font-medium max-w-sm mx-auto">
-                                    Let&apos;s get you settled into your new smart planner. Here&apos;s what you can do:
+                                    Your data is now saved automatically to our secure database. No external integrations required.
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 gap-6">
                                 <OnboardingFeature
                                     icon={<BarChart3 className="w-5 h-5 text-violet-400" />}
-                                    title="Real-time GPA Tracking"
-                                    desc="Input your estimated grades to see your semester performance and academic standing instantly."
+                                    title="Dynamic GPA Insights"
+                                    desc="Track your target grades and see how they impact your overall GPA in real-time."
                                 />
                                 <OnboardingFeature
                                     icon={<Calendar className="w-5 h-5 text-blue-400" />}
-                                    title="Exam Schedule Sync"
-                                    desc="Connect your Google Calendar to automatically push midterm and final exam reminders."
+                                    title="Automatic Persistence"
+                                    desc="Every change you make is synced instantly to your account. Access your stats from any device."
                                 />
                                 <OnboardingFeature
-                                    icon={<BarChart3 className="w-5 h-5 text-emerald-400" />}
-                                    title="Google Sheets Sync"
-                                    desc="Auto-sync your courses and study logs to Google Sheets in the background."
+                                    icon={<BookOpen className="w-5 h-5 text-emerald-400" />}
+                                    title="Rich Course Notes"
+                                    desc="Take detailed notes for every course using our new integrated Pro editor."
                                 />
                             </div>
 
@@ -1156,8 +1166,326 @@ function OnboardingFeature({ icon, title, desc }: { icon: React.ReactNode; title
             </div>
             <div className="space-y-1">
                 <h4 className="text-sm font-bold text-white tracking-tight">{title}</h4>
-                <p className="text-xs text-white/30 leading-relaxed">{desc}</p>
+                <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
             </div>
+        </div>
+    );
+}
+// ── Graduation Calculator ─────────────────────────────────────────────
+
+import { MAJORS, MajorKey } from "@/lib/useMajor";
+
+function GraduationCalculator({ earnedCredits }: { earnedCredits: number }) {
+    const [annualPlan, setAnnualPlan] = useState({ sem1: 15, sem2: 15, summer: 6 });
+    const [major, setMajor] = useState<MajorKey | null>(null);
+    const [showMajorSelect, setShowMajorSelect] = useState(false);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMousePos({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        });
+    };
+
+    useEffect(() => {
+        const savedMajor = localStorage.getItem("htu_selected_major") as MajorKey | null;
+        if (savedMajor) setMajor(savedMajor);
+
+        const savedPlan = localStorage.getItem("htu_annual_plan");
+        if (savedPlan) {
+            try {
+                setAnnualPlan(JSON.parse(savedPlan));
+            } catch (e) {
+                console.error("Failed to parse annual plan", e);
+            }
+        }
+    }, []);
+
+    const updateMajor = (key: MajorKey) => {
+        setMajor(key);
+        localStorage.setItem("htu_selected_major", key);
+        setShowMajorSelect(false);
+    };
+
+    const updatePlan = (sem: keyof typeof annualPlan, val: number) => {
+        const next = { ...annualPlan, [sem]: val };
+        setAnnualPlan(next);
+        localStorage.setItem("htu_annual_plan", JSON.stringify(next));
+    };
+
+    const targetCredits = useMemo(() => {
+        if (!major) return 135;
+        if (major === "game_design") return 72;
+        if (major === "mechanical_engineering" || major === "electrical_engineering" ||
+            major === "energy_engineering" || major === "industrial_engineering") return 166;
+        return 135;
+    }, [major]);
+
+    const activeMajorInfo = useMemo(() => MAJORS.find(m => m.key === major), [major]);
+
+    const plannedThisYear = annualPlan.sem1 + annualPlan.sem2 + annualPlan.summer;
+    const projectedCredits = earnedCredits + plannedThisYear;
+    const progressAtYearEnd = Math.min(100, (projectedCredits / targetCredits) * 100);
+    const progressNow = Math.min(100, (earnedCredits / targetCredits) * 100);
+    const levelInfo = useMemo(() => {
+        const p = progressAtYearEnd;
+        let rank = "Novice";
+        let badge = "🌱";
+        let color = "text-white/40";
+        let effect = "";
+        let nextAt = 25;
+
+        if (p < 25) { rank = "Novice"; badge = "🌱"; color = "text-white/40"; nextAt = 25; }
+        else if (p < 50) { rank = "Scholar"; badge = "📚"; color = "text-emerald-400"; effect = "shadow-[0_0_20px_rgba(16,185,129,0.2)]"; nextAt = 50; }
+        else if (p < 75) { rank = "Engineer"; badge = "⚙️"; color = "text-blue-400"; effect = "shadow-[0_0_20px_rgba(59,130,246,0.2)]"; nextAt = 75; }
+        else if (p < 100) { rank = "Expert"; badge = "💎"; color = "text-violet-400"; effect = "shadow-[0_0_20px_rgba(139,92,246,0.2)]"; nextAt = 100; }
+        else { rank = "Graduate"; badge = "🎓"; color = "text-amber-400"; effect = "shadow-[0_0_20px_rgba(251,191,36,0.3)]"; nextAt = 100; }
+
+        const nextRankCredits = Math.ceil((nextAt / 100) * targetCredits);
+        const creditsToNext = Math.max(0, nextRankCredits - projectedCredits);
+
+        return { rank, badge, color, effect, nextAt, nextRankCredits, creditsToNext };
+    }, [progressAtYearEnd, targetCredits, projectedCredits]);
+
+    const workloadLabel = useMemo(() => {
+        if (plannedThisYear === 0) return { text: "No classes?", color: "text-white/20", icon: "⏸️" };
+        if (plannedThisYear <= 12) return { text: "Light Year", color: "text-emerald-400/60", icon: "🍃" };
+        if (plannedThisYear <= 30) return { text: "Balanced", color: "text-emerald-400", icon: "⚖️" };
+        if (plannedThisYear <= 40) return { text: "Beast Mode", color: "text-orange-400", icon: "⚡" };
+        return { text: "Insane Load!", color: "text-red-400", icon: "🔥" };
+    }, [plannedThisYear]);
+
+    // Extract color for the style (default to emerald-500)
+    const accentColor = useMemo(() => {
+        if (!activeMajorInfo) return "emerald-500";
+        return activeMajorInfo.color.split(' ')[0].replace('from-', '');
+    }, [activeMajorInfo]);
+
+    return (
+        <section>
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-white/30 flex items-center gap-2">
+                        <Trophy className="w-3.5 h-3.5" /> Annual Credit Planner
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            key={levelInfo.rank}
+                            className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/5 border border-white/10 w-fit ${levelInfo.color}`}
+                        >
+                            Rank: {levelInfo.badge} {levelInfo.rank}
+                        </motion.div>
+                        {levelInfo.creditsToNext > 0 && (
+                            <span className="text-[9px] text-white/20 font-medium">
+                                • Next rank in <span className="text-white/40">{levelInfo.creditsToNext} CH</span>
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="relative">
+                    <button
+                        onClick={() => setShowMajorSelect(!showMajorSelect)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-violet-500/30 transition-all group"
+                    >
+                        <span className="text-lg">{activeMajorInfo?.icon || "🎓"}</span>
+                        <div className="text-left">
+                            <div className="text-[10px] font-bold text-white tracking-tight leading-tight">
+                                {activeMajorInfo?.label || "Select Major"}
+                            </div>
+                            <div className="text-[9px] font-mono text-white/20 uppercase tracking-tighter">
+                                Target: {targetCredits} CH
+                            </div>
+                        </div>
+                        <ChevronDown className={`w-3 h-3 text-white/20 group-hover:text-white/40 transition-transform ${showMajorSelect ? "rotate-180" : ""}`} />
+                    </button>
+
+                    <AnimatePresence>
+                        {showMajorSelect && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute top-full right-0 mt-2 w-64 p-2 bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl z-50 backdrop-blur-xl"
+                            >
+                                <div className="space-y-1 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
+                                    {MAJORS.map((m) => (
+                                        <button
+                                            key={m.key}
+                                            onClick={() => updateMajor(m.key)}
+                                            className={`w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 ${major === m.key ? "bg-violet-500/10 border border-violet-500/20" : "hover:bg-white/5 border border-transparent"}`}
+                                        >
+                                            <span className="text-xl">{m.icon}</span>
+                                            <div>
+                                                <div className="text-xs font-bold text-white">{m.label}</div>
+                                                <div className="text-[9px] text-white/30 font-mono">
+                                                    {m.key === "game_design" ? "72" : m.key.includes("engineering") ? "166" : "135"} CH Goal
+                                                </div>
+                                            </div>
+                                            {major === m.key && <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 ml-auto" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            <div
+                onMouseMove={handleMouseMove}
+                className="glass-card-premium rounded-3xl border border-white/5 p-6 overflow-hidden relative group/card"
+            >
+                {/* Interactive Aura */}
+                <motion.div
+                    className="absolute inset-0 z-0 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"
+                    style={{
+                        background: `radial-gradient(circle 200px at ${mousePos.x}px ${mousePos.y}px, rgba(16, 185, 129, 0.05), transparent)`,
+                    }}
+                />
+
+                <div className={`absolute top-0 right-0 w-32 h-32 opacity-0 group-hover/card:opacity-100 transition-opacity bg-${accentColor}/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2`} />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center relative z-10">
+
+                    <div className="space-y-6">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Year-End Status</span>
+                                <motion.span
+                                    animate={{ scale: [1, 1.05, 1], y: [0, -1, 0] }}
+                                    transition={{ duration: 3, repeat: Infinity }}
+                                    className={`text-[9px] font-bold uppercase flex items-center gap-1.5 ${workloadLabel.color}`}
+                                >
+                                    <span>{workloadLabel.icon}</span>
+                                    {workloadLabel.text}
+                                </motion.span>
+                            </div>
+                            <div className="flex items-end gap-2">
+                                <span className={`text-5xl font-black tracking-tighter text-${accentColor}`}>{projectedCredits}</span>
+                                <span className="text-sm text-white/20 font-mono mb-2">Total CH</span>
+                            </div>
+                        </div>
+
+                        <div className="relative h-2.5 bg-white/5 rounded-full overflow-hidden group/bar">
+                            {/* Visual Checkpoints */}
+                            {[25, 50, 75].map(pos => (
+                                <div
+                                    key={pos}
+                                    style={{ left: `${pos}%` }}
+                                    className="absolute inset-y-0 w-px bg-white/10 z-20 group-hover/bar:bg-white/20 transition-colors"
+                                />
+                            ))}
+
+                            {/* Current Progress */}
+                            <motion.div
+                                className="absolute inset-y-0 left-0 bg-white/10 rounded-full z-10"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressNow}%` }}
+                                transition={{ duration: 1 }}
+                            />
+                            {/* Projected Progress */}
+                            <motion.div
+                                className={`absolute inset-y-0 left-0 bg-${accentColor}/40 rounded-full ${levelInfo.effect}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressAtYearEnd}%` }}
+                                transition={{ duration: 1.5, delay: 0.2 }}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/2 rounded-2xl p-4 border border-white/5 relative overflow-hidden group/item cursor-help">
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="text-[9px] uppercase font-bold text-white/20 tracking-tighter">Baseline</div>
+                                    <CheckCircle2 className="w-3 h-3 text-white/10 group-hover/item:text-white/30 transition-colors" />
+                                </div>
+                                <div className="text-xl font-black font-mono flex items-baseline gap-1">
+                                    {earnedCredits} <span className="text-[10px] text-white/30 font-bold uppercase">CH</span>
+                                </div>
+                                <div className="absolute bottom-0 left-0 h-0.5 w-full bg-white/5 group-hover/item:bg-white/10 transition-colors" />
+
+                                {/* Info Tooltip (Simulated) */}
+                                <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity bg-black/80 backdrop-blur-md p-2 rounded-lg border border-white/10 text-[8px] text-white/60 pointer-events-none z-50 w-24">
+                                    Credits you've already completed.
+                                </div>
+                            </div>
+
+                            <div className="bg-white/2 rounded-2xl p-4 border border-white/5 relative overflow-hidden group/item cursor-help">
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="text-[9px] uppercase font-bold text-white/20 tracking-tighter">Planned</div>
+                                    <Zap className="w-3 h-3 text-emerald-400/30 group-hover/item:text-emerald-400/60 transition-colors" />
+                                </div>
+                                <div className="text-xl font-black font-mono text-emerald-400 flex items-baseline gap-1">
+                                    +{plannedThisYear} <span className="text-[10px] text-emerald-500/30 font-bold uppercase">CH</span>
+                                </div>
+                                <motion.div
+                                    className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-500/20"
+                                    animate={{ x: ["-100%", "100%"] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                />
+
+                                {/* Info Tooltip (Simulated) */}
+                                <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity bg-black/80 backdrop-blur-md p-2 rounded-lg border border-white/10 text-[8px] text-emerald-400/60 pointer-events-none z-50 w-24">
+                                    Future credits chosen below.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                        <PlannerSlider
+                            label="Winter Semester"
+                            val={annualPlan.sem1}
+                            min={12} max={18}
+                            onChange={(v) => updatePlan('sem1', v)}
+                            accent={accentColor}
+                        />
+                        <PlannerSlider
+                            label="Spring Semester"
+                            val={annualPlan.sem2}
+                            min={12} max={18}
+                            onChange={(v) => updatePlan('sem2', v)}
+                            accent={accentColor}
+                        />
+                        <PlannerSlider
+                            label="Summer Semester"
+                            val={annualPlan.summer}
+                            min={0} max={9}
+                            onChange={(v) => updatePlan('summer', v)}
+                            accent={accentColor}
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function PlannerSlider({ label, val, min, max, onChange, accent }: {
+    label: string, val: number, min: number, max: number, onChange: (v: number) => void, accent: string
+}) {
+    return (
+        <div className="bg-white/3 rounded-2xl p-4 border border-white/5 space-y-3 hover:bg-white/6 transition-all group/slider hover:border-white/10">
+            <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 group-hover/slider:text-white/60 transition-colors">{label}</span>
+                <motion.span
+                    key={val}
+                    initial={{ scale: 1.2 }}
+                    animate={{ scale: 1 }}
+                    className={`text-xs font-mono font-bold ${val > 0 ? "text-emerald-400" : "text-white/10"}`}
+                >
+                    {val} CH
+                </motion.span>
+            </div>
+            <input
+                type="range" min={min} max={max} step="1"
+                value={val} onChange={(e) => onChange(Number(e.target.value))}
+                className={`w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer transition-all ${val > 0 ? `accent-${accent}` : "accent-white/10"}`}
+            />
         </div>
     );
 }
