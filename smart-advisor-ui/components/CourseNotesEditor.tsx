@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { motion } from "framer-motion";
 import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import { Extension } from "@tiptap/core";
 import { StarterKit } from "@tiptap/starter-kit";
@@ -242,8 +243,24 @@ export default function CourseNotesEditor({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <button onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all disabled:opacity-20"><Undo className="w-4 h-4" /></button>
-            <button onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all disabled:opacity-20"><Redo className="w-4 h-4" /></button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => editor.chain().focus().undo().run()}
+              disabled={!editor.can().undo()}
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all disabled:opacity-20"
+            >
+              <Undo className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => editor.chain().focus().redo().run()}
+              disabled={!editor.can().redo()}
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all disabled:opacity-20"
+            >
+              <Redo className="w-4 h-4" />
+            </motion.button>
           </div>
         </div>
       </header>

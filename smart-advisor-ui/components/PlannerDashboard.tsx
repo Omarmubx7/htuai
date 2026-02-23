@@ -376,19 +376,23 @@ export default function PlannerDashboard({
                     </h3>
                     <div className="flex items-center gap-3">
                         <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{courses.length} courses tracked</span>
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => { localStorage.removeItem("htuai_planner_onboarding"); setShowOnboarding(true); }}
                             className="p-1.5 rounded-xl text-white/20 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
                             title="Show help"
                         >
                             <HelpCircle className="w-4 h-4" />
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => setShowAddCourse(!showAddCourse)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
                         >
                             <Plus className="w-3 h-3" /> Add Course
-                        </button>
+                        </motion.button>
                     </div>
                 </div>
 
@@ -414,12 +418,14 @@ export default function PlannerDashboard({
                                             placeholder="Search courses by name or code..."
                                             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40"
                                         />
-                                        <button
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={() => { setShowAddCourse(false); setCourseSearchQuery(""); setCourseSuggestions([]); }}
                                             className="px-3 py-2.5 rounded-xl border border-white/10 text-white/40 hover:text-white text-xs font-bold transition-colors"
                                         >
                                             Cancel
-                                        </button>
+                                        </motion.button>
                                     </div>
 
                                     {/* Suggestions dropdown */}
@@ -435,11 +441,13 @@ export default function PlannerDashboard({
                                                     {courseSuggestions.map((course, idx) => {
                                                         const alreadyAdded = courses.some(c => c.code === course.code || c.name.toLowerCase() === course.name.toLowerCase());
                                                         return (
-                                                            <button
+                                                            <motion.button
+                                                                whileHover={{ x: 4, backgroundColor: "rgba(255,255,255,0.05)" }}
+                                                                whileTap={{ scale: 0.99 }}
                                                                 key={`${course.code}-${idx}`}
                                                                 onClick={() => !alreadyAdded && addCourseFromCurriculum(course)}
                                                                 disabled={alreadyAdded}
-                                                                className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between gap-3 group/item ${alreadyAdded ? "opacity-40 cursor-not-allowed" : "hover:bg-white/5"}`}
+                                                                className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between gap-3 group/item ${alreadyAdded ? "opacity-40 cursor-not-allowed" : ""}`}
                                                             >
                                                                 <div className="flex flex-col items-start gap-1 min-w-0">
                                                                     <span className="text-sm font-semibold text-white group-hover/item:text-violet-400 transition-colors truncate">
@@ -460,7 +468,7 @@ export default function PlannerDashboard({
                                                                 ) : (
                                                                     <Plus className="w-4 h-4 text-white/10 group-hover/item:text-violet-400 transition-colors shrink-0" />
                                                                 )}
-                                                            </button>
+                                                            </motion.button>
                                                         );
                                                     })}
                                                 </div>
@@ -509,12 +517,14 @@ export default function PlannerDashboard({
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-2 h-2 rounded-full ${gColor ? gColor.bg : "bg-violet-500/40"} shadow-[0_0_10px_rgba(139,92,246,0.2)]`} />
                                                         <span className="text-sm font-bold text-white tracking-tight">{course.name}</span>
-                                                        <a
-                                                            href={`/courses/${course.id}/notes`}
-                                                            className="ml-2 px-2 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+                                                        <motion.a
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                            href={`/courses/${course.code}/notes`}
+                                                            className="ml-2 px-2 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors shadow-lg shadow-violet-500/10"
                                                             title="Open notes for this course"
                                                             target="_blank"
-                                                        >Notes</a>
+                                                        >Notes</motion.a>
                                                     </div>
                                                     <span className="text-[10px] font-bold text-white/30 ml-5 uppercase tracking-widest">{course.id}</span>
                                                 </div>
@@ -528,18 +538,14 @@ export default function PlannerDashboard({
                                                 <select
                                                     value={course.grade || ""}
                                                     onChange={e => updateGrade(course.id, e.target.value)}
-                                                    className={`px-3 py-1.5 rounded-xl text-lg font-black border transition-all cursor-pointer appearance-none text-center ${gColor ? gColor.text : "text-violet-400"} bg-white/5 border-white/10 focus:ring-2 focus:ring-violet-500/20`}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-black border transition-all cursor-pointer appearance-none text-center ${gColor ? gColor.text : "text-violet-400"} bg-white/5 border-white/10 focus:ring-2 focus:ring-violet-500/20 w-full`}
                                                     style={{ colorScheme: "dark" }}
                                                 >
-                                                    <option value="" className="bg-[#0a0a0a] text-white/30">N/A</option>
-                                                    {["D", "M", "P", "U"].map(grade => {
-                                                        const info = GRADE_MAP[grade];
-                                                        return (
-                                                            <option key={grade} value={grade} className={info.colorKey ? gc(info.colorKey).text : "text-violet-400"}>
-                                                                {grade}
-                                                            </option>
-                                                        );
-                                                    })}
+                                                    <option value="" className="bg-[#0a0a0a] text-white/30">Grade: N/A</option>
+                                                    <option value="D" className="bg-[#0a0a0a] text-emerald-400">Distinction (D)</option>
+                                                    <option value="M" className="bg-[#0a0a0a] text-blue-400">Merit (M)</option>
+                                                    <option value="P" className="bg-[#0a0a0a] text-violet-400">Pass (P)</option>
+                                                    <option value="U" className="bg-[#0a0a0a] text-red-400">Unclassified (U)</option>
                                                 </select>
                                             </td>
                                             {/* Midterm Date */}
@@ -548,7 +554,7 @@ export default function PlannerDashboard({
                                                     type="date"
                                                     value={course.midtermDate || ""}
                                                     onChange={e => updateField(course.id, "midtermDate", e.target.value || undefined)}
-                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                    className="bg-white/5 border border-white/10 group-hover:border-white/20 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
                                                     style={{ colorScheme: "dark" }}
                                                 />
                                             </td>
@@ -558,7 +564,7 @@ export default function PlannerDashboard({
                                                     type="date"
                                                     value={course.finalDate || ""}
                                                     onChange={e => updateField(course.id, "finalDate", e.target.value || undefined)}
-                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                    className="bg-white/5 border border-white/10 group-hover:border-white/20 rounded-xl px-3 py-2 text-[11px] font-bold text-white/60 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
                                                     style={{ colorScheme: "dark" }}
                                                 />
                                             </td>
@@ -569,7 +575,7 @@ export default function PlannerDashboard({
                                                     placeholder="Dr. Name"
                                                     value={course.professor || ""}
                                                     onChange={e => updateField(course.id, "professor", e.target.value)}
-                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                    className="bg-white/5 border border-white/10 group-hover:border-white/20 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
                                                 />
                                             </td>
                                             {/* Location */}
@@ -579,7 +585,7 @@ export default function PlannerDashboard({
                                                     placeholder="Room/Lab"
                                                     value={course.location || ""}
                                                     onChange={e => updateField(course.id, "location", e.target.value)}
-                                                    className="bg-white/5 border border-white/5 group-hover:border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
+                                                    className="bg-white/5 border border-white/10 group-hover:border-white/20 rounded-xl px-3 py-2 text-[10px] font-bold text-white/60 placeholder:text-white/20 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all w-full text-center"
                                                 />
                                             </td>
                                             {/* Study Hours */}
@@ -653,22 +659,26 @@ export default function PlannerDashboard({
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <div className="text-sm font-bold text-white truncate">{course.name}</div>
-                                                    <a
-                                                        href={`/courses/${course.id}/notes`}
-                                                        className="ml-2 px-2 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+                                                    <motion.a
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        href={`/courses/${course.code}/notes`}
+                                                        className="ml-2 px-2 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors shadow-lg shadow-violet-500/10"
                                                         title="Open notes for this course"
                                                         target="_blank"
-                                                    >Notes</a>
+                                                    >Notes</motion.a>
                                                 </div>
                                                 <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{course.id} &middot; {course.credits} CH</div>
                                             </div>
                                         </div>
-                                        <button
+                                        <motion.button
+                                            whileHover={{ scale: 1.1, rotate: 5 }}
+                                            whileTap={{ scale: 0.9 }}
                                             onClick={() => setConfirmDeleteCourse(course)}
                                             className="p-2 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
                                         >
                                             <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        </motion.button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <select
@@ -677,11 +687,11 @@ export default function PlannerDashboard({
                                             className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-white outline-none focus:border-violet-500/40 appearance-none"
                                             style={{ colorScheme: "dark" }}
                                         >
-                                            <option value="" className="bg-[#0a0a0a]">Grade: N/A</option>
-                                            <option value="D" className="bg-[#0a0a0a]">Distinction</option>
-                                            <option value="M" className="bg-[#0a0a0a]">Merit</option>
-                                            <option value="P" className="bg-[#0a0a0a]">Pass</option>
-                                            <option value="U" className="bg-[#0a0a0a]">Unclassified</option>
+                                            <option value="" className="bg-[#0a0a0a] text-white/30">Grade: N/A</option>
+                                            <option value="D" className="bg-[#0a0a0a] text-emerald-400">Distinction (D)</option>
+                                            <option value="M" className="bg-[#0a0a0a] text-blue-400">Merit (M)</option>
+                                            <option value="P" className="bg-[#0a0a0a] text-violet-400">Pass (P)</option>
+                                            <option value="U" className="bg-[#0a0a0a] text-red-400">Unclassified (U)</option>
                                         </select>
                                         <select
                                             value={course.status}
@@ -859,12 +869,14 @@ export default function PlannerDashboard({
                                 onChange={e => setLogNotes(e.target.value)}
                                 className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-violet-500/40"
                             />
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                                 onClick={addSession}
                                 className="bg-violet-600 hover:bg-violet-500 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1.5"
                             >
                                 <Plus className="w-3.5 h-3.5" /> Log
-                            </button>
+                            </motion.button>
                         </div>
 
                         {/* Recent sessions */}
@@ -1391,7 +1403,9 @@ function GraduationCalculator({ earnedCredits }: { earnedCredits: number }) {
                 </div>
 
                 <div className="relative">
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => setShowMajorSelect(!showMajorSelect)}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-violet-500/30 transition-all group"
                     >
@@ -1405,7 +1419,7 @@ function GraduationCalculator({ earnedCredits }: { earnedCredits: number }) {
                             </div>
                         </div>
                         <ChevronDown className={`w-3 h-3 text-white/20 group-hover:text-white/40 transition-transform ${showMajorSelect ? "rotate-180" : ""}`} />
-                    </button>
+                    </motion.button>
 
                     <AnimatePresence>
                         {showMajorSelect && (
@@ -1417,10 +1431,12 @@ function GraduationCalculator({ earnedCredits }: { earnedCredits: number }) {
                             >
                                 <div className="space-y-1 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
                                     {MAJORS.map((m) => (
-                                        <button
+                                        <motion.button
+                                            whileHover={{ x: 4, backgroundColor: "rgba(139,92,246,0.1)" }}
+                                            whileTap={{ scale: 0.98 }}
                                             key={m.key}
                                             onClick={() => updateMajor(m.key)}
-                                            className={`w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 ${major === m.key ? "bg-violet-500/10 border border-violet-500/20" : "hover:bg-white/5 border border-transparent"}`}
+                                            className={`w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 ${major === m.key ? "bg-violet-500/10 border border-violet-500/20" : "border border-transparent"}`}
                                         >
                                             <span className="text-xl">{m.icon}</span>
                                             <div>
@@ -1430,7 +1446,7 @@ function GraduationCalculator({ earnedCredits }: { earnedCredits: number }) {
                                                 </div>
                                             </div>
                                             {major === m.key && <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 ml-auto" />}
-                                        </button>
+                                        </motion.button>
                                     ))}
                                 </div>
                             </motion.div>

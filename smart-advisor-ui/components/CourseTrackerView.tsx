@@ -135,15 +135,7 @@ export default function CourseTrackerView({
                 onCancel={() => setShowResetConfirm(false)}
             />
 
-            {/* Data notice banner */}
-            <div className="flex items-center gap-4 px-5 py-4 rounded-3xl border border-amber-500/10 bg-amber-500/2 backdrop-blur-md">
-                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
-                    <Info className="w-4 h-4" />
-                </div>
-                <p className="text-xs text-amber-200/60 leading-relaxed max-w-2xl">
-                    <span className="text-amber-400 font-bold">Data Notice:</span> Course data is currently being audited. If any courses are missing or incorrect, they will be updated in the next sync.
-                </p>
-            </div>
+
 
             {/* Page header + progress card */}
             <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
@@ -181,13 +173,15 @@ export default function CourseTrackerView({
 
                         <div className="h-4 w-px bg-white/10" />
 
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.05, x: 2 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => setShowResetConfirm(true)}
-                            className="flex items-center gap-2 text-sm sm:text-xs font-bold text-white/40 hover:text-red-400/70 transition-all hover:scale-105 p-2 sm:p-0 -ml-2 sm:ml-0"
+                            className="flex items-center gap-2 text-sm sm:text-xs font-bold text-white/40 hover:text-red-400/70 transition-all p-2 sm:p-0 -ml-2 sm:ml-0"
                         >
                             <RotateCcw className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                             Reset All
-                        </button>
+                        </motion.button>
                     </div>
                 </div>
 
