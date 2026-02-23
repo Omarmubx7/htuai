@@ -29,32 +29,36 @@ export default function PrivacyPage() {
                     <p className="text-white/40 font-medium">Last updated: February 21, 2026</p>
                 </header>
 
-                <div id="privacy-content" className="space-y-12 text-white/70 leading-relaxed">
+                <div id="privacy-content" className="space-y-12 text-white/70 leading-relaxed font-medium">
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Lock className="w-5 h-5 text-violet-400" /> Data Collection
+                            <Lock className="w-5 h-5 text-violet-400" /> 1. Data Collection
                         </h2>
                         <p>
-                            HTUAI is designed to help students organize their academic journey. We collect minimal data necessary to provide our services, including your University ID, major, and course progress.
+                            HTUAI collects minimal information necessary to provide academic tracking services:
                         </p>
+                        <ul className="list-disc pl-6 space-y-2 text-sm">
+                            <li><span className="text-white font-bold">Account Data:</span> University ID and progress logs.</li>
+                            <li><span className="text-white font-bold">Google User Data:</span> When you authorize integrations, we access your <span className="text-white font-semibold">Google Calendar</span> (to add study events) and <span className="text-white font-semibold">Google Sheets</span> (to export planner data).</li>
+                        </ul>
                     </section>
 
-                    <section className="space-y-4">
+                    <section className="space-y-4 text-sm">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <EyeOff className="w-5 h-5 text-violet-400" /> Third-Party Integrations & Data Usage
+                            <EyeOff className="w-5 h-5 text-violet-400" /> 2. Data Usage & Processing
                         </h2>
                         <div className="glass-card-premium p-6 rounded-3xl border border-white/5 space-y-4 shadow-2xl shadow-violet-500/5">
-                            <p>
-                                When you choose to use our integrations, we handle your data with extreme care. We use Google user data to enhance your academic planning:
+                            <p className="text-white/80">
+                                How we use, process, and handle the <span className="text-violet-400 font-bold">Google user data</span> we access:
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 text-sm">
-                                <li><span className="text-white font-bold">Google Calendar:</span> We only request permission to add midterm and final exam dates to your primary calendar. This allows you to have a unified academic schedule.</li>
-                                <li><span className="text-white font-bold">Google Sheets:</span> We only access spreadsheets created by the integration to sync your planner data. This enables you to export and manage your data in a familiar spreadsheet format.</li>
+                            <ul className="list-disc pl-6 space-y-3">
+                                <li><span className="text-white font-bold">Personalized Scheduling:</span> We process your course dates to create calendar events for midterm and final exams. We do not read or modify unrelated calendar events.</li>
+                                <li><span className="text-white font-bold">Data Portability:</span> We process your planner data to generate and sync Google Sheets at your request. We do not access other files in your Google Drive.</li>
+                                <li><span className="text-white font-bold">Limited Scope:</span> We only request the minimum permissions (scopes) required to perform these specific actions.</li>
                             </ul>
-                            <p className="text-xs text-white/40 italic">
-                                We do not store your external passwords. All connections are handled via secure OAuth tokens. We do not share this data with third parties.
-                            </p>
+
                             <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 text-[11px] text-violet-300 leading-relaxed">
+                                <span className="font-bold text-white block mb-1">Google Limited Use Disclosure:</span>
                                 HTUAI's use and transfer to any other app of information received from Google APIs will adhere to{" "}
                                 <a
                                     href="https://developers.google.com/terms/api-services-user-data-policy#limited-use-requirements"
@@ -70,27 +74,35 @@ export default function PrivacyPage() {
 
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-violet-400" /> Data Retention & Deletion
+                            <FileText className="w-5 h-5 text-violet-400" /> 3. Data Storage & Security
                         </h2>
                         <div className="space-y-4">
                             <p>
-                                We retain your personal data for as long as your account is active or as needed to provide you with our services.
+                                We prioritize the security of your academic data:
                             </p>
                             <ul className="list-disc pl-6 space-y-2 text-sm">
-                                <li><span className="text-white font-bold">Account Deletion:</span> You can delete your account and all associated data at any time through the application settings.</li>
-                                <li><span className="text-white font-bold">Data Removal Requests:</span> You may also request the deletion of your data by contacting us directly. We will process these requests within 30 days.</li>
-                                <li><span className="text-white font-bold">OAuth Disconnection:</span> Disconnecting a third-party service (like Google Calendar) will immediately stop our access to that service's data, and we will delete any associated temporary tokens.</li>
+                                <li><span className="text-white font-bold">Local Encryption:</span> All authentication tokens for Google services are stored securely in our encrypted database.</li>
+                                <li><span className="text-white font-bold">No Data Selling:</span> We do not sell, rent, or trade your academic or personal data to third parties or AI training models.</li>
+                                <li><span className="text-white font-bold">Server Security:</span> Our infrastructure uses modern industry-standard security protocols to prevent unauthorized access.</li>
                             </ul>
                         </div>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-violet-400" /> Data Protection
+                            <ShieldCheck className="w-5 h-5 text-violet-400" /> 4. Data Retention & Deletion
                         </h2>
-                        <p>
-                            Your progress data is stored securely in our database. We do not sell, rent, or trade your personal information with third parties. Your academic data is yours alone.
-                        </p>
+                        <div className="space-y-4">
+                            <p>
+                                You maintain complete control over your information:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-3 text-sm">
+                                <li><span className="text-white font-bold">Retention Period:</span> We retain your personal data and tokens only for as long as your account is active or as needed to provide you with our services.</li>
+                                <li><span className="text-white font-bold">Self-Service Deletion:</span> You can delete your account and all associated data instantly through the "Settings" menu in the dashboard.</li>
+                                <li><span className="text-white font-bold">Deletion Requests:</span> You may email <span className="text-violet-400 font-bold">omarmubaidincs@gmail.com</span> to request complete data removal. We honor all requests within 30 days.</li>
+                                <li><span className="text-white font-bold">Token Revocation:</span> Disconnecting an integration immediately deletes the associated OAuth tokens from our systems.</li>
+                            </ul>
+                        </div>
                     </section>
 
                     <footer className="pt-12 border-t border-white/5">
