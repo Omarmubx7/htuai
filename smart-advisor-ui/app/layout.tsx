@@ -11,25 +11,20 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://htuai.mubx.dev'),
-  title: "HTUAI — Academic Planner",
-  description: "The ultimate tool for HTU students to track degree progress, plan semesters, and calculate GPA. Built for Al Hussein Technical University (Jordan).",
+  title: "HTUAI — Course Tracker",
+  description: "The ultimate tool for HTU students to track degree progress and calculate credit hours. Built for Al Hussein Technical University (Jordan).",
   keywords: [
     "HTU",
     "Al Hussein Technical University",
     "HTUAI",
-    "HTUAI",
-    "Academic Planner Jordan",
-    "GPA Calculator HTU",
-    "Semester Planner",
+    "Course Tracker",
     "جامعة الحسين التقنية",
-    "مرشد أكاديمي",
-    "حساب المعدل HTU",
     "Jordan Higher Education"
   ],
   authors: [{ name: "mubx", url: "https://mubx.dev" }],
   creator: "mubx",
   openGraph: {
-    title: "HTUAI — Academic Planner",
+    title: "HTUAI — Course Tracker",
     description: "Track your HTU courses and degree progress with ease.",
     url: "https://htuai.mubx.dev",
     siteName: "HTUAI",

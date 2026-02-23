@@ -16,15 +16,15 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             color: "violet"
         },
         {
-            title: "Semester Planner",
-            description: "Plan your future semesters, track midterm/final dates, and projected grades.",
-            icon: <Calendar className="w-6 h-6 text-blue-400" />,
+            title: "HTU Curriculums",
+            description: "Built-in support for all engineering and computer science majors at HTU.",
+            icon: <GraduationCap className="w-6 h-6 text-blue-400" />,
             color: "blue"
         },
         {
-            title: "Smart Insights",
-            description: "Get personalized study tips, GPA projections, and 'at-risk' course alerts.",
-            icon: <Sparkles className="w-6 h-6 text-emerald-400" />,
+            title: "Smart Progress",
+            description: "Track your GPA, completed credits, and remaining requirements in real-time.",
+            icon: <CheckCircle2 className="w-6 h-6 text-emerald-400" />,
             color: "emerald"
         }
     ];
@@ -118,7 +118,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                             whileTap={{ scale: 0.98 }}
                             className="relative px-12 py-5 rounded-2xl bg-white text-black font-black text-xl transition-all flex items-center gap-4 hover:shadow-[0_0_50px_rgba(255,255,255,0.3)]"
                         >
-                            Start Planning Now
+                            Start Tracking Progress
                             <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-2" />
                         </motion.button>
                     </div>

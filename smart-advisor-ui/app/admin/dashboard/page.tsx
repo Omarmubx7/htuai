@@ -40,11 +40,6 @@ interface Stats {
     heatmap: HeatmapCell[];
     students: StudentRow[];
     avgWeightedProgress?: number;
-    plannerStats?: {
-        totalHours: string;
-        activeStudents: number;
-        avgCompletion: number;
-    };
 }
 
 type SortKey = 'student_id' | 'major' | 'count' | 'ch';
@@ -348,13 +343,10 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
     return (
         <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard icon={<Users className="w-4 h-4" />} label="Total Students" value={animStudents} gradient="from-violet-500/20 to-purple-500/5" iconBg="#7c3aed" delay={0} />
                 <StatCard icon={<Eye className="w-4 h-4" />} label="Total Visits" value={animVisitors} gradient="from-blue-500/20 to-cyan-500/5" iconBg="#2563eb" delay={0.04}
                     badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
-                <StatCard icon={<Clock className="w-4 h-4" />} label="Study Hours" value={stats.plannerStats?.totalHours || "0"} gradient="from-amber-500/20 to-orange-500/5" iconBg="#d97706" delay={0.08} />
-                <StatCard icon={<Zap className="w-4 h-4" />} label="Active Planners" value={stats.plannerStats?.activeStudents || 0} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#059669" delay={0.12} />
-                <StatCard icon={<ArrowUpRight className="w-4 h-4" />} label="Planner Avg" value={`${stats.plannerStats?.avgCompletion || 0}%`} gradient="from-indigo-500/20 to-blue-500/5" iconBg="#6366f1" delay={0.14} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.16} />
                 <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.2} />
             </div>
@@ -591,11 +583,9 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
                     </div>
                     <div className="space-y-1">
                         {stats.recentActivity.map((act, i) => {
-                            const isVisit = act.type === 'visit';
-                            const isLog = act.type === 'study_log';
-                            const icon = isLog ? <Clock className="w-3 h-3 text-amber-400/60" /> : <ArrowUpRight className="w-3 h-3 text-blue-400/60" />;
-                            const iconBg = isLog ? 'rgba(245,158,11,0.1)' : 'rgba(59,130,246,0.1)';
-                            const borderColor = isLog ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)';
+                            const icon = <ArrowUpRight className="w-3 h-3 text-blue-400/60" />;
+                            const iconBg = 'rgba(59,130,246,0.1)';
+                            const borderColor = 'rgba(59,130,246,0.15)';
 
                             return (
                                 <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}

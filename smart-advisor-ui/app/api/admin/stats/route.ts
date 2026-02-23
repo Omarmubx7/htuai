@@ -243,57 +243,6 @@ export async function GET(request: Request) {
             lastWeekVisits = Number(lw[0]?.count ?? 0);
         } catch { /* ok */ }
 
-        let plannerTotalHours = 0;
-        let plannerActiveStudents = 0;
-        let plannerStatsObj = {
-            totalHours: '0.0',
-            activeStudents: 0,
-            avgCompletion: 0
-        };
-
-        try {
-            const { rows: hoursRows } = await sql`SELECT SUM(hours) as total FROM planner_study_sessions`;
-            plannerTotalHours = Number(hoursRows[0]?.total ?? 0);
-
-            const { rows: activeRows } = await sql`SELECT COUNT(DISTINCT student_id) as total FROM planner_semesters`;
-            plannerActiveStudents = Number(activeRows[0]?.total ?? 0);
-
-            const { rows: completionRows } = await sql`
-                SELECT 
-                    COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE status = 'Completed') as completed
-                FROM planner_courses
-            `;
-            let avgCompletion = 0;
-            const totalC = Number(completionRows[0]?.total ?? 0);
-            const compC = Number(completionRows[0]?.completed ?? 0);
-            avgCompletion = totalC > 0 ? Math.round((compC / totalC) * 100) : 0;
-
-            plannerStatsObj = {
-                totalHours: plannerTotalHours.toFixed(1),
-                activeStudents: plannerActiveStudents,
-                avgCompletion
-            };
-        } catch { /* ok */ }
-
-        // ── 12. Planner Recent Activity ───────────────────────────────
-        try {
-            const { rows: logRows } = await sql`
-                SELECT student_id, course_id, hours, notes, created_at
-                FROM planner_study_sessions
-                ORDER BY created_at DESC
-                LIMIT 25
-            `;
-            for (const r of logRows) {
-                recentActivity.push({
-                    type: 'study_log',
-                    student_id: r.student_id,
-                    detail: `Logged ${r.hours}h for ${r.course_id}${r.notes ? `: ${r.notes}` : ''}`,
-                    time: String(r.created_at),
-                });
-            }
-        } catch { /* ok */ }
-
         // ── Computed Averages (REAL) ──────────────────────────────────
         const avgCoursesCompleted = totalStudents > 0
             ? Math.round(totalCompletedCourses / totalStudents)
@@ -332,7 +281,6 @@ export async function GET(request: Request) {
             heatmap,
             studentData: studentRealCH,
             students: studentRealCH,
-            plannerStats: plannerStatsObj
         });
 
     } catch (e) {

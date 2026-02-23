@@ -7,7 +7,6 @@ import StudentLogin from "@/components/StudentLogin";
 import LandingPage from "@/components/LandingPage";
 import MajorSelector from "@/components/MajorSelector";
 import CourseTrackerView from "@/components/CourseTrackerView";
-import StudyPlannerView from "@/components/StudyPlannerView";
 import { CourseData } from "@/types";
 import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
