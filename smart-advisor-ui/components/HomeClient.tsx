@@ -322,9 +322,6 @@ export default function HomeClient() {
                                 <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTUAI</span>
                             </div>
 
-                            {/* Navigation - Hidden per request */}
-                            <div className="hidden sm:flex items-center">
-                            </div>
 
                             <div className="flex items-center gap-3">
                                 <div className="flex flex-col items-end">
@@ -348,7 +345,6 @@ export default function HomeClient() {
                                     {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
-                                {/* Planner link hidden per request */}
                                 <button
                                     onClick={() => signOut()}
                                     className="p-3 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { saveIntegrationToken, initPlannerTables } from "@/lib/database";
+import { saveIntegrationToken, initDB } from "@/lib/database";
 import { getBaseUrl } from "@/lib/env";
 
 // GET /api/integrations/google-calendar/callback?code=...
@@ -9,7 +9,7 @@ import { getBaseUrl } from "@/lib/env";
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-        return NextResponse.redirect(new URL("/planner?error=unauthorized", req.url));
+        return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
 
     const studentId = (session.user as any).student_id || session.user.email || session.user.name;
@@ -17,18 +17,18 @@ export async function GET(req: NextRequest) {
     const error = req.nextUrl.searchParams.get("error");
 
     if (error || !code) {
-        return NextResponse.redirect(new URL("/planner?error=google_denied", req.url));
+        return NextResponse.redirect(new URL("/?error=google_denied", req.url));
     }
 
     try {
-        await initPlannerTables();
+        await initDB();
 
         // Exchange code for tokens
         const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
-                code,
+                code: code,
                 client_id: process.env.GOOGLE_CLIENT_ID!,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET!,
                 redirect_uri: `${getBaseUrl()}/api/integrations/google-calendar/callback`,
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
         if (!tokenRes.ok) {
             console.error("Google token exchange failed:", await tokenRes.text());
-            return NextResponse.redirect(new URL("/planner?error=google_token_failed", req.url));
+            return NextResponse.redirect(new URL("/?error=google_token_failed", req.url));
         }
 
         const tokens = await tokenRes.json();
@@ -50,9 +50,9 @@ export async function GET(req: NextRequest) {
             tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined
         );
 
-        return NextResponse.redirect(new URL("/planner?connected=google", req.url));
+        return NextResponse.redirect(new URL("/?connected=google", req.url));
     } catch (e: any) {
         console.error("Google Calendar callback error:", e);
-        return NextResponse.redirect(new URL("/planner?error=google_callback_error", req.url));
+        return NextResponse.redirect(new URL("/?error=google_callback_error", req.url));
     }
 }

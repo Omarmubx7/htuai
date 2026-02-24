@@ -1,0 +1,2257 @@
+HTUAI – Complete Technical Specification
+Semester Planner, GPA Tracker & Gamification System
+Author: Product & Engineering Team
+Date: February 24, 2026
+Version: 1.0
+Target: HTU CS Students (Al Hussein Technical University)
+________________________________________
+Executive Summary
+HTUAI is a comprehensive academic management platform for HTU students that combines degree progress tracking with semester planning, GPA calculation, study analytics, and gamification. This document contains all product, design, and performance specifications required to implement the "Semester Planner & GPA" module alongside the existing "Course Tracker" system.
+Key objectives:
+	Automate repetitive semester setup workflows
+	Provide accurate GPA/CGPA tracking using HTU's official grading system
+	Sync academic schedules with Google Calendar
+	Motivate consistent study habits through gamification
+	Enable admin monitoring of system health and usage
+________________________________________
+PART 1: PRODUCT SPECIFICATIONS
+1.1 Product Overview
+1.1.1 HTUAI Current State (v1)
+HTUAI currently provides:
+	Degree progress dashboard: Total credits (completed/required), courses completed, overall completion percentage
+	Academic status labels: Based on completion percentage (e.g., "ACADEMIC ASPIRANT")
+	Requirement breakdown: University Requirements, University Elective, College Requirements, Department Requirements, Department Elective
+	Curriculum view: 4-year roadmap organized by levels (Level 1–4) with prerequisite tracking
+	Course details: Name, code, credit hours, provider tags (HTU, HNC, HND, UE-I/II/III), prerequisites
+Authentication displays HTU ID and major in header with sign-out capability.
+1.1.2 New Module: Semester Planner & GPA
+The new module adds per-student semester management:
+	Semester organization: Winter (Oct–Feb), Spring (Mar–Jun), Summer (Jul–Sep)
+	GPA tracking: Per-semester GPA and cumulative GPA using HTU grading rules
+	Study analytics: Session logging, time tracking per course
+	In-app notes: Rich text editor with Notion-like experience
+	Calendar integration: Google Calendar sync for classes, exams, deadlines
+	Gamification: XP, levels, streaks, quests, badges
+	Admin dashboard: Usage monitoring, error tracking, analytics
+1.1.3 Clear Separation of Concerns
+Course Tracker (existing):
+	Purpose: Show degree requirements and curriculum
+	Data: Static curriculum definitions, prerequisite rules
+	Scope: Program-level view
+Planner & GPA (new):
+	Purpose: Manage student's actual semesters, grades, study behavior
+	Data: Per-student instances of semesters, courses, grades, notes
+	Scope: Student-level personalized tracking
+Critical rule: Planner cannot edit curriculum definitions; it only tracks student progress against them.
+________________________________________
+1.2 Target Users & Goals
+1.2.1 Primary Users
+	HTU Computer Science students (all levels: freshmen through seniors)
+	Students who want to track GPA, plan semesters, and stay organized
+	Students seeking motivation through gamified progress tracking
+1.2.2 Secondary Users
+	Academic advisors reviewing student progress
+	System administrators monitoring platform health
+1.2.3 Goals
+For students:
+	Eliminate repetitive semester setup work
+	See clear CGPA trajectory and classification
+	Understand which courses to prioritize
+	Build consistent study habits
+	Stay on track for timely graduation
+For the platform:
+	High engagement (weekly active usage)
+	Integration adoption (≥60% connect Google Calendar)
+	Retention (students use across multiple semesters)
+________________________________________
+1.3 Domain Model & Data Structures
+1.3.1 Core Entities
+All entities use UUID for id. All have created_at and updated_at timestamps (UTC).
+User
+	id (UUID, primary key)
+	email (string, unique)
+	name (string, nullable)
+	htu_id (string, nullable) – HTU student ID
+	role (enum: student | admin)
+	created_at, updated_at
+Relationships: Has many Semesters, StudySessions, GPAHistory, Integrations, CalendarEvents, Quests, UserBadges; has one GamificationProfile.
+Semester
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	type (enum: winter | spring | summer)
+	year (integer, e.g., 2025)
+	name (string, e.g., "Winter 2025")
+	start_date (date)
+	end_date (date)
+	semester_gpa (float, nullable)
+	created_at, updated_at
+Relationships: Belongs to User; has many Courses, GPAHistory entries.
+Course
+	id (UUID)
+	semester_id (UUID, foreign key → Semester)
+	name (string)
+	code (string) – REAL HTU COURSE CODE (e.g., CS101, MATH202), never auto-generated
+	credits (float)
+	instructor_name (string, nullable)
+	location (string, nullable)
+	class_schedule (JSON, nullable) – Structure: { days: ["Sunday", "Tuesday"], start_time: "09:00", end_time: "10:30" }
+	status (enum: planned | in_progress | completed | dropped)
+	grade_letter (enum: D | M | P | U | null)
+	grade_point (float, nullable) – Derived from grade_letter using HTU rules
+	final_mark (float, nullable) – Numeric score if available
+	is_completed (boolean, default false)
+	created_at, updated_at
+Relationships: Belongs to Semester; has one CourseNote; has many StudySessions, CalendarEvents.
+CourseNote
+	id (UUID)
+	course_id (UUID, foreign key → Course, unique)
+	content (JSON) – Rich text editor state (Lexical/Tiptap format)
+	created_at, updated_at
+Relationships: Belongs to Course (one-to-one).
+StudySession
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	course_id (UUID, foreign key → Course)
+	date (datetime)
+	duration_minutes (integer)
+	type (enum: reading | practice | project | review | other)
+	notes (string, nullable) – Short description
+	created_at
+Relationships: Belongs to User and Course.
+GPAHistory
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	semester_id (UUID, foreign key → Semester, nullable)
+	semester_gpa (float, nullable)
+	cumulative_gpa (float)
+	classification (enum: EX | VG | Good | Satisfactory | Unclassified)
+	created_at
+Relationships: Belongs to User; optionally belongs to Semester for per-semester snapshots.
+Integration
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	type (enum: google_calendar) – Only Google Calendar supported
+	access_token (string, encrypted)
+	refresh_token (string, encrypted, nullable)
+	expires_at (datetime, nullable)
+	metadata (JSON, nullable) – Calendar ID, timezone, etc.
+	created_at, updated_at
+Relationships: Belongs to User.
+CalendarEvent
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	course_id (UUID, foreign key → Course, nullable)
+	type (enum: class | midterm | final | assignment_due | other)
+	google_event_id (string, nullable) – For update operations
+	title (string)
+	start_datetime (datetime)
+	end_datetime (datetime)
+	created_at, updated_at
+Relationships: Belongs to User; optionally belongs to Course.
+GamificationProfile
+	id (UUID)
+	user_id (UUID, foreign key → User, unique)
+	xp (integer, default 0)
+	level (integer, default 1)
+	current_streak_days (integer, default 0)
+	longest_streak_days (integer, default 0)
+	last_activity_date (date, nullable)
+	created_at, updated_at
+Relationships: Belongs to User (one-to-one).
+Badge
+	id (UUID)
+	code (string, unique) – e.g., TRANSCRIPT_MASTER, GPA_UP
+	name (string)
+	description (string)
+	icon (string, nullable) – Icon identifier or emoji
+	created_at
+Relationships: Has many UserBadges.
+UserBadge
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	badge_id (UUID, foreign key → Badge)
+	awarded_at (datetime)
+Relationships: Belongs to User and Badge.
+Quest
+	id (UUID)
+	user_id (UUID, foreign key → User)
+	scope (enum: course | semester | global)
+	target_course_id (UUID, foreign key → Course, nullable)
+	target_semester_id (UUID, foreign key → Semester, nullable)
+	type (enum: gpa_improvement | hours_studied | assignments_completed | streak | other)
+	target_value (float)
+	current_value (float, default 0)
+	status (enum: active | completed | expired)
+	expires_at (datetime, nullable)
+	created_at, updated_at
+Relationships: Belongs to User; optionally references Course or Semester.
+AdminLog
+	id (UUID)
+	type (enum: error | sync_event | usage_snapshot)
+	message (string)
+	details (JSON, nullable)
+	created_at
+Relationships: None.
+________________________________________
+1.4 HTU Grading & GPA Rules (Non-Negotiable)
+1.4.1 Grade Mapping
+Per-course grades map to grade points:
+	D (Distinction) → 4.0
+	M (Merit) → 3.2
+	P (Pass) → 2.4
+	U (Unclassified) → 0.0 (for GPA calculation purposes)
+1.4.2 Passing Requirements
+	Minimum passing grade per course: P (2.4)
+	Minimum cumulative average: P (2.4)
+1.4.3 Classification Ranges (Cumulative GPA)
+	3.6–4.0 → Excellent (EX)
+	3.2–3.59 → Very Good (VG)
+	2.8–3.19 → Good
+	2.4–2.79 → Satisfactory
+	<2.4 → Unclassified
+1.4.4 Semester Types & Date Ranges
+	Winter: October 1 – February 28/29
+	Spring: March 1 – June 30
+	Summer: July 1 – September 30
+1.4.5 GPA Calculation Formulas
+Semester GPA:
+"Semester GPA"=(∑▒ ("credits" ×"grade point" ))/(∑▒  "credits" )
+Where only completed courses with valid grade points are included.
+Cumulative GPA (CGPA):
+"CGPA"=(∑_"all completed courses" ▒  ("credits" ×"grade point" ))/(∑_"all completed courses" ▒  "credits" )
+Implementation requirements:
+	Round GPA to 2 decimal places
+	Return null if no completed courses exist
+	Never use magic numbers; reference HTU grade constants
+Example calculation:
+Courses in Winter 2025:
+	CS101 (3 credits, grade M = 3.2)
+	MATH102 (3 credits, grade D = 4.0)
+	ENG101 (2 credits, grade P = 2.4)
+"Semester GPA"=((3×3.2)+(3×4.0)+(2×2.4))/(3+3+2)=(9.6+12.0+4.8)/8=26.4/8=3.30
+Classification: Very Good (VG) (falls in 3.2–3.59 range)
+________________________________________
+1.5 Feature Requirements (Functional)
+FR-1: Semester Management
+	FR-1.1: User can create semesters with type (winter/spring/summer) and year
+	FR-1.2: System enforces semester date ranges based on type
+	FR-1.3: User can view all past, current, and planned semesters
+	FR-1.4: On first use, wizard guides user to enter current semester and optionally past semesters for CGPA baseline
+FR-2: Course Management
+	FR-2.1: User can add courses to any semester with: name, code (real HTU code), credits, instructor, location, schedule
+	FR-2.2: Course codes must be real HTU course codes, never auto-generated
+	FR-2.3: User can mark courses as planned/in progress/completed/dropped
+	FR-2.4: User can enter grade letter (D/M/P/U) for completed courses
+	FR-2.5: System derives grade point from grade letter using HTU mapping
+	FR-2.6: User can optionally enter final numeric mark
+FR-3: GPA Calculation & Display
+	FR-3.1: System automatically calculates semester GPA when at least one course in semester has a grade
+	FR-3.2: System calculates CGPA across all completed courses from all semesters
+	FR-3.3: System assigns classification (EX/VG/Good/Satisfactory/Unclassified) based on CGPA
+	FR-3.4: System creates GPAHistory snapshots on grade changes
+	FR-3.5: Dashboard displays current CGPA, classification, and GPA trend
+FR-4: Study Session Logging
+	FR-4.1: User can log study sessions with: course, date, duration (minutes), type, optional notes
+	FR-4.2: System aggregates total study time per course and per semester
+	FR-4.3: Dashboard displays study statistics and weekly summaries
+FR-5: Rich Text Notes
+	FR-5.1: Each course has a dedicated notes area with rich text editing
+	FR-5.2: Notes support: headings, bold/italic, lists, checklists, colored highlights, callouts
+	FR-5.3: Notes auto-save on blur or every 3 seconds of idle
+	FR-5.4: Notes are stored as structured JSON (editor state)
+	FR-5.5: Notes editor is full-page on mobile, premium appearance similar to Notion
+FR-6: Google Calendar Integration
+	FR-6.1: User can connect Google account via OAuth in Settings
+	FR-6.2: System stores access token, refresh token securely (encrypted at rest)
+	FR-6.3: System creates Google Calendar events for:
+	Class schedules (if provided)
+	Midterm exam dates
+	Final exam dates
+	Assignment deadlines (if tracked)
+	FR-6.4: When dates change in HTUAI, system updates corresponding Google Calendar event (not recreate)
+	FR-6.5: Integration is one-way: HTUAI → Google Calendar only
+	FR-6.6: User can disconnect integration and remove synced events
+FR-7: Gamification System
+XP & Levels
+	FR-7.1: User earns XP for:
+	Logging study sessions: 1 XP per minute (max 100 XP/day from study)
+	Completing a course: 150 XP
+	Improving semester GPA vs previous: 200 XP
+	Opening planner dashboard daily (once): 10 XP
+	FR-7.2: Level calculated as: level = floor(xp / 500) + 1
+	FR-7.3: Dashboard displays XP bar with progress to next level
+Streaks
+	FR-7.4: Study streak tracks consecutive days with ≥1 study session
+	FR-7.5: Planner streak tracks consecutive days visiting planner
+	FR-7.6: Nightly job evaluates streaks; resets to 0 if no activity that day
+	FR-7.7: Dashboard displays current streak and longest streak
+Quests
+	FR-7.8: System auto-generates quests:
+	Course-level: "Reach at least P (2.4)", "Improve from P to M or D"
+	Semester-level: "Raise CGPA by 0.1", "Study 5 days this week"
+	FR-7.9: Quest progress updates automatically based on user actions
+	FR-7.10: Completed quests award bonus XP
+	FR-7.11: Dashboard shows 2–3 active quests with progress bars
+Badges
+	FR-7.12: Predefined badges:
+	TRANSCRIPT_MASTER: Entered all past semesters with courses
+	GPA_UP: CGPA increased compared to previous semester
+	CONSISTENT_STUDY_5: Maintained 5-day study streak
+	COURSE_RESCUE: Improved course from U to P or higher
+	FR-7.13: System awards badges automatically when conditions met
+	FR-7.14: Visual notification shown on badge unlock
+FR-8: Admin Dashboard
+	FR-8.1: Admin users can view:
+	Total registered students
+	Active users (daily, weekly)
+	Average CGPA by semester type
+	Average study hours per week
+	Integration connection rates
+	Recent errors and sync failures
+	FR-8.2: Admin can filter logs by date range and type
+	FR-8.3: Charts display usage trends and system health
+________________________________________
+1.6 Non-Functional Requirements
+NFR-1: Performance
+	NFR-1.1: First Contentful Paint < 2 seconds on 4G mobile connection
+	NFR-1.2: Planner dashboard API response < 300ms for 10 semesters, 60 courses
+	NFR-1.3: GPA calculation completes in < 50ms for 100 courses
+	NFR-1.4: Notes auto-save without blocking user input
+NFR-2: Reliability
+	NFR-2.1: Calendar sync failures retry 3 times with exponential backoff
+	NFR-2.2: System logs all sync errors to AdminLog
+	NFR-2.3: If Google token expires, show clear re-authentication prompt
+NFR-3: Security
+	NFR-3.1: All API communication via HTTPS
+	NFR-3.2: Integration tokens encrypted at rest (AES-256)
+	NFR-3.3: JWT tokens for user authentication with 7-day expiry
+	NFR-3.4: Rate limiting on all API endpoints (100 req/min per user)
+NFR-4: Usability
+	NFR-4.1: Onboarding wizard completable in < 5 minutes
+	NFR-4.2: All interactive elements have ≥44px tap targets on mobile
+	NFR-4.3: Error messages actionable and user-friendly
+	NFR-4.4: Zero data loss on network interruption (draft saving)
+NFR-5: Accessibility
+	NFR-5.1: WCAG 2.1 AA compliance minimum
+	NFR-5.2: Keyboard navigation support for all features
+	NFR-5.3: Color contrast ratios ≥4.5:1 for text
+	NFR-5.4: Screen reader support with proper ARIA labels
+NFR-6: Scalability
+	NFR-6.1: System supports 10,000 concurrent users
+	NFR-6.2: Database queries optimized with proper indexes
+	NFR-6.3: Static assets cached and served via CDN
+________________________________________
+PART 2: DESIGN SPECIFICATIONS
+2.1 UX Principles (Mobile-First)
+2.1.1 Mobile-First Philosophy
+	Primary design target: Mobile devices (320–430px width)
+	Design process: Start with mobile layout, progressively enhance for tablet/desktop
+	Core principle: Essential content and actions visible without scrolling or horizontal scroll
+2.1.2 Responsive Breakpoints
+	Mobile: 320–767px (single column, stacked)
+	Tablet: 768–1023px (2 columns where appropriate)
+	Desktop: 1024px+ (3–4 columns, sidebars)
+2.1.3 Touch & Interaction
+	Minimum tap target: 44×44px
+	Primary actions: Bottom-fixed or prominently placed buttons
+	Swipe gestures: Optional enhancements, not required for core functionality
+	Loading states: Skeleton screens, not spinners alone
+	Haptic feedback: Optional on important actions (if PWA supports)
+2.1.4 Content Priority
+Mobile screens show (in order):
+	Header/navigation
+	Key metrics/stats
+	Primary action
+	Content list/detail
+	Secondary actions
+Less important content hidden behind tabs, accordions, or "Show more".
+2.1.5 Typography & Readability
+	Base font size: 16px minimum on mobile
+	Line height: 1.5–1.6 for body text
+	Heading scale: H1 (28–32px), H2 (24–28px), H3 (20–24px) on mobile
+	Content width: Max 65ch for text blocks even on desktop for readability
+________________________________________
+2.2 Information Architecture & Navigation
+2.2.1 Main Navigation Structure
+Top-level routes:
+	Course Tracker (/) – Existing degree progress view
+	Planner & GPA (/planner) – New semester planning module
+	Settings (/settings) – Integrations, profile
+	Admin (/admin) – Admin dashboard (role-gated)
+Navigation component:
+	Mobile: Bottom tab bar or hamburger menu
+	Desktop: Top horizontal nav or left sidebar
+	Active route clearly indicated
+2.2.2 Planner Module Flow
+First-time user:
+	/planner/onboarding/step-1 – Set current semester (type, year)
+	/planner/onboarding/step-2 – Add past semesters (optional, skippable)
+	/planner/onboarding/step-3 – Add at least one course to current semester
+	Redirect to /planner – Main dashboard
+Returning user:
+	/planner – Dashboard (CGPA, current semester, gamification)
+	/planner/semester/[id] – Semester view (courses list)
+	/planner/course/[id] – Course detail (notes, study log, quests)
+Settings flow:
+	/settings – Main settings page
+	/settings/integrations – Google Calendar connection
+________________________________________
+2.3 Screen Specifications
+2.3.1 Planner Dashboard (/planner)
+Mobile layout (stacked):
+	Header
+	Title: "Planner & GPA"
+	Semester selector dropdown (current by default)
+	Settings icon (top-right)
+	CGPA Card
+	Large CGPA number (e.g., "3.45")
+	Classification badge (e.g., "VG - Very Good")
+	Small trend indicator (↑/↓ vs last semester)
+	Current Semester Card
+	Semester name (e.g., "Spring 2026")
+	Semester GPA
+	Credits: "18 / 18 CH"
+	Courses: "6 courses"
+	Gamification Section
+	XP bar with level (e.g., "Level 5 - 2,234 XP")
+	Study streak indicator (e.g., "🔥 7 days")
+	Top 2–3 active quests with progress bars
+	Study Summary This Week
+	Total hours
+	Most studied course
+	Chart (simple bar or line)
+	Courses List
+	Course cards (name, code, grade badge, study hours)
+	Tap to open course detail
+	Bottom Action
+	"Add Course" button (fixed or floating)
+Tablet/Desktop enhancements:
+	2-column grid for CGPA + Current Semester
+	Gamification and Study Summary side-by-side
+	Courses in 2–3 column grid
+________________________________________
+2.3.2 Semester View (/planner/semester/[id])
+Mobile layout:
+	Header
+	Back button
+	Semester name
+	Edit icon
+	Semester Stats Card
+	Semester GPA (large)
+	CGPA at that point
+	Total credits
+	Status (e.g., "Completed" or "In Progress")
+	Courses List
+	Card per course:
+	Name
+	Code
+	Credits
+	Grade badge (if graded)
+	Hours studied
+	Tap to open course detail
+	Bottom Action
+	"Add Course to This Semester" button
+Desktop:
+	Semester stats as sidebar
+	Courses as main content in grid
+________________________________________
+2.3.3 Course Detail (/planner/course/[id])
+Mobile layout (full-page scroll):
+	Header
+	Back button
+	Course code + name
+	Edit icon
+	Course Info Card
+	Credits, instructor, location, schedule
+	Grade badge (D/M/P/U) with numeric point
+	Status dropdown
+	Rich Text Notes (Main Content)
+	Full-width editor
+	Toolbar (floating or sticky): headings, bold, italic, lists, colors, callouts
+	Editor takes majority of vertical space
+	Auto-save indicator
+	Study Log Section
+	Collapsible or separate tab
+	List of study sessions (date, duration, type)
+	"Log Study Session" button
+	Quests Panel
+	Course-specific quests
+	Progress bars
+	Completion status
+Desktop:
+	Left: Course info + notes (2/3 width)
+	Right sidebar: Study log + quests (1/3 width)
+________________________________________
+2.3.4 Settings Page (/settings)
+Sections:
+	Profile
+	Name, email, HTU ID (read-only)
+	Integrations
+	Google Calendar:
+	Connection status (connected/not connected)
+	"Connect Google Calendar" button (if not connected)
+	"Disconnect" button (if connected)
+	Sync preferences: classes, exams, deadlines (checkboxes)
+	Preferences
+	Timezone (default: Asia/Amman)
+	Notification settings (future)
+________________________________________
+2.3.5 Admin Dashboard (/admin)
+Tabs:
+	Overview
+	KPI cards: total users, DAU, WAU, avg CGPA, avg study hours/week
+	Charts: user growth, CGPA distribution, study time trends
+	Errors & Logs
+	Table: timestamp, type, message, user (anonymized ID)
+	Filters: date range, type
+	Export CSV
+	Integrations Health
+	Google Calendar connection rate
+	Sync success/failure rate
+	Recent sync errors
+________________________________________
+2.4 Component Library
+2.4.1 Core Components
+All components built with React + TypeScript + Tailwind CSS.
+GradeBadge
+Purpose: Display HTU grade letter with official colors.
+Props:
+	gradeLetter?: "D" | "M" | "P" | "U"
+Appearance:
+	Single capital letter only
+	Rounded badge/pill shape
+	Colors:
+	D: bg-green-500 text-white (green)
+	M: bg-blue-500 text-white (blue)
+	P: bg-yellow-500 text-gray-900 (yellow)
+	U: bg-red-500 text-white (red)
+	If null or undefined: show "—" or empty state
+Usage:
+
+XPBar
+Props:
+	xp: number
+	level: number
+Appearance:
+	Progress bar showing XP progress to next level
+	Label: "Level X - Y XP"
+StreakIndicator
+Props:
+	currentStreak: number
+	longestStreak: number
+	type: "study" | "planner"
+Appearance:
+	Flame icon + number
+	Subtitle: "Current: X days | Best: Y days"
+QuestCard
+Props:
+	quest: Quest (type, target, current, status)
+Appearance:
+	Title (quest description)
+	Progress bar (current/target)
+	Status badge (active/completed)
+StatCard
+Props:
+	label: string
+	value: string | number
+	icon?: ReactNode
+	trend?: "up" | "down" | "neutral"
+Appearance:
+	Card with large value
+	Small label below
+	Optional trend arrow/color
+RichTextEditor
+Props:
+	initialContent: JSON
+	onSave: (content: JSON) => void
+	autoSaveDelay?: number (default 3000ms)
+Implementation:
+	Use Lexical (recommended) or Tiptap React
+	Features enabled:
+	Headings (H1, H2, H3)
+	Bold, italic, underline, strikethrough
+	Bulleted list, numbered list, checklist
+	Quote block
+	Callout block (info, warning, success styles)
+	Text color and highlight
+	Toolbar: Floating bubble or sticky top
+	Styling: Clean, spacious, Notion-inspired
+________________________________________
+2.5 Design System
+2.5.1 Typography
+	Font family: Inter or system-ui fallback
+	Weights: 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
+	Scale (mobile):
+	Body: 16px/1.5
+	Small: 14px/1.4
+	Large: 18px/1.6
+	H1: 28px/1.2
+	H2: 24px/1.3
+	H3: 20px/1.4
+2.5.2 Color Palette
+Brand:
+	Primary: HTU brand color (if defined) or use a professional blue
+	Secondary: Complementary accent
+Semantic:
+	Success: #10B981 (green-500)
+	Warning: #F59E0B (amber-500)
+	Error: #EF4444 (red-500)
+	Info: #3B82F6 (blue-500)
+Grades:
+	D (Distinction): #10B981 (green)
+	M (Merit): #3B82F6 (blue)
+	P (Pass): #F59E0B (yellow/amber)
+	U (Unclassified): #EF4444 (red)
+Neutrals:
+	Background: #FFFFFF (light mode), #0F172A (dark mode optional)
+	Surface: #F8FAFC, #1E293B
+	Border: #E2E8F0, #334155
+	Text primary: #0F172A, #F1F5F9
+	Text secondary: #64748B, #94A3B8
+2.5.3 Spacing System
+Use 8px base unit:
+	xs: 4px (0.5 unit)
+	sm: 8px (1 unit)
+	md: 16px (2 units)
+	lg: 24px (3 units)
+	xl: 32px (4 units)
+	2xl: 48px (6 units)
+2.5.4 Component Patterns
+Cards:
+	Rounded corners: 8–12px
+	Shadow: subtle elevation
+	Padding: 16–24px (mobile), 24–32px (desktop)
+Buttons:
+	Primary: filled with primary color
+	Secondary: outlined
+	Ghost: text only with hover state
+	Height: 44px minimum on mobile
+Forms:
+	Input height: 44–48px
+	Labels above inputs
+	Validation feedback inline (below field)
+	Required fields marked with *
+________________________________________
+2.6 Accessibility Requirements
+	Semantic HTML: <header>, <main>, <nav>, <section>, <article>
+	All interactive elements keyboard accessible (tab order logical)
+	Focus indicators clearly visible
+	ARIA labels for icon-only buttons
+	Alt text for decorative images (empty alt) and meaningful images (descriptive alt)
+	Form inputs associated with labels via for/id or wrapping
+	Color not sole means of conveying information (use icons + text with color)
+________________________________________
+PART 3: PERFORMANCE & TECHNICAL SPECIFICATIONS
+3.1 Architecture Overview
+3.1.1 System Architecture
+Layers:
+	Frontend (Client)
+	Next.js 14 with App Router
+	Runs in user's browser
+	Communicates with backend via REST API
+	Backend (API Server)
+	Node.js 20 with NestJS framework
+	Handles business logic, GPA calculations, gamification
+	Manages Google Calendar integration
+	Serves REST endpoints
+	Database
+	PostgreSQL 15+
+	Managed via Prisma ORM
+	Stores all user data, semesters, courses, notes, logs
+	External Services
+	Google Calendar API (OAuth + event management)
+	Background Jobs
+	Cron jobs for:
+	Nightly streak evaluation
+	Quest progress updates
+	Calendar sync retries
+Data flow:
+User (mobile/desktop)
+↓ HTTPS
+Frontend (Next.js)
+↓ REST API
+Backend (NestJS)
+↓
+Database (PostgreSQL)
+↓ (sync)
+Google Calendar API
+3.1.2 Hosting & Deployment
+	Frontend: Vercel (or similar serverless platform)
+	Backend: Railway, Render, or DigitalOcean App Platform (free tier initially)
+	Database: Managed PostgreSQL (Vercel Postgres, Supabase, or Railway)
+	Environment: Production only initially; staging optional
+________________________________________
+3.2 Complete API Specification
+3.2.1 Authentication
+All endpoints except auth require:
+	Header: Authorization: Bearer <JWT_TOKEN>
+	JWT contains: userId, role, exp
+3.2.2 Endpoint List
+Authentication
+POST /api/auth/login
+Request:
+{
+"email": "student@htu.edu.jo",
+"password": "********"
+}
+Response:
+{
+"token": "eyJhbGc...",
+"user": {
+"id": "uuid",
+"email": "student@htu.edu.jo",
+"name": "Ahmad Ali",
+"role": "student"
+}
+}
+POST /api/auth/signup
+Request:
+{
+"email": "student@htu.edu.jo",
+"password": "********",
+"name": "Ahmad Ali",
+"htuId": "14741"
+}
+Response:
+{
+"token": "eyJhbGc...",
+"user": {...}
+}
+Planner Summary
+GET /api/planner/summary
+Response:
+{
+"cgpa": 3.45,
+"classification": "VG",
+"currentSemester": {
+"id": "uuid",
+"name": "Spring 2026",
+"type": "spring",
+"year": 2026,
+"semesterGpa": 3.60,
+"totalCredits": 18,
+"coursesCount": 6
+},
+"gamification": {
+"xp": 2234,
+"level": 5,
+"currentStreak": 7,
+"longestStreak": 12
+},
+"studyThisWeek": {
+"totalMinutes": 420,
+"topCourse": "CS201 Data Structures"
+}
+}
+Semesters
+GET /api/semesters
+Response:
+{
+"semesters": [
+{
+"id": "uuid",
+"name": "Winter 2025",
+"type": "winter",
+"year": 2025,
+"startDate": "2025-10-01",
+"endDate": "2026-02-28",
+"semesterGpa": 3.30,
+"coursesCount": 5,
+"totalCredits": 15
+}
+]
+}
+POST /api/semesters
+Request:
+{
+"type": "spring",
+"year": 2026
+}
+Response:
+{
+"id": "uuid",
+"name": "Spring 2026",
+"type": "spring",
+"year": 2026,
+"startDate": "2026-03-01",
+"endDate": "2026-06-30",
+"semesterGpa": null
+}
+GET /api/semesters/:id
+PATCH /api/semesters/:id
+DELETE /api/semesters/:id
+Courses
+GET /api/semesters/:semesterId/courses
+Response:
+{
+"courses": [
+{
+"id": "uuid",
+"name": "Data Structures",
+"code": "CS201",
+"credits": 3,
+"instructorName": "Dr. Mohammed",
+"location": "Building A - Room 201",
+"classSchedule": {
+"days": ["Sunday", "Tuesday"],
+"startTime": "09:00",
+"endTime": "10:30"
+},
+"status": "in_progress",
+"gradeLetter": null,
+"gradePoint": null,
+"studyHours": 12.5
+}
+]
+}
+POST /api/courses
+Request:
+{
+"semesterId": "uuid",
+"name": "Data Structures",
+"code": "CS201",
+"credits": 3,
+"instructorName": "Dr. Mohammed",
+"location": "Building A - Room 201",
+"classSchedule": {
+"days": ["Sunday", "Tuesday"],
+"startTime": "09:00",
+"endTime": "10:30"
+}
+}
+Response:
+{
+"id": "uuid",
+"semesterId": "uuid",
+"name": "Data Structures",
+"code": "CS201",
+"status": "planned",
+"createdAt": "2026-02-24T08:30:00Z"
+}
+PATCH /api/courses/:id
+Request:
+{
+"gradeLetter": "M",
+"status": "completed",
+"isCompleted": true
+}
+Response:
+{
+"id": "uuid",
+"gradeLetter": "M",
+"gradePoint": 3.2,
+"status": "completed",
+"isCompleted": true,
+"updatedAt": "2026-02-24T08:35:00Z"
+}
+DELETE /api/courses/:id
+Course Notes
+GET /api/courses/:courseId/notes
+Response:
+{
+"content": {
+"root": {
+"children": [...],
+"direction": null,
+"format": "",
+"indent": 0,
+"type": "root",
+"version": 1
+}
+},
+"updatedAt": "2026-02-24T08:30:00Z"
+}
+PUT /api/courses/:courseId/notes
+Request:
+{
+"content": { /* Lexical JSON */ }
+}
+Response:
+{
+"success": true,
+"updatedAt": "2026-02-24T08:31:00Z"
+}
+Study Sessions
+POST /api/study-sessions
+Request:
+{
+"courseId": "uuid",
+"date": "2026-02-24",
+"durationMinutes": 90,
+"type": "practice",
+"notes": "Worked on binary trees"
+}
+Response:
+{
+"id": "uuid",
+"courseId": "uuid",
+"date": "2026-02-24T08:00:00Z",
+"durationMinutes": 90,
+"type": "practice",
+"createdAt": "2026-02-24T09:30:00Z"
+}
+GET /api/courses/:courseId/study-sessions
+GET /api/study-sessions?startDate=...&endDate=...
+GPA
+GET /api/gpa/summary
+Response:
+{
+"cgpa": 3.45,
+"classification": "VG",
+"history": [
+{
+"semester": "Winter 2025",
+"semesterGpa": 3.30,
+"cgpa": 3.30
+},
+{
+"semester": "Spring 2026",
+"semesterGpa": 3.60,
+"cgpa": 3.45
+}
+]
+}
+GET /api/semesters/:id/gpa
+Response:
+{
+"semesterGpa": 3.60,
+"courses": [
+{
+"code": "CS201",
+"credits": 3,
+"gradePoint": 4.0
+}
+]
+}
+Gamification
+GET /api/gamification/profile
+Response:
+{
+"xp": 2234,
+"level": 5,
+"currentStreak": 7,
+"longestStreak": 12,
+"badges": [
+{
+"code": "GPA_UP",
+"name": "GPA Improver",
+"icon": "📈",
+"awardedAt": "2026-02-20T10:00:00Z"
+}
+],
+"activeQuests": [
+{
+"id": "uuid",
+"type": "hours_studied",
+"description": "Study 10 hours this week",
+"currentValue": 7.5,
+"targetValue": 10,
+"progress": 0.75
+}
+]
+}
+POST /api/gamification/award-xp
+Request:
+{
+"event": "study_logged",
+"value": 90 // e.g., minutes
+}
+Response:
+{
+"xpAwarded": 90,
+"totalXp": 2324,
+"levelUp": false
+}
+Google Calendar Integration
+POST /api/integrations/google/connect
+Request:
+{
+"code": "google_oauth_code"
+}
+Response:
+{
+"success": true,
+"integration": {
+"type": "google_calendar",
+"connected": true
+}
+}
+POST /api/integrations/google/sync
+Request:
+{
+"syncClasses": true,
+"syncExams": true
+}
+Response:
+{
+"eventsCreated": 12,
+"eventsUpdated": 3,
+"errors": []
+}
+DELETE /api/integrations/google/disconnect
+Admin
+GET /api/admin/overview
+Response:
+{
+"totalUsers": 247,
+"dau": 89,
+"wau": 156,
+"avgCgpa": 3.12,
+"avgStudyHoursPerWeek": 8.5,
+"calendarConnectionRate": 0.62
+}
+GET /api/admin/logs?type=error&startDate=...&endDate=...
+Response:
+{
+"logs": [
+{
+"id": "uuid",
+"type": "error",
+"message": "Google Calendar sync failed",
+"details": {...},
+"createdAt": "2026-02-24T07:00:00Z"
+}
+]
+}
+________________________________________
+3.3 Database Schema (Prisma, Complete)
+Copy this exactly into prisma/schema.prisma:
+generator client {
+provider = "prisma-client-js"
+}
+datasource db {
+provider = "postgresql"
+url = env("DATABASE_URL")
+}
+model User {
+id String @id @default(uuid())
+email String @unique
+name String?
+htuId String? @unique
+role String @default("student")
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+semesters Semester[]
+studySessions StudySession[]
+gpaHistory GPAHistory[]
+integrations Integration[]
+gamificationProfile GamificationProfile?
+userBadges UserBadge[]
+quests Quest[]
+calendarEvents CalendarEvent[]
+}
+model Semester {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+type String
+year Int
+name String
+startDate DateTime
+endDate DateTime
+semesterGpa Float?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+courses Course[]
+gpaHistory GPAHistory[]
+@@index([userId])
+}
+model Course {
+id String @id @default(uuid())
+semesterId String
+semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+name String
+code String
+credits Float
+instructorName String?
+location String?
+classSchedule Json?
+status String @default("planned")
+gradeLetter String?
+gradePoint Float?
+finalMark Float?
+isCompleted Boolean @default(false)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+note CourseNote?
+studySessions StudySession[]
+calendarEvents CalendarEvent[]
+quests Quest[]
+@@index([semesterId])
+}
+model CourseNote {
+id String @id @default(uuid())
+courseId String @unique
+course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+content Json
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+model StudySession {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+courseId String
+course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+date DateTime
+durationMinutes Int
+type String
+notes String?
+createdAt DateTime @default(now())
+@@index([userId])
+@@index([courseId])
+@@index([date])
+}
+model GPAHistory {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+semesterId String?
+semester Semester? @relation(fields: [semesterId], references: [id], onDelete: SetNull)
+semesterGpa Float?
+cumulativeGpa Float
+classification String
+createdAt DateTime @default(now())
+@@index([userId])
+@@index([semesterId])
+}
+model Integration {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+type String
+accessToken String
+refreshToken String?
+expiresAt DateTime?
+metadata Json?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+@@index([userId])
+}
+model CalendarEvent {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+courseId String?
+course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+type String
+googleEventId String?
+title String
+startDatetime DateTime
+endDatetime DateTime
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+@@index([userId])
+@@index([courseId])
+}
+model GamificationProfile {
+id String @id @default(uuid())
+userId String @unique
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+xp Int @default(0)
+level Int @default(1)
+currentStreakDays Int @default(0)
+longestStreakDays Int @default(0)
+lastActivityDate DateTime?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+model Badge {
+id String @id @default(uuid())
+code String @unique
+name String
+description String
+icon String?
+createdAt DateTime @default(now())
+userBadges UserBadge[]
+}
+model UserBadge {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+badgeId String
+badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+awardedAt DateTime @default(now())
+@@index([userId])
+}
+model Quest {
+id String @id @default(uuid())
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+scope String
+targetCourseId String?
+targetCourse Course? @relation(fields: [targetCourseId], references: [id], onDelete: SetNull)
+targetSemesterId String?
+type String
+targetValue Float
+currentValue Float @default(0)
+status String @default("active")
+expiresAt DateTime?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+@@index([userId])
+@@index([status])
+}
+model AdminLog {
+id String @id @default(uuid())
+type String
+message String
+details Json?
+createdAt DateTime @default(now())
+@@index([type])
+@@index([createdAt])
+}
+________________________________________
+3.4 Backend Implementation Guide
+3.4.1 Technology Stack
+	Runtime: Node.js 20
+	Framework: NestJS (TypeScript)
+	ORM: Prisma
+	Validation: class-validator + class-transformer
+	Auth: JWT via @nestjs/jwt
+	Google API: googleapis npm package
+	Cron jobs: @nestjs/schedule
+	Queue (optional for async tasks): BullMQ or built-in NestJS schedulers
+3.4.2 Module Structure
+backend/src/
+main.ts
+app.module.ts
+modules/
+auth/
+auth.controller.ts
+auth.service.ts
+jwt.strategy.ts
+planner/
+planner.controller.ts
+planner.service.ts
+gpa/
+gpa.service.ts
+gpa.constants.ts
+gamification/
+gamification.controller.ts
+gamification.service.ts
+gamification.constants.ts
+integrations/
+google-calendar/
+google-calendar.controller.ts
+google-calendar.service.ts
+admin/
+admin.controller.ts
+admin.service.ts
+common/
+decorators/
+guards/
+pipes/
+prisma/
+prisma.service.ts
+3.4.3 GPA Service (Complete Implementation)
+File: modules/gpa/gpa.constants.ts
+export const HTU_GRADE_POINTS: Record<"D" | "M" | "P" | "U", number> = {
+D: 4.0,
+M: 3.2,
+P: 2.4,
+U: 0.0,
+};
+export type GradeLetter = "D" | "M" | "P" | "U";
+export type Classification = "EX" | "VG" | "Good" | "Satisfactory" | "Unclassified";
+export const CLASSIFICATION_RANGES: Array<{
+min: number;
+max: number;
+classification: Classification;
+}> = [
+{ min: 3.6, max: 4.0, classification: "EX" },
+{ min: 3.2, max: 3.59, classification: "VG" },
+{ min: 2.8, max: 3.19, classification: "Good" },
+{ min: 2.4, max: 2.79, classification: "Satisfactory" },
+{ min: 0.0, max: 2.39, classification: "Unclassified" },
+];
+export const SEMESTER_DATE_RANGES = {
+winter: { startMonth: 10, startDay: 1, endMonth: 2, endDay: 28 },
+spring: { startMonth: 3, startDay: 1, endMonth: 6, endDay: 30 },
+summer: { startMonth: 7, startDay: 1, endMonth: 9, endDay: 30 },
+};
+File: modules/gpa/gpa.service.ts
+import { Injectable } from '@nestjs/common';
+import {
+HTU_GRADE_POINTS,
+CLASSIFICATION_RANGES,
+Classification,
+GradeLetter,
+} from './gpa.constants';
+export interface CourseForGPA {
+credits: number;
+gradePoint: number;
+}
+@Injectable()
+export class GpaService {
+gradeLetterToPoint(letter: GradeLetter): number {
+return HTU_GRADE_POINTS[letter];
+}
+calculateSemesterGpa(courses: CourseForGPA[]): number | null {
+const validCourses = courses.filter(
+(c) => c.gradePoint !== null && c.credits > 0,
+);
+if (validCourses.length === 0) return null;
+const totalCredits = validCourses.reduce((sum, c) => sum + c.credits, 0);
+const totalPoints = validCourses.reduce(
+  (sum, c) => sum + c.credits * c.gradePoint,
+  0,
+);
+
+return parseFloat((totalPoints / totalCredits).toFixed(2));
+
+}
+calculateCumulativeGpa(allCompletedCourses: CourseForGPA[]): number | null {
+return this.calculateSemesterGpa(allCompletedCourses);
+}
+classifyGpa(gpa: number): Classification {
+for (const range of CLASSIFICATION_RANGES) {
+if (gpa >= range.min && gpa <= range.max) {
+return range.classification;
+}
+}
+return 'Unclassified';
+}
+}
+Testing requirement: Write unit tests with known inputs/outputs:
+// Example test case
+const courses = [
+{ credits: 3, gradePoint: 3.2 }, // M
+{ credits: 3, gradePoint: 4.0 }, // D
+{ credits: 2, gradePoint: 2.4 }, // P
+];
+// Expected GPA: (33.2 + 34.0 + 2*2.4) / (3+3+2) = 26.4 / 8 = 3.30
+// Classification: VG
+3.4.4 Gamification Service (Complete Implementation)
+File: modules/gamification/gamification.constants.ts
+export const XP_CONFIG = {
+studySessionPerMinute: 1,
+studySessionDailyCap: 100,
+courseCompleted: 150,
+semesterGpaImproved: 200,
+dailyPlannerOpen: 10,
+};
+export const LEVEL_XP_THRESHOLD = 500;
+export const BADGE_DEFINITIONS = [
+{
+code: 'TRANSCRIPT_MASTER',
+name: 'Transcript Master',
+description: 'Entered all past semesters and courses',
+icon: '📚',
+},
+{
+code: 'GPA_UP',
+name: 'GPA Improver',
+description: 'Increased your CGPA',
+icon: '📈',
+},
+{
+code: 'CONSISTENT_STUDY_5',
+name: 'Consistency Champion',
+description: 'Maintained a 5-day study streak',
+icon: '🔥',
+},
+{
+code: 'COURSE_RESCUE',
+name: 'Course Rescuer',
+description: 'Improved a course from U to passing grade',
+icon: '🚀',
+},
+];
+File: modules/gamification/gamification.service.ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { XP_CONFIG, LEVEL_XP_THRESHOLD } from './gamification.constants';
+@Injectable()
+export class GamificationService {
+constructor(private prisma: PrismaService) {}
+calculateLevel(xp: number): number {
+return Math.floor(xp / LEVEL_XP_THRESHOLD) + 1;
+}
+async awardXp(userId: string, event: string, value: number): Promise<number> {
+let xpAwarded = 0;
+switch (event) {
+  case 'study_logged':
+    const minutes = value;
+    xpAwarded = Math.min(
+      minutes * XP_CONFIG.studySessionPerMinute,
+      XP_CONFIG.studySessionDailyCap,
+    );
+    break;
+  case 'course_completed':
+    xpAwarded = XP_CONFIG.courseCompleted;
+    break;
+  case 'gpa_improved':
+    xpAwarded = XP_CONFIG.semesterGpaImproved;
+    break;
+  case 'daily_open':
+    xpAwarded = XP_CONFIG.dailyPlannerOpen;
+    break;
+}
+
+const profile = await this.prisma.gamificationProfile.upsert({
+  where: { userId },
+  create: {
+    userId,
+    xp: xpAwarded,
+    level: this.calculateLevel(xpAwarded),
+  },
+  update: {
+    xp: { increment: xpAwarded },
+  },
+});
+
+const newLevel = this.calculateLevel(profile.xp + xpAwarded);
+if (newLevel > profile.level) {
+  await this.prisma.gamificationProfile.update({
+    where: { userId },
+    data: { level: newLevel },
+  });
+}
+
+return xpAwarded;
+
+}
+async updateStreak(userId: string): Promise<void> {
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const profile = await this.prisma.gamificationProfile.findUnique({
+  where: { userId },
+});
+
+if (!profile) return;
+
+const lastActivity = profile.lastActivityDate
+  ? new Date(profile.lastActivityDate)
+  : null;
+
+if (lastActivity) {
+  lastActivity.setHours(0, 0, 0, 0);
+  const diffDays = Math.floor(
+    (today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (diffDays === 1) {
+    // Consecutive day
+    await this.prisma.gamificationProfile.update({
+      where: { userId },
+      data: {
+        currentStreakDays: { increment: 1 },
+        longestStreakDays: Math.max(
+          profile.longestStreakDays,
+          profile.currentStreakDays + 1,
+        ),
+        lastActivityDate: today,
+      },
+    });
+  } else if (diffDays > 1) {
+    // Streak broken
+    await this.prisma.gamificationProfile.update({
+      where: { userId },
+      data: {
+        currentStreakDays: 1,
+        lastActivityDate: today,
+      },
+    });
+  }
+} else {
+  // First activity
+  await this.prisma.gamificationProfile.update({
+    where: { userId },
+    data: {
+      currentStreakDays: 1,
+      longestStreakDays: 1,
+      lastActivityDate: today,
+    },
+  });
+}
+
+}
+async checkAndAwardBadges(userId: string): Promise<void> {
+// TRANSCRIPT_MASTER: user has ≥2 past semesters with all courses completed
+// GPA_UP: current CGPA > previous
+// CONSISTENT_STUDY_5: currentStreakDays >= 5
+// COURSE_RESCUE: course gradePoint improved from <2.4 to >=2.4
+// Implementation left to developer following badge logic
+
+}
+}
+3.4.5 Google Calendar Service (Complete Implementation)
+File: modules/integrations/google-calendar/google-calendar.service.ts
+import { Injectable } from '@nestjs/common';
+import { google, calendar_v3 } from 'googleapis';
+import { PrismaService } from '../../prisma/prisma.service';
+@Injectable()
+export class GoogleCalendarService {
+private oauth2Client;
+constructor(private prisma: PrismaService) {
+this.oauth2Client = new google.auth.OAuth2(
+process.env.GOOGLE_CLIENT_ID,
+process.env.GOOGLE_CLIENT_SECRET,
+process.env.GOOGLE_REDIRECT_URI,
+);
+}
+getAuthUrl(): string {
+return this.oauth2Client.generateAuthUrl({
+access_type: 'offline',
+scope: ['https://www.googleapis.com/auth/calendar'],
+});
+}
+async handleCallback(code: string, userId: string): Promise<void> {
+const { tokens } = await this.oauth2Client.getToken(code);
+await this.prisma.integration.create({
+  data: {
+    userId,
+    type: 'google_calendar',
+    accessToken: tokens.access_token, // Encrypt in production
+    refreshToken: tokens.refresh_token,
+    expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+  },
+});
+
+}
+async createEvent(
+userId: string,
+event: {
+title: string;
+startDatetime: Date;
+endDatetime: Date;
+courseId?: string;
+type: string;
+},
+): Promise<string> {
+const integration = await this.prisma.integration.findFirst({
+where: { userId, type: 'google_calendar' },
+});
+if (!integration) throw new Error('Calendar not connected');
+
+this.oauth2Client.setCredentials({
+  access_token: integration.accessToken,
+  refresh_token: integration.refreshToken,
+});
+
+const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+
+const response = await calendar.events.insert({
+  calendarId: 'primary',
+  requestBody: {
+    summary: event.title,
+    start: { dateTime: event.startDatetime.toISOString() },
+    end: { dateTime: event.endDatetime.toISOString() },
+    reminders: {
+      useDefault: false,
+      overrides: [
+        { method: 'popup', minutes: 10080 }, // 7 days
+        { method: 'popup', minutes: 4320 },  // 3 days
+        { method: 'popup', minutes: 1440 },  // 1 day
+      ],
+    },
+  },
+});
+
+const googleEventId = response.data.id;
+
+await this.prisma.calendarEvent.create({
+  data: {
+    userId,
+    courseId: event.courseId,
+    type: event.type,
+    googleEventId,
+    title: event.title,
+    startDatetime: event.startDatetime,
+    endDatetime: event.endDatetime,
+  },
+});
+
+return googleEventId;
+
+}
+async updateEvent(eventId: string, updates: Partial<calendar_v3.Schema$Event>): Promise<void> {
+const calEvent = await this.prisma.calendarEvent.findUnique({
+where: { id: eventId },
+include: { user: true },
+});
+if (!calEvent || !calEvent.googleEventId) return;
+
+const integration = await this.prisma.integration.findFirst({
+  where: { userId: calEvent.userId, type: 'google_calendar' },
+});
+
+this.oauth2Client.setCredentials({
+  access_token: integration.accessToken,
+  refresh_token: integration.refreshToken,
+});
+
+const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+
+await calendar.events.patch({
+  calendarId: 'primary',
+  eventId: calEvent.googleEventId,
+  requestBody: updates,
+});
+
+// Update local record
+await this.prisma.calendarEvent.update({
+  where: { id: eventId },
+  data: {
+    startDatetime: updates.start?.dateTime ? new Date(updates.start.dateTime) : undefined,
+    endDatetime: updates.end?.dateTime ? new Date(updates.end.dateTime) : undefined,
+    title: updates.summary,
+  },
+});
+
+}
+async syncCourseSchedule(courseId: string): Promise<void> {
+const course = await this.prisma.course.findUnique({
+where: { id: courseId },
+include: { semester: true },
+});
+if (!course || !course.classSchedule) return;
+
+const schedule = course.classSchedule as any;
+
+// Create recurring events or single events based on schedule
+// Implementation details for recurring events left to developer
+
+}
+}
+________________________________________
+3.5 Frontend Implementation Guide
+3.5.1 Technology Stack
+	Framework: Next.js 14 (App Router)
+	Language: TypeScript
+	Styling: Tailwind CSS
+	UI Components: Headless UI (dialogs, dropdowns, tabs)
+	State Management:
+	Local: React hooks (useState, useReducer, useContext)
+	Server state: React Query (@tanstack/react-query)
+	Forms: react-hook-form + Zod validation
+	Rich Text Editor: Lexical (Meta's framework)
+	Charts: Recharts
+	Icons: Heroicons (React)
+	Date handling: date-fns
+3.5.2 Folder Structure
+app/
+(auth)/
+login/page.tsx
+signup/page.tsx
+(student)/
+layout.tsx # Student nav wrapper
+page.tsx # Course Tracker (existing)
+planner/
+page.tsx # Planner dashboard
+onboarding/
+step-1/page.tsx
+step-2/page.tsx
+step-3/page.tsx
+semester/
+[id]/page.tsx # Semester view
+course/
+[id]/page.tsx # Course detail
+settings/
+page.tsx
+integrations/page.tsx
+(admin)/
+admin/
+page.tsx # Admin dashboard
+logs/page.tsx
+components/
+grade-badge.tsx
+xp-bar.tsx
+streak-indicator.tsx
+quest-card.tsx
+badge-chip.tsx
+stat-card.tsx
+rich-text-editor.tsx
+semester-card.tsx
+course-card.tsx
+study-session-card.tsx
+lib/
+api.ts # API client functions
+hooks/
+useGpa.ts
+useGamification.ts
+useCourses.ts
+utils/
+gpa.ts # Client-side GPA utils (mirror backend)
+3.5.3 Key Components Implementation
+GradeBadge Component
+// components/grade-badge.tsx
+import { cn } from '@/lib/utils';
+type GradeLetter = 'D' | 'M' | 'P' | 'U';
+interface GradeBadgeProps {
+gradeLetter?: GradeLetter | null;
+className?: string;
+}
+const gradeStyles: Record<GradeLetter, string> = {
+D: 'bg-green-500 text-white',
+M: 'bg-blue-500 text-white',
+P: 'bg-yellow-500 text-gray-900',
+U: 'bg-red-500 text-white',
+};
+export function GradeBadge({ gradeLetter, className }: GradeBadgeProps) {
+if (!gradeLetter) {
+return (
+<span className={cn('px-3 py-1 rounded-full bg-gray-200 text-gray-500', className)}>
+—
+</span>
+);
+}
+return (
+<span
+className={cn(
+'px-3 py-1 rounded-full font-semibold text-sm',
+gradeStyles[gradeLetter],
+className,
+)}
+>
+{gradeLetter}
+</span>
+);
+}
+Rich Text Editor Component
+// components/rich-text-editor.tsx
+'use client';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { ListNode, ListItemNode } from '@lexical/list';
+import { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin';
+import ToolbarPlugin from './editor/ToolbarPlugin';
+import AutoSavePlugin from './editor/AutoSavePlugin';
+interface RichTextEditorProps {
+initialContent?: string;
+onSave: (content: string) => void;
+autoSaveDelay?: number;
+}
+export function RichTextEditor({
+initialContent,
+onSave,
+autoSaveDelay = 3000,
+}: RichTextEditorProps) {
+const initialConfig = {
+namespace: 'CourseNotes',
+theme: {
+// Styling theme
+paragraph: 'mb-4',
+heading: {
+h1: 'text-3xl font-bold mb-4',
+h2: 'text-2xl font-bold mb-3',
+h3: 'text-xl font-semibold mb-2',
+},
+list: {
+ul: 'list-disc ml-6 mb-4',
+ol: 'list-decimal ml-6 mb-4',
+},
+quote: 'border-l-4 border-gray-300 pl-4 italic my-4',
+},
+onError: (error: Error) => console.error(error),
+nodes: [HeadingNode, QuoteNode, ListNode, ListItemNode],
+editorState: initialContent,
+};
+return (
+
+
+
+
+<RichTextPlugin
+contentEditable={
+
+}
+placeholder={
+
+
+Start taking notes...
+
+
+}
+ErrorBoundary={LexicalErrorBoundary}
+/>
+
+
+
+
+
+
+
+
+);
+}
+Note: Toolbar and AutoSave plugins are custom; implement based on Lexical documentation.
+________________________________________
+3.6 Mobile-First Responsive Rules
+3.6.1 Layout Patterns
+Mobile (< 768px):
+	Single column layout for all content
+	Full-width cards and components
+	Bottom-fixed primary action buttons
+	Collapsible sections for secondary content
+	Stack all stat cards vertically
+Tablet (768–1023px):
+	2-column grid for stat cards
+	Course list: 2 columns
+	Side-by-side content where appropriate (50/50 split)
+Desktop (1024px+):
+	3-column grid for stat cards
+	Course list: 3+ columns
+	Sidebar layouts (e.g., course detail: 2/3 notes + 1/3 sidebar)
+	Max content width: 1400px centered
+3.6.2 Component Responsive Behavior
+GPA/CGPA Cards:
+	Mobile: Full width, large text (32–36px for GPA number)
+	Desktop: Can be smaller in multi-column grid
+Course Cards:
+	Mobile: Full width with horizontal layout (icon/badge left, info right)
+	Tablet/Desktop: Vertical card layout in grid
+Navigation:
+	Mobile: Bottom tab bar (4–5 items max) OR hamburger menu
+	Desktop: Top horizontal nav or left sidebar
+Rich Text Editor:
+	Mobile: Full-width, toolbar scrollable horizontally if needed
+	Desktop: Fixed toolbar, wider editor area
+3.6.3 Touch Optimization
+	All buttons: min 44×44px
+	Adequate spacing between interactive elements (min 8px)
+	Swipeable cards optional but not required
+	Pull-to-refresh optional
+________________________________________
+3.7 Performance Requirements & Optimizations
+3.7.1 Performance Budget
+Metric	Mobile (4G)	Desktop (Broadband)
+First Contentful Paint	< 2s	< 1s
+Largest Contentful Paint	< 3s	< 1.5s
+Time to Interactive	< 4s	< 2s
+Cumulative Layout Shift	< 0.1	< 0.1
+First Input Delay	< 100ms	< 50ms
+
+3.7.2 Code Optimization
+Code splitting:
+	Each route lazy-loaded via Next.js dynamic imports
+	Heavy components lazy-loaded:
+	Rich text editor
+	Charts
+	Admin dashboard
+Bundle size:
+	Initial JS bundle: < 200KB gzipped
+	Use next/dynamic for non-critical components
+Example:
+const RichTextEditor = dynamic(() => import('@/components/rich-text-editor'), {
+ssr: false,
+loading: () => ,
+});
+3.7.3 Data Optimization
+API response sizes:
+	Planner summary: < 10KB
+	Course list: < 50KB for 100 courses
+	Use pagination for large lists (50 items per page)
+Caching strategies:
+	React Query stale time: 5 minutes for GPA, semesters
+	Infinite stale for curriculum data (rarely changes)
+	Optimistic updates for study sessions, notes
+Database:
+	Indexes on:
+	User.email, User.htuId
+	Semester.userId
+	Course.semesterId, Course.code
+	StudySession.userId, StudySession.courseId, StudySession.date
+	Quest.userId, Quest.status
+	AdminLog.type, AdminLog.createdAt
+3.7.4 Image & Asset Optimization
+	All icons: SVG (inline or sprite)
+	No large images in core UI
+	If images added: Next.js Image component with optimization
+	Fonts: Variable fonts (Inter) with subset for Latin only
+________________________________________
+3.8 SEO, GEO, AEO & Analytics
+3.8.1 SEO (Search Engine Optimization)
+Meta tags (for public pages):
+// app/layout.tsx or individual pages
+export const metadata = {
+title: 'HTUAI - HTU Student Academic Planner',
+description: 'Track your GPA, plan semesters, and stay organized at Al Hussein Technical University',
+openGraph: {
+title: 'HTUAI',
+description: 'Academic planner for HTU students',
+images: ['/og-image.png'],
+},
+};
+Requirements:
+	Semantic HTML with proper heading hierarchy
+	Descriptive page titles for each route
+	Meta descriptions < 160 characters
+	Canonical URLs for all pages
+	robots.txt allowing indexing of public pages, blocking /planner/*, /admin/*
+	sitemap.xml for public routes
+3.8.2 GEO (Geographic & Localization)
+Timezone:
+	Default: Asia/Amman
+	All dates/times displayed in user's timezone
+	Use date-fns-tz for formatting
+Language:
+	Primary: English
+	Arabic support (future): i18n setup with next-intl
+Regional considerations:
+	HTU-specific grading system
+	Semester naming (winter/spring/summer)
+	Date formats: DD/MM/YYYY (common in Jordan)
+3.8.3 AEO (Answer Engine Optimization)
+Structured data:
+	If public FAQ page exists, use FAQ schema markup
+	Clear heading hierarchy for content parsing
+	Descriptive alt text and image captions
+For AI assistants:
+	Clear H1, H2 structure in documentation
+	Question-answer format for help content
+3.8.4 Analytics & Tracking
+Tool: Google Analytics 4 or Plausible (privacy-focused)
+Events to track:
+	Page views: all routes
+	User actions:
+	semester_created
+	course_added
+	grade_updated
+	study_logged
+	calendar_connected
+	quest_completed
+	badge_earned
+	Errors:
+	api_error
+	sync_failed
+Privacy:
+	No PII in event properties
+	User IDs hashed or anonymized
+	Comply with GDPR/data privacy (even if Jordan-only initially)
+Implementation:
+// lib/analytics.ts
+export function trackEvent(eventName: string, properties?: Record<string, any>) {
+if (typeof window !== 'undefined' && window.gtag) {
+window.gtag('event', eventName, properties);
+}
+}
+________________________________________
+3.9 Testing Requirements
+3.9.1 Unit Tests
+Backend:
+	GPA service:
+	Test with known course lists and expected GPAs
+	Edge cases: no courses, single course, all same grade, mixed grades
+	Gamification service:
+	XP calculations, level calculations, streak logic
+	Calendar service:
+	Event creation/update logic (mocked Google API)
+Frontend:
+	GradeBadge: renders correct color/letter for each grade
+	XP calculations (if client-side logic exists)
+	Form validations
+Coverage target: ≥80% for core business logic
+3.9.2 Integration Tests
+	End-to-end flows:
+	Create semester → add courses → enter grades → verify GPA calculated correctly
+	Log study session → verify XP awarded, streak updated
+	Connect Google Calendar → add exam date → verify event created
+Tools: Playwright or Cypress for E2E
+3.9.3 Performance Tests
+	Load test key endpoints:
+	/api/planner/summary with 10 semesters, 60 courses
+	Measure response times, ensure within budget
+	Test database query performance with realistic data volume
+3.9.4 Manual QA Checklist
+Mobile testing:
+	[ ] All screens render correctly on iPhone SE (375×667), iPhone 13 (390×844), Android (360×800)
+	[ ] Tap targets ≥44px
+	[ ] No horizontal scroll
+	[ ] Grade badges show correct colors and letters
+	[ ] Notes editor usable and auto-saves
+	[ ] Forms validate correctly
+	[ ] Navigation works smoothly
+Cross-browser:
+	[ ] Chrome mobile, Safari mobile, Firefox mobile
+	[ ] Chrome desktop, Safari desktop, Firefox desktop, Edge
+Accessibility:
+	[ ] Keyboard navigation works
+	[ ] Screen reader announces content logically
+	[ ] Color contrast passes WCAG AA
+________________________________________
+3.10 Security & Privacy
+3.10.1 Authentication
+	JWT tokens with 7-day expiry
+	Refresh token mechanism (optional for v1)
+	Password hashing: bcrypt with salt rounds ≥10
+3.10.2 Authorization
+	Role-based: student can only access own data, admin can access admin endpoints
+	Implement guards in NestJS or middleware
+	All queries filtered by userId from JWT
+3.10.3 Data Protection
+	Encryption at rest: Integration tokens (access_token, refresh_token) encrypted using AES-256
+	Encryption in transit: HTTPS only; enforce HSTS headers
+	Rate limiting: 100 requests/minute per user; 1000 requests/minute globally
+3.10.4 Privacy
+	No tracking of grades or personal data in analytics beyond aggregated metrics
+	Admin dashboard shows anonymized user IDs, not names/emails
+	Clear privacy policy page
+	User can delete account and all associated data
+________________________________________
+3.11 Deployment & Environment
+3.11.1 Environment Variables
+Backend (backend/.env):
+DATABASE_URL=postgresql://user:pass@host:5432/htuai
+JWT_SECRET=your-secret-key-min-32-chars
+JWT_EXPIRY=7d
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=https://htuai.mubx.dev/api/integrations/google/callback
+ENCRYPTION_KEY=your-aes-256-key
+NODE_ENV=production
+PORT=3001
+Frontend (frontend/.env.local):
+NEXT_PUBLIC_API_URL=https://api.htuai.mubx.dev
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+3.11.2 Hosting
+	Frontend: Vercel (free tier supports Next.js perfectly)
+	Backend: Railway, Render, or DigitalOcean App Platform
+	Database: Managed PostgreSQL (Vercel Postgres, Supabase, or Railway)
+3.11.3 CI/CD
+	Use GitHub Actions:
+	On push to main:
+	Run tests
+	Build frontend and backend
+	Deploy to production
+	Environment secrets managed via platform (Vercel secrets, Railway variables)
+________________________________________
+3.12 Monitoring & Logging
+3.12.1 Application Logging
+	Use structured logging (Winston or Pino in NestJS)
+	Log levels: error, warn, info, debug
+	What to log:
+	All API errors (with user ID, endpoint, error message)
+	Sync events (calendar event created/updated/failed)
+	GPA recalculations
+	Gamification events (XP awarded, badges unlocked)
+3.12.2 Error Tracking
+	Use Sentry or similar for error monitoring
+	Capture:
+	Backend exceptions
+	Frontend errors (React error boundaries)
+	API failures
+3.12.3 Admin Dashboard Data Sources
+All data comes from:
+	Database aggregations (users, semesters, courses, study sessions)
+	AdminLog table (errors, sync events)
+	Computed metrics (DAU, WAU, average CGPA, average study hours)
+Refresh: Real-time or cached for 5 minutes.
+________________________________________
+PART 4: IMPLEMENTATION ROADMAP
+4.1 Phase 1 – Core Academic Logic (Week 1–2)
+Goal: Data model + GPA working without UI or integrations.
+Tasks:
+	Set up Prisma schema (all tables).
+	Implement GPA service with HTU constants and formulas.
+	Write unit tests for GPA calculations (min 5 test cases).
+	Implement Planner service (CRUD for semesters, courses).
+	Seed database with HTU grading rules and badge definitions.
+Deliverable: Backend API endpoints for semesters/courses/gpa working; all tests pass.
+________________________________________
+4.2 Phase 2 – Basic Planner UI (Week 3)
+Goal: Functional planner interface without integrations or gamification.
+Tasks:
+	Create planner dashboard page (mobile-first).
+	Implement semester view and course list.
+	Build onboarding wizard (3 steps).
+	Add forms for creating semesters and courses.
+	Display GPA/CGPA with classification.
+Deliverable: Working UI to add past/current semesters, enter grades, see GPA.
+________________________________________
+4.3 Phase 3 – Rich Notes & Study Log (Week 4)
+Goal: Premium note-taking and study tracking.
+Tasks:
+	Integrate Lexical editor.
+	Implement auto-save logic (3s debounce).
+	Build course detail page with full-page notes.
+	Add study session logging UI and API.
+	Display study stats on dashboard.
+Deliverable: Full-featured course notes and study tracking.
+________________________________________
+4.4 Phase 4 – Google Calendar Integration (Week 5)
+Goal: One-way sync from HTUAI to Google Calendar.
+Tasks:
+	Implement OAuth flow with Google.
+	Create calendar service (create/update events).
+	Add "Connect Google Calendar" flow in settings.
+	Sync class schedules and exam dates.
+	Handle token refresh and error cases.
+Deliverable: Calendar integration working; events created and updated correctly.
+________________________________________
+4.5 Phase 5 – Gamification (Week 6)
+Goal: XP, levels, streaks, quests, badges.
+Tasks:
+	Implement gamification service.
+	Award XP on study logs, course completion.
+	Nightly cron for streak evaluation.
+	Auto-generate quests for courses and semesters.
+	Badge award logic.
+	UI widgets for XP bar, streaks, quests, badges.
+Deliverable: Full gamification system operational.
+________________________________________
+4.6 Phase 6 – Admin Dashboard (Week 7)
+Goal: Admin monitoring and analytics.
+Tasks:
+	Create admin layout and overview page.
+	Implement KPI calculations (DAU, WAU, avg CGPA, etc.).
+	Build charts for usage and GPA trends.
+	Add logs page with filters.
+	Role-gate admin routes.
+Deliverable: Admin can monitor system health and usage.
+________________________________________
+4.7 Phase 7 – Polish & Testing (Week 8)
+Goal: Production-ready quality.
+Tasks:
+	Responsive testing on all devices.
+	Accessibility audit and fixes.
+	Performance optimization (lazy loading, caching).
+	Security audit (token encryption, rate limiting).
+	Write end-to-end tests for critical flows.
+	Deploy to production.
+Deliverable: HTUAI fully functional and deployed.
+________________________________________
+PART 5: DEVELOPER RULES (NO EXCEPTIONS)
+5.1 Critical Rules
+	Course codes are REAL HTU codes: Never auto-generate. Use existing curriculum codes or require user input.
+	GPA logic lives in GPA service only: No GPA calculations in controllers or UI. Always call GpaService.
+	HTU grade mapping is fixed: D=4.0, M=3.2, P=2.4, U=0.0. No other values allowed.
+	Notes are in-app with Lexical/Tiptap: Not external. No Notion for notes.
+	Google Calendar sync is one-way: HTUAI → Calendar only. No reading back.
+	Mobile-first always: Design and test on mobile viewport first.
+	No placeholders in production: Every feature must be fully implemented. No TODOs in production code.
+	Grade badges use exact colors: D=green, M=blue, P=yellow, U=red. Single capital letter only.
+	Gamification XP rules are fixed: Use constants from gamification.constants.ts. No arbitrary XP values.
+	Admin sees anonymized data: No student names/emails in admin dashboard unless necessary and role-gated.
+________________________________________
+5.2 Code Quality Standards
+	TypeScript strict mode: All code fully typed, no any except where absolutely necessary
+	ESLint + Prettier: Enforce consistent style
+	Commit messages: Conventional commits format (feat:, fix:, docs:, etc.)
+	PR reviews: All code reviewed before merge
+	Test coverage: ≥80% for business logic (GPA, gamification)
+________________________________________
+5.3 Error Handling Patterns
+API errors:
+{
+"error": {
+"code": "INVALID_GRADE_LETTER",
+"message": "Grade must be D, M, P, or U",
+"details": {}
+}
+}
+Frontend error boundaries:
+	Wrap major sections in error boundaries
+	Show user-friendly error messages
+	Log errors to Sentry
+Calendar sync failures:
+	Retry 3 times with exponential backoff
+	If all retries fail, log to AdminLog and notify user in UI
+________________________________________
+5.4 When to Ask (Don't Guess)
+Ask PM if:
+	GPA calculation doesn't match expected output
+	HTU grading rules unclear
+	New edge case discovered (e.g., transfer credits, course equivalency)
+	Performance budget cannot be met
+	Integration API changed or deprecated
+	Design requires clarification (spacing, colors, flows)
+Never guess and implement: Always clarify ambiguous requirements.
+________________________________________
+PART 6: APPENDICES
+Appendix A: Glossary
+	CGPA: Cumulative Grade Point Average across all semesters
+	CH: Credit Hours
+	HTU: Al Hussein Technical University
+	D/M/P/U: Distinction, Merit, Pass, Unclassified (HTU grade letters)
+	XP: Experience Points (gamification)
+	Quest: Goal/challenge in gamification system
+	Streak: Consecutive days of activity
+Appendix B: HTU Grading System JSON
+{
+"university": "Al Hussein Technical University",
+"grading_system": {
+"official_grade_legend": {
+"minimum_pass_grade_per_course": "P / 2.4",
+"minimum_pass_cumulative_average": "P / 2.4"
+},
+"course_grades_rating": [
+{"points": "4.0", "degrees": "Distinction", "letter": "D"},
+{"points": "3.2", "degrees": "Merit", "letter": "M"},
+{"points": "2.4", "degrees": "Pass", "letter": "P"},
+{"points": "Less Than 2.4", "degrees": "Unclassified", "letter": "U"}
+],
+"cumulative_average_degrees": [
+{"points_range": "3.6-4.0", "degrees": "Excellent (EX)"},
+{"points_range": "3.2-3.59", "degrees": "Very Good (VG)"},
+{"points_range": "2.8-3.19", "degrees": "Good"},
+{"points_range": "2.4-2.79", "degrees": "Satisfactory"}
+],
+"grade_abbreviations": [
+{"degrees": "D", "description": "Distinction"},
+{"degrees": "M", "description": "Merit"},
+{"degrees": "P", "description": "Pass"},
+{"degrees": "U", "description": "Unclassified"},
+{"degrees": "X", "description": "Course not Included in the Study Plan"},
+{"degrees": "WF", "description": "Withdrawal with Failure"},
+{"degrees": "TC", "description": "Transfer Credits"}
+]
+}
+}
+Appendix C: Sample Data for Testing
+Test User:
+{
+"email": "test@htu.edu.jo",
+"name": "Test Student",
+"htuId": "99999",
+"role": "student"
+}
+Test Semester (Winter 2025):
+{
+"type": "winter",
+"year": 2025,
+"courses": [
+{
+"name": "Introduction to Programming",
+"code": "CS101",
+"credits": 3,
+"gradeLetter": "M",
+"gradePoint": 3.2
+},
+{
+"name": "Calculus I",
+"code": "MATH101",
+"credits": 3,
+"gradeLetter": "D",
+"gradePoint": 4.0
+},
+{
+"name": "English I",
+"code": "ENG101",
+"credits": 2,
+"gradeLetter": "P",
+"gradePoint": 2.4
+}
+]
+}
+Expected GPA: 3.30 (classification: VG)
+Appendix D: External Resources
+	Lexical documentation: https://lexical.dev/docs/intro
+	Google Calendar API: https://developers.google.com/calendar/api/guides/overview
+	Prisma documentation: https://www.prisma.io/docs
+	Next.js App Router: https://nextjs.org/docs/app
+	Tailwind CSS: https://tailwindcss.com/docs
+	React Query: https://tanstack.com/query/latest/docs/framework/react/overview
+________________________________________
+DOCUMENT END
+Version: 1.0
+Last Updated: February 24, 2026
+Next Review: After Phase 1 completion
+This document contains all specifications required to implement HTUAI Semester Planner & GPA module. Developers must not deviate from these specifications without PM approval.

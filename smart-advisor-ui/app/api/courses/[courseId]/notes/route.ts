@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { getCourseNotes, saveCourseNotes, initPlannerTables } from "@/lib/database";
+import { getCourseNotes, saveCourseNotes, initDB } from "@/lib/database";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cour
   const { courseId } = await params;
 
   try {
-    await initPlannerTables();
+    await initDB();
     const notesStr = await getCourseNotes(studentId, courseId);
 
     // Check if notes are already JSON
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
 
   try {
     const notesStr = typeof notes === 'string' ? notes : JSON.stringify(notes);
-    await initPlannerTables();
+    await initDB();
     await saveCourseNotes(studentId, courseId, notesStr);
     return NextResponse.json({ success: true, updatedAt: new Date().toISOString() });
   } catch (e) {

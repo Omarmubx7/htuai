@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { getAllStudents, initDB, initPlannerTables } from '@/lib/database';
+import { getAllStudents, initDB } from '@/lib/database';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        await Promise.all([initDB(), initPlannerTables()]);
+        await initDB();
         const [students, courseMap] = await Promise.all([
             getAllStudents(),
             getCourseMap(),
