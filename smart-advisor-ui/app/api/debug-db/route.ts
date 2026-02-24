@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { initDB } from '@/lib/database';
+import { initDB, resetDB } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +19,24 @@ export async function GET(request: Request) {
                 });
             } catch (err: any) {
                 console.error("Initialization Error:", err);
+                return NextResponse.json({
+                    status: 'error',
+                    message: err.message,
+                    stack: err.stack
+                }, { status: 500 });
+            }
+        }
+
+        if (trace === 'reset') {
+            try {
+                console.log("Debug: Running resetDB...");
+                await resetDB();
+                return NextResponse.json({
+                    status: 'success',
+                    message: 'Database reset and re-initialized Successfully'
+                });
+            } catch (err: any) {
+                console.error("Reset Error:", err);
                 return NextResponse.json({
                     status: 'error',
                     message: err.message,

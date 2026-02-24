@@ -4,11 +4,25 @@ import { sql } from '@vercel/postgres';
  * Drop all tables and recreate them. (Nuclear Reset)
  */
 export async function resetDB() {
+    // Drop in correct order of dependencies
+    await sql`DROP TABLE IF EXISTS user_badges CASCADE;`;
+    await sql`DROP TABLE IF EXISTS badges CASCADE;`;
+    await sql`DROP TABLE IF EXISTS quests CASCADE;`;
+    await sql`DROP TABLE IF EXISTS gamification_profiles CASCADE;`;
+    await sql`DROP TABLE IF EXISTS calendar_events CASCADE;`;
+    await sql`DROP TABLE IF EXISTS integration_tokens CASCADE;`;
+    await sql`DROP TABLE IF EXISTS admin_logs CASCADE;`;
+    await sql`DROP TABLE IF EXISTS study_sessions CASCADE;`;
+    await sql`DROP TABLE IF EXISTS gpa_history CASCADE;`;
+    await sql`DROP TABLE IF EXISTS course_notes CASCADE;`;
+    await sql`DROP TABLE IF EXISTS courses CASCADE;`;
+    await sql`DROP TABLE IF EXISTS semesters CASCADE;`;
     await sql`DROP TABLE IF EXISTS accounts CASCADE;`;
     await sql`DROP TABLE IF EXISTS users CASCADE;`;
     await sql`DROP TABLE IF EXISTS visitor_logs CASCADE;`;
     await sql`DROP TABLE IF EXISTS student_profile CASCADE;`;
     await sql`DROP TABLE IF EXISTS student_progress CASCADE;`;
+
     await initDB();
 }
 
@@ -28,9 +42,9 @@ export interface VisitorLog {
 
 /**
  * Initialize the database tables if they don't exist.
- * Note: In production, it's better to run migration scripts, but this works for simple apps.
  */
 export async function initDB() {
+    // Core Identity & Legacy Stats
     await sql`
         CREATE TABLE IF NOT EXISTS student_progress (
             student_id  TEXT    NOT NULL,
@@ -40,9 +54,8 @@ export async function initDB() {
             PRIMARY KEY (student_id, major)
         );
     `;
-    await sql`
-        CREATE INDEX IF NOT EXISTS idx_student_id ON student_progress (student_id);
-    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_student_id ON student_progress (student_id);`;
+
     await sql`
         CREATE TABLE IF NOT EXISTS student_profile (
             student_id  TEXT    PRIMARY KEY,
@@ -50,6 +63,7 @@ export async function initDB() {
             updated_at  BIGINT  NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())::bigint)
         );
     `;
+
     await sql`
         CREATE TABLE IF NOT EXISTS visitor_logs (
             id SERIAL PRIMARY KEY,
@@ -65,7 +79,7 @@ export async function initDB() {
         );
     `;
 
-    // New authentication tables
+    // 4.1 User
     await sql`
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -74,10 +88,24 @@ export async function initDB() {
             password_hash TEXT,
             name TEXT,
             image TEXT,
-            created_at TIMESTAMP DEFAULT (NOW())
+            role TEXT DEFAULT 'student',
+            created_at TIMESTAMP DEFAULT (NOW()),
+            updated_at TIMESTAMP DEFAULT (NOW())
         );
     `;
 
+    // 4.12 Admin Log
+    await sql`
+        CREATE TABLE IF NOT EXISTS admin_logs (
+            id SERIAL PRIMARY KEY,
+            type TEXT NOT NULL,
+            message TEXT,
+            details JSONB DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // Auth Accounts
     await sql`
         CREATE TABLE IF NOT EXISTS accounts (
             id SERIAL PRIMARY KEY,
@@ -88,36 +116,170 @@ export async function initDB() {
         );
     `;
 
+    // 4.2 Semester
+    await sql`
+        CREATE TABLE IF NOT EXISTS semesters (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            type TEXT NOT NULL, -- winter | spring | summer
+            year INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            start_date TIMESTAMP,
+            end_date TIMESTAMP,
+            semester_gpa FLOAT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.3 Course
+    await sql`
+        CREATE TABLE IF NOT EXISTS courses (
+            id SERIAL PRIMARY KEY,
+            semester_id INTEGER REFERENCES semesters(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            code TEXT NOT NULL,
+            credits FLOAT NOT NULL,
+            instructor_name TEXT,
+            location TEXT,
+            class_schedule JSONB DEFAULT '[]',
+            status TEXT DEFAULT 'planned', -- planned | in_progress | completed | dropped
+            grade_letter TEXT, -- D | M | P | U
+            grade_point FLOAT,
+            final_mark FLOAT,
+            is_completed BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.4 CourseNote
+    await sql`
+        CREATE TABLE IF NOT EXISTS course_notes (
+            id SERIAL PRIMARY KEY,
+            student_id TEXT, -- Legacy key support
+            course_id TEXT, -- Can be code or reference id
+            db_course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+            content JSONB DEFAULT '{}',
+            notes TEXT, -- Legacy HTML/String support
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.5 StudySession
+    await sql`
+        CREATE TABLE IF NOT EXISTS study_sessions (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+            date DATE DEFAULT CURRENT_DATE,
+            duration_minutes INTEGER NOT NULL,
+            type TEXT NOT NULL, -- reading | practice | project | review | other
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.6 GPAHistory
+    await sql`
+        CREATE TABLE IF NOT EXISTS gpa_history (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            semester_id INTEGER REFERENCES semesters(id) ON DELETE SET NULL,
+            semester_gpa FLOAT,
+            cumulative_gpa FLOAT NOT NULL,
+            classification TEXT, -- EX | VG | Good | Satisfactory | Unclassified
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.7 Integration
     await sql`
         CREATE TABLE IF NOT EXISTS integration_tokens (
             id SERIAL PRIMARY KEY,
-            student_id TEXT NOT NULL,
-            provider TEXT NOT NULL,
+            student_id TEXT, -- Legacy key support
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            provider TEXT NOT NULL, -- google_calendar
             access_token TEXT NOT NULL,
             refresh_token TEXT,
             expires_at BIGINT,
-            metadata TEXT DEFAULT '{}',
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW(),
             UNIQUE(student_id, provider)
         );
     `;
 
+    // 4.8 CalendarEvent
     await sql`
-        CREATE TABLE IF NOT EXISTS course_notes (
-            student_id TEXT NOT NULL,
-            course_id TEXT NOT NULL,
-            notes TEXT,
-            updated_at TIMESTAMP DEFAULT NOW(),
-            PRIMARY KEY (student_id, course_id)
+        CREATE TABLE IF NOT EXISTS calendar_events (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+            type TEXT NOT NULL, -- class | midterm | final | assignment_due | other
+            google_event_id TEXT,
+            title TEXT NOT NULL,
+            start_datetime TIMESTAMP NOT NULL,
+            end_datetime TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
         );
     `;
 
-    // Add student_id column if it doesn't exist (migrations are better, but this handles simple schema evolution)
-    try {
-        await sql`ALTER TABLE visitor_logs ADD COLUMN IF NOT EXISTS student_id TEXT;`;
-    } catch (e) {
-        console.log("Column check passed or failed safely", e);
-    }
+    // 4.9 GamificationProfile
+    await sql`
+        CREATE TABLE IF NOT EXISTS gamification_profiles (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+            xp INTEGER DEFAULT 0,
+            level INTEGER DEFAULT 1,
+            current_streak_days INTEGER DEFAULT 0,
+            longest_streak_days INTEGER DEFAULT 0,
+            last_activity_date DATE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.10 Badge
+    await sql`
+        CREATE TABLE IF NOT EXISTS badges (
+            id SERIAL PRIMARY KEY,
+            code TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT,
+            icon TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    await sql`
+        CREATE TABLE IF NOT EXISTS user_badges (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            badge_id INTEGER REFERENCES badges(id) ON DELETE CASCADE,
+            awarded_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
+
+    // 4.11 Quest
+    await sql`
+        CREATE TABLE IF NOT EXISTS quests (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            scope TEXT DEFAULT 'global', -- course | semester | global
+            target_course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+            target_semester_id INTEGER REFERENCES semesters(id) ON DELETE SET NULL,
+            type TEXT NOT NULL,
+            target_value FLOAT NOT NULL,
+            current_value FLOAT DEFAULT 0,
+            status TEXT DEFAULT 'active', -- active | completed | expired
+            expires_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    `;
 }
 
 
@@ -163,7 +325,6 @@ export async function loadProgress(studentId: string, major: string): Promise<st
         return JSON.parse(rows[0].completed) as string[];
     } catch (e) {
         console.error("DB Load Error:", e);
-        // Fallback or init table if missing
         return [];
     }
 }
@@ -222,6 +383,7 @@ export interface DBUser {
     password_hash: string | null;
     name: string | null;
     image: string | null;
+    role: string;
 }
 
 export async function getUserById(id: number): Promise<DBUser | null> {
@@ -240,42 +402,43 @@ export async function getUserByEmail(email: string): Promise<DBUser | null> {
 }
 
 export async function createUser(data: Partial<DBUser>): Promise<DBUser> {
-    console.log("DB: Creating/Updating user with data:", { ...data, password_hash: data.password_hash ? "[HASHED]" : null });
     try {
-        // We use ON CONFLICT on student_id if provided, otherwise on email
         let query;
         if (data.student_id) {
             query = sql`
-                INSERT INTO users (student_id, email, password_hash, name, image)
-                VALUES (${data.student_id}, ${data.email || null}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null})
+                INSERT INTO users (student_id, email, password_hash, name, image, role)
+                VALUES (${data.student_id}, ${data.email || null}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null}, ${data.role || 'student'})
                 ON CONFLICT (student_id) DO UPDATE SET
                     password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
                     email = COALESCE(EXCLUDED.email, users.email),
                     name = COALESCE(EXCLUDED.name, users.name),
-                    image = COALESCE(EXCLUDED.image, users.image)
+                    image = COALESCE(EXCLUDED.image, users.image),
+                    role = COALESCE(EXCLUDED.role, users.role),
+                    updated_at = NOW()
                 RETURNING *
             `;
         } else if (data.email) {
             query = sql`
-                INSERT INTO users (student_id, email, password_hash, name, image)
-                VALUES (${data.student_id || null}, ${data.email}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null})
+                INSERT INTO users (student_id, email, password_hash, name, image, role)
+                VALUES (${data.student_id || null}, ${data.email}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null}, ${data.role || 'student'})
                 ON CONFLICT (email) DO UPDATE SET
                     student_id = COALESCE(EXCLUDED.student_id, users.student_id),
                     password_hash = COALESCE(EXCLUDED.password_hash, users.password_hash),
                     name = COALESCE(EXCLUDED.name, users.name),
-                    image = COALESCE(EXCLUDED.image, users.image)
+                    image = COALESCE(EXCLUDED.image, users.image),
+                    role = COALESCE(EXCLUDED.role, users.role),
+                    updated_at = NOW()
                 RETURNING *
             `;
         } else {
             query = sql`
-                INSERT INTO users (student_id, email, password_hash, name, image)
-                VALUES (${data.student_id || null}, ${data.email || null}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null})
+                INSERT INTO users (student_id, email, password_hash, name, image, role)
+                VALUES (${data.student_id || null}, ${data.email || null}, ${data.password_hash || null}, ${data.name || null}, ${data.image || null}, ${data.role || 'student'})
                 RETURNING *
             `;
         }
 
         const { rows } = await query;
-        console.log("DB: User created/updated successfully with ID:", rows[0].id);
         return rows[0] as DBUser;
     } catch (error) {
         console.error("DB Error in createUser:", error);
@@ -288,18 +451,6 @@ export async function linkAccount(userId: number, provider: string, providerAcco
         INSERT INTO accounts (user_id, provider, provider_account_id)
         VALUES (${userId}, ${provider}, ${providerAccountId})
         ON CONFLICT (provider, provider_account_id) DO NOTHING
-    `;
-}
-
-export async function updateUserDetails(id: number, data: Partial<DBUser>) {
-    await sql`
-        UPDATE users 
-        SET 
-            student_id = COALESCE(${data.student_id}, student_id),
-            password_hash = COALESCE(${data.password_hash}, password_hash),
-            name = COALESCE(${data.name}, name),
-            image = COALESCE(${data.image}, image)
-        WHERE id = ${id}
     `;
 }
 

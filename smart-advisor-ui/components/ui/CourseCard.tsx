@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle, Circle, Lock, AlertCircle } from "lucide-react";
+import { CheckCircle, Circle, Lock, AlertCircle, Sparkles } from "lucide-react";
 import { Course } from "../../types";
 
 interface CourseCardProps {
@@ -15,6 +15,7 @@ interface CourseCardProps {
     courseMap?: Record<string, string>;
     completedCredits?: number;
     onToggle: () => void;
+    onOpenNotes?: () => void;
 }
 
 function parsePrereqCodes(prereq: string): string[] {
@@ -49,6 +50,7 @@ export default function CourseCard({
     courseMap = {},
     completedCredits = 0,
     onToggle,
+    onOpenNotes,
 }: CourseCardProps) {
     const grades: string[] = ["D", "M", "P", "U"];
     const prereqCodes = course.prereq ? parsePrereqCodes(course.prereq) : [];
@@ -91,16 +93,25 @@ export default function CourseCard({
                     <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
                     {course.framework}
                 </span>
-                <div className="p-1 px-1.5 rounded-lg bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
-                    {isLocked ? (
-                        <Lock className="w-3.5 h-3.5 text-white/10 shrink-0" />
-                    ) : hasPrereqWarning ? (
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
-                    ) : isCompleted ? (
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    ) : (
-                        <Circle className="w-3.5 h-3.5 text-white/10 shrink-0" />
-                    )}
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); /* TODO: Open Notes */ }}
+                        className="p-1 px-1.5 rounded-lg bg-white/3 border border-white/5 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes"
+                        title="Course Notes"
+                    >
+                        <Sparkles className="w-3.5 h-3.5 text-white/20 group-hover/notes:text-violet-400 transition-colors" />
+                    </button>
+                    <div className="p-1 px-1.5 rounded-lg bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
+                        {isLocked ? (
+                            <Lock className="w-3.5 h-3.5 text-white/10 shrink-0" />
+                        ) : hasPrereqWarning ? (
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
+                        ) : isCompleted ? (
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        ) : (
+                            <Circle className="w-3.5 h-3.5 text-white/10 shrink-0" />
+                        )}
+                    </div>
                 </div>
             </div>
 

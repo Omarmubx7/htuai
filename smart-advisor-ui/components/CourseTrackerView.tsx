@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
-import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Sparkles, Target, Star, Info } from 'lucide-react';
+import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star } from 'lucide-react';
 import StudentDashboard from './StudentDashboard';
 import ConfirmDialog from './ui/ConfirmDialog';
 import { useToast } from './ui/Toast';
+import CourseNotesModal from './CourseNotesModal';
 
 interface CourseTrackerViewProps {
     data: CourseData;
@@ -35,6 +36,7 @@ export default function CourseTrackerView({
 }: CourseTrackerViewProps) {
     const [viewMode, setViewMode] = useState<"level" | "category">("level");
     const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [selectedCourseForNotes, setSelectedCourseForNotes] = useState<{ id: string; title: string } | null>(null);
     const { toast } = useToast();
 
     const allCourses = [
@@ -49,7 +51,6 @@ export default function CourseTrackerView({
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
     const allCourseCodes = new Set(allCourses.map(c => c.code));
 
-
     // Determine rule set from majorKey
     const ruleSet = Object.values(rules.degree_types).find((rs: any) =>
         rs.major_keys.includes(majorKey)
@@ -60,17 +61,16 @@ export default function CourseTrackerView({
     const MAX_UNI_ELECTIVES = ruleSet.max_uni_electives || 3;
     const TOTAL_CAP = totalCredits;
 
-    // ── University Electives: 3 slots × 1 CH = 3 CH max ─────────────────────
+    // ── University Electives
     const uniElectiveCodes = new Set((data.university_electives ?? []).map((c: Course) => c.code));
-    // UE slots (UE-I, UE-II, UE-III) are always tickable — there are exactly 3, each 1 CH
     const tickedUniElecCount = Array.from(completedCourses.keys()).filter(c => uniElectiveCodes.has(c)).length;
 
-    // ── Department Electives: 3 slots × 3 CH = 9 CH max ─────────────────────
+    // ── Department Electives
     const deptElectiveCodes = new Set(data.electives.map((c: Course) => c.code));
     const tickedDeptElecCount = Array.from(completedCourses.keys()).filter(c => deptElectiveCodes.has(c)).length;
     const deptElecCapReached = tickedDeptElecCount >= MAX_DEPT_ELECTIVES;
 
-    // ── Completed credits — respect elective caps so total never exceeds 135 ──
+    // ── Completed credits
     const completedCredits = (() => {
         let total = 0;
         let uniElecCounted = 0;
@@ -89,7 +89,6 @@ export default function CourseTrackerView({
     })();
 
     const progress = Math.min(completedCredits / totalCredits, 1);
-
 
     // Grouping Logic
     const getGroups = () => {
@@ -117,8 +116,6 @@ export default function CourseTrackerView({
 
     const groups = getGroups();
 
-
-
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-24 space-y-8 sm:space-y-12">
             <ConfirmDialog
@@ -135,9 +132,6 @@ export default function CourseTrackerView({
                 onCancel={() => setShowResetConfirm(false)}
             />
 
-
-
-            {/* Page header + progress card */}
             <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
                 <div className="space-y-4">
                     <div className="space-y-1">
@@ -150,7 +144,6 @@ export default function CourseTrackerView({
                         </h1>
                     </div>
 
-                    {/* Actions row */}
                     <div className="flex items-center gap-4">
                         <div className="min-w-25 h-6 flex items-center">
                             <AnimatePresence mode="wait">
@@ -185,7 +178,6 @@ export default function CourseTrackerView({
                     </div>
                 </div>
 
-                {/* Progress Card (Premium version) */}
                 <div className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-100 shrink-0 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
                         <Trophy className="w-24 h-24 text-white" />
@@ -235,7 +227,6 @@ export default function CourseTrackerView({
                 </div>
             </div>
 
-            {/* Student Dashboard — Stats, Badges, What's Next */}
             <StudentDashboard
                 completedCourses={completedCourses}
                 completedCredits={completedCredits}
@@ -245,7 +236,6 @@ export default function CourseTrackerView({
                 rules={rules}
             />
 
-            {/* View-mode toggle and Section Header */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-white/40">
@@ -274,13 +264,11 @@ export default function CourseTrackerView({
                 </div>
             </div>
 
-            {/* Course Grid */}
             <div className="space-y-12">
                 {Object.entries(groups).map(([title, courses]) => {
-                    // Category-specific styling
                     const catStyle: Record<string, { icon: React.ReactNode; color: string }> = {
                         "University Requirements": { icon: <GraduationCap className="w-4 h-4" />, color: "#a78bfa" },
-                        "University Elective": { icon: <Sparkles className="w-4 h-4" />, color: "#34d399" },
+                        "University Elective": { icon: <Star className="w-4 h-4" />, color: "#34d399" },
                         "College Requirements": { icon: <BookOpen className="w-4 h-4" />, color: "#60a5fa" },
                         "Department Requirements": { icon: <Target className="w-4 h-4" />, color: "#f59e0b" },
                         "Department Elective": { icon: <Star className="w-4 h-4" />, color: "#f472b6" },
@@ -300,33 +288,6 @@ export default function CourseTrackerView({
                             <span className="text-[11px] text-white/20">{courses.length} courses</span>
                         </div>
 
-                        {/* Elective cap warning banner */}
-                        {(() => {
-                            let isCapReached = false;
-                            let count = 0;
-                            let max = 0;
-                            if (title === 'University Elective') {
-                                isCapReached = tickedUniElecCount >= MAX_UNI_ELECTIVES;
-                                count = tickedUniElecCount;
-                                max = MAX_UNI_ELECTIVES;
-                            } else if (title === 'Department Elective') {
-                                isCapReached = deptElecCapReached;
-                                count = tickedDeptElecCount;
-                                max = MAX_DEPT_ELECTIVES;
-                            }
-
-                            if (!isCapReached) return null;
-
-                            return (
-                                <div className="mb-4 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5">
-                                    <span className="text-amber-400 text-sm">⚠️</span>
-                                    <p className="text-[12px] text-amber-300/80">
-                                        You&apos;ve selected {count}/{max} electives — that&apos;s the maximum ({max * (title.includes('University') ? 1 : 3)} CH). Untick one to swap.
-                                    </p>
-                                </div>
-                            );
-                        })()}
-
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                             {courses.map((course: Course) => {
                                 let isElectiveLocked = false;
@@ -341,11 +302,8 @@ export default function CourseTrackerView({
                                 }
 
                                 const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules.prerequisites);
-
-                                // Hard-lock everything EXCEPT University Requirements & Electives (which get a soft-lock warning)
                                 const uniReqCodes = new Set(data.university_requirements.map(r => r.code));
                                 const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
-
                                 const isLocked = isElectiveLocked || (!isUniversitySubject && prereqLocked);
                                 const hasPrereqWarning = isUniversitySubject && prereqLocked;
 
@@ -365,6 +323,7 @@ export default function CourseTrackerView({
                                         courseMap={courseMap}
                                         completedCredits={completedCredits}
                                         onToggle={() => toggleCourse(course.code)}
+                                        onOpenNotes={() => setSelectedCourseForNotes({ id: course.code, title: course.name })}
                                     />
                                 );
                             })}
@@ -372,6 +331,14 @@ export default function CourseTrackerView({
                     </section>
                 })}
             </div>
+
+            <CourseNotesModal
+                isOpen={!!selectedCourseForNotes}
+                onClose={() => setSelectedCourseForNotes(null)}
+                courseId={selectedCourseForNotes?.id || ""}
+                courseTitle={selectedCourseForNotes?.title || ""}
+                studentId={studentId}
+            />
         </div>
     );
 }
