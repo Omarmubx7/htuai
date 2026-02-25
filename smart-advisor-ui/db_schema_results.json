@@ -1,1 +1,0 @@
-{"status":"success","planner_courses":["credits","updated_at","semester_id","code","name","grade","status","professor","location","midterm_date","final_date","color","midterm_event_id","id","final_event_id","student_id"],"planner_study_sessions":["created_at","hours","updated_at","date","id","notes","student_id","course_id"]}

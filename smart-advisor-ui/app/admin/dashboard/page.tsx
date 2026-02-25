@@ -587,6 +587,16 @@ function LogsTab({ logs }: { logs: any[] }) {
                             <span className="text-[10px] text-white/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
                         </div>
                         <p className="text-xs text-white/70 font-medium mb-1">{log.message}</p>
+                        
+                        {/* Display new relational columns if they exist */}
+                        {(log.event_kind || log.course_id || log.target_id) && (
+                            <div className="flex flex-wrap gap-2 mt-2 mb-1">
+                                {log.event_kind && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Event: {log.event_kind}</span>}
+                                {log.course_id && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Course ID: {log.course_id}</span>}
+                                {log.target_id && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Target: {log.target_id}</span>}
+                            </div>
+                        )}
+
                         {log.details && Object.keys(log.details).length > 0 && (
                             <div className="mt-1.5 p-2 rounded-lg bg-black/40 border border-white/5 overflow-x-auto">
                                 <pre className="text-[10px] text-white/30 font-mono italic">

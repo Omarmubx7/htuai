@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
                 previous_gpa: previous_gpa === null ? null : parseFloat(previous_gpa),
                 previous_credits: previous_credits === null ? null : parseFloat(previous_credits),
                 updated_at: BigInt(Date.now()),
+                user_id: user.id
             }
         });
 

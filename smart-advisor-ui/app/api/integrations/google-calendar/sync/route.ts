@@ -115,7 +115,10 @@ export async function POST(req: NextRequest) {
                             data: {
                                 type: "sync_event",
                                 message: `Synced ${type} for ${course.code} to Calendar`,
-                                details: { courseId: course.id, courseCode: course.code, eventId: gEventId }
+                                course_id: course.id,
+                                event_kind: "calendar_sync",
+                                target_id: gEventId,
+                                details: {}
                             }
                         });
 
@@ -253,7 +256,10 @@ export async function POST(req: NextRequest) {
                                     data: {
                                         type: "sync_event",
                                         message: `Synced Schedule for ${course.code} to Calendar`,
-                                        details: { courseId: course.id, courseCode: course.code, eventId: gEventId }
+                                        course_id: course.id,
+                                        event_kind: "calendar_sync",
+                                        target_id: gEventId,
+                                        details: {}
                                     }
                                 });
 

@@ -1,1 +1,0 @@
-auth.ts(6,71): error TS2305: Module '"./lib/database"' has no exported member 'updateUserDetails'.

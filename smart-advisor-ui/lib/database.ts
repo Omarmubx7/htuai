@@ -86,6 +86,10 @@ export async function loadProgress(studentId: string, major: string): Promise<st
 export async function saveProgress(studentId: string, major: string, completed: string[]): Promise<void> {
     const jsonStr = JSON.stringify(completed);
     const time = BigInt(Math.floor(Date.now() / 1000));
+    
+    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    if (!user) return;
+    
     await prisma.studentProgress.upsert({
         where: { student_id_major: { student_id: studentId, major: major } },
         update: { completed: jsonStr, updated_at: time },
@@ -93,7 +97,8 @@ export async function saveProgress(studentId: string, major: string, completed: 
             student_id: studentId,
             major: major,
             completed: jsonStr,
-            updated_at: time
+            updated_at: time,
+            user_id: user.id
         }
     });
 }
@@ -123,10 +128,12 @@ export async function loadMajor(studentId: string): Promise<string | null> {
 /** Save / update the student's chosen major */
 export async function saveMajor(studentId: string, major: string): Promise<void> {
     const time = BigInt(Math.floor(Date.now() / 1000));
+    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    if (!user) return;
     await prisma.studentProfile.upsert({
         where: { student_id: studentId },
         update: { major, updated_at: time },
-        create: { student_id: studentId, major, updated_at: time }
+        create: { student_id: studentId, major, updated_at: time, user_id: user.id }
     });
 }
 
@@ -242,8 +249,10 @@ export async function saveIntegrationToken(
     studentId: string, provider: string, accessToken: string,
     refreshToken?: string, expiresAt?: number, metadata?: Record<string, any>
 ) {
+    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    if (!user) return;
     await prisma.integrationToken.upsert({
-        where: { student_id_provider: { student_id: studentId, provider } },
+        where: { user_id_provider: { user_id: user.id, provider } },
         update: {
             access_token: accessToken,
             refresh_token: refreshToken ?? undefined,
@@ -257,14 +266,17 @@ export async function saveIntegrationToken(
             access_token: accessToken,
             refresh_token: refreshToken || null,
             expires_at: expiresAt ? BigInt(expiresAt) : null,
-            metadata: metadata || {}
+            metadata: metadata || {},
+            user_id: user.id
         }
     });
 }
 
 export async function getIntegrationToken(studentId: string, provider: string) {
+    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    if (!user) return null;
     const token = await prisma.integrationToken.findUnique({
-        where: { student_id_provider: { student_id: studentId, provider } }
+        where: { user_id_provider: { user_id: user.id, provider } }
     });
     if (!token) return null;
     return {
@@ -277,8 +289,10 @@ export async function getIntegrationToken(studentId: string, provider: string) {
 
 export async function deleteIntegrationToken(studentId: string, provider: string) {
     try {
+        const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+        if (!user) return;
         await prisma.integrationToken.delete({
-            where: { student_id_provider: { student_id: studentId, provider } }
+            where: { user_id_provider: { user_id: user.id, provider } }
         });
     } catch { }
 }
@@ -296,6 +310,9 @@ export async function getCourseNotes(studentId: string, courseId: string): Promi
 
 export async function saveCourseNotes(studentId: string, courseId: string, notes: string): Promise<void> {
     try {
+        const user = await prisma.user.findUnique({ where: { student_id: studentId }});
+        if (!user) return;
+        
         const row = await prisma.courseNote.findFirst({
             where: { student_id: studentId, course_id: courseId }
         });
@@ -306,8 +323,9 @@ export async function saveCourseNotes(studentId: string, courseId: string, notes
                 data: { notes, updated_at: new Date() }
             });
         } else {
+            // NOTE: db_course_id is now required, this needs resolving elsewhere if called
             await prisma.courseNote.create({
-                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date() }
+                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date(), user_id: user.id, db_course_id: parseInt(courseId) || 0 }
             });
         }
     } catch { }
