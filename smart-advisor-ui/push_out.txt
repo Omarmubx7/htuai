@@ -1,0 +1,7 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-delicate-mountain-aixy4x9n-pooler.c-4.us-east-1.aws.neon.tech"
+Error: P2002
+
+Unique constraint failed on the fields: (`user_id`)
+

@@ -1,0 +1,114 @@
+Checking for orphans...
+Orphans in student_profile: [
+  {
+    student_id: 'Rahaf Al shami',
+    major: 'data_science',
+    updated_at: 1771549123n
+  },
+  {
+    student_id: 'MAHMOUD Hazem',
+    major: 'cybersecurity',
+    updated_at: 1771549289n
+  },
+  {
+    student_id: '24110213',
+    major: 'game_design',
+    updated_at: 1771551068n
+  },
+  {
+    student_id: 'Tala Sghayyar',
+    major: 'computer_science',
+    updated_at: 1771578629n
+  },
+  {
+    student_id: 'HusstavoTota',
+    major: 'data_science',
+    updated_at: 1771584017n
+  },
+  {
+    student_id: 'Yazan Bi',
+    major: 'cybersecurity',
+    updated_at: 1771586009n
+  },
+  {
+    student_id: 'tamara hiasat',
+    major: 'computer_science',
+    updated_at: 1771745758n
+  },
+  {
+    student_id: 'Karam Sawalha',
+    major: 'computer_science',
+    updated_at: 1771590795n
+  },
+  {
+    student_id: 'Adel Qawaqna',
+    major: 'electrical_engineering',
+    updated_at: 1771765998n
+  },
+  {
+    student_id: 'omar ashhab',
+    major: 'mechanical_engineering',
+    updated_at: 1771774232n
+  },
+  {
+    student_id: 'Own Massad',
+    major: 'electrical_engineering',
+    updated_at: 1771603187n
+  },
+  {
+    student_id: '╪¼┘å┘ë ╪▒╪º┘à┘è ╪«╪▒┘à╪º',
+    major: 'computer_science',
+    updated_at: 1771603200n
+  },
+  {
+    student_id: 'Ali Altah',
+    major: 'computer_science',
+    updated_at: 1771603976n
+  },
+  {
+    student_id: 'Noor Samawi',
+    major: 'data_science',
+    updated_at: 1771605971n
+  },
+  {
+    student_id: 'Sarah',
+    major: 'data_science',
+    updated_at: 1771623218n
+  },
+  {
+    student_id: 'A9eel Manaseer',
+    major: 'cybersecurity',
+    updated_at: 1771848385n
+  },
+  {
+    student_id: 'belal osama',
+    major: 'computer_science',
+    updated_at: 1771877899n
+  },
+  {
+    student_id: '14741',
+    major: 'computer_science',
+    updated_at: 1771920882n
+  },
+  {
+    student_id: 'Zaid Haddad',
+    major: 'industrial_engineering',
+    updated_at: 1771954501n
+  },
+  {
+    student_id: 'omar mubaidin',
+    major: 'computer_science',
+    updated_at: 1772008740668n
+  },
+  {
+    student_id: 'Omar Jerab',
+    major: 'computer_science',
+    updated_at: 1771673921n
+  },
+  {
+    student_id: 'jameela. nj',
+    major: 'data_science',
+    updated_at: 1772042871n
+  }
+]
+Users in DB: 85
