@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Scale, CheckCircle2, AlertCircle, HelpCircle } from "lucide-react";
+import Image from "next/image";
 
 export default function TermsPage() {
     return (
@@ -20,7 +21,8 @@ export default function TermsPage() {
                     <div className="flex items-center gap-4">
                         <div className="relative group/logo">
                             <div className="absolute -inset-2 bg-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
-                            <img src="/HTUAIlogo.svg" alt="HTUAI" className="w-12 h-12 relative z-10" />
+                            <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={48} height={48} className="relative z-10 dark-logo" />
+                            <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={48} height={48} className="relative z-10 light-logo" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gradient">
                             Terms of Service

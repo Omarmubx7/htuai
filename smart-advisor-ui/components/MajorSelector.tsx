@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import { ArrowRight, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 interface MajorSelectorProps {
     onSelect: (key: MajorKey) => void;
@@ -111,7 +112,7 @@ function MajorCard({ major, onSelect }: { major: typeof MAJORS[number]; onSelect
 
 export default function MajorSelector({ onSelect }: MajorSelectorProps) {
     return (
-        <div className="relative min-h-screen bg-black flex items-center justify-center px-4 overflow-hidden">
+        <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
 
             {/* Ambient background effects */}
             <div className="pointer-events-none absolute inset-0">
@@ -132,8 +133,9 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                     className="text-center mb-14"
                 >
                     <div className="flex justify-center mb-6">
-                        <span className="pill-badge">
-                            <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4" />
+                        <span className="pill-badge-premium">
+                            <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="dark-logo" />
+                            <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="light-logo" />
                             HTUAI
                         </span>
                     </div>

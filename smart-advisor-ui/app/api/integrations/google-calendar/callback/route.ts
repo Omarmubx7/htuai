@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const studentId = (session.user as any).student_id || session.user.email || session.user.name;
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
+    const state = req.nextUrl.searchParams.get("state") || "/planner/settings";
 
     if (error || !code) {
         return NextResponse.redirect(new URL("/?error=google_denied", req.url));
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
                 code: code,
                 client_id: process.env.GOOGLE_CLIENT_ID!,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-                redirect_uri: `${getBaseUrl()}/api/integrations/google-calendar/callback`,
+                redirect_uri: `${getBaseUrl(req)}/api/integrations/google-calendar/callback`,
                 grant_type: "authorization_code",
             }),
         });
@@ -50,7 +51,9 @@ export async function GET(req: NextRequest) {
             tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined
         );
 
-        return NextResponse.redirect(new URL("/?connected=google", req.url));
+        const redirectUrl = new URL(state, req.url);
+        redirectUrl.searchParams.set("connected", "google");
+        return NextResponse.redirect(redirectUrl);
     } catch (e: any) {
         console.error("Google Calendar callback error:", e);
         return NextResponse.redirect(new URL("/?error=google_callback_error", req.url));

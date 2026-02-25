@@ -1,0 +1,385 @@
+
+> smart-advisor-ui@0.1.0 lint
+> eslint
+
+
+C:\Users\omara\htuai\smart-advisor-ui\app\admin\dashboard\page.tsx
+    9:17   warning  'ArrowUpRight' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   53:16   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  221:112  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  256:33   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  360:11   warning  'animAvg' is assigned a value but never used                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  361:11   warning  'animCH' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  564:36   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  575:33   warning  'i' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\admin\stats\route.ts
+   27:38  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  110:23  warning  'name' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  195:29  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  292:24  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\courses\[courseId]\notes\route.ts
+  10:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\courses\route.ts
+  14:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\create-test-user\route.ts
+  29:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\debug-db\route.ts
+  20:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\gamification\profile\route.ts
+   6:27  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  11:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\gamification\quests\route.ts
+   6:27  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  11:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\integrations\google-calendar\callback\route.ts
+  15:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\integrations\google-calendar\preferences\route.ts
+  10:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\integrations\google-calendar\route.ts
+   39:40  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+   53:27  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  120:21  warning  'courseChanged' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  122:25  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\integrations\google-calendar\sync\route.ts
+    8:28  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+   12:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   37:42  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:31  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:17  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\integrations\status\route.ts
+   6:27  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  12:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\courses\[id]\route.ts
+   7:29  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  12:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:28  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\courses\route.ts
+  11:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\reset\route.ts
+   6:30  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  11:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\semesters\[id]\notes\route.ts
+  14:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  35:42  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  44:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  57:42  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  82:26  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\semesters\[id]\route.ts
+   6:29  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  11:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\semesters\route.ts
+   6:27  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  11:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\study-sessions\route.ts
+   12:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\planner\summary\route.ts
+    8:48  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   50:27  warning  'req' is defined but never used                             @typescript-eslint/no-unused-vars
+   55:40  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+   93:13  error    'currentSemester' is never reassigned. Use 'const' instead  prefer-const
+  129:29  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  186:18  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  188:15  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  192:64  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  192:72  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  193:72  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  194:72  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  218:79  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  218:87  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  227:93  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+  239:32  error    Unexpected any. Specify a different type                    @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\profile\[studentId]\route.ts
+  17:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\profile\[studentId]\save\route.ts
+  17:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\progress\[studentId]\route.ts
+  19:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\progress\[studentId]\save\route.ts
+  23:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:74  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\api\student\profile\route.ts
+  10:40  error  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  17:13  error  'user' is never reassigned. Use 'const' instead  prefer-const
+  46:17  error  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\courses\[courseId]\notes\page.tsx
+   6:10  warning  'ArrowLeft' is defined but never used     @typescript-eslint/no-unused-vars
+  10:38  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:34  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\app\layout.tsx
+  65:12  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\app\privacy\page.tsx
+   23:29   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   62:38   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  101:180  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  101:189  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+C:\Users\omara\htuai\smart-advisor-ui\app\terms\page.tsx
+   2:21  warning  'Scale' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  23:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\omara\htuai\smart-advisor-ui\auth.ts
+   51:107  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:110  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:34   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:34   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:60   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:38   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:27   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:54   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:27   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\AdminGate.tsx
+  14:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\omara\htuai\smart-advisor-ui\components\AdminGate.tsx:14:9
+  12 |
+  13 |     useEffect(() => {
+> 14 |         setIsMounted(true);
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |         if (typeof window !== 'undefined') {
+  16 |             try {
+  17 |                 const saved = sessionStorage.getItem('admin_secret');  react-hooks/set-state-in-effect
+
+C:\Users\omara\htuai\smart-advisor-ui\components\CourseNotesEditor.tsx
+   3:38  warning  'useCallback' is defined but never used   @typescript-eslint/no-unused-vars
+   6:22  warning  'FloatingMenu' is defined but never used  @typescript-eslint/no-unused-vars
+  26:9   warning  'ListOrdered' is defined but never used   @typescript-eslint/no-unused-vars
+  27:16  warning  'Minus' is defined but never used         @typescript-eslint/no-unused-vars
+  27:23  warning  'Info' is defined but never used          @typescript-eslint/no-unused-vars
+  28:23  warning  'Heading3' is defined but never used      @typescript-eslint/no-unused-vars
+  29:24  warning  'ImageIcon' is defined but never used     @typescript-eslint/no-unused-vars
+  29:35  warning  'Search' is defined but never used        @typescript-eslint/no-unused-vars
+  29:49  warning  'Save' is defined but never used          @typescript-eslint/no-unused-vars
+  30:16  warning  'Palette' is defined but never used       @typescript-eslint/no-unused-vars
+  30:25  warning  'ChevronDown' is defined but never used   @typescript-eslint/no-unused-vars
+  30:38  warning  'Trash2' is defined but never used        @typescript-eslint/no-unused-vars
+  42:45  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:11  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:20  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  61:22  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\CourseNotesModal.tsx
+  21:5   warning  'studentId' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  23:40  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  31:8   warning  React Hook useEffect has a missing dependency: 'loadNotes'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  49:44  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\CourseTrackerView.tsx
+   19:12  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   36:5   warning  'updateCourseGrade' is defined but never used  @typescript-eslint/no-unused-vars
+   70:65  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+   72:10  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  296:37  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  297:34  error    Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\HomeClient.tsx
+   24:40  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   39:42  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   47:8   warning  React Hook useEffect has a missing dependency: 'loadProfile'. Either include it or remove the dependency array                                                                                                                                                                           react-hooks/exhaustive-deps
+   67:45  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   68:38  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   68:68  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  120:35  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  134:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  187:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  203:52  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  330:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\omara\htuai\smart-advisor-ui\components\LandingPage.tsx
+   4:10  warning  'Sparkles' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   4:66  warning  'Calendar' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  51:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\omara\htuai\smart-advisor-ui\components\MajorSelector.tsx
+    5:22  warning  'Sparkles' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  136:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerCourseDetail.tsx
+    6:55  warning  'PlusCircle' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   17:42  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+   18:46  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+   49:8   warning  React Hook useEffect has a missing dependency: 'fetchCourseData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   59:56  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  100:34  warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  147:18  warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  171:18  warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  202:18  warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerGamification.tsx
+   14:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   37:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  108:41  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:49  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerHomeClient.tsx
+   17:44   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  134:81   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  285:133  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  366:62   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  367:89   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  420:68   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerSemesterDetail.tsx
+    7:10  warning  'CalendarDays' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    7:51  warning  'MoreVertical' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    7:65  warning  'Target' is defined but never used                                                                                                   @typescript-eslint/no-unused-vars
+   19:46  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   20:44  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   28:56  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   31:62  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   41:40  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   43:52  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+   59:8   warning  React Hook useEffect has missing dependencies: 'fetchNotes' and 'fetchSemester'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+   68:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   94:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  110:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  127:55  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+  129:44  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+  145:66  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+  158:51  error    Unexpected any. Specify a different type                                                                                             @typescript-eslint/no-explicit-any
+  194:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  216:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  239:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  244:11  warning  'confirmDeleteCourse' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  257:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  281:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerSemesterList.tsx
+   15:48  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   35:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   59:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  128:57  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerSettings.tsx
+   19:52  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  164:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\omara\htuai\smart-advisor-ui\components\PlannerStudyLogClient.tsx
+    6:10   warning  'ArrowLeft' is defined but never used        @typescript-eslint/no-unused-vars
+    6:88   warning  'Trophy' is defined but never used           @typescript-eslint/no-unused-vars
+    6:106  warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+   15:40   error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  125:58   error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\StudentDashboard.tsx
+   18:35   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:12   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:75   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:121  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\components\StudentLogin.tsx
+   5:42  warning  'Sparkles' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  43:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  67:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\omara\htuai\smart-advisor-ui\components\ThemeProvider.tsx
+  22:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\omara\htuai\smart-advisor-ui\components\ThemeProvider.tsx:22:9
+  20 |
+  21 |     useEffect(() => {
+> 22 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |         const stored = localStorage.getItem("htuai-theme");
+  24 |         if (stored === "light") {
+  25 |             setIsLightMode(true);  react-hooks/set-state-in-effect
+
+C:\Users\omara\htuai\smart-advisor-ui\components\ui\CourseCard.tsx
+  46:5   warning  'grade' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  56:11  warning  'grades' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\lib\advisor.ts
+   18:35  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+   21:18  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+   97:42  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  101:13  error    'code' is never reassigned. Use 'const' instead     prefer-const
+  102:42  warning  'target_length' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\lib\database.ts
+   64:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   80:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  243:74  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  292:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\lib\env.ts
+  9:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\omara\htuai\smart-advisor-ui\lib\tiptap-suggestions.tsx
+    6:25  warning  'Heading3' is defined but never used      @typescript-eslint/no-unused-vars
+    8:25  warning  'Info' is defined but never used          @typescript-eslint/no-unused-vars
+   18:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   26:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   34:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   50:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:24  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:30  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:29  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:30  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:59  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  163:34  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\omara\htuai\smart-advisor-ui\scripts\add-test-user.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Γ£û 239 problems (152 errors, 87 warnings)
+  3 errors and 0 warnings potentially fixable with the `--fix` option.
+

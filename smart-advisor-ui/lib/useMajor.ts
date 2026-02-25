@@ -87,20 +87,35 @@ export function useMajor() {
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY) as MajorKey | null;
-        if (saved && MAJORS.find((m) => m.key === saved)) {
-            setMajorState(saved);
-        }
-        setLoaded(true);
+        const timer = setTimeout(() => {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY) as MajorKey | null;
+                if (saved && MAJORS.find((m) => m.key === saved)) {
+                    setMajorState(saved);
+                }
+            } catch (e) {
+                console.warn("localStorage access denied:", e);
+            }
+            setLoaded(true);
+        }, 0);
+        return () => clearTimeout(timer);
     }, []);
 
     const setMajor = (key: MajorKey) => {
-        localStorage.setItem(STORAGE_KEY, key);
+        try {
+            localStorage.setItem(STORAGE_KEY, key);
+        } catch (e) {
+            console.warn("localStorage access denied:", e);
+        }
         setMajorState(key);
     };
 
     const clearMajor = () => {
-        localStorage.removeItem(STORAGE_KEY);
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {
+            console.warn("localStorage access denied:", e);
+        }
         setMajorState(null);
     };
 

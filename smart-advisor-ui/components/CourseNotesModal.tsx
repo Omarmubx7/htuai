@@ -2,8 +2,17 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import CourseNotesEditor from "./CourseNotesEditor";
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
+
+const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[400px] w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
+            <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
+        </div>
+    ),
+});
 
 interface CourseNotesModalProps {
     isOpen: boolean;
@@ -74,7 +83,7 @@ export default function CourseNotesModal({
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-5xl h-[90vh] bg-black border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col"
+                        className="relative w-full h-[100dvh] sm:h-[90vh] sm:max-w-5xl bg-black sm:border sm:border-white/10 rounded-none sm:rounded-[2.5rem] overflow-hidden sm:shadow-2xl flex flex-col"
                     >
                         <button
                             onClick={onClose}

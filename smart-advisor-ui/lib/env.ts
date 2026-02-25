@@ -1,5 +1,16 @@
 
-export function getBaseUrl() {
+import { NextRequest } from "next/server";
+
+export function getBaseUrl(req?: Request | NextRequest) {
+    if (req) {
+        try {
+            const url = new URL(req.url);
+            return url.origin;
+        } catch (e) {
+            // Fallback if URL is invalid
+        }
+    }
+
     if (typeof window !== 'undefined') {
         return window.location.origin;
     }

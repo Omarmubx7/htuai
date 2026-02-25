@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Lock, User, Chrome, Sparkles } from "lucide-react";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 
 export default function StudentLogin() {
     const [id, setId] = useState("");
@@ -48,7 +49,7 @@ export default function StudentLogin() {
     };
 
     return (
-        <div className="relative min-h-screen bg-[#030303] flex items-center justify-center px-4 overflow-hidden glow-premium">
+        <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
             {/* Animated Background Orbs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-500/10 rounded-full blur-[120px] animate-slow-glow" />
@@ -62,19 +63,15 @@ export default function StudentLogin() {
                 className="relative w-full max-w-100 z-10"
             >
                 {/* Badge */}
-                <div className="flex justify-center mb-10">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="pill-badge-premium"
-                    >
-                        <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4" />
+                <div className="flex justify-center mb-6">
+                    <span className="pill-badge-premium">
+                        <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="dark-logo" />
+                        <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="light-logo" />
                         HTUAI
-                    </motion.div>
+                    </span>
                 </div>
 
-                <div className="glass-card-premium rounded-4xl p-8 md:p-10 border border-white/10 relative overflow-hidden">
+                <div className="premium-card p-8 md:p-10 relative overflow-hidden">
                     {/* Subtle inner flare */}
                     <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-violet-400/20 to-transparent" />
 

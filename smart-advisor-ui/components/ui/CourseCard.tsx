@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { CheckCircle, Circle, Lock, AlertCircle, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle, Circle, Lock, AlertCircle, Sparkles, ChevronDown } from "lucide-react";
 import { Course } from "../../types";
 
 interface CourseCardProps {
@@ -58,6 +59,19 @@ export default function CourseCard({
     const hasCHRule = requiredCH !== null;
     const hasOtherText = !!course.prereq && prereqCodes.length === 0 && !hasCHRule;
 
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // Force expand on desktop to match the layout requirements
+    const shouldShowPrereqs = !isMobile || isExpanded;
+
     const handleClick = () => { if (!isLocked) onToggle(); };
 
     const accent = fw[course.framework] ?? { badge: "text-white/40 border-white/10 bg-white/3", dot: "bg-white/40" };
@@ -95,11 +109,12 @@ export default function CourseCard({
                 </span>
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={(e) => { e.stopPropagation(); /* TODO: Open Notes */ }}
-                        className="p-1 px-1.5 rounded-lg bg-white/3 border border-white/5 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes"
+                        onClick={(e) => { e.stopPropagation(); onOpenNotes?.(); }}
+                        className="flex items-center gap-1.5 p-1 px-2 rounded-lg bg-white/3 border border-white/5 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes"
                         title="Course Notes"
                     >
                         <Sparkles className="w-3.5 h-3.5 text-white/20 group-hover/notes:text-violet-400 transition-colors" />
+                        <span className="text-[10px] font-bold text-white/40 group-hover/notes:text-violet-300 transition-colors">Notes</span>
                     </button>
                     <div className="p-1 px-1.5 rounded-lg bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
                         {isLocked ? (
@@ -137,49 +152,81 @@ export default function CourseCard({
 
             {/* Prerequisites Section */}
             {(prereqCodes.length > 0 || hasCHRule || hasOtherText) && (
-                <div className="mt-4 pt-4 border-t border-white/5 space-y-3 relative z-10">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">Prerequisites</p>
-                        {hasCHRule && <span className="text-[8px] font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
-                    </div>
-
-                    {/* Progress Bar for CH Rule */}
-                    {hasCHRule && requiredCH !== null && (
-                        <div className="h-1 bg-white/3 rounded-full overflow-hidden border border-white/5">
-                            <motion.div
-                                className={`h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] transition-all duration-1000 ${completedCredits >= requiredCH ? "bg-emerald-500" : "bg-violet-500"}`}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${Math.min(100, (completedCredits / requiredCH) * 100)}%` }}
-                            />
+                <div className="mt-4 pt-4 border-t border-white/5 relative z-10 transition-colors">
+                    {/* Mobile Toggle Button (hidden on desktop) */}
+                    {isMobile ? (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                            className="w-full flex items-center justify-between text-[10px] text-white/40 hover:text-white/60 transition-colors uppercase font-black tracking-[0.2em] mb-2"
+                        >
+                            <span>Prerequisites ({prereqCodes.length + (hasCHRule ? 1 : 0) + (hasOtherText ? 1 : 0)})</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                        </button>
+                    ) : (
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">Prerequisites</p>
+                            {hasCHRule && <span className="text-[8px] font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
                         </div>
                     )}
 
-                    {/* Prereq Chips */}
-                    <div className="flex flex-wrap gap-1.5">
-                        {prereqCodes.map((code) => {
-                            const name = courseMap[code];
-                            const isMissing = missingPrereqs.includes(code);
-                            return (
-                                <span key={code} title={name ?? code}
-                                    className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all
-                                        ${isMissing
-                                            ? "bg-red-500/10 border-red-500/20 text-red-400/60"
-                                            : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60"
-                                        }`}>
-                                    {isMissing
-                                        ? <AlertCircle className="w-2.5 h-2.5 opacity-50" />
-                                        : <CheckCircle className="w-2.5 h-2.5 opacity-50" />}
-                                    <span className="truncate max-w-35">{name ?? code}</span>
-                                </span>
-                            );
-                        })}
-                        {hasOtherText && (
-                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60">
-                                <AlertCircle className="w-2.5 h-2.5 opacity-50" />
-                                {course.prereq}
-                            </span>
+                    {/* Expandable Content Area */}
+                    <AnimatePresence initial={false}>
+                        {shouldShowPrereqs && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                className="space-y-3 overflow-hidden"
+                            >
+                                {/* Progress Bar for CH Rule (Mobile only, desktop rendered above) */}
+                                {isMobile && hasCHRule && requiredCH !== null && (
+                                    <div className="flex items-center justify-between mb-1.5 mt-2">
+                                        <span className="text-[9px] text-white/40 font-bold tracking-widest uppercase">Credit Req</span>
+                                        <span className="text-[9px] font-bold text-white/60">{completedCredits}/{requiredCH} CH</span>
+                                    </div>
+                                )}
+
+                                {/* Progress Bar */}
+                                {hasCHRule && requiredCH !== null && (
+                                    <div className="h-1 bg-white/3 rounded-full overflow-hidden border border-white/5">
+                                        <motion.div
+                                            className={`h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] transition-all duration-1000 ${completedCredits >= requiredCH ? "bg-emerald-500" : "bg-violet-500"}`}
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${Math.min(100, (completedCredits / requiredCH) * 100)}%` }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Prereq Chips */}
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                    {prereqCodes.map((code) => {
+                                        const name = courseMap[code];
+                                        const isMissing = missingPrereqs.includes(code);
+                                        return (
+                                            <span key={code} title={name ?? code}
+                                                className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all ${isMobile ? "w-full" : ""}
+                                                    ${isMissing
+                                                        ? "bg-red-500/10 border-red-500/20 text-red-400/60"
+                                                        : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60"
+                                                    }`}>
+                                                {isMissing
+                                                    ? <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
+                                                    : <CheckCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />}
+                                                <span className="truncate">{name ?? code}</span>
+                                            </span>
+                                        );
+                                    })}
+                                    {hasOtherText && (
+                                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60 ${isMobile ? "w-full" : ""}`}>
+                                            <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
+                                            <span className="truncate">{course.prereq}</span>
+                                        </span>
+                                    )}
+                                </div>
+                            </motion.div>
                         )}
-                    </div>
+                    </AnimatePresence>
                 </div>
             )}
 

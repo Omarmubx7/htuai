@@ -1,34 +1,38 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
-import StudentLogin from "@/components/StudentLogin";
 import LandingPage from "@/components/LandingPage";
-import MajorSelector from "@/components/MajorSelector";
-import CourseTrackerView from "@/components/CourseTrackerView";
 import { CourseData } from "@/types";
-import { LogOut, Settings2, Sparkles, Share2, Menu, X } from "lucide-react";
+import { Settings2, LogOut, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
+import Image from "next/image";
+import dynamic from "next/dynamic";
+
+const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
+const MajorSelector = dynamic(() => import("@/components/MajorSelector"), { ssr: false });
+const CourseTrackerView = dynamic(() => import("@/components/CourseTrackerView"));
 
 type AppState = "checking" | "landing" | "login" | "major-select" | "course-tracker";
 
 export default function HomeClient() {
     const { data: session, status } = useSession();
     const [appState, setAppState] = useState<AppState>("checking");
-    const [activeTab, setActiveTab] = useState<"Overview">("Overview");
     const [studentId, setStudentId] = useState<string | null>(null);
-    const [major, setMajorState] = useState<MajorKey | null>(null);
+    const [major, setMajor] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);
     const [rules, setRules] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Progress State (Lifted for Insights)
     const [completedCourses, setCompletedCourses] = useState<Map<string, string>>(new Map());
+    const [previousGpaHistory, setPreviousGpaHistory] = useState<{ gpa: number | null, credits: number | null }>({ gpa: null, credits: null });
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map()); // Added courseNameMap state
+    const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
         if (status === "loading") return;
@@ -48,34 +52,37 @@ export default function HomeClient() {
 
     // Effect to build courseNameMap when courseData changes
     useEffect(() => {
-        if (courseData) {
-            const newMap = new Map<string, string>();
-            const categories = [
-                courseData.university_requirements,
-                courseData.college_requirements,
-                courseData.university_electives,
-                courseData.department_requirements,
-                courseData.electives,
-                courseData.work_market_requirements,
-            ];
+        if (!courseData) return;
 
-            categories.forEach(category => {
-                if (Array.isArray(category)) {
-                    category.forEach(item => {
-                        if (item.code && item.name) {
-                            newMap.set(item.code, item.name);
-                        } else if ((item as any).courses) {
-                            (item as any).courses.forEach((course: any) => {
-                                if (course.code && course.name) {
-                                    newMap.set(course.code, course.name);
-                                }
-                            });
-                        }
-                    });
+        const newMap = new Map<string, string>();
+
+        const processCategory = (category: any) => {
+            if (!Array.isArray(category)) return;
+            for (const item of category) {
+                if (item.code && item.name) {
+                    newMap.set(item.code, item.name);
                 }
-            });
-            setCourseNameMap(newMap);
-        }
+                if (item.courses && Array.isArray(item.courses)) {
+                    for (const course of item.courses) {
+                        if (course.code && course.name) {
+                            newMap.set(course.code, course.name);
+                        }
+                    }
+                }
+            }
+        };
+
+        const categories = [
+            courseData.university_requirements,
+            courseData.college_requirements,
+            courseData.university_electives,
+            courseData.department_requirements,
+            courseData.electives,
+            courseData.work_market_requirements,
+        ];
+
+        categories.forEach(processCategory);
+        setCourseNameMap(newMap);
     }, [courseData]);
 
     /** After login: fetch the student's saved major from the DB */
@@ -89,11 +96,15 @@ export default function HomeClient() {
                 setAppState("major-select");
                 return;
             }
-            const { major: savedMajor } = await res.json();
+            const { major: savedMajor, previous_gpa, previous_credits } = await res.json();
             console.log(`[Advisor] Profile loaded. Major: ${savedMajor}`);
 
             if (savedMajor) {
-                setMajorState(savedMajor as MajorKey);
+                setMajor(savedMajor as MajorKey);
+                setPreviousGpaHistory({
+                    gpa: previous_gpa ?? null,
+                    credits: previous_credits ?? null,
+                });
                 setAppState("course-tracker");
                 loadCourses(savedMajor as MajorKey);
                 // Load progress too
@@ -117,7 +128,7 @@ export default function HomeClient() {
                 const code = typeof c === 'string' ? c : c.code;
                 let grade = typeof c === 'object' && c.grade !== undefined ? String(c.grade) : "M";
                 // Legacy check: if it's numeric, map it to something sensible
-                if (!isNaN(Number(grade)) && grade !== "WF") {
+                if (!Number.isNaN(Number(grade)) && grade !== "WF") {
                     const n = Number(grade);
                     if (n >= 90) grade = "D";
                     else if (n >= 80) grade = "M";
@@ -128,6 +139,7 @@ export default function HomeClient() {
             });
             setCompletedCourses(gradeMap);
         } catch (e) {
+            console.error("[Advisor] Failed to load progress:", e);
             setCompletedCourses(new Map());
         }
     }
@@ -143,7 +155,7 @@ export default function HomeClient() {
         }
 
         setCompletedCourses(next);
-        saveProgressRemote(next);
+        debouncedSave(next);
     };
 
     const updateCourseGrade = (code: string, grade: string) => {
@@ -151,11 +163,19 @@ export default function HomeClient() {
         const next = new Map(completedCourses);
         next.set(code, grade);
         setCompletedCourses(next);
-        saveProgressRemote(next);
+        debouncedSave(next);
+    };
+
+    const debouncedSave = (nextState: Map<string, string>) => {
+        setSaveStatus("saving");
+        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+
+        syncTimeoutRef.current = setTimeout(() => {
+            saveProgressRemote(nextState);
+        }, 1200);
     };
 
     const saveProgressRemote = async (currentProgress: Map<string, string>) => {
-        setSaveStatus("saving");
         try {
             const completedObjects = Array.from(currentProgress.entries()).map(([c, g]) => ({
                 code: c,
@@ -169,8 +189,10 @@ export default function HomeClient() {
                 body: JSON.stringify({ major, completed: completedObjects }),
             });
             setSaveStatus("saved");
+            router.refresh();
             setTimeout(() => setSaveStatus(null), 1500);
         } catch (e) {
+            console.error("[Advisor] Failed to save progress:", e);
             setSaveStatus(null);
         }
     };
@@ -185,7 +207,7 @@ export default function HomeClient() {
 
     /** Save major to DB + move to transcript — called only for new students */
     const handleMajorSelect = async (key: MajorKey) => {
-        setMajorState(key);
+        setMajor(key);
         const sid = studentId || (session?.user as any).student_id || session?.user?.name;
         if (sid) {
             await fetch(`/api/profile/${encodeURIComponent(sid)}/save`, {
@@ -201,7 +223,6 @@ export default function HomeClient() {
 
     /** Fetch + merge shared + major-specific data from curriculum.json + rules */
     async function loadCourses(key: MajorKey) {
-        setLoading(true);
         try {
             const rulesPath = "/data/curriculum_rules.json";
             const curriculumPath = "/data/curriculum.json";
@@ -239,9 +260,6 @@ export default function HomeClient() {
             });
         } catch (e) {
             console.error("[Advisor] Data Load Error:", e);
-            // Alert or show error UI? For now just log.
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -311,13 +329,14 @@ export default function HomeClient() {
                     <motion.header
                         initial={{ y: -20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="fixed top-0 left-0 right-0 z-60 h-20 bg-black/40 backdrop-blur-2xl border-b border-white/5"
+                        className="fixed top-0 left-0 right-0 z-60 h-20 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06]"
                     >
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             {/* Brand section */}
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                    <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-5 h-5 object-contain" />
+                                    <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={20} height={20} className="object-contain dark-logo" />
+                                    <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={20} height={20} className="object-contain light-logo" />
                                 </div>
                                 <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic whitespace-nowrap overflow-hidden">HTUAI</span>
                             </div>
@@ -346,12 +365,13 @@ export default function HomeClient() {
                                 </div>
 
                                 <button
-                                    onClick={() => signOut()}
-                                    className="p-3 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+                                    onClick={() => handleLogout()}
+                                    className="p-3 sm:p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
                                     title="Sign out"
                                 >
                                     <LogOut className="w-5 h-5 sm:w-4.5 sm:h-4.5" />
                                 </button>
+                                <ThemeToggle />
                             </div>
                         </div>
                     </motion.header>
@@ -365,24 +385,24 @@ export default function HomeClient() {
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <CourseTrackerView
-                                    data={courseData}
-                                    studentId={studentId!}
-                                    majorKey={major!}
-                                    rules={rules}
-                                    completedCourses={completedCourses}
-                                    toggleCourse={toggleCourse}
-                                    updateCourseGrade={updateCourseGrade}
-                                    saveStatus={saveStatus}
-                                    resetProgress={() => {
-                                        setCompletedCourses(new Map());
-                                        fetch(`/api/progress/${encodeURIComponent(studentId!)}/save`, {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({ major, completed: [] }),
-                                        });
-                                    }}
-                                />
+                                {appState === "course-tracker" && major && courseData && rules && (
+                                    <CourseTrackerView
+                                        data={courseData}
+                                        studentId={studentId!}
+                                        majorKey={major}
+                                        rules={rules}
+                                        completedCourses={completedCourses}
+                                        toggleCourse={toggleCourse}
+                                        updateCourseGrade={updateCourseGrade}
+                                        saveStatus={saveStatus}
+                                        previousGpaHistory={previousGpaHistory}
+                                        setPreviousGpaHistory={setPreviousGpaHistory}
+                                        resetProgress={() => {
+                                            setCompletedCourses(new Map());
+                                            debouncedSave(new Map());
+                                        }}
+                                    />
+                                )}
                             </motion.div>
                         </AnimatePresence>
                     </main>
@@ -394,32 +414,28 @@ export default function HomeClient() {
 
 function Spinner() {
     return (
-        <div className="min-h-screen bg-black flex flex-col">
-            {/* Skeleton header */}
-            <div className="h-20 border-b border-white/5 bg-black/40 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-white/5 animate-pulse" />
-                        <div className="h-4 w-24 rounded-lg bg-white/5 animate-pulse" />
+        <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[var(--background)]">
+            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none mesh-gradient" />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative z-10 flex flex-col items-center gap-6"
+            >
+                <div className="relative">
+                    <div className="absolute -inset-4 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative z-10 shadow-[0_0_30px_rgba(139,92,246,0.15)]">
+                        <Image priority src="/htuai-dark-logo.svg" alt="HTUAI" width={32} height={32} className="dark-logo animate-pulse" />
+                        <Image priority src="/htuai-light-logo.svg" alt="HTUAI" width={32} height={32} className="light-logo animate-pulse" />
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="h-4 w-16 rounded-lg bg-white/5 animate-pulse" />
-                        <div className="w-10 h-10 rounded-2xl bg-white/5 animate-pulse" />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                    <h2 className="text-[var(--foreground)] font-bold tracking-tight text-lg">Initializing Workspace</h2>
+                    <div className="flex items-center gap-2 text-[var(--foreground)]/40 text-sm font-medium">
+                        <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
+                        <span>Syncing data...</span>
                     </div>
                 </div>
-            </div>
-            {/* Skeleton content */}
-            <div className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full space-y-8">
-                <div className="space-y-3">
-                    <div className="h-6 w-32 rounded-lg bg-white/5 animate-pulse" />
-                    <div className="h-12 w-64 rounded-xl bg-white/5 animate-pulse" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[...Array(8)].map((_, i) => (
-                        <div key={i} className="h-24 rounded-2xl bg-white/3 border border-white/5 animate-pulse" />
-                    ))}
-                </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

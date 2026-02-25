@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ notion: false, google_calendar: false }, { status: 401 });
     }
 
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
     if (!studentId) {
         return NextResponse.json({ notion: false, google_calendar: false }, { status: 400 });
     }

@@ -1,22 +1,25 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { KeyRound, Loader2, ShieldAlert } from 'lucide-react';
 
 const AdminSecretContext = createContext<string>('');
 export const useAdminSecret = () => useContext(AdminSecretContext);
 
 export default function AdminGate({ children }: { children: ReactNode }) {
-    const [secret, setSecret] = useState<string | null>(() => {
+    const [secret, setSecret] = useState<string | null>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
         if (typeof window !== 'undefined') {
             try {
-                return sessionStorage.getItem('admin_secret');
-            } catch {
-                return null;
-            }
+                const saved = sessionStorage.getItem('admin_secret');
+                if (saved) setSecret(saved);
+            } catch { }
         }
-        return null;
-    });
+    }, []);
+
     const [input, setInput] = useState('');
     const [error, setError] = useState('');
     const [verifying, setVerifying] = useState(false);
@@ -43,6 +46,8 @@ export default function AdminGate({ children }: { children: ReactNode }) {
         }
         setVerifying(false);
     };
+
+    if (!isMounted) return null;
 
     if (!secret) return (
         <div className="min-h-screen flex items-center justify-center px-4"

@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
+import { calculateGPA } from '@/lib/grading';
 import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star } from 'lucide-react';
 import StudentDashboard from './StudentDashboard';
 import ConfirmDialog from './ui/ConfirmDialog';
 import { useToast } from './ui/Toast';
-import CourseNotesModal from './CourseNotesModal';
+import dynamic from 'next/dynamic';
+
+const CourseNotesModal = dynamic(() => import('./CourseNotesModal'), {
+    ssr: false,
+});
 
 interface CourseTrackerViewProps {
     data: CourseData;
@@ -20,6 +25,8 @@ interface CourseTrackerViewProps {
     toggleCourse: (code: string) => void;
     updateCourseGrade: (code: string, grade: string) => void;
     saveStatus: "saved" | "saving" | null;
+    previousGpaHistory?: { gpa: number | null, credits: number | null };
+    setPreviousGpaHistory?: (val: { gpa: number | null, credits: number | null }) => void;
     resetProgress: () => void;
 }
 
@@ -32,12 +39,24 @@ export default function CourseTrackerView({
     toggleCourse,
     updateCourseGrade,
     saveStatus,
+    previousGpaHistory,
+    setPreviousGpaHistory,
     resetProgress
-}: CourseTrackerViewProps) {
+}: Readonly<CourseTrackerViewProps>) {
     const [viewMode, setViewMode] = useState<"level" | "category">("level");
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [selectedCourseForNotes, setSelectedCourseForNotes] = useState<{ id: string; title: string } | null>(null);
     const { toast } = useToast();
+
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const allCourses = [
         ...data.university_requirements,
@@ -60,6 +79,9 @@ export default function CourseTrackerView({
     const MAX_DEPT_ELECTIVES = ruleSet.max_dept_electives || 3;
     const MAX_UNI_ELECTIVES = ruleSet.max_uni_electives || 3;
     const TOTAL_CAP = totalCredits;
+
+    // ── University Requirements
+    const uniReqCodes = new Set(data.university_requirements.map(r => r.code));
 
     // ── University Electives
     const uniElectiveCodes = new Set((data.university_electives ?? []).map((c: Course) => c.code));
@@ -115,6 +137,48 @@ export default function CourseTrackerView({
     };
 
     const groups = getGroups();
+
+    const renderCourseCard = (course: Course) => {
+        let isElectiveLocked = false;
+        let capMax = 0;
+
+        if (uniElectiveCodes.has(course.code)) {
+            isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES && !completedCourses.has(course.code);
+            capMax = MAX_UNI_ELECTIVES;
+        } else if (deptElectiveCodes.has(course.code)) {
+            isElectiveLocked = deptElecCapReached && !completedCourses.has(course.code);
+            capMax = MAX_DEPT_ELECTIVES;
+        }
+
+        const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules.prerequisites);
+        const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
+        const isLocked = isElectiveLocked || (!isUniversitySubject && prereqLocked);
+        const hasPrereqWarning = isUniversitySubject && prereqLocked;
+
+        let lockReason: string | undefined = undefined;
+        if (isElectiveLocked) {
+            lockReason = `Max ${capMax} electives reached — untick one to swap`;
+        } else if (prereqLocked) {
+            lockReason = prereqReason;
+        }
+
+        return (
+            <CourseCard
+                key={course.code}
+                course={course}
+                isCompleted={completedCourses.has(course.code)}
+                grade={completedCourses.get(course.code) || "M"}
+                isLocked={isLocked}
+                hasPrereqWarning={hasPrereqWarning}
+                lockReason={lockReason}
+                missingPrereqs={missing}
+                courseMap={courseMap}
+                completedCredits={completedCredits}
+                onToggle={() => toggleCourse(course.code)}
+                onOpenNotes={() => setSelectedCourseForNotes({ id: course.code, title: course.name })}
+            />
+        );
+    };
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-24 space-y-8 sm:space-y-12">
@@ -234,6 +298,8 @@ export default function CourseTrackerView({
                 data={data}
                 allCourses={allCourses}
                 rules={rules}
+                previousGpaHistory={previousGpaHistory}
+                setPreviousGpaHistory={setPreviousGpaHistory}
             />
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/5">
@@ -275,60 +341,56 @@ export default function CourseTrackerView({
                     };
                     const style = catStyle[title];
 
-                    return courses.length > 0 && <section key={title}>
-                        <div className="flex items-center gap-3 mb-6">
-                            {viewMode === 'level'
-                                ? <Trophy className="w-4 h-4 text-violet-400/60" />
-                                : style && <span style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
-                            }
-                            <h2 className="text-sm font-semibold text-white/65 uppercase tracking-widest">
-                                {title}
-                            </h2>
-                            <div className="flex-1 h-px bg-white/5" />
-                            <span className="text-[11px] text-white/20">{courses.length} courses</span>
-                        </div>
+                    const gpaCourses = courses
+                        .filter((c: any) => completedCourses.has(c.code))
+                        .map((c: any) => ({ credits: c.ch, grade: completedCourses.get(c.code)! }));
+                    const groupGpa = calculateGPA(gpaCourses);
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {courses.map((course: Course) => {
-                                let isElectiveLocked = false;
-                                let capMax = 0;
+                    const isExpanded = expandedCategories[title];
+                    const visibleCourses = (isMobile && !isExpanded) ? courses.slice(0, 8) : courses;
+                    const hiddenCount = courses.length - visibleCourses.length;
 
-                                if (uniElectiveCodes.has(course.code)) {
-                                    isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES && !completedCourses.has(course.code);
-                                    capMax = MAX_UNI_ELECTIVES;
-                                } else if (deptElectiveCodes.has(course.code)) {
-                                    isElectiveLocked = deptElecCapReached && !completedCourses.has(course.code);
-                                    capMax = MAX_DEPT_ELECTIVES;
+                    if (courses.length === 0) return null;
+
+                    return (
+                        <section key={title}>
+                            <div className="flex items-center gap-3 mb-6">
+                                {viewMode === 'level'
+                                    ? <Trophy className="w-4 h-4 text-violet-400/60" />
+                                    : style && <span style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
                                 }
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-sm font-semibold text-white/65 uppercase tracking-widest">
+                                        {title}
+                                    </h2>
+                                    {groupGpa > 0 && (
+                                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/80 uppercase tracking-widest">
+                                            GPA: {groupGpa.toFixed(2)}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex-1 h-px bg-white/5" />
+                                <span className="text-[11px] text-white/20">{courses.length} courses</span>
+                            </div>
 
-                                const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules.prerequisites);
-                                const uniReqCodes = new Set(data.university_requirements.map(r => r.code));
-                                const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
-                                const isLocked = isElectiveLocked || (!isUniversitySubject && prereqLocked);
-                                const hasPrereqWarning = isUniversitySubject && prereqLocked;
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                {visibleCourses.map(renderCourseCard)}
+                            </div>
 
-                                const lockReason = isElectiveLocked
-                                    ? `Max ${capMax} electives reached — untick one to swap`
-                                    : (prereqLocked ? prereqReason : undefined);
-                                return (
-                                    <CourseCard
-                                        key={course.code}
-                                        course={course}
-                                        isCompleted={completedCourses.has(course.code)}
-                                        grade={completedCourses.get(course.code)}
-                                        isLocked={isLocked}
-                                        hasPrereqWarning={hasPrereqWarning}
-                                        lockReason={lockReason}
-                                        missingPrereqs={missing}
-                                        courseMap={courseMap}
-                                        completedCredits={completedCredits}
-                                        onToggle={() => toggleCourse(course.code)}
-                                        onOpenNotes={() => setSelectedCourseForNotes({ id: course.code, title: course.name })}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </section>
+                            {/* Show More Button (Mobile only) */}
+                            {hiddenCount > 0 && (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    onClick={() => setExpandedCategories(prev => ({ ...prev, [title]: true }))}
+                                    className="w-full mt-4 py-3 rounded-2xl border border-white/10 bg-white/2 hover:bg-white/5 active:scale-[0.98] transition-all text-xs font-bold text-white/60 tracking-widest uppercase flex flex-col items-center gap-1"
+                                >
+                                    <span>Load All {courses.length} Courses</span>
+                                    <span className="text-[9px] text-white/30 lowercase normal-case tracking-normal">+{hiddenCount} hidden</span>
+                                </motion.button>
+                            )}
+                        </section>
+                    );
                 })}
             </div>
 

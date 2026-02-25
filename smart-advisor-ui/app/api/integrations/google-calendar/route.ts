@@ -2,8 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getIntegrationToken } from "@/lib/database";
+import { getBaseUrl } from "@/lib/env";
 
-// GET /api/integrations/google-calendar — Push midterm/final dates as events
+// GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
+export async function GET(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const redirectUri = `${getBaseUrl(req)}/api/integrations/google-calendar/callback`;
+    const returnTo = req.nextUrl.searchParams.get("returnTo") || "/planner/settings";
+
+    if (!clientId) {
+        return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
+    }
+
+    const scope = "https://www.googleapis.com/auth/calendar.events";
+
+    const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    url.searchParams.append("client_id", clientId);
+    url.searchParams.append("redirect_uri", redirectUri);
+    url.searchParams.append("response_type", "code");
+    url.searchParams.append("scope", scope);
+    url.searchParams.append("access_type", "offline");
+    url.searchParams.append("prompt", "consent");
+    url.searchParams.append("state", returnTo);
+
+    return NextResponse.redirect(url.toString());
+}
+
+// POST /api/integrations/google-calendar — Push midterm/final dates as events
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,8 +69,9 @@ export async function POST(req: NextRequest) {
                 reminders: {
                     useDefault: false,
                     overrides: [
-                        { method: "popup", minutes: 1440 }, // 1 day before
-                        { method: "popup", minutes: 60 },   // 1 hour before
+                        { method: "popup", minutes: 10080 }, // 7 days before
+                        { method: "popup", minutes: 4320 },  // 3 days before
+                        { method: "popup", minutes: 1440 },  // 1 day before
                     ]
                 }
             };

@@ -56,4 +56,5 @@ async function run() {
     }
 }
 
+// eslint-disable-next-line sonarjs/prefer-top-level-await
 run();

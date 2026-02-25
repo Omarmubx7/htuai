@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadMajor } from '@/lib/database';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
     _req: NextRequest,
@@ -20,5 +21,15 @@ export async function GET(
     }
 
     const major = await loadMajor(targetId);
-    return NextResponse.json({ studentId: targetId, major });
+    const profile = await prisma.studentProfile.findUnique({
+        where: { student_id: targetId },
+        select: { previous_gpa: true, previous_credits: true }
+    });
+
+    return NextResponse.json({
+        studentId: targetId,
+        major,
+        previous_gpa: profile?.previous_gpa || null,
+        previous_credits: profile?.previous_credits || null
+    });
 }

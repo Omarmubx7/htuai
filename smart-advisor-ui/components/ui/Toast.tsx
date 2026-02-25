@@ -14,7 +14,7 @@ interface ToastContextType {
     toast: (message: string, type?: Toast["type"]) => void;
 }
 
-const ToastContext = createContext<ToastContextType>({ toast: () => {} });
+const ToastContext = createContext<ToastContextType>({ toast: () => { } });
 
 export function useToast() {
     return useContext(ToastContext);
@@ -70,7 +70,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 60, scale: 0.95 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl glass-card-premium border ${borderColor} shadow-xl max-w-xs`}
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl premium-card border ${borderColor} shadow-xl max-w-xs`}
         >
             {icon}
             <span className="text-xs font-medium text-white/80 flex-1">{toast.message}</span>

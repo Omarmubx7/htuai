@@ -3,6 +3,7 @@ import { sql } from '@vercel/postgres';
 import { getAllStudents, initDB } from '@/lib/database';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,14 +97,20 @@ export async function GET(request: Request) {
 
         for (const row of progressRows) {
             let courses: (string | { code: string; name?: string })[] = [];
-            try { courses = JSON.parse(row.completed); } catch { continue; }
+            try {
+                courses = JSON.parse(row.completed);
+                if (!Array.isArray(courses)) courses = [];
+            } catch { continue; }
 
             let studentCH = 0;
             for (const c of courses) {
-                const code = typeof c === 'string' ? c : c.code;
+                if (!c) continue;
+                const rawCode = typeof c === 'string' ? c : c.code;
+                const code = rawCode?.trim() || 'UNKNOWN';
                 const name = typeof c === 'object' && c.name ? c.name : code;
-                const key = `${code}||${name}`;
-                courseCounts[key] = (courseCounts[key] || 0) + 1;
+
+                // Group by code only for stats to avoid duplicates in UI keys
+                courseCounts[code] = (courseCounts[code] || 0) + 1;
 
                 // Look up real credit hours from course catalog
                 const catalogEntry = courseMap.get(code);
@@ -134,12 +141,11 @@ export async function GET(request: Request) {
         }
 
         const topCourses = Object.entries(courseCounts)
-            .map(([key, count]) => {
-                const [code, name] = key.split('||');
+            .map(([code, count]) => {
                 const catalogEntry = courseMap.get(code);
                 return {
                     code,
-                    name: name || code,
+                    name: catalogEntry?.name || code,
                     count,
                     ch: catalogEntry?.ch ?? 3,
                 };
@@ -186,21 +192,25 @@ export async function GET(request: Request) {
         } catch { /* table might not exist */ }
 
         // ── 8. Recent Activity ───────────────────────────────────────
-        let recentActivity: { type: string; student_id: string; detail: string; time: string }[] = [];
+        let recentActivity: any[] = [];
         try {
             const { rows: visitRows } = await sql`
-                SELECT student_id, os_name, browser_name, device_model, visited_at
+                SELECT student_id, ip_address, user_agent, device_vendor, device_model, os_name, os_version, browser_name, visited_at
                 FROM visitor_logs
                 ORDER BY visited_at DESC
                 LIMIT 50
             `;
             for (const r of visitRows) {
-                const device = r.device_model || r.os_name || 'Unknown device';
-                const browser = r.browser_name || '';
                 recentActivity.push({
                     type: 'visit',
                     student_id: r.student_id || 'Anonymous',
-                    detail: `Visited from ${device}${browser ? ` (${browser})` : ''}`,
+                    ip: r.ip_address || 'Unknown',
+                    userAgent: r.user_agent,
+                    vendor: r.device_vendor,
+                    model: r.device_model,
+                    os: `${r.os_name || 'Unknown'} ${r.os_version || ''}`.trim(),
+                    browser: r.browser_name || 'Unknown',
+                    detail: `Visited from ${r.device_model || r.os_name || 'Unknown'}`,
                     time: String(r.visited_at),
                 });
             }
@@ -251,36 +261,69 @@ export async function GET(request: Request) {
             ? Math.round(totalRealCreditHours / totalStudents)
             : 0;
 
-        // Build device breakdown as an object (keyed by OS)
-        const deviceBreakdownObj: Record<string, number> = {};
-        for (const d of deviceBreakdown) {
-            deviceBreakdownObj[d.os] = (deviceBreakdownObj[d.os] || 0) + d.count;
-        }
+        // ── 11. Average CGPA & Study Hours ─────────────────────────
+        let avgCgpa = 0;
+        let avgStudyHours = 0;
+        try {
+            const latestGpas = await prisma.gPAHistory.findMany({
+                distinct: ['user_id'],
+                orderBy: { created_at: 'desc' },
+                select: { cumulative_gpa: true }
+            });
+            if (latestGpas.length > 0) {
+                const totalGpa = latestGpas.reduce((s, g) => s + g.cumulative_gpa, 0);
+                avgCgpa = Number((totalGpa / latestGpas.length).toFixed(2));
+            }
+
+            const sessions = await prisma.studySession.groupBy({
+                by: ['user_id'],
+                _sum: { duration_minutes: true }
+            });
+            if (sessions.length > 0) {
+                const totalMins = sessions.reduce((s, row) => s + (row._sum.duration_minutes || 0), 0);
+                avgStudyHours = Number((totalMins / 60 / sessions.length).toFixed(1));
+            }
+        } catch { /* ok */ }
+
+        // Build device breakdown (already populated as an array of {os, browser, count} from SQL)
+        // If SQL failed, it remains an empty array.
+
+        // ── 12. Admin Logs ──────────────────────────────────────────
+        let adminLogs: any[] = [];
+        try {
+            adminLogs = await prisma.adminLog.findMany({
+                orderBy: { created_at: 'desc' },
+                take: 50
+            });
+        } catch { /* ok */ }
 
         // Sort unified recent activity
         recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         recentActivity = recentActivity.slice(0, 50);
 
+        const avgWeightedProgress = Math.min(Math.round((avgCreditHours / 135) * 100), 100);
+
         return NextResponse.json({
             totalStudents,
-            visitorCount: totalVisitors,
             totalVisitors,
             totalCompletedCourses,
             avgCoursesCompleted,
             avgCreditHours,
+            avgWeightedProgress,
+            avgCgpa,
+            avgStudyHours,
             thisWeekVisits,
             lastWeekVisits,
-            majorDistribution: majorCounts,
             majorCounts,
             progressDistribution,
             topCourses,
-            trafficTrends: trafficByDay,
             trafficByDay,
-            deviceBreakdown: deviceBreakdownObj,
+            deviceBreakdown,
             recentActivity,
             heatmap,
-            studentData: studentRealCH,
             students: studentRealCH,
+            studentData: studentRealCH, // Keep for legacy if any
+            adminLogs,
         });
 
     } catch (e) {

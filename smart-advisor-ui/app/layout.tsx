@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { getClientInfo } from "@/lib/client-info";
 import { logVisitor } from "@/lib/database";
 import { Providers } from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://htuai.mubx.dev'),
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/HTUAIlogo.svg",
+        url: "/htuai-dark-logo.svg",
         width: 1200,
         height: 630,
         alt: "HTUAI",
@@ -43,11 +44,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "HTUAI",
     description: "The official course tracker & planner for HTU students.",
-    images: ["/HTUAIlogo.svg"],
+    images: ["/htuai-dark-logo.svg"],
   },
   icons: {
-    icon: "/HTUAIlogo.svg",
-    apple: "/HTUAIlogo.svg",
+    icon: [
+      { url: "/htuai-light-favicon.ico", media: "(prefers-color-scheme: light)" },
+      { url: "/htuai-dark-favicon.ico", media: "(prefers-color-scheme: dark)" }
+    ],
+    apple: "/htuai-dark-favicon.ico",
   },
 };
 
@@ -67,37 +71,46 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} min-h-screen flex flex-col pb-[120px] sm:pb-0`}>
-        <Providers>
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                "name": "HTUAI",
-                "operatingSystem": "Web",
-                "applicationCategory": "EducationalApplication",
-                "offers": {
-                  "@type": "Offer",
-                  "price": "0",
-                  "priceCurrency": "JOD"
-                },
-                "description": "Comprehensive academic advisor and planner for Al Hussein Technical University (HTU) students in Jordan.",
-                "author": {
-                  "@type": "Person",
-                  "name": "mubx",
-                  "url": "https://mubx.dev"
-                },
-                "inLanguage": ["en", "ar"],
-              })
-            }}
-          />
-          <main className="flex-1 flex flex-col">
-            {children}
-          </main>
-          <MobileNav />
-        </Providers>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('htuai-theme');if(t==='light')document.documentElement.classList.add('light-theme');}catch(e){}`
+          }}
+        />
+      </head>
+      <body className={`${outfit.className} min-h-screen flex flex-col pb-[120px] sm:pb-0`}>
+        <ThemeProvider>
+          <Providers>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "SoftwareApplication",
+                  "name": "HTUAI",
+                  "operatingSystem": "Web",
+                  "applicationCategory": "EducationalApplication",
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "JOD"
+                  },
+                  "description": "Comprehensive academic advisor and planner for Al Hussein Technical University (HTU) students in Jordan.",
+                  "author": {
+                    "@type": "Person",
+                    "name": "mubx",
+                    "url": "https://mubx.dev"
+                  },
+                  "inLanguage": ["en", "ar"],
+                })
+              }}
+            />
+            <main className="flex-1 flex flex-col">
+              {children}
+            </main>
+            <MobileNav />
+          </Providers>
+        </ThemeProvider>
         <footer className="w-full px-6 py-8 mt-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-bold uppercase tracking-widest text-white/20 select-none border-t border-white/5 bg-black/20 backdrop-blur-sm z-50">
           <div className="flex items-center gap-4">
             <a href="/privacy" className="hover:text-white/40 transition-colors pointer-events-auto">Privacy</a>

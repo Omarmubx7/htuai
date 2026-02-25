@@ -3,36 +3,28 @@
 > next build
 
 Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  Γ£ô optimizeCss
 
   Creating an optimized production build ...
-Found 1 warning while optimizing generated CSS:
-
-Γöé   }
-Γöé }
-Γöé @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-Γöå        ^-- @import rules must precede all rules aside from @charset and @layer statements
-Γöå
-Γöé :root {
-Γöé   --background: #000000;
-
-Γ£ô Compiled successfully in 2.2s
-  Running TypeScript ...
-Failed to compile.
-
-.next/dev/types/validator.ts:63:31
-Type error: Type 'typeof import("C:/Users/omara/htuai/smart-advisor-ui/app/api/profile/[studentId]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/profile/[studentId]">'.
-  Types of property 'GET' are incompatible.
-    Type '(_req: NextRequest, { params }: { params: { studentId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ studentId: string; major: string | null; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ studentId: string; }>; }) => void | Response | Promise<void | Response>'.
-      Types of parameters '__1' and 'context' are incompatible.
-        Type '{ params: Promise<{ studentId: string; }>; }' is not assignable to type '{ params: { studentId: string; }; }'.
-          Types of property 'params' are incompatible.
-            Property 'studentId' is missing in type 'Promise<{ studentId: string; }>' but required in type '{ studentId: string; }'.
-
-  61 |   type __IsExpected<Specific extends RouteHandlerConfig<"/api/profile/[studentId]">> = Specific
-  62 |   const handler = {} as typeof import("../../../app/api/profile/[studentId]/route.js")
-> 63 |   type __Check = __IsExpected<typeof handler>
-     |                               ^
-  64 |   // @ts-ignore
-  65 |   type __Unused = __Check
-  66 | }
-Next.js build worker exited with code: 1 and signal: null
+Γ£ô Compiled successfully in 5.0s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/31) ...
+  Generating static pages using 11 workers (7/31) 
+  Generating static pages using 11 workers (15/31) 
+Γ¿» useSearchParams() should be wrapped in a suspense boundary at page "/planner/settings". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at Q (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\ssr\node_modules_next_920e7746._.js:2:2111)
+    at o (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\ssr\node_modules_next_920e7746._.js:4:5284)
+    at r (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\ssr\_be9719c8._.js:1:4400)
+    at an (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:84360)
+    at ai (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:86179)
+    at ai (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:104708)
+    at al (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:107953)
+    at as (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:105368)
+    at am (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:112882)
+    at au (C:\Users\omara\htuai\smart-advisor-ui\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:109985)
+Error occurred prerendering page "/planner/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /planner/settings/page: /planner/settings, exiting the build.
+Γ¿» Next.js build worker exited with code: 1 and signal: null

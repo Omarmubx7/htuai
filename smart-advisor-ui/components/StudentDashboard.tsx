@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Course, CourseData } from "@/types";
 import {
     GraduationCap, Target, BookOpen, TrendingUp as GpaIcon,
-    Sparkles
+    Sparkles, Calendar, Award, Star, Clock, CheckCircle, ArrowRight, Settings
 } from "lucide-react";
-import { calculateGPA, getClassification, GRADE_MAP } from "@/lib/grading";
+import Link from "next/link";
+import { getClassification, GRADE_MAP } from "@/lib/grading";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Props
@@ -20,6 +21,8 @@ interface StudentDashboardProps {
     data: CourseData;
     allCourses: Course[];
     rules: any;
+    previousGpaHistory?: { gpa: number | null, credits: number | null };
+    setPreviousGpaHistory?: (val: { gpa: number | null, credits: number | null }) => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -37,7 +40,13 @@ export default function StudentDashboard({
     data,
     allCourses,
     rules,
-}: StudentDashboardProps) {
+    previousGpaHistory,
+    setPreviousGpaHistory,
+}: Readonly<StudentDashboardProps>) {
+    const [isEditingGpa, setIsEditingGpa] = useState(false);
+    const [editGpa, setEditGpa] = useState(previousGpaHistory?.gpa?.toString() || "");
+    const [editCredits, setEditCredits] = useState(previousGpaHistory?.credits?.toString() || "");
+    const [savingGpa, setSavingGpa] = useState(false);
     const completedCount = completedCourses.size;
     const progress = Math.min(completedCredits / totalCredits, 1);
     const progressPct = Math.round(progress * 100);
@@ -50,7 +59,61 @@ export default function StudentDashboard({
         return "Academic Aspirant";
     }, [progressPct]);
 
+    // ── True CGPA Calculation ─────────────────────────────────────────────
+    const trackedStats = useMemo(() => {
+        let qualityPoints = 0;
+        let credits = 0;
+        for (const [code, grade] of completedCourses.entries()) {
+            const course = allCourses.find(c => c.code === code);
+            if (course && course.ch > 0 && GRADE_MAP[grade]?.points !== undefined) {
+                qualityPoints += GRADE_MAP[grade].points * course.ch;
+                credits += course.ch;
+            }
+        }
+        return { qualityPoints, credits };
+    }, [completedCourses, allCourses]);
 
+    const trueCGPA = useMemo(() => {
+        let totalQualityPoints = trackedStats.qualityPoints;
+        let totalCredits = trackedStats.credits;
+
+        if (previousGpaHistory?.gpa !== null && previousGpaHistory?.credits !== null && previousGpaHistory?.credits !== undefined && previousGpaHistory?.gpa !== undefined) {
+            totalQualityPoints += (previousGpaHistory.gpa * previousGpaHistory.credits);
+            totalCredits += previousGpaHistory.credits;
+        }
+
+        if (totalCredits === 0) return 0;
+        return totalQualityPoints / totalCredits;
+    }, [trackedStats, previousGpaHistory]);
+
+    const classification = getClassification(trueCGPA);
+
+    const handleSavePreviousGpa = async () => {
+        setSavingGpa(true);
+        try {
+            const res = await fetch('/api/student/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    previous_gpa: editGpa ? Number.parseFloat(editGpa) : null,
+                    previous_credits: editCredits ? Number.parseFloat(editCredits) : null
+                })
+            });
+            if (res.ok) {
+                if (setPreviousGpaHistory) {
+                    setPreviousGpaHistory({
+                        gpa: editGpa ? Number.parseFloat(editGpa) : null,
+                        credits: editCredits ? Number.parseFloat(editCredits) : null
+                    });
+                }
+                setIsEditingGpa(false);
+            }
+        } catch (e) {
+            console.error("Failed to save previous GPA", e);
+        } finally {
+            setSavingGpa(false);
+        }
+    };
     // ── Graduation estimate ──────────────────────────────────────────
     const graduationEstimate = useMemo(() => {
         if (completedCredits >= totalCredits) return "Graduated! 🎉";
@@ -92,11 +155,6 @@ export default function StudentDashboard({
             return doneCH;
         };
 
-        const ruleSet = Object.values(rules.degree_types).find((rs: any) =>
-            rs.major_keys.some((k: string) => rs.major_keys.includes(k)) // This is a bit redundant but safe
-        ) as any || rules.degree_types.computing_bsc;
-
-        // More accurate approach: find by totalCredits match or major keys
         const actualRuleSet = Object.values(rules.degree_types).find((rs: any) => rs.total_credits === totalCredits) as any || rules.degree_types.computing_bsc;
 
         const maxUniElec = actualRuleSet.max_uni_electives;
@@ -127,6 +185,9 @@ export default function StudentDashboard({
     }, [data, completedCourses, totalCredits, rules]);
 
     const totalRemaining = categories.reduce((s, c) => s + c.remaining, 0);
+    const overallTotalCH = categories.reduce((s, c) => s + c.totalCH, 0);
+    const overallDoneCH = categories.reduce((s, c) => s + c.doneCH, 0);
+    const overallRoadmapPct = overallTotalCH > 0 ? Math.round((overallDoneCH / overallTotalCH) * 100) : 0;
 
     return (
         <motion.div
@@ -159,14 +220,94 @@ export default function StudentDashboard({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 md:w-64 shrink-0">
-                    <div className="flex-1 h-full py-5 px-7 glass-card rounded-[32px] border-white/10 bg-white/[0.02] flex flex-col justify-center relative overflow-hidden">
-                        <span className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] mb-2">Graduation</span>
+                <div className="flex flex-col gap-3 md:w-64 shrink-0">
+                    <div className="flex-1 py-5 px-7 glass-card rounded-[32px] border-white/10 bg-white/[0.02] flex flex-col justify-center relative overflow-hidden border">
+                        <span className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2"><Calendar className="w-3 h-3" /> Graduation</span>
                         <div className="flex items-baseline gap-2 relative z-10">
                             <span className="text-xl font-black text-white tracking-tighter">{graduationEstimate}</span>
                         </div>
                     </div>
+                    <Link href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all active:scale-[0.98]">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            <span className="text-sm font-bold tracking-wide">Semester Planner</span>
+                        </div>
+                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                            <ArrowRight className="w-3 h-3 text-white" />
+                        </div>
+                    </Link>
                 </div>
+            </div>
+
+            {/* ── Additional Data Parity Stats (Desktop Grid / Mobile Stack) ──────────────── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <StatCard
+                    icon={<Target className="w-4 h-4" />}
+                    label="Credits Done"
+                    value={completedCredits.toString()}
+                    sub={`/ ${totalCredits} CH`}
+                    color="#8b5cf6"
+                    delay={0.1}
+                    progress={progress}
+                />
+                <div className="relative group/gpa">
+                    <StatCard
+                        icon={<GpaIcon className="w-4 h-4" />}
+                        label="True CGPA"
+                        value={trueCGPA > 0 ? trueCGPA.toFixed(2) : "-.--"}
+                        sub="/ 4.00"
+                        color={(() => {
+                            if (classification.colorKey === 'emerald') return '#10b981';
+                            if (classification.colorKey === 'violet') return '#8b5cf6';
+                            if (classification.colorKey === 'amber') return '#f59e0b';
+                            return '#3b82f6';
+                        })()}
+                        delay={0.15}
+                        isRating
+                        ratingLabel={classification.short}
+                        motivation={classification.motivation}
+                    />
+                    <button
+                        onClick={() => setIsEditingGpa(true)}
+                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 opacity-0 group-hover/gpa:opacity-100 transition-all text-white/40 hover:text-white/80"
+                        title="Edit Previous Academic History"
+                    >
+                        <Settings className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+                <StatCard
+                    icon={<Award className="w-4 h-4" />}
+                    label="Progress %"
+                    value={`${progressPct}%`}
+                    sub="Completed"
+                    color="#10b981"
+                    delay={0.2}
+                />
+                <StatCard
+                    icon={<Clock className="w-4 h-4" />}
+                    label="CH Left"
+                    value={totalRemaining.toString()}
+                    sub="CH"
+                    color="#f59e0b"
+                    delay={0.25}
+                />
+                <StatCard
+                    icon={<CheckCircle className="w-4 h-4" />}
+                    label="Courses"
+                    value={completedCount.toString()}
+                    sub="Completed"
+                    color="#3b82f6"
+                    delay={0.3}
+                />
+                <StatCard
+                    icon={<Star className="w-4 h-4" />}
+                    label="Status"
+                    value={studentTitle}
+                    sub="Tier"
+                    color="#ec4899"
+                    delay={0.35}
+                    isText
+                />
             </div>
 
             {/* ── What's Next: Smart Progress ──────────────── */}
@@ -176,13 +317,35 @@ export default function StudentDashboard({
                 transition={{ delay: 0.3, duration: 0.8 }}
                 className="rounded-[40px] p-8 glass-card-premium group/next"
             >
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 rounded-2xl bg-violet-600/10 flex items-center justify-center border border-violet-500/20 group-hover/next:scale-110 transition-transform">
-                        <Target className="w-5 h-5 text-violet-400" />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 justify-between w-full relative z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-violet-600/10 flex items-center justify-center border border-violet-500/20 shrink-0 group-hover/next:scale-110 transition-transform">
+                            <Target className="w-5 h-5 text-violet-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.25em]">Critical Roadmap</h3>
+                            <p className="text-[10px] text-white/20 font-bold">{totalRemaining} Credit Hours to go</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.25em]">Critical Roadmap</h3>
-                        <p className="text-[10px] text-white/20 font-bold">{totalRemaining} Credit Hours to go</p>
+                    <div className="w-full sm:flex-1 sm:max-w-xs flex flex-col gap-1.5 transition-opacity mt-4 sm:mt-0">
+                        <div className="flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
+                            <span className="text-white/30">Overall</span>
+                            <span className="text-violet-400">{overallRoadmapPct}%</span>
+                        </div>
+                        <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-[1px]">
+                            <motion.div
+                                className="h-full rounded-full relative"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${overallRoadmapPct}%` }}
+                                transition={{ duration: 1.5, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                style={{
+                                    background: `linear-gradient(90deg, #8b5cf680, #c084fc)`,
+                                    boxShadow: `0 0 15px #8b5cf630`,
+                                }}
+                            >
+                                <div className="absolute inset-x-0 bottom-0 h-[20%] bg-white/20" />
+                            </motion.div>
+                        </div>
                     </div>
                 </div>
 
@@ -208,7 +371,7 @@ export default function StudentDashboard({
                                         <span className="text-[10px] text-white/20">/ {cat.totalCH}</span>
                                     </div>
                                 </div>
-                                <div className="h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5 p-0.5">
+                                <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-[1px]">
                                     <motion.div
                                         className="h-full rounded-full relative"
                                         initial={{ width: 0 }}
@@ -227,6 +390,59 @@ export default function StudentDashboard({
                     })}
                 </div>
             </motion.div>
+
+            {/* GPA Edit Modal Overlay */}
+            {isEditingGpa && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#111] border border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl"
+                    >
+                        <h3 className="text-lg font-bold text-white mb-2">Previous Academic History</h3>
+                        <p className="text-xs text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label htmlFor="prevGpaInput" className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">Previous CGPA (e.g. 3.45)</label>
+                                <input
+                                    id="prevGpaInput"
+                                    type="number" step="0.01" min="0" max="4"
+                                    value={editGpa} onChange={e => setEditGpa(e.target.value)}
+                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="prevCreditsInput" className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">Previous Credits Earned</label>
+                                <input
+                                    id="prevCreditsInput"
+                                    type="number" step="1" min="0"
+                                    value={editCredits} onChange={e => setEditCredits(e.target.value)}
+                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setIsEditingGpa(false)}
+                                className="flex-1 py-3 text-sm font-bold text-white/60 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSavePreviousGpa}
+                                disabled={savingGpa}
+                                className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-50"
+                            >
+                                {savingGpa ? "Saving..." : "Save History"}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </motion.div>
     );
 }
@@ -235,7 +451,7 @@ export default function StudentDashboard({
    Stat Card Sub-component
    ═══════════════════════════════════════════════════════════════════ */
 
-function StatCard({ icon, label, value, sub, color, delay, progress, isText, isRating, ratingLabel, motivation }: {
+function StatCard({ icon, label, value, sub, color, delay, progress, isText, isRating, ratingLabel, motivation }: Readonly<{
     icon: React.ReactNode;
     label: string;
     value: string;
@@ -247,7 +463,7 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText, isR
     isRating?: boolean;
     ratingLabel?: string;
     motivation?: string;
-}) {
+}>) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.97 }}

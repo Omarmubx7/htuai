@@ -1,0 +1,29 @@
+
+> smart-advisor-ui@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  Γ£ô optimizeCss
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 4.1s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+Error [PrismaClientConstructorValidationError]: Unknown property datasourceUrl provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+    at module evaluation (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[root-of-the-server]__a936c310._.js:1:1226)
+    at instantiateModule (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[turbopack]_runtime.js:763:12)
+    at Context.esmImport [as i] (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[turbopack]_runtime.js:228:20)
+    at module evaluation (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[root-of-the-server]__a936c310._.js:9:4070)
+    at instantiateModule (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[turbopack]_runtime.js:740:9)
+    at instantiateRuntimeModule (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[turbopack]_runtime.js:768:12)
+    at getOrInstantiateRuntimeModule (C:\Users\omara\htuai\smart-advisor-ui\.next\server\chunks\[turbopack]_runtime.js:781:12)
+
+> Build error occurred
+Error: Failed to collect page data for /api/profile/[studentId]/save
+    at ignore-listed frames {
+  type: 'Error'
+}

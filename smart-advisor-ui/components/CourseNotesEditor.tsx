@@ -266,8 +266,28 @@ export default function CourseNotesEditor({
       </header>
 
       {/* Editor Main Surface */}
-      <main className="flex-1 w-full max-w-4xl mx-auto relative pt-8 pb-32">
-        {/* Bubble Menu */}
+      <main className="flex-1 w-full max-w-4xl mx-auto relative pt-4 pb-32 flex flex-col">
+        {/* Desktop Static Toolbar */}
+        {editor && (
+          <div className="hidden sm:flex items-center gap-1 p-2 bg-white/5 border border-white/10 rounded-2xl mb-4 self-start sticky top-[88px] z-30 backdrop-blur-xl">
+            <button title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bold") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Bold className="w-4 h-4" /></button>
+            <button title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("italic") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Italic className="w-4 h-4" /></button>
+            <button title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("underline") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><UnderlineIcon className="w-4 h-4" /></button>
+            <button title="Strikethrough" onClick={() => editor.chain().focus().toggleStrike().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("strike") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Strikethrough className="w-4 h-4" /></button>
+            <button title="Highlight" onClick={() => editor.chain().focus().toggleHighlight().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("highlight") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Highlighter className="w-4 h-4" /></button>
+            <div className="w-px h-6 bg-white/10 mx-1" />
+            <button title="Heading 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 1 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Heading1 className="w-4 h-4" /></button>
+            <button title="Heading 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 2 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Heading2 className="w-4 h-4" /></button>
+            <button title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bulletList") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><List className="w-4 h-4" /></button>
+            <button title="Task List" onClick={() => editor.chain().focus().toggleTaskList().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("taskList") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><CheckSquare className="w-4 h-4" /></button>
+            <button title="Quote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("blockquote") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Quote className="w-4 h-4" /></button>
+            <button title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("codeBlock") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Code className="w-4 h-4" /></button>
+            <div className="w-px h-6 bg-white/10 mx-1" />
+            <button title="Link" onClick={setLink} className={`p-2 rounded-xl transition-all ${editor.isActive("link") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><LinkIcon className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        {/* Bubble Menu (Still useful for quick formatting on selection) */}
         {editor && (
           <BubbleMenu editor={editor} className="flex items-center gap-1 p-1.5 bg-[#121212]/95 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl z-50">
             <button onClick={() => editor.chain().focus().toggleBold().run()} className={`bubble-menu-btn ${editor.isActive("bold") ? "is-active" : ""}`}><Bold className="w-4 h-4" /></button>
@@ -280,7 +300,9 @@ export default function CourseNotesEditor({
           </BubbleMenu>
         )}
 
-        <EditorContent editor={editor} />
+        <div className="flex-1 w-full bg-transparent border-none">
+          <EditorContent editor={editor} />
+        </div>
       </main>
 
       {/* Mobile Toolbar (Bottom Floating) */}

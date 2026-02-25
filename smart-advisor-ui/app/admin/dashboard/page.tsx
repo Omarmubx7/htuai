@@ -9,8 +9,10 @@ import {
     Eye, Clock, ArrowUpRight, Database,
     Search, ChevronUp, ChevronDown, RefreshCw,
     Flame, BarChart3, ArrowUp, ArrowDown, Filter,
-    GraduationCap, Zap
+    GraduationCap, Zap, Terminal
 } from 'lucide-react';
+import Image from 'next/image';
+import ThemeToggle from "@/components/ThemeToggle";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types
@@ -19,7 +21,18 @@ import {
 interface TopCourse { code: string; name: string; count: number; ch?: number }
 interface TrafficDay { date: string; count: number }
 interface DeviceEntry { os: string; browser: string; count: number }
-interface ActivityEntry { type: string; student_id: string; detail: string; time: string }
+interface ActivityEntry {
+    type: string;
+    student_id: string;
+    detail: string;
+    time: string;
+    ip?: string;
+    userAgent?: string;
+    vendor?: string;
+    model?: string;
+    os?: string;
+    browser?: string;
+}
 interface StudentRow { student_id: string; major: string; count: number; ch?: number; goal?: number }
 interface HeatmapCell { day: number; hour: number; count: number }
 
@@ -39,12 +52,15 @@ interface Stats {
     recentActivity: ActivityEntry[];
     heatmap: HeatmapCell[];
     students: StudentRow[];
+    adminLogs: any[];
     avgWeightedProgress?: number;
+    avgCgpa?: number;
+    avgStudyHours?: number;
 }
 
 type SortKey = 'student_id' | 'major' | 'count' | 'ch';
 type SortDir = 'asc' | 'desc';
-type TabKey = 'overview' | 'students' | 'visitors';
+type TabKey = 'overview' | 'students' | 'visitors' | 'logs';
 
 /* ═══════════════════════════════════════════════════════════════════
    Design Tokens
@@ -170,9 +186,9 @@ function DashboardInner() {
     }, [adminSecret]);
 
     useEffect(() => {
-        fetchData();
+        const timer = setTimeout(() => fetchData(), 0);
         const interval = setInterval(() => fetchData(true), AUTO_REFRESH_INTERVAL);
-        return () => clearInterval(interval);
+        return () => { clearTimeout(timer); clearInterval(interval); };
     }, [fetchData]);
 
     const filteredStudents = useMemo(() => {
@@ -212,10 +228,11 @@ function DashboardInner() {
         { key: 'overview', label: 'Overview', icon: <BarChart3 className="w-3.5 h-3.5" /> },
         { key: 'students', label: 'Students', icon: <GraduationCap className="w-3.5 h-3.5" /> },
         { key: 'visitors', label: 'Visitors', icon: <Eye className="w-3.5 h-3.5" /> },
+        { key: 'logs', label: 'Logs', icon: <Terminal className="w-3.5 h-3.5" /> },
     ];
 
     return (
-        <div className="min-h-screen text-white" style={{ background: 'linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%)' }}>
+        <div className="min-h-screen text-white">
 
             {/* Ambient effects */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -238,7 +255,8 @@ function DashboardInner() {
                     <div>
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-600/10 border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.2)] overflow-hidden">
-                                <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4 object-contain" />
+                                <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="object-contain dark-logo" />
+                                <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="object-contain light-logo" />
                             </div>
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
                                 style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.2)' }}>
@@ -259,13 +277,16 @@ function DashboardInner() {
                             {lastFetched ? `Updated ${timeAgo(lastFetched.toISOString())} · Auto-refreshes every 30s` : 'Loading...'}
                         </p>
                     </div>
-                    <button onClick={() => fetchData(true)} disabled={refreshing}
-                        className="group flex items-center gap-2 text-[11px] font-medium text-white/30 hover:text-white/60 transition-all duration-300 px-4 py-2.5 rounded-xl
+                    <div className="flex items-center gap-3">
+                        <ThemeToggle />
+                        <button onClick={() => fetchData(true)} disabled={refreshing}
+                            className="group flex items-center gap-2 text-[11px] font-medium text-white/30 hover:text-white/60 transition-all duration-300 px-4 py-2.5 rounded-xl
                         border border-white/[0.06] hover:border-white/10 hover:shadow-lg hover:shadow-violet-500/5"
-                        style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
-                        <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-500 ${refreshing ? 'animate-spin' : 'group-hover:rotate-90'}`} />
-                        {refreshing ? 'Refreshing...' : 'Refresh'}
-                    </button>
+                            style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
+                            <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-500 ${refreshing ? 'animate-spin' : 'group-hover:rotate-90'}`} />
+                            {refreshing ? 'Refreshing...' : 'Refresh'}
+                        </button>
+                    </div>
                 </motion.div>
 
                 {/* ─── Controls Row ────────────────────────────────── */}
@@ -316,6 +337,11 @@ function DashboardInner() {
                             <VisitorsTab stats={stats} totalDeviceCount={totalDeviceCount} />
                         </motion.div>
                     )}
+                    {tab === 'logs' && (
+                        <motion.div key="logs" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
+                            <LogsTab logs={stats.adminLogs} />
+                        </motion.div>
+                    )}
                 </AnimatePresence>
 
                 <div className="text-center text-[10px] text-white/10 pt-6 pb-10 font-bold tracking-widest uppercase">
@@ -343,12 +369,14 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
     return (
         <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
                 <StatCard icon={<Users className="w-4 h-4" />} label="Total Students" value={animStudents} gradient="from-violet-500/20 to-purple-500/5" iconBg="#7c3aed" delay={0} />
                 <StatCard icon={<Eye className="w-4 h-4" />} label="Total Visits" value={animVisitors} gradient="from-blue-500/20 to-cyan-500/5" iconBg="#2563eb" delay={0.04}
                     badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
-                <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.16} />
-                <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.2} />
+                <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.08} />
+                <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.12} />
+                <StatCard icon={<Zap className="w-4 h-4" />} label="Avg CGPA" value={(stats.avgCgpa || 0).toFixed(2)} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#10b981" delay={0.16} />
+                <StatCard icon={<Clock className="w-4 h-4" />} label="Avg Study Time" value={`${stats.avgStudyHours || 0}h`} gradient="from-orange-500/20 to-yellow-500/5" iconBg="#f59e0b" delay={0.2} />
             </div>
 
             {/* Traffic Chart — Professional SVG Area Chart */}
@@ -460,7 +488,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
     search: string; setSearch: (s: string) => void;
     sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
 }) {
-    const SortIcon = ({ col }: { col: SortKey }) => {
+    const renderSortIcon = (col: SortKey) => {
         if (sortKey !== col) return <ChevronDown className="w-3 h-3 text-white/10" />;
         return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-violet-400/70" /> : <ChevronDown className="w-3 h-3 text-violet-400/70" />;
     };
@@ -484,10 +512,10 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                     <thead>
                         <tr className="border-b border-white/[0.04]">
                             <Th>#</Th>
-                            <Th sortable onClick={() => toggleSort('student_id')}>Student ID <SortIcon col="student_id" /></Th>
-                            <Th sortable onClick={() => toggleSort('major')}>Major <SortIcon col="major" /></Th>
-                            <Th sortable onClick={() => toggleSort('count')}>Courses <SortIcon col="count" /></Th>
-                            <Th sortable onClick={() => toggleSort('ch')}>CH <SortIcon col="ch" /></Th>
+                            <Th sortable onClick={() => toggleSort('student_id')}>Student ID {renderSortIcon('student_id')}</Th>
+                            <Th sortable onClick={() => toggleSort('major')}>Major {renderSortIcon('major')}</Th>
+                            <Th sortable onClick={() => toggleSort('count')}>Courses {renderSortIcon('count')}</Th>
+                            <Th sortable onClick={() => toggleSort('ch')}>CH {renderSortIcon('ch')}</Th>
                             <Th>Progress</Th>
                         </tr>
                     </thead>
@@ -539,6 +567,40 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
    Visitors Tab
    ═══════════════════════════════════════════════════════════════════ */
 
+function LogsTab({ logs }: { logs: any[] }) {
+    if (!logs || logs.length === 0) return <Empty text="No system logs found" />;
+
+    return (
+        <GlassCard delay={0.05} scrollable>
+            <div className="sticky top-0 z-10 pb-4 -mt-1"
+                style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
+                <CardHeader icon={<Terminal className="w-4 h-4" />} title="System Activity Logs" iconColor="#a78bfa"
+                    right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{logs.length} entries</span>} />
+            </div>
+            <div className="space-y-1 mt-2">
+                {logs.map((log, i) => (
+                    <div key={log.id} className="group hover:bg-white/[0.015] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/[0.04]">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${log.type === 'error' ? 'text-rose-400 bg-rose-500/10' : log.type === 'warning' ? 'text-amber-400 bg-amber-500/10' : 'text-cyan-400 bg-cyan-500/10'}`}>
+                                {log.type}
+                            </span>
+                            <span className="text-[10px] text-white/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
+                        </div>
+                        <p className="text-xs text-white/70 font-medium mb-1">{log.message}</p>
+                        {log.details && Object.keys(log.details).length > 0 && (
+                            <div className="mt-1.5 p-2 rounded-lg bg-black/40 border border-white/5 overflow-x-auto">
+                                <pre className="text-[10px] text-white/30 font-mono italic">
+                                    {JSON.stringify(log.details, null, 2)}
+                                </pre>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </GlassCard>
+    );
+}
+
 function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCount: number }) {
     return (
         <>
@@ -583,23 +645,40 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
                     </div>
                     <div className="space-y-1">
                         {stats.recentActivity.map((act, i) => {
-                            const icon = <ArrowUpRight className="w-3 h-3 text-blue-400/60" />;
+                            const icon = <Activity className="w-3 h-3 text-blue-400/60" />;
                             const iconBg = 'rgba(59,130,246,0.1)';
                             const borderColor = 'rgba(59,130,246,0.15)';
 
                             return (
                                 <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
-                                    className="flex items-start gap-3 hover:bg-white/[0.015] rounded-xl px-2 py-2 -mx-1 transition-all duration-200 cursor-default">
-                                    <div className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                                        style={{ background: `linear-gradient(135deg, ${iconBg}, transparent)`, border: `1px solid ${borderColor}` }}>
-                                        {icon}
+                                    className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-white/[0.015] border border-transparent hover:border-white/[0.05] transition-all duration-200 cursor-default">
+                                    <div className="flex items-start gap-3">
+                                        <div className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                                            style={{ background: `linear-gradient(135deg, ${iconBg}, transparent)`, border: `1px solid ${borderColor}` }}>
+                                            {icon}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="text-xs text-white/45 font-medium truncate">
+                                                    <span className="font-mono text-white/30">{act.student_id === 'Anonymous' ? 'Anon' : `${act.student_id}`}</span>{' '}
+                                                    • {act.ip}
+                                                </p>
+                                                <p className="text-[10px] text-white/15 tabular-nums shrink-0">{timeAgo(act.time)}</p>
+                                            </div>
+                                            <p className="text-[11px] text-white/70 mt-0.5 font-semibold">
+                                                {act.detail}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-xs text-white/45 font-medium">
-                                            <span className="font-mono text-white/30">{act.student_id === 'Anonymous' ? 'Anon' : `...${act.student_id.slice(-4)}`}</span>{' '}
-                                            {act.detail}
-                                        </p>
-                                        <p className="text-[10px] text-white/15 mt-0.5">{timeAgo(act.time)}</p>
+                                    <div className="flex flex-wrap gap-2 ml-10">
+                                        <span className="px-1.5 py-0.5 rounded bg-white/[0.03] text-[9px] text-white/30 font-medium">
+                                            {act.os} · {act.browser}
+                                        </span>
+                                        {act.vendor && (
+                                            <span className="px-1.5 py-0.5 rounded bg-white/[0.03] text-[9px] text-white/30 font-medium">
+                                                {act.vendor}
+                                            </span>
+                                        )}
                                     </div>
                                 </motion.div>
                             );
@@ -627,13 +706,8 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
 function GlassCard({ children, delay = 0, scrollable }: { children: React.ReactNode; delay?: number; scrollable?: boolean }) {
     return (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.4 }}
-            className={`rounded-2xl p-5 sm:p-6 ${scrollable ? 'max-h-[480px] overflow-y-auto' : ''}`}
-            style={{
-                background: 'linear-gradient(135deg, rgba(14,14,24,0.8), rgba(10,10,18,0.6))',
-                border: '1px solid rgba(255,255,255,0.04)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.02)',
-            }}>
+            className={`premium-card p-5 sm:p-6 ${scrollable ? 'max-h-[480px] overflow-y-auto' : ''}`}
+        >
             {children}
         </motion.div>
     );
@@ -661,12 +735,8 @@ function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: {
 }) {
     return (
         <motion.div initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay, duration: 0.35 }}
-            className={`relative rounded-2xl p-4 flex items-center gap-3 group cursor-default overflow-hidden transition-all duration-300 hover:scale-[1.02]`}
-            style={{
-                background: 'linear-gradient(135deg, rgba(14,14,24,0.8), rgba(10,10,18,0.6))',
-                border: '1px solid rgba(255,255,255,0.04)',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
-            }}>
+            className={`relative premium-card p-4 flex items-center gap-3 group cursor-default overflow-hidden transition-all duration-300 hover:scale-[1.02]`}
+        >
             {/* Color accent glow */}
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${gradient}`} />
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-white"
@@ -1438,7 +1508,7 @@ function SkeletonLoader() {
     const shimmer = 'relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/[0.03] before:to-transparent';
 
     return (
-        <div className="min-h-screen text-white" style={{ background: 'linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%)' }}>
+        <div className="min-h-screen text-white">
             <style>{`@keyframes shimmer { to { transform: translateX(100%); } }`}</style>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
                 {/* Header skeleton */}
@@ -1467,7 +1537,7 @@ function SkeletonLoader() {
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%)' }}>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/15 flex items-center justify-center">
                 <Activity className="w-5 h-5 text-red-400/60" />
             </div>

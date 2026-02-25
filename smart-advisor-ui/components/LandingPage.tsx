@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, CheckCircle2, GraduationCap, LayoutDashboard, Calendar, ArrowRight } from "lucide-react";
+import { CheckCircle2, GraduationCap, LayoutDashboard, ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 interface LandingPageProps {
     onGetStarted: () => void;
 }
 
-export default function LandingPage({ onGetStarted }: LandingPageProps) {
+export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>) {
     const features = [
         {
             title: "Course Tracker",
@@ -30,7 +31,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
     ];
 
     return (
-        <div className="relative min-h-screen bg-[#010101] flex flex-col items-center justify-center px-4 overflow-hidden">
+        <div className="relative min-h-screen flex flex-col items-center justify-center px-4 overflow-hidden">
             {/* Phase 2: Premium Animated Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-violet-600/20 rounded-full blur-[80px] md:blur-[140px] animate-slow-glow mix-blend-screen" />
@@ -38,7 +39,6 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                 <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] bg-fuchsia-600/10 rounded-full blur-[60px] md:blur-[100px] animate-float mix-blend-screen hidden md:block" style={{ animationDelay: "-2s" }} />
 
                 {/* Mesh noise overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150" />
             </div>
 
             <main className="relative z-10 w-full max-w-6xl flex flex-col items-center text-center">
@@ -48,7 +48,8 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     className="pill-badge-premium mb-8 hover:border-violet-400/40 transition-colors cursor-default"
                 >
-                    <img src="/HTUAIlogo.svg" alt="HTUAI Logo" className="w-4 h-4 animate-pulse" />
+                    <Image priority src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="animate-pulse dark-logo" />
+                    <Image priority src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="animate-pulse light-logo" />
                     Student Success Reimagined
                 </motion.div>
 
@@ -58,8 +59,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-6xl sm:text-7xl md:text-9xl font-bold text-white tracking-[-0.04em] leading-[0.9] px-4"
-                        style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}
+                        className="text-6xl sm:text-7xl md:text-9xl font-black text-white tracking-[-0.04em] leading-[0.9] px-4 uppercase italic"
                     >
                         <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-400 to-blue-500 drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">HTUAI</span>
                     </motion.h1>
@@ -88,7 +88,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                                 duration: 0.6,
                                 ease: [0.16, 1, 0.3, 1]
                             }}
-                            className="glass-card-premium animate-shimmer p-10 rounded-[40px] text-left group cursor-default"
+                            className="premium-card p-10 text-left group cursor-default"
                         >
                             <div className="mb-8 p-4 rounded-[22px] bg-white/[0.03] w-fit border border-white/5 group-hover:bg-white/[0.06] transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-xl">
                                 {feature.icon}

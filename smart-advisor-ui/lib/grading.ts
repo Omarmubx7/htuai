@@ -9,10 +9,10 @@ export interface GradeInfo {
 }
 
 export const GRADE_MAP: Record<string, GradeInfo> = {
-    D: { label: "Distinction", points: 4.0, colorKey: "emerald" },
+    D: { label: "Distinction", points: 4, colorKey: "emerald" },
     M: { label: "Merit", points: 3.2, colorKey: "blue" },
     P: { label: "Pass", points: 2.4, colorKey: "amber" },
-    U: { label: "Unclassified", points: 1.6, colorKey: "red" },
+    U: { label: "Unclassified", points: 0, colorKey: "red" },
     WF: { label: "Withdrawal with Failure", points: 0, colorKey: "red" },
     TC: { label: "Transfer Credits", points: 0, colorKey: "gray" },
     X: { label: "Course not Included in the Study Plan", points: 0, colorKey: "gray" },
@@ -22,7 +22,7 @@ export const SCORED_GRADES: HTUGrade[] = ["D", "M", "P", "U"];
 export const MIN_PASS_POINTS = 2.4;
 
 export const CUMULATIVE_CLASSIFICATIONS = [
-    { min: 3.6, max: 4.0, label: "Excellent (EX)", short: "EX", colorKey: "emerald", motivation: "Elite status! You're crushing it." },
+    { min: 3.6, max: 4, label: "Excellent (EX)", short: "EX", colorKey: "emerald", motivation: "Elite status! You're crushing it." },
     { min: 3.2, max: 3.59, label: "Very Good (VG)", short: "VG", colorKey: "blue", motivation: "Outstanding! Keep pushing for Distinction." },
     { min: 2.8, max: 3.19, label: "Good", short: "Good", colorKey: "violet", motivation: "Solid performance. You're doing great!" },
     { min: 2.4, max: 2.79, label: "Satisfactory", short: "SAT", colorKey: "amber", motivation: "On the right track. Every credit counts!" },
@@ -86,5 +86,5 @@ export function getClassification(gpa: number) {
     for (const c of CUMULATIVE_CLASSIFICATIONS) {
         if (gpa >= c.min && gpa <= c.max) return c;
     }
-    return CUMULATIVE_CLASSIFICATIONS[CUMULATIVE_CLASSIFICATIONS.length - 1];
+    return CUMULATIVE_CLASSIFICATIONS.at(-1)!;
 }

@@ -1,0 +1,66 @@
+
+> smart-advisor-ui@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  Γ£ô optimizeCss
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 4.3s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/25) ...
+  Generating static pages using 11 workers (6/25) 
+  Generating static pages using 11 workers (12/25) 
+  Generating static pages using 11 workers (18/25) 
+Γ£ô Generating static pages using 11 workers (25/25) in 427.2ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî ╞Æ /
+Γö£ ╞Æ /_not-found
+Γö£ ╞Æ /admin/dashboard
+Γö£ ╞Æ /admin/logs
+Γö£ ╞Æ /api/admin/logs
+Γö£ ╞Æ /api/admin/stats
+Γö£ ╞Æ /api/auth/[...nextauth]
+Γö£ ╞Æ /api/auth/signin/credentials
+Γö£ ╞Æ /api/courses
+Γö£ ╞Æ /api/courses/[courseId]/notes
+Γö£ ╞Æ /api/create-test-user
+Γö£ ╞Æ /api/debug-db
+Γö£ ╞Æ /api/gamification/profile
+Γö£ ╞Æ /api/gamification/quests
+Γö£ ╞Æ /api/integrations/google-calendar
+Γö£ ╞Æ /api/integrations/google-calendar/callback
+Γö£ ╞Æ /api/integrations/status
+Γö£ ╞Æ /api/planner/courses
+Γö£ ╞Æ /api/planner/courses/[id]
+Γö£ ╞Æ /api/planner/semesters
+Γö£ ╞Æ /api/planner/semesters/[id]
+Γö£ ╞Æ /api/planner/study-sessions
+Γö£ ╞Æ /api/planner/summary
+Γö£ ╞Æ /api/profile/[studentId]
+Γö£ ╞Æ /api/profile/[studentId]/save
+Γö£ ╞Æ /api/progress/[studentId]
+Γö£ ╞Æ /api/progress/[studentId]/save
+Γö£ ╞Æ /api/reset
+Γö£ ╞Æ /api/setup
+Γö£ ╞Æ /courses/[courseId]/notes
+Γö£ ╞Æ /planner
+Γö£ ╞Æ /planner/courses/[id]
+Γö£ ╞Æ /planner/gamification
+Γö£ ╞Æ /planner/semesters
+Γö£ ╞Æ /planner/semesters/[id]
+Γö£ ╞Æ /planner/settings
+Γö£ ╞Æ /privacy
+Γö£ Γùï /robots.txt
+Γö£ Γùï /sitemap.xml
+Γöö ╞Æ /terms
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

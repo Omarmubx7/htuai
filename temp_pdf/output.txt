@@ -1,0 +1,2224 @@
+http://localhost:3000/
+There were issues affecting this run of Lighthouse:
+Chrome ext ensions negativ ely affect ed this p age's load per formance. T ry auditing the p age in
+incognit o mode or fr om a Chr ome pr ofile without ext ensions.
+The p age lo aded t oo slowly t o finish within the time limit. R esults may be incomplet e.
+Values are estimated and may vary. The performance score is
+calculated  directly from these metrics. See calculator.
+0–49 50–89 90–100
+Performance
+38
+Accessibility
+100
+Best
+Practices
+92
+SEO
+100
+38
+Performance
+METRICS Expand view
+First Contentful P aint
+1.5 sLargest Contentful P aint
+10.6 s
+Total Blocking Time
+7,060 msCumulative Layout Shift
+0
+Speed Index
+6.9 s2/25/26, 12:26 PM about:blank
+about:blank 1/75Show audits relevant to: AllFCPLCPTBT
+INSIGHTS
+Legacy JavaScript  —Est savings of 8 KiB
+Polyfills and transforms enable older browsers to use new JavaScript features. However, many aren't necessary for modern
+browsers. Consider modifying your JavaScript build process to not transpile Baseline  features, unless you know you must
+support older browsers. Learn why most sites can deploy ES6+ code without transpiling FCPLCPUnscored
+Forced reflow
+A forced reflow occurs when JavaScript queries geometric properties (such as offsetWidth ) after styles have been
+invalidated by a change to the DOM state. This can result in poor performance. Learn more about forced reflows  and
+possible mitigations. Unscored
+LCP breakdown
+Each subpart has specific improvement strategies . Ideally, most of the L CP time should be spent on loading the resources,
+not within delays. LCPUnscoredlocalhost 1st Party 8.3 KiB
+…chunks/node_modules_next_dist_f3530cac._.js 8.3 KiB
+node_modules_next_dist_f3530cac._.js:36 Array.prototype.at
+node_modules_next_dist_f3530cac._.js:16 Array.prototype.flat
+node_modules_next_dist_f3530cac._.js:18 Array.prototype.flatMap
+node_modules_next_dist_f3530cac._.js:32 Object.fromEntries
+node_modules_next_dist_f3530cac._.js:39 Object.hasOwn
+node_modules_next_dist_f3530cac._.js:10 String.prototype.trimEnd
+node_modules_next_dist_f3530cac._.js:10 String.prototype.trimStart
+(localhost)
+inpage.js:167 50 ms
+installHook.js:1 50 ms
+[unattributed] 0 ms
+node_modules_11e7c078._.js:3965 1 ms
+node_modules_11e7c078._.js:6799 1 msURL Wasted by tes
+Top function call Total r eflow time
+Sour ce Total r eflow time2/25/26, 12:26 PM about:blank
+about:blank 2/75Network dependency tree
+Avoid chaining critical requests  by reducing the length of chains, reducing the download size of resources, or deferring the
+download of unnecessary resources to improve page load. LCPUnscored
+Maximum critical path latency:  5,018 ms
+Initial Navigation
+http://localhost:3000  - 308 ms, 12.15 KiB
+/collect  - 5,018 ms, 0.32 KiB
+/collect  - 4,818 ms, 0.32 KiB
+/collect  - 4,769 ms, 0.00 KiB
+/collect  - 4,581 ms, 0.00 KiB
+/collect  - 4,347 ms, 0.00 KiB
+/collect  - 4,040 ms, 0.00 KiB
+/collect  - 4,031 ms, 0.00 KiB
+Preconnected origins
+preconnect  hints help the browser establish a connection earlier in the page load, saving time when the first
+request for that origin is made. The following are the origins that the page preconnected to.
+no origins were preconnected
+Preconnect candidates
+Add preconnect  hints to your most important origins, but try to use no more than 4.
+No additional origins are good candidates for preconnecting
+3rd partiesTime to first byte 60 ms
+Element render delay 3,520 ms
+h1.text-3xl .sm:text-4xl .md:text-5xl .font-black .text-white .tracking-tight .leading-none .text-gradient
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)Subp art Duration2/25/26, 12:26 PM about:blank
+about:blank 3/753rd party code can significantly impact load performance. Reduce and defer loading of 3rd party code  to prioritize your
+page's content. Unscored
+egjidjbpglichdcondbcbdnbeeppgdph 0 KiB 1,732 ms
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/inpage.js 0 KiB 1,680 ms
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/oneTap.js 0 KiB 45 ms
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/content.js 0 KiB 6 ms
+mhpjgcccinlocgiklkfllehilgmcnimp 0 KiB 1,006 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main.js 0 KiB 698 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 0 KiB 171 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/floating-
+pill.js0 KiB 104 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/research-
+widget.js0 KiB 18 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main-pre.js 0 KiB 15 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/sidepanel-
+pre.js0 KiB 2 ms
+djbbokpfbbipcdnodgadkidppckgajgp 0 KiB 39 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/jquery/jquery-3.5.1.min.js 0 KiB 12 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/lodash/lodash.min.js 0 KiB 10 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/arrive/arrive.min.js 0 KiB 4 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/content.js 0 KiB 4 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/selectable/selectable.js 0 KiB 2 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/iframeListener.js 0 KiB 2 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/polyfills/browser-
+polyfill.min.js0 KiB 2 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/jquery/jquery-ui.min.js 0 KiB 1 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/shortcut.js 0 KiB 1 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/screenshot.js 0 KiB 0 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/settingsManager.js 0 KiB 0 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/config.js 0 KiB 0 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/common.js 0 KiB 0 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/limit.js 0 KiB 0 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/login.js 0 KiB 0 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/review.js 0 KiB 0 ms3rd partyTransfer
+sizeMain thr ead
+time2/25/26, 12:26 PM about:blank
+about:blank 4/75These insights are also available in the Chrome DevT ools P erformance P anel - record a trace  to view more detailed information.fmkadmapgofadopljbjfkapdkoienihi 0 KiB 21 ms
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js 0 KiB 8 ms
+chrome-
+extension://fmkadmapgofadopljbjfkapdkoienihi/build/react_devtools_backend_compact.j
+s0 KiB 6 ms
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/prepareInjection.js 0 KiB 3 ms
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/proxy.js 0 KiB 2 ms
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/backendManager.js 0 KiB 2 ms
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/hookSettingsInjector.js 0 KiB 0 ms
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/fileFetcher.js 0 KiB 0 ms
+afpgkkipfdpeaflnpoaffkcankadgjfc 0 KiB 18 ms
+chrome-extension://afpgkkipfdpeaflnpoaffkcankadgjfc/content-scripts/content.js 0 KiB 18 ms
+cpofhfeclnhnhodbcabgcihloffdpgpd 0 KiB 9 ms
+chrome-extension://cpofhfeclnhnhodbcabgcihloffdpgpd/content.js 0 KiB 9 ms
+ogdlpmhglpejoiomcodnpjnfgcpmgale 0 KiB 2 ms
+chrome-extension://ogdlpmhglpejoiomcodnpjnfgcpmgale/content.js 0 KiB 2 ms
+lahhiofdgnbcgmemekkmjnpifojdaelb 0 KiB 2 ms
+chrome-extension://lahhiofdgnbcgmemekkmjnpifojdaelb/src/content/toolbar-injector.js 0 KiB 2 ms
+clngdbkpkpeebahjckkjfobafhncgmne 0 KiB 2 ms
+chrome-extension://clngdbkpkpeebahjckkjfobafhncgmne/js/apply.js 0 KiB 2 ms
+npclhjbddhklpbnacpjloidibaggcgon 0 KiB 1 ms
+chrome-extension://npclhjbddhklpbnacpjloidibaggcgon/content.js 0 KiB 1 ms
+chrome-extension://npclhjbddhklpbnacpjloidibaggcgon/events.js 0 KiB 0 ms
+paperpal.com 1 KiB 0 ms
+/collect 1 KiB 0 ms
+(grafana-faro.monitoring.cicd.k8s.paperpal.com)
+DIAGNOSTICS
+Minimize main-thread work  —69.4 s
+Consider reducing the time spent parsing, compiling and executing JS. Y ou may find delivering smaller JS payloads helps
+with this. Learn how to minimize main-thread work TBTUnscored3rd partyTransfer
+sizeMain thr ead
+time2/25/26, 12:26 PM about:blank
+about:blank 5/75 Show 3rd-party resources  (5)Reduce JavaScript execution time  —12.4 s
+Consider reducing the time spent parsing, compiling, and executing JS. Y ou may find delivering smaller JS payloads helps
+with this. Learn how to reduce Javascript execution time .TBTUnscoredOther 33,225 ms
+Style & Layout 15,080 ms
+Script Evaluation 9,069 ms
+Rendering 7,790 ms
+Script P arsing & Compilation 3,752 ms
+Garbage Collection 437 ms
+Parse HTML & CSS 35 ms
+localhost 1st Party 56,376 ms 1,065 ms 89
+http://localhost:3000 52,849 ms 290 ms 6
+…chunks/node_modules_11e7c078._.js 2,083 ms 321 ms
+…chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js 909 ms 346 ms
+…chunks/node_modules_next_dist_compiled_a0e4c7b4._.js 269 ms 5 ms
+…chunks/node_modules_83d40b18._.js 109 ms 61 ms
+…chunks/node_modules_next_dist_client_17643121._.js 80 ms 27 ms
+…chunks/node_modules_next_dist_compiled_next-devtools_index_….js 77 ms 15 ms
+Unattributable 8,171 ms 6,127 ms 19
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/inpage.js 6,117 ms 5,977 ms
+Unattributable 1,733 ms 39 ms
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)Category Time Spent
+URLTotal CPU
+TimeScript
+Evaluation2/25/26, 12:26 PM about:blank
+about:blank 6/75Minify JavaScript  —Est savings of 420 KiB
+Minifying JavaScript files can reduce payload sizes and script parse time. Learn how to minify JavaScript .FCPLCP
+Unscoredchrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/oneTap.js 191 ms 37 ms 1
+chrome-extension://afpgkkipfdpeaflnpoaffkcankadgjfc/content-scripts/content.js 75 ms 37 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/jquery/jquery-3.5.1.min.js 55 ms 36 ms
+Paperpal: Free Grammar Checker, AI Writing Tool & Research Assistant Chrome Extension 4,372 ms 1,721 ms 2,38
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main.js 2,980 ms 895 ms 1,94
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 816 ms 610 ms 1
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/floating-pill.js 446 ms 159 ms 2
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/research-widget.js 71 ms 29 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main-pre.js 59 ms 29 ms
+localhost 1st Party 1,120.9 KiB 397.7 KiB
+…chunks/node_modules_83d40b18._.js 163.6 KiB 64.3 KiB
+…chunks/node_modules_next_dist_client_17643121._.js 119.6 KiB 53.0 KiB
+…chunks/node_modules_highlight_c3f27ba7.js 103.1 KiB 48.7 KiB
+…chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js 177.7 KiB 48.0 KiB
+…chunks/node_modules_11e7c078._.js 154.0 KiB 38.0 KiB
+…chunks/node_modules_prosemirror-view_dist_index_21ada2c5.js 57.8 KiB 22.0 KiB
+…chunks/node_modules_%40tiptap_core_dist_f5afb391._.js 48.3 KiB 18.1 KiB
+…chunks/node_modules_%40tiptap_60f49dc3._.js 45.5 KiB 14.3 KiB
+…chunks/node_modules_9947cb1b._.js 28.5 KiB 12.6 KiB
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)URLTotal CPU
+TimeScript
+Evaluation
+URL Transfer SizeEst
+Savings2/25/26, 12:26 PM about:blank
+about:blank 7/75 Show 3rd-party resources  (5)Reduce unused JavaScript  —Est savings of 3,748 KiB
+Reduce unused JavaScript and defer loading scripts until they are required to decrease bytes consumed by network activity.
+Learn how to reduce unused JavaScript .FCPLCPUnscored…chunks/node_modules_next_dist_f3530cac._.js 38.0 KiB 12.3 KiB
+…chunks/node_modules_next_dist_compiled_a0e4c7b4._.js 27.7 KiB 11.9 KiB
+…chunks/_9cb896ca._.js 32.7 KiB 11.8 KiB
+…chunks/node_modules_next_dist_compiled_react-server-dom-tur….js 30.2 KiB 10.4 KiB
+…chunks/turbopack-_23a915ee._.js 18.1 KiB 8.9 KiB
+…chunks/node_modules_next_dist_be32b49c._.js 21.7 KiB 8.9 KiB
+…chunks/_30327fb8._.js 17.1 KiB 6.5 KiB
+…chunks/node_modules_%40floating-ui_72928cc6._.js 19.2 KiB 5.4 KiB
+…chunks/node_modules_%40popperjs_core_lib_a6f1ab07._.js 17.9 KiB 2.6 KiB
+Unattributable 49.3 KiB 22.5 KiB
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/selectable/selectable.js 22.3 KiB 13.6 KiB
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/content.js 27.0 KiB 8.9 KiB
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+Paperpal: Free Grammar Checker, AI Writing Tool & Research Assistant Chrome Extension 6,731.6 KiB 2,198.7 KiB
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main.js 5,561.0 KiB 1,647.5 KiB
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/floating-pill.js 731.5 KiB 299.0 KiB
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 258.9 KiB 124.6 KiB
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/research-widget.js 104.7 KiB 82.1 KiB
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main-pre.js 75.6 KiB 45.4 KiBURL Transfer SizeEst
+Savings
+URL Transfer Size Est Savings2/25/26, 12:26 PM about:blank
+about:blank 8/75Page prevented back/forward cache restoration  —5 failure reasons
+Many navigations are performed by going back to a previous page, or forwards again. The back/forward cache (bfcache) can
+speed up these return navigations. Learn more about the bfcache UnscoredUnattributable 1,400.7 KiB 1,006.9 KiB
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/inpage.js 901.5 KiB 620.7 KiB
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/oneTap.js 296.3 KiB 226.1 KiB
+chrome-extension://afpgkkipfdpeaflnpoaffkcankadgjfc/content-scripts/content.js 89.4 KiB 78.9 KiB
+chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js 57.6 KiB 36.1 KiB
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/content.js 27.0 KiB 24.3 KiB
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/jquery/jquery-3.5.1.min.js 28.8 KiB 20.9 KiB
+localhost 1st Party 985.1 KiB 542.4 KiB
+…chunks/node_modules_next_dist_compiled_next-devtools_index_….js 218.8 KiB 143.8 KiB
+…chunks/node_modules_83d40b18._.js 163.4 KiB 108.9 KiB
+…chunks/node_modules_next_dist_client_17643121._.js 119.6 KiB 66.2 KiB
+…chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js 177.7 KiB 55.6 KiB
+…chunks/node_modules_prosemirror-view_dist_index_21ada2c5.js 57.8 KiB 51.4 KiB
+…chunks/node_modules_%40tiptap_core_dist_f5afb391._.js 48.3 KiB 42.7 KiB
+…chunks/node_modules_11e7c078._.js 154.0 KiB 37.4 KiB
+…chunks/node_modules_%40tiptap_60f49dc3._.js 45.5 KiB 36.5 KiB
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+Pages with cache-control:no-store header cannot enter back/forward cache. Actionable
+http://localhost:3000
+Pages with W ebSocket cannot enter back/forward cache.Pending browser
+support
+http://localhost:3000URL Transfer Size Est Savings
+Failure reason Failure type2/25/26, 12:26 PM about:blank
+about:blank 9/75 Show 3rd-party resources  (6)Avoid long main-thread tasks  —20 long tasks found
+Lists the longest tasks on the main thread, useful for identifying worst contributors to input delay. Learn how to avoid long
+main-thread tasks TBTUnscoredPages whose main resource has cache-control:no-store cannot enter back/forward cache. Not actionable
+http://localhost:3000
+Back/forward cache is disabled because some JavaScript network request received resource
+with `Cache-Control: no-store` header.Not actionable
+http://localhost:3000
+Back/forward cache is disabled because W ebSocket has been used. Not actionable
+http://localhost:3000
+localhost 1st Party 4,779 ms
+…chunks/node_modules_11e7c078._.js 10,222 ms 895 ms
+http://localhost:3000 676 ms 880 ms
+…chunks/node_modules_next_dist_compiled_a0e4c7b4._.js 8,248 ms 776 ms
+…chunks/node_modules_11e7c078._.js 11,669 ms 535 ms
+…chunks/node_modules_next_dist_compiled_a0e4c7b4._.js 9,561 ms 451 ms
+…chunks/node_modules_11e7c078._.js 9,135 ms 379 ms
+…chunks/node_modules_next_dist_compiled_a0e4c7b4._.js 11,195 ms 336 ms
+…chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js 7,636 ms 203 ms
+…chunks/node_modules_11e7c078._.js 9,024 ms 111 ms
+…chunks/node_modules_83d40b18._.js 11,531 ms 109 ms
+…chunks/node_modules_11e7c078._.js 10,091 ms 104 ms
+Paperpal: Free Grammar Checker, AI Writing Tool & Research Assistant Chrome Extension 3,594 ms
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)Failure reason Failure type
+URL Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 10/75User Timing marks and measures  —836 user timings
+Consider instrumenting your app with the User Timing API to measure your app's real-world performance during key user
+experiences. Learn more about User Timing marks .Unscoredchrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/main.js 2,528 ms 2,731 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/floating-pill.js 2,086 ms 383 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 1,904 ms 182 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 5,259 ms 104 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 5,837 ms 100 ms
+chrome-extension://mhpjgcccinlocgiklkfllehilgmcnimp/content-scripts/chat-pdf.js 5,558 ms 94 ms
+Unattributable 450 ms
+chrome-extension://egjidjbpglichdcondbcbdnbeeppgdph/oneTap.js 1,723 ms 181 ms
+chrome-extension://djbbokpfbbipcdnodgadkidppckgajgp/polyfills/browser-polyfill.min.js 1,585 ms 138 ms
+Unattributable 5,427 ms 131 ms
+ Preloads Measure 16.20 ms 0.05 ms
+ RootLayout Measure 17.06 ms 24.68 ms
+ headers Measure 17.31 ms 18.73 ms
+await headers Measure 17.43 ms 18.61 ms
+ Home Measure 18.59 ms 0.19 ms
+ Next.MetadataOutlet Measure 19.09 ms 1.88 ms
+ NonIndex Measure 21.42 ms 0.01 ms
+ ViewportWrapper Measure 21.49 ms 4.63 ms
+ Next.Viewport Measure 21.65 ms 4.47 ms
+ MetadataWrapper Measure 22.20 ms 4.97 msURL Start Time Duration
+Name Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 11/75 Next.Metadata Measure 22.45 ms 4.72 ms
+ NotFound Measure 41.35 ms 0.39 ms
+ HTTPAccessErrorF allback Measure 41.54 ms 0.20 ms
+Cascading Update Measure 1,591.70 ms 13.00 ms
+Mount Measure 1,605.90 ms 8.40 ms
+Reconnect Measure 1,613.50 ms 0.20 ms
+Mount Measure 1,614.40 ms 0.30 ms
+Unmount Measure 1,615.10 ms 3.50 ms
+Mount Measure 1,619.40 ms 0.40 ms
+Mount Measure 1,620.00 ms 1.10 ms
+Unmount Measure 1,628.90 ms 0.30 ms
+Mount Measure 1,631.10 ms 4.40 ms
+Update Measure 2,008.30 ms 0.40 ms
+ AnimatePresence Measure 2,009.80 ms 3.40 ms
+ PresenceChild Measure 2,010.30 ms 2.90 ms
+ PopChild Measure 2,010.50 ms 2.70 ms
+ PopChildMeasure Measure 2,010.60 ms 2.60 ms
+ ForwardR ef(motion.div) Measure 2,011.70 ms 1.50 ms
+ ForwardR ef(motion.div) Measure 2,011.70 ms 1.50 ms
+ ForwardR ef Measure 2,012.40 ms 0.20 ms
+ ForwardR ef Measure 2,012.80 ms 0.10 ms
+Mount Measure 2,014.30 ms 4.50 ms
+Mount Measure 2,020.20 ms 1.00 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 12/75Mount Measure 2,032.60 ms 0.10 ms
+Cascading Update Measure 2,034.90 ms 4.50 ms
+ AnimatePresence Measure 2,040.00 ms 2.80 ms
+ PresenceChild Measure 2,040.30 ms 2.50 ms
+ PopChildMeasure Measure 2,040.40 ms 2.40 ms
+ PopChild Measure 2,040.40 ms 2.40 ms
+ ForwardR ef(motion.div) Measure 2,041.40 ms 1.40 ms
+ ForwardR ef(motion.div) Measure 2,041.40 ms 1.40 ms
+ ForwardR ef Measure 2,042.00 ms 0.10 ms
+ ForwardR ef Measure 2,042.40 ms 0.10 ms
+Update Measure 2,195.10 ms 0.30 ms
+ AnimatePresence Measure 2,196.10 ms 3.60 ms
+ PresenceChild Measure 2,196.50 ms 3.20 ms
+ PopChild Measure 2,196.80 ms 2.90 ms
+ PopChildMeasure Measure 2,197.10 ms 2.60 ms
+ ForwardR ef(motion.div) Measure 2,198.30 ms 1.40 ms
+ ForwardR ef(motion.div) Measure 2,198.30 ms 1.40 ms
+ ForwardR ef Measure 2,198.90 ms 0.20 ms
+ ForwardR ef Measure 2,199.30 ms 0.10 ms
+ LinkComponent Measure 2,200.60 ms 1.00 ms
+ ForwardR ef(motion.div) Measure 2,200.90 ms 0.40 ms
+ MeasureLayout Measure 2,201.20 ms 0.10 ms
+ LinkComponent Measure 2,201.60 ms 1.30 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 13/75 LinkComponent Measure 2,202.90 ms 1.30 ms
+Cascading Update Measure 2,212.20 ms 2.80 ms
+Update Measure 2,716.70 ms 4.30 ms
+ AnimatePresence Measure 2,721.90 ms 1.60 ms
+ PresenceChild Measure 2,722.20 ms 1.30 ms
+ PopChild Measure 2,722.50 ms 1.00 ms
+ PopChildMeasure Measure 2,722.70 ms 0.80 ms
+Update Measure 2,755.80 ms 0.40 ms
+ AnimatePresence Measure 2,759.30 ms 1.50 ms
+ PresenceChild Measure 2,759.70 ms 1.10 ms
+Cascading Update Measure 2,763.80 ms 0.80 ms
+ AnimatePresence Measure 2,767.40 ms 1.60 ms
+ PresenceChild Measure 2,767.70 ms 1.30 ms
+Update Measure 3,025.10 ms 1.10 ms
+Mount Measure 3,026.90 ms 13.60 ms
+Unmount Measure 3,040.80 ms 0.90 ms
+Mount Measure 3,043.20 ms 0.70 ms
+Mount Measure 3,045.60 ms 1.50 ms
+Mount Measure 3,064.20 ms 4.60 ms
+Promise R esolved Measure 3,146.40 ms 21.30 ms
+ ForwardR ef(motion.header) Measure 3,172.80 ms 2.60 ms
+ ForwardR ef Measure 3,173.50 ms 0.10 ms
+ ForwardR ef Measure 3,173.90 ms 0.10 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 14/75 AnimatePresence Measure 3,175.40 ms 320.60 ms
+ AnimatePresence Measure 3,175.40 ms 320.60 ms
+ PresenceChild Measure 3,175.60 ms 320.40 ms
+ PresenceChild Measure 3,175.60 ms 320.40 ms
+ ForwardR ef(motion.div) Measure 3,175.80 ms 320.20 ms
+ PopChildMeasure Measure 3,175.80 ms 320.20 ms
+ PopChild Measure 3,175.80 ms 320.20 ms
+ ForwardR ef(motion.div) Measure 3,175.80 ms 320.20 ms
+ PopChildMeasure Measure 3,175.80 ms 320.20 ms
+ PopChild Measure 3,175.80 ms 320.20 ms
+Reconnect Measure 3,176.00 ms 320.00 ms
+Reconnect Measure 3,497.60 ms 0.80 ms
+Mount Measure 3,497.60 ms 0.80 ms
+Reconnect Measure 3,500.00 ms 6.30 ms
+Reconnect Measure 3,585.60 ms 38.80 ms
+Cascading Update Measure 3,665.20 ms 42.50 ms
+ ConfirmDialog Measure 3,721.60 ms 0.20 ms
+ AnimatePresence Measure 3,721.80 ms 0.20 ms
+ ForwardR ef(motion.button) Measure 3,722.00 ms 0.70 ms
+ ForwardR ef(motion.div) Measure 3,723.80 ms 0.30 ms
+ StudentDashboard Measure 3,724.10 ms 21.90 ms
+ LinkComponent Measure 3,732.80 ms 1.40 ms
+ StatCard Measure 3,734.20 ms 1.60 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 15/75 ForwardR ef(motion.div) Measure 3,735.50 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,735.50 ms 0.30 ms
+ StatCard Measure 3,735.90 ms 1.30 ms
+ ForwardR ef(motion.div) Measure 3,736.60 ms 0.60 ms
+ StatCard Measure 3,737.60 ms 1.30 ms
+ ForwardR ef(motion.div) Measure 3,738.20 ms 0.70 ms
+ StatCard Measure 3,738.90 ms 1.40 ms
+ ForwardR ef(motion.div) Measure 3,739.60 ms 0.70 ms
+ StatCard Measure 3,740.30 ms 1.30 ms
+ ForwardR ef(motion.div) Measure 3,741.00 ms 0.60 ms
+ StatCard Measure 3,741.60 ms 1.10 ms
+ ForwardR ef(motion.div) Measure 3,742.10 ms 0.60 ms
+ ForwardR ef(motion.div) Measure 3,743.30 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 3,743.80 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 3,743.80 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 3,744.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,744.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,744.70 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,744.70 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,745.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,745.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 3,745.90 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 3,745.90 ms 0.10 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 16/75 ForwardR ef(motion.div) Measure 3,745.90 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 3,745.90 ms 0.10 ms
+ CourseCard Measure 3,747.70 ms 4.30 ms
+ ForwardR ef(motion.div) Measure 3,749.30 ms 2.70 ms
+Mount Measure 3,750.90 ms 0.40 ms
+ AnimatePresence Measure 3,751.30 ms 0.70 ms
+ PresenceChild Measure 3,751.50 ms 0.50 ms
+ PopChild Measure 3,751.70 ms 0.30 ms
+ PopChildMeasure Measure 3,751.80 ms 0.20 ms
+ CourseCard Measure 3,752.00 ms 4.00 ms
+ ForwardR ef(motion.div) Measure 3,753.50 ms 2.50 ms
+Mount Measure 3,754.90 ms 0.40 ms
+ AnimatePresence Measure 3,755.30 ms 0.70 ms
+ PresenceChild Measure 3,755.50 ms 0.50 ms
+ PopChild Measure 3,755.70 ms 0.30 ms
+ PopChildMeasure Measure 3,755.80 ms 0.20 ms
+ CourseCard Measure 3,756.00 ms 3.50 ms
+ ForwardR ef(motion.div) Measure 3,757.40 ms 2.10 ms
+Mount Measure 3,758.60 ms 0.30 ms
+ AnimatePresence Measure 3,758.90 ms 0.60 ms
+ PresenceChild Measure 3,759.10 ms 0.40 ms
+ PopChild Measure 3,759.20 ms 0.30 ms
+ PopChildMeasure Measure 3,759.30 ms 0.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 17/75 CourseCard Measure 3,759.50 ms 3.00 ms
+ ForwardR ef(motion.div) Measure 3,761.00 ms 1.50 ms
+ CourseCard Measure 3,762.50 ms 2.40 ms
+ ForwardR ef(motion.div) Measure 3,763.70 ms 1.20 ms
+ CourseCard Measure 3,764.90 ms 2.50 ms
+ ForwardR ef(motion.div) Measure 3,766.10 ms 1.30 ms
+ CourseCard Measure 3,767.40 ms 4.00 ms
+ ForwardR ef(motion.div) Measure 3,769.00 ms 2.40 ms
+Mount Measure 3,770.30 ms 0.30 ms
+ AnimatePresence Measure 3,770.60 ms 0.80 ms
+ PresenceChild Measure 3,770.90 ms 0.50 ms
+ PopChildMeasure Measure 3,771.10 ms 0.30 ms
+ PopChild Measure 3,771.10 ms 0.30 ms
+ CourseCard Measure 3,771.40 ms 4.10 ms
+ ForwardR ef(motion.div) Measure 3,772.80 ms 2.70 ms
+Mount Measure 3,774.00 ms 0.50 ms
+ AnimatePresence Measure 3,774.50 ms 1.00 ms
+ PresenceChild Measure 3,774.90 ms 0.60 ms
+ PopChild Measure 3,775.10 ms 0.40 ms
+ PopChildMeasure Measure 3,775.30 ms 0.20 ms
+Mount Measure 3,775.50 ms 0.40 ms
+ CourseCard Measure 3,776.70 ms 3.50 ms
+ ForwardR ef(motion.div) Measure 3,778.30 ms 1.90 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 18/75Mount Measure 3,779.20 ms 0.40 ms
+ AnimatePresence Measure 3,779.60 ms 0.60 ms
+ PresenceChild Measure 3,779.80 ms 0.40 ms
+ PopChild Measure 3,779.90 ms 0.30 ms
+ PopChildMeasure Measure 3,780.00 ms 0.20 ms
+ CourseCard Measure 3,780.20 ms 4.10 ms
+ ForwardR ef(motion.div) Measure 3,782.10 ms 2.20 ms
+Mount Measure 3,783.30 ms 0.30 ms
+ AnimatePresence Measure 3,783.60 ms 0.70 ms
+ PresenceChild Measure 3,783.80 ms 0.50 ms
+ PopChild Measure 3,783.90 ms 0.40 ms
+ PopChildMeasure Measure 3,784.00 ms 0.30 ms
+ CourseCard Measure 3,784.30 ms 3.30 ms
+ ForwardR ef(motion.div) Measure 3,785.70 ms 1.90 ms
+Mount Measure 3,786.70 ms 0.30 ms
+ AnimatePresence Measure 3,787.00 ms 0.60 ms
+ PresenceChild Measure 3,787.20 ms 0.40 ms
+ PopChild Measure 3,787.30 ms 0.30 ms
+ PopChildMeasure Measure 3,787.40 ms 0.20 ms
+ CourseCard Measure 3,787.60 ms 3.40 ms
+ ForwardR ef(motion.div) Measure 3,789.10 ms 1.90 ms
+Mount Measure 3,790.10 ms 0.30 ms
+ AnimatePresence Measure 3,790.40 ms 0.60 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 19/75 PresenceChild Measure 3,790.60 ms 0.40 ms
+ PopChild Measure 3,790.70 ms 0.30 ms
+ PopChildMeasure Measure 3,790.80 ms 0.20 ms
+ CourseCard Measure 3,791.00 ms 2.10 ms
+ ForwardR ef(motion.div) Measure 3,792.10 ms 1.00 ms
+ CourseCard Measure 3,793.10 ms 4.10 ms
+ ForwardR ef(motion.div) Measure 3,794.50 ms 2.70 ms
+Mount Measure 3,795.50 ms 0.40 ms
+ AnimatePresence Measure 3,795.90 ms 1.30 ms
+ PresenceChild Measure 3,796.50 ms 0.70 ms
+ PopChild Measure 3,796.80 ms 0.40 ms
+ PopChildMeasure Measure 3,796.90 ms 0.30 ms
+ CourseCard Measure 3,797.20 ms 3.50 ms
+ ForwardR ef(motion.div) Measure 3,798.70 ms 2.00 ms
+Mount Measure 3,799.70 ms 0.40 ms
+ AnimatePresence Measure 3,800.10 ms 0.60 ms
+ PopChild Measure 3,800.30 ms 0.40 ms
+ PresenceChild Measure 3,800.30 ms 0.40 ms
+ PopChildMeasure Measure 3,800.40 ms 0.30 ms
+ CourseCard Measure 3,800.70 ms 3.70 ms
+ ForwardR ef(motion.div) Measure 3,802.00 ms 2.40 ms
+Mount Measure 3,803.40 ms 0.30 ms
+ AnimatePresence Measure 3,803.70 ms 0.70 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 20/75 PresenceChild Measure 3,803.90 ms 0.50 ms
+ PopChildMeasure Measure 3,804.10 ms 0.30 ms
+ PopChild Measure 3,804.10 ms 0.30 ms
+Mount Measure 3,804.40 ms 0.30 ms
+ CourseCard Measure 3,805.30 ms 3.30 ms
+ ForwardR ef(motion.div) Measure 3,806.70 ms 1.90 ms
+Mount Measure 3,807.70 ms 0.20 ms
+ AnimatePresence Measure 3,807.90 ms 0.70 ms
+ PresenceChild Measure 3,808.10 ms 0.50 ms
+ PopChild Measure 3,808.30 ms 0.30 ms
+ PopChildMeasure Measure 3,808.40 ms 0.20 ms
+ CourseCard Measure 3,808.60 ms 3.80 ms
+ ForwardR ef(motion.div) Measure 3,810.10 ms 2.30 ms
+Mount Measure 3,811.40 ms 0.30 ms
+ AnimatePresence Measure 3,811.70 ms 0.70 ms
+ PresenceChild Measure 3,811.90 ms 0.50 ms
+ PopChild Measure 3,812.00 ms 0.40 ms
+ PopChildMeasure Measure 3,812.10 ms 0.30 ms
+ CourseCard Measure 3,812.40 ms 2.10 ms
+ ForwardR ef(motion.div) Measure 3,813.60 ms 0.90 ms
+ CourseCard Measure 3,814.50 ms 2.30 ms
+ ForwardR ef(motion.div) Measure 3,815.70 ms 1.10 ms
+ CourseCard Measure 3,816.80 ms 14.30 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 21/75 ForwardR ef(motion.div) Measure 3,818.30 ms 12.80 ms
+Mount Measure 3,819.30 ms 11.00 ms
+ AnimatePresence Measure 3,830.30 ms 0.80 ms
+ PresenceChild Measure 3,830.60 ms 0.50 ms
+ PopChildMeasure Measure 3,830.80 ms 0.30 ms
+ PopChild Measure 3,830.80 ms 0.30 ms
+ CourseCard Measure 3,831.10 ms 3.60 ms
+ ForwardR ef(motion.div) Measure 3,832.50 ms 2.20 ms
+Mount Measure 3,833.70 ms 0.30 ms
+ AnimatePresence Measure 3,834.00 ms 0.70 ms
+ PresenceChild Measure 3,834.20 ms 0.50 ms
+ PopChild Measure 3,834.30 ms 0.40 ms
+ PopChildMeasure Measure 3,834.40 ms 0.30 ms
+ CourseCard Measure 3,834.70 ms 4.20 ms
+ ForwardR ef(motion.div) Measure 3,836.10 ms 2.80 ms
+Mount Measure 3,837.20 ms 0.60 ms
+ AnimatePresence Measure 3,837.80 ms 1.10 ms
+ PresenceChild Measure 3,838.00 ms 0.90 ms
+ PopChild Measure 3,838.20 ms 0.70 ms
+ PopChildMeasure Measure 3,838.30 ms 0.60 ms
+ CourseCard Measure 3,838.90 ms 3.30 ms
+ ForwardR ef(motion.div) Measure 3,840.30 ms 1.90 ms
+Mount Measure 3,841.30 ms 0.30 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 22/75 AnimatePresence Measure 3,841.60 ms 0.60 ms
+ PresenceChild Measure 3,841.80 ms 0.40 ms
+ PopChild Measure 3,841.90 ms 0.30 ms
+ PopChildMeasure Measure 3,842.00 ms 0.20 ms
+Mount Measure 3,842.20 ms 0.30 ms
+ CourseCard Measure 3,843.30 ms 4.10 ms
+ ForwardR ef(motion.div) Measure 3,845.20 ms 2.20 ms
+Mount Measure 3,846.40 ms 0.30 ms
+ AnimatePresence Measure 3,846.70 ms 0.70 ms
+ PresenceChild Measure 3,847.00 ms 0.40 ms
+ PopChild Measure 3,847.10 ms 0.30 ms
+ PopChildMeasure Measure 3,847.20 ms 0.20 ms
+ CourseCard Measure 3,847.40 ms 3.30 ms
+ ForwardR ef(motion.div) Measure 3,848.80 ms 1.90 ms
+Mount Measure 3,849.80 ms 0.30 ms
+ AnimatePresence Measure 3,850.10 ms 0.60 ms
+ PresenceChild Measure 3,850.30 ms 0.40 ms
+ PopChildMeasure Measure 3,850.50 ms 0.20 ms
+ PopChild Measure 3,850.50 ms 0.20 ms
+ CourseCard Measure 3,850.70 ms 6.50 ms
+ ForwardR ef(motion.div) Measure 3,852.30 ms 4.90 ms
+Mount Measure 3,856.00 ms 0.40 ms
+ AnimatePresence Measure 3,856.40 ms 0.80 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 23/75 PresenceChild Measure 3,856.50 ms 0.70 ms
+ PopChild Measure 3,856.60 ms 0.60 ms
+ PopChildMeasure Measure 3,856.70 ms 0.50 ms
+ CourseCard Measure 3,857.20 ms 4.10 ms
+ ForwardR ef(motion.div) Measure 3,858.80 ms 2.50 ms
+Mount Measure 3,860.20 ms 0.30 ms
+ AnimatePresence Measure 3,860.50 ms 0.80 ms
+ PresenceChild Measure 3,860.80 ms 0.50 ms
+ PopChildMeasure Measure 3,861.00 ms 0.30 ms
+ PopChild Measure 3,861.00 ms 0.30 ms
+ CourseCard Measure 3,861.30 ms 3.40 ms
+ ForwardR ef(motion.div) Measure 3,862.60 ms 2.10 ms
+Mount Measure 3,863.50 ms 0.40 ms
+ AnimatePresence Measure 3,863.90 ms 0.80 ms
+ PresenceChild Measure 3,864.10 ms 0.60 ms
+ PopChild Measure 3,864.30 ms 0.40 ms
+ PopChildMeasure Measure 3,864.40 ms 0.30 ms
+ CourseCard Measure 3,864.70 ms 3.70 ms
+ ForwardR ef(motion.div) Measure 3,866.30 ms 2.10 ms
+Mount Measure 3,867.30 ms 0.40 ms
+ AnimatePresence Measure 3,867.70 ms 0.70 ms
+ PresenceChild Measure 3,867.90 ms 0.50 ms
+ PopChild Measure 3,868.10 ms 0.30 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 24/75 PopChildMeasure Measure 3,868.20 ms 0.20 ms
+ CourseCard Measure 3,868.40 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 3,869.80 ms 1.80 ms
+Mount Measure 3,870.70 ms 0.30 ms
+ AnimatePresence Measure 3,871.00 ms 0.60 ms
+ PresenceChild Measure 3,871.20 ms 0.40 ms
+ PopChild Measure 3,871.30 ms 0.30 ms
+ PopChildMeasure Measure 3,871.40 ms 0.20 ms
+ CourseCard Measure 3,871.60 ms 1.80 ms
+ ForwardR ef(motion.div) Measure 3,872.80 ms 0.60 ms
+Mount Measure 3,873.00 ms 0.20 ms
+ AnimatePresence Measure 3,873.20 ms 0.20 ms
+ PopChildMeasure Measure 3,873.30 ms 0.10 ms
+ PopChild Measure 3,873.30 ms 0.10 ms
+ PresenceChild Measure 3,873.30 ms 0.10 ms
+Mount Measure 3,873.40 ms 0.20 ms
+Unmount Measure 3,875.40 ms 0.60 ms
+Unmount Measure 3,877.80 ms 0.60 ms
+Unmount Measure 3,878.70 ms 0.50 ms
+Unmount Measure 3,879.40 ms 0.50 ms
+Unmount Measure 3,881.30 ms 0.60 ms
+Unmount Measure 3,882.20 ms 0.50 ms
+Unmount Measure 3,882.80 ms 0.50 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 25/75Unmount Measure 3,883.60 ms 0.50 ms
+Unmount Measure 3,885.10 ms 0.70 ms
+Unmount Measure 3,886.10 ms 0.70 ms
+Unmount Measure 3,887.10 ms 0.70 ms
+Unmount Measure 3,887.90 ms 0.50 ms
+Unmount Measure 3,888.50 ms 0.50 ms
+Unmount Measure 3,890.20 ms 0.60 ms
+Unmount Measure 3,891.00 ms 0.50 ms
+Unmount Measure 3,891.70 ms 0.50 ms
+Unmount Measure 3,892.40 ms 0.60 ms
+Unmount Measure 3,893.20 ms 0.80 ms
+Unmount Measure 3,894.20 ms 0.60 ms
+Mount Measure 3,901.70 ms 0.10 ms
+Unmount Measure 3,985.40 ms 0.10 ms
+Unmount Measure 3,985.60 ms 0.10 ms
+Unmount Measure 3,985.70 ms 0.10 ms
+Mount Measure 3,991.60 ms 0.80 ms
+Mount Measure 3,995.70 ms 0.70 ms
+Mount Measure 4,000.20 ms 0.70 ms
+Mount Measure 4,004.70 ms 0.90 ms
+Update Blocked Measure 4,007.50 ms 42.70 ms
+ ForwardR ef(motion.header) Measure 4,054.10 ms 2.10 ms
+ ForwardR ef Measure 4,055.00 ms 0.10 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 26/75 PopChild Measure 4,056.60 ms 207.20 ms
+ PopChild Measure 4,056.60 ms 207.20 ms
+ PopChildMeasure Measure 4,056.70 ms 207.10 ms
+ PopChildMeasure Measure 4,056.70 ms 207.10 ms
+ CourseT rackerView Measure 4,056.90 ms 206.90 ms
+ ConfirmDialog Measure 4,069.60 ms 0.30 ms
+ AnimatePresence Measure 4,069.90 ms 0.10 ms
+ AnimatePresence Measure 4,069.90 ms 193.90 ms
+ AnimatePresence Measure 4,069.90 ms 193.90 ms
+ ForwardR ef(motion.button) Measure 4,070.00 ms 0.50 ms
+ ForwardR ef(motion.div) Measure 4,071.50 ms 0.20 ms
+ StudentDashboard Measure 4,071.70 ms 27.10 ms
+ LinkComponent Measure 4,081.80 ms 1.20 ms
+ StatCard Measure 4,083.00 ms 2.10 ms
+ ForwardR ef(motion.div) Measure 4,084.80 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,084.80 ms 0.30 ms
+ StatCard Measure 4,085.10 ms 1.60 ms
+ ForwardR ef(motion.div) Measure 4,085.80 ms 0.90 ms
+ StatCard Measure 4,087.20 ms 1.80 ms
+ ForwardR ef(motion.div) Measure 4,088.10 ms 0.90 ms
+ StatCard Measure 4,089.00 ms 1.70 ms
+ ForwardR ef(motion.div) Measure 4,089.80 ms 0.90 ms
+ StatCard Measure 4,090.70 ms 1.50 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 27/75 ForwardR ef(motion.div) Measure 4,091.20 ms 1.00 ms
+ StatCard Measure 4,092.20 ms 1.50 ms
+ ForwardR ef(motion.div) Measure 4,092.90 ms 0.80 ms
+ ForwardR ef(motion.div) Measure 4,094.70 ms 0.50 ms
+ ForwardR ef(motion.div) Measure 4,095.60 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,095.60 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,096.40 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,096.40 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,097.00 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,097.00 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,097.70 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,097.70 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,098.50 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,098.50 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,098.50 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,098.50 ms 0.30 ms
+ CourseCard Measure 4,100.90 ms 4.40 ms
+ ForwardR ef(motion.div) Measure 4,102.90 ms 2.40 ms
+ PresenceChild Measure 4,104.70 ms 0.60 ms
+ CourseCard Measure 4,105.30 ms 4.40 ms
+ ForwardR ef(motion.div) Measure 4,106.90 ms 2.80 ms
+ PresenceChild Measure 4,108.90 ms 0.80 ms
+ CourseCard Measure 4,109.70 ms 6.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 28/75 ForwardR ef(motion.div) Measure 4,112.30 ms 3.60 ms
+ PresenceChild Measure 4,115.10 ms 0.80 ms
+ CourseCard Measure 4,115.90 ms 4.00 ms
+ ForwardR ef(motion.div) Measure 4,117.90 ms 2.00 ms
+ CourseCard Measure 4,119.90 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,121.00 ms 1.70 ms
+ CourseCard Measure 4,122.70 ms 3.00 ms
+ ForwardR ef(motion.div) Measure 4,124.50 ms 1.20 ms
+ CourseCard Measure 4,125.70 ms 4.40 ms
+ ForwardR ef(motion.div) Measure 4,127.20 ms 2.90 ms
+ PresenceChild Measure 4,129.30 ms 0.80 ms
+ CourseCard Measure 4,130.10 ms 4.70 ms
+ ForwardR ef(motion.div) Measure 4,131.90 ms 2.90 ms
+ PresenceChild Measure 4,134.20 ms 0.60 ms
+ ForwardR ef(motion.button) Measure 4,134.80 ms 0.50 ms
+ CourseCard Measure 4,136.40 ms 5.80 ms
+ ForwardR ef(motion.div) Measure 4,138.90 ms 3.30 ms
+ PresenceChild Measure 4,141.50 ms 0.70 ms
+ CourseCard Measure 4,142.20 ms 5.90 ms
+ ForwardR ef(motion.div) Measure 4,144.50 ms 3.60 ms
+ PresenceChild Measure 4,147.30 ms 0.80 ms
+ CourseCard Measure 4,148.10 ms 5.50 ms
+ ForwardR ef(motion.div) Measure 4,150.50 ms 3.10 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 29/75 PresenceChild Measure 4,153.10 ms 0.50 ms
+ CourseCard Measure 4,153.60 ms 4.20 ms
+ ForwardR ef(motion.div) Measure 4,155.50 ms 2.30 ms
+ PresenceChild Measure 4,157.20 ms 0.60 ms
+ CourseCard Measure 4,157.80 ms 3.60 ms
+ ForwardR ef(motion.div) Measure 4,159.60 ms 1.80 ms
+ CourseCard Measure 4,161.40 ms 5.90 ms
+ ForwardR ef(motion.div) Measure 4,163.70 ms 3.60 ms
+ PresenceChild Measure 4,166.50 ms 0.80 ms
+ CourseCard Measure 4,167.30 ms 6.60 ms
+ ForwardR ef(motion.div) Measure 4,170.00 ms 3.90 ms
+ PresenceChild Measure 4,173.00 ms 0.90 ms
+ CourseCard Measure 4,173.90 ms 3.60 ms
+ ForwardR ef(motion.div) Measure 4,175.60 ms 1.90 ms
+ PresenceChild Measure 4,177.00 ms 0.50 ms
+ ForwardR ef(motion.button) Measure 4,177.50 ms 0.30 ms
+ CourseCard Measure 4,178.70 ms 3.70 ms
+ ForwardR ef(motion.div) Measure 4,180.50 ms 1.90 ms
+ PresenceChild Measure 4,181.90 ms 0.50 ms
+ CourseCard Measure 4,182.40 ms 6.20 ms
+ ForwardR ef(motion.div) Measure 4,183.90 ms 4.70 ms
+ PresenceChild Measure 4,187.60 ms 1.00 ms
+ CourseCard Measure 4,188.60 ms 3.30 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 30/75 ForwardR ef(motion.div) Measure 4,190.40 ms 1.50 ms
+ CourseCard Measure 4,191.90 ms 3.30 ms
+ ForwardR ef(motion.div) Measure 4,193.60 ms 1.60 ms
+ CourseCard Measure 4,195.20 ms 4.60 ms
+ ForwardR ef(motion.div) Measure 4,196.90 ms 2.90 ms
+ PresenceChild Measure 4,198.90 ms 0.90 ms
+ CourseCard Measure 4,199.80 ms 4.80 ms
+ ForwardR ef(motion.div) Measure 4,201.80 ms 2.80 ms
+ PresenceChild Measure 4,203.90 ms 0.70 ms
+ CourseCard Measure 4,204.60 ms 4.90 ms
+ ForwardR ef(motion.div) Measure 4,206.70 ms 2.80 ms
+ PresenceChild Measure 4,208.80 ms 0.70 ms
+ CourseCard Measure 4,209.50 ms 5.80 ms
+ ForwardR ef(motion.div) Measure 4,211.80 ms 3.50 ms
+ PresenceChild Measure 4,214.50 ms 0.80 ms
+ ForwardR ef(motion.button) Measure 4,215.30 ms 0.50 ms
+ CourseCard Measure 4,217.10 ms 5.20 ms
+ ForwardR ef(motion.div) Measure 4,219.00 ms 3.30 ms
+ PresenceChild Measure 4,221.40 ms 0.90 ms
+ CourseCard Measure 4,222.30 ms 5.20 ms
+ ForwardR ef(motion.div) Measure 4,224.40 ms 3.10 ms
+ PresenceChild Measure 4,226.60 ms 0.90 ms
+ CourseCard Measure 4,227.50 ms 9.80 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 31/75 ForwardR ef(motion.div) Measure 4,229.60 ms 7.70 ms
+ PresenceChild Measure 4,232.10 ms 5.20 ms
+ CourseCard Measure 4,237.30 ms 5.70 ms
+ ForwardR ef(motion.div) Measure 4,239.60 ms 3.40 ms
+ PresenceChild Measure 4,242.50 ms 0.50 ms
+ CourseCard Measure 4,243.00 ms 3.60 ms
+ ForwardR ef(motion.div) Measure 4,244.50 ms 2.10 ms
+ PresenceChild Measure 4,246.20 ms 0.40 ms
+ CourseCard Measure 4,246.60 ms 5.50 ms
+ ForwardR ef(motion.div) Measure 4,248.80 ms 3.30 ms
+ PresenceChild Measure 4,251.30 ms 0.80 ms
+ CourseCard Measure 4,252.10 ms 5.60 ms
+ ForwardR ef(motion.div) Measure 4,254.40 ms 3.30 ms
+ PresenceChild Measure 4,256.90 ms 0.80 ms
+ CourseCard Measure 4,257.70 ms 5.50 ms
+ ForwardR ef(motion.div) Measure 4,259.60 ms 3.60 ms
+ ForwardR ef(motion.div) Measure 4,259.60 ms 4.20 ms
+ ForwardR ef(motion.div) Measure 4,259.60 ms 4.20 ms
+ PresenceChild Measure 4,262.70 ms 0.50 ms
+ PresenceChild Measure 4,262.70 ms 1.10 ms
+ PresenceChild Measure 4,262.70 ms 1.10 ms
+ ForwardR ef(motion.button) Measure 4,263.20 ms 0.40 ms
+ CourseNotesModal Measure 4,263.60 ms 0.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 32/75Update Blocked Measure 4,330.10 ms 26.70 ms
+ ForwardR ef(motion.header) Measure 4,360.60 ms 2.30 ms
+ ForwardR ef Measure 4,361.10 ms 0.10 ms
+ ForwardR ef Measure 4,361.50 ms 0.10 ms
+ PresenceChild Measure 4,363.10 ms 149.20 ms
+ PresenceChild Measure 4,363.10 ms 149.20 ms
+ PopChild Measure 4,363.30 ms 149.00 ms
+ PopChild Measure 4,363.30 ms 149.00 ms
+ PopChildMeasure Measure 4,363.40 ms 148.90 ms
+ PopChildMeasure Measure 4,363.40 ms 148.90 ms
+ CourseT rackerView Measure 4,363.60 ms 148.70 ms
+ ConfirmDialog Measure 4,379.80 ms 0.30 ms
+ AnimatePresence Measure 4,380.10 ms 0.10 ms
+ AnimatePresence Measure 4,380.10 ms 132.20 ms
+ AnimatePresence Measure 4,380.10 ms 132.20 ms
+ ForwardR ef(motion.button) Measure 4,380.20 ms 0.50 ms
+ ForwardR ef(motion.div) Measure 4,381.80 ms 0.30 ms
+ StudentDashboard Measure 4,382.10 ms 23.60 ms
+ LinkComponent Measure 4,392.10 ms 0.90 ms
+ StatCard Measure 4,393.00 ms 1.50 ms
+ ForwardR ef(motion.div) Measure 4,394.30 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,394.30 ms 0.20 ms
+ StatCard Measure 4,394.50 ms 1.40 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 33/75 ForwardR ef(motion.div) Measure 4,395.30 ms 0.60 ms
+ StatCard Measure 4,396.10 ms 1.10 ms
+ ForwardR ef(motion.div) Measure 4,396.70 ms 0.50 ms
+ StatCard Measure 4,397.20 ms 1.00 ms
+ ForwardR ef(motion.div) Measure 4,397.80 ms 0.40 ms
+ StatCard Measure 4,398.20 ms 1.10 ms
+ ForwardR ef(motion.div) Measure 4,398.80 ms 0.50 ms
+ StatCard Measure 4,399.30 ms 1.00 ms
+ ForwardR ef(motion.div) Measure 4,399.90 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,400.90 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,401.60 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,401.60 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,402.40 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,402.40 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,403.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,403.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,404.30 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,404.30 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,405.50 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,405.50 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,405.50 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,405.50 ms 0.20 ms
+ CourseCard Measure 4,406.90 ms 3.00 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 34/75 ForwardR ef(motion.div) Measure 4,408.40 ms 1.50 ms
+ CourseCard Measure 4,409.90 ms 3.40 ms
+ ForwardR ef(motion.div) Measure 4,411.60 ms 1.70 ms
+ CourseCard Measure 4,413.30 ms 16.10 ms
+ ForwardR ef(motion.div) Measure 4,414.90 ms 14.50 ms
+ CourseCard Measure 4,429.40 ms 2.40 ms
+ ForwardR ef(motion.div) Measure 4,430.60 ms 1.20 ms
+ CourseCard Measure 4,431.80 ms 2.20 ms
+ ForwardR ef(motion.div) Measure 4,433.00 ms 1.00 ms
+ CourseCard Measure 4,434.00 ms 2.50 ms
+ ForwardR ef(motion.div) Measure 4,435.10 ms 1.40 ms
+ CourseCard Measure 4,436.50 ms 3.10 ms
+ ForwardR ef(motion.div) Measure 4,438.10 ms 1.50 ms
+ CourseCard Measure 4,439.60 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,441.00 ms 1.40 ms
+ ForwardR ef(motion.button) Measure 4,442.40 ms 0.20 ms
+ CourseCard Measure 4,443.20 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,444.70 ms 1.30 ms
+ CourseCard Measure 4,446.00 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,447.50 ms 1.30 ms
+ CourseCard Measure 4,448.80 ms 3.00 ms
+ ForwardR ef(motion.div) Measure 4,450.10 ms 1.70 ms
+ CourseCard Measure 4,451.80 ms 2.80 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 35/75 ForwardR ef(motion.div) Measure 4,453.30 ms 1.30 ms
+ CourseCard Measure 4,454.60 ms 2.10 ms
+ ForwardR ef(motion.div) Measure 4,455.70 ms 1.00 ms
+ CourseCard Measure 4,456.70 ms 3.30 ms
+ ForwardR ef(motion.div) Measure 4,458.20 ms 1.80 ms
+ CourseCard Measure 4,460.00 ms 2.60 ms
+ ForwardR ef(motion.div) Measure 4,461.30 ms 1.30 ms
+ CourseCard Measure 4,462.60 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,463.90 ms 1.40 ms
+ ForwardR ef(motion.button) Measure 4,465.30 ms 0.30 ms
+ CourseCard Measure 4,466.30 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,467.80 ms 1.30 ms
+ CourseCard Measure 4,469.10 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,470.40 ms 1.50 ms
+ CourseCard Measure 4,471.90 ms 2.60 ms
+ ForwardR ef(motion.div) Measure 4,473.50 ms 1.00 ms
+ CourseCard Measure 4,474.50 ms 2.00 ms
+ ForwardR ef(motion.div) Measure 4,475.60 ms 0.90 ms
+ CourseCard Measure 4,476.50 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,477.90 ms 1.40 ms
+ CourseCard Measure 4,479.30 ms 3.00 ms
+ ForwardR ef(motion.div) Measure 4,480.80 ms 1.50 ms
+ CourseCard Measure 4,482.30 ms 2.70 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 36/75 ForwardR ef(motion.div) Measure 4,483.80 ms 1.20 ms
+ CourseCard Measure 4,485.00 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 4,486.50 ms 1.70 ms
+ ForwardR ef(motion.button) Measure 4,488.20 ms 0.30 ms
+ CourseCard Measure 4,489.10 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,490.50 ms 1.30 ms
+ CourseCard Measure 4,491.80 ms 2.90 ms
+ ForwardR ef(motion.div) Measure 4,493.20 ms 1.50 ms
+ CourseCard Measure 4,494.70 ms 2.60 ms
+ ForwardR ef(motion.div) Measure 4,496.10 ms 1.20 ms
+ CourseCard Measure 4,497.30 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,498.80 ms 1.30 ms
+ CourseCard Measure 4,500.10 ms 2.90 ms
+ ForwardR ef(motion.div) Measure 4,501.60 ms 1.40 ms
+ CourseCard Measure 4,503.00 ms 2.60 ms
+ ForwardR ef(motion.div) Measure 4,504.40 ms 1.20 ms
+ CourseCard Measure 4,505.60 ms 3.60 ms
+ ForwardR ef(motion.div) Measure 4,507.30 ms 1.90 ms
+ CourseCard Measure 4,509.20 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,510.60 ms 1.30 ms
+ ForwardR ef(motion.div) Measure 4,510.60 ms 1.70 ms
+ ForwardR ef(motion.div) Measure 4,510.60 ms 1.70 ms
+ ForwardR ef(motion.button) Measure 4,511.90 ms 0.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 37/75 CourseNotesModal Measure 4,512.10 ms 0.20 ms
+Unmount Measure 4,514.40 ms 0.10 ms
+Unmount Measure 4,516.40 ms 0.10 ms
+Unmount Measure 4,516.60 ms 0.10 ms
+Unmount Measure 4,517.20 ms 0.10 ms
+Unmount Measure 4,517.60 ms 0.10 ms
+Unmount Measure 4,518.10 ms 0.10 ms
+Unmount Measure 4,519.70 ms 0.10 ms
+Unmount Measure 4,520.10 ms 0.10 ms
+Cascading Update Measure 4,554.80 ms 37.80 ms
+ ForwardR ef(motion.header) Measure 4,596.00 ms 2.80 ms
+ ForwardR ef Measure 4,596.50 ms 0.20 ms
+ ForwardR ef Measure 4,597.00 ms 0.10 ms
+ PresenceChild Measure 4,599.10 ms 119.50 ms
+ PresenceChild Measure 4,599.10 ms 119.50 ms
+ PopChild Measure 4,599.20 ms 119.40 ms
+ PopChild Measure 4,599.20 ms 119.40 ms
+ PopChildMeasure Measure 4,599.30 ms 119.30 ms
+ PopChildMeasure Measure 4,599.30 ms 119.30 ms
+ CourseT rackerView Measure 4,599.60 ms 119.00 ms
+ ConfirmDialog Measure 4,618.80 ms 0.30 ms
+ AnimatePresence Measure 4,619.10 ms 0.20 ms
+ AnimatePresence Measure 4,619.10 ms 99.50 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 38/75 AnimatePresence Measure 4,619.10 ms 99.50 ms
+ ForwardR ef(motion.button) Measure 4,619.30 ms 0.60 ms
+ ForwardR ef(motion.div) Measure 4,620.90 ms 0.10 ms
+ StudentDashboard Measure 4,621.10 ms 21.70 ms
+ LinkComponent Measure 4,630.10 ms 1.10 ms
+ StatCard Measure 4,631.20 ms 2.00 ms
+ ForwardR ef(motion.div) Measure 4,632.80 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,632.80 ms 0.40 ms
+ StatCard Measure 4,633.20 ms 1.60 ms
+ ForwardR ef(motion.div) Measure 4,634.20 ms 0.60 ms
+ StatCard Measure 4,635.10 ms 1.10 ms
+ ForwardR ef(motion.div) Measure 4,635.70 ms 0.50 ms
+ StatCard Measure 4,636.20 ms 1.00 ms
+ ForwardR ef(motion.div) Measure 4,636.70 ms 0.50 ms
+ StatCard Measure 4,637.20 ms 1.70 ms
+ ForwardR ef(motion.div) Measure 4,638.00 ms 0.90 ms
+ StatCard Measure 4,638.90 ms 1.20 ms
+ ForwardR ef(motion.div) Measure 4,639.50 ms 0.60 ms
+ ForwardR ef(motion.div) Measure 4,640.70 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,641.10 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,641.10 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,641.50 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,641.50 ms 0.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 39/75 ForwardR ef(motion.div) Measure 4,641.90 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,641.90 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,642.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,642.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,642.70 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,642.70 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,642.70 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,642.70 ms 0.10 ms
+ CourseCard Measure 4,644.00 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 4,645.60 ms 1.60 ms
+ CourseCard Measure 4,647.20 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,648.60 ms 1.30 ms
+ CourseCard Measure 4,649.90 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,651.20 ms 1.40 ms
+ CourseCard Measure 4,652.60 ms 3.00 ms
+ ForwardR ef(motion.div) Measure 4,654.50 ms 1.10 ms
+ CourseCard Measure 4,655.60 ms 2.10 ms
+ ForwardR ef(motion.div) Measure 4,656.80 ms 0.90 ms
+ CourseCard Measure 4,657.70 ms 2.20 ms
+ ForwardR ef(motion.div) Measure 4,658.90 ms 1.00 ms
+ CourseCard Measure 4,659.90 ms 2.90 ms
+ ForwardR ef(motion.div) Measure 4,661.30 ms 1.50 ms
+ CourseCard Measure 4,662.80 ms 2.70 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 40/75 ForwardR ef(motion.div) Measure 4,664.20 ms 1.30 ms
+ ForwardR ef(motion.button) Measure 4,665.50 ms 0.10 ms
+ CourseCard Measure 4,666.30 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 4,668.00 ms 1.50 ms
+ CourseCard Measure 4,669.50 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,671.00 ms 1.20 ms
+ CourseCard Measure 4,672.20 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 4,673.70 ms 1.70 ms
+ CourseCard Measure 4,675.40 ms 2.70 ms
+ ForwardR ef(motion.div) Measure 4,676.80 ms 1.30 ms
+ CourseCard Measure 4,678.10 ms 2.40 ms
+ ForwardR ef(motion.div) Measure 4,679.20 ms 1.30 ms
+ CourseCard Measure 4,680.50 ms 3.10 ms
+ ForwardR ef(motion.div) Measure 4,682.20 ms 1.40 ms
+ CourseCard Measure 4,683.60 ms 4.20 ms
+ ForwardR ef(motion.div) Measure 4,685.80 ms 2.00 ms
+ CourseCard Measure 4,687.80 ms 3.10 ms
+ ForwardR ef(motion.div) Measure 4,689.50 ms 1.40 ms
+ ForwardR ef(motion.button) Measure 4,690.90 ms 0.20 ms
+ CourseCard Measure 4,691.70 ms 2.80 ms
+ ForwardR ef(motion.div) Measure 4,693.10 ms 1.40 ms
+ CourseCard Measure 4,694.50 ms 3.00 ms
+ ForwardR ef(motion.div) Measure 4,696.00 ms 1.50 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 41/75 CourseCard Measure 4,697.50 ms 2.20 ms
+ ForwardR ef(motion.div) Measure 4,698.70 ms 1.00 ms
+ CourseCard Measure 4,699.70 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 4,701.80 ms 1.10 ms
+ CourseCard Measure 4,702.90 ms 3.20 ms
+ ForwardR ef(motion.div) Measure 4,704.50 ms 1.60 ms
+ CourseCard Measure 4,706.10 ms 3.10 ms
+ ForwardR ef(motion.div) Measure 4,707.60 ms 1.60 ms
+ CourseCard Measure 4,709.20 ms 2.90 ms
+ ForwardR ef(motion.div) Measure 4,710.80 ms 1.30 ms
+ CourseCard Measure 4,712.10 ms 2.50 ms
+ ForwardR ef(motion.div) Measure 4,713.40 ms 1.20 ms
+ ForwardR ef(motion.button) Measure 4,714.60 ms 0.20 ms
+ CourseCard Measure 4,715.70 ms 0.50 ms
+ ForwardR ef(motion.div) Measure 4,715.90 ms 0.30 ms
+ CourseCard Measure 4,716.20 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,716.30 ms 0.30 ms
+ CourseCard Measure 4,716.60 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,716.70 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,716.90 ms 0.30 ms
+ CourseCard Measure 4,716.90 ms 0.30 ms
+ CourseCard Measure 4,717.20 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,717.30 ms 0.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 42/75 ForwardR ef(motion.div) Measure 4,717.50 ms 0.30 ms
+ CourseCard Measure 4,717.50 ms 0.30 ms
+ CourseCard Measure 4,717.80 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,717.90 ms 0.10 ms
+ CourseCard Measure 4,718.00 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,718.10 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,718.10 ms 0.50 ms
+ ForwardR ef(motion.div) Measure 4,718.10 ms 0.50 ms
+ CourseNotesModal Measure 4,718.40 ms 0.20 ms
+Update Blocked Measure 4,745.40 ms 31.20 ms
+ ForwardR ef(motion.header) Measure 4,777.10 ms 0.90 ms
+ ForwardR ef Measure 4,777.50 ms 0.10 ms
+ ForwardR ef Measure 4,777.70 ms 0.10 ms
+ AnimatePresence Measure 4,778.00 ms 13.60 ms
+ AnimatePresence Measure 4,778.00 ms 13.60 ms
+ CourseT rackerView Measure 4,778.10 ms 13.50 ms
+ PopChildMeasure Measure 4,778.10 ms 13.50 ms
+ PopChild Measure 4,778.10 ms 13.50 ms
+ PresenceChild Measure 4,778.10 ms 13.50 ms
+ PopChildMeasure Measure 4,778.10 ms 13.50 ms
+ PopChild Measure 4,778.10 ms 13.50 ms
+ PresenceChild Measure 4,778.10 ms 13.50 ms
+ ForwardR ef(motion.button) Measure 4,779.10 ms 0.10 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 43/75 StudentDashboard Measure 4,779.40 ms 3.30 ms
+ LinkComponent Measure 4,780.10 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,780.20 ms 0.10 ms
+ StatCard Measure 4,780.20 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,780.30 ms 0.20 ms
+ StatCard Measure 4,780.30 ms 0.20 ms
+ StatCard Measure 4,780.50 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,780.60 ms 0.20 ms
+ StatCard Measure 4,780.60 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,780.80 ms 0.10 ms
+ StatCard Measure 4,780.80 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.00 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,782.20 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.30 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.50 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.50 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.60 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.60 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.60 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,782.60 ms 0.10 ms
+ CourseCard Measure 4,782.80 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,783.00 ms 0.10 ms
+ CourseCard Measure 4,783.10 ms 0.30 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 44/75 ForwardR ef(motion.div) Measure 4,783.30 ms 0.10 ms
+ CourseCard Measure 4,783.40 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,783.50 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,783.70 ms 0.20 ms
+ CourseCard Measure 4,783.70 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,783.90 ms 0.20 ms
+ CourseCard Measure 4,783.90 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,784.10 ms 0.10 ms
+ CourseCard Measure 4,784.10 ms 0.10 ms
+ CourseCard Measure 4,784.20 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,784.30 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,784.60 ms 0.30 ms
+ CourseCard Measure 4,784.60 ms 0.30 ms
+ CourseCard Measure 4,785.00 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,785.20 ms 0.20 ms
+ CourseCard Measure 4,785.40 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,785.50 ms 0.30 ms
+ CourseCard Measure 4,785.80 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,785.90 ms 0.20 ms
+ CourseCard Measure 4,786.10 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,786.20 ms 0.10 ms
+ CourseCard Measure 4,786.30 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,786.40 ms 0.10 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 45/75 CourseCard Measure 4,786.50 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,786.70 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,786.90 ms 0.20 ms
+ CourseCard Measure 4,786.90 ms 0.20 ms
+ CourseCard Measure 4,787.10 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,787.20 ms 0.10 ms
+ ForwardR ef(motion.button) Measure 4,787.30 ms 0.10 ms
+ CourseCard Measure 4,787.50 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,787.60 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,787.80 ms 0.20 ms
+ CourseCard Measure 4,787.80 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,788.00 ms 0.20 ms
+ CourseCard Measure 4,788.00 ms 0.20 ms
+ CourseCard Measure 4,788.20 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,788.30 ms 0.10 ms
+ ForwardR ef(motion.div) Measure 4,788.40 ms 0.20 ms
+ CourseCard Measure 4,788.40 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,788.60 ms 0.30 ms
+ CourseCard Measure 4,788.60 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,788.90 ms 0.10 ms
+ CourseCard Measure 4,788.90 ms 0.10 ms
+ CourseCard Measure 4,789.00 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,789.10 ms 0.20 msName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 46/75More information about the performance of your application. These numbers don't directly affect  the P erformance score. ForwardR ef(motion.button) Measure 4,789.30 ms 0.10 ms
+ CourseCard Measure 4,789.40 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,789.50 ms 0.20 ms
+ CourseCard Measure 4,789.70 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,789.80 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,790.00 ms 0.20 ms
+ CourseCard Measure 4,790.00 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,790.20 ms 0.20 ms
+ CourseCard Measure 4,790.20 ms 0.20 ms
+ CourseCard Measure 4,790.40 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,790.50 ms 0.10 ms
+ CourseCard Measure 4,790.60 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,790.70 ms 0.20 ms
+ CourseCard Measure 4,790.90 ms 0.30 ms
+ ForwardR ef(motion.div) Measure 4,791.00 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,791.20 ms 0.20 ms
+ CourseCard Measure 4,791.20 ms 0.20 ms
+ ForwardR ef(motion.div) Measure 4,791.20 ms 0.40 ms
+ ForwardR ef(motion.div) Measure 4,791.20 ms 0.40 ms
+ CourseNotesModal Measure 4,791.40 ms 0.20 ms
+__v3 Mark 0.00 ms
+PASSED AUDITS (17) HideName Type Start Time Duration2/25/26, 12:26 PM about:blank
+about:blank 47/75Use efficient cache lifetimes
+A long cache lifetime can speed up repeat visits to your page. Learn more about caching .FCPLCPUnscored
+Layout shift culprits
+Layout shifts occur when elements move absent any user interaction. Investigate the causes of layout shifts , such as elements
+being added, removed, or their fonts changing as the page loads. CLSUnscored
+Document request latency
+Your first network request is the most important. Reduce its latency  by avoiding redirects, ensuring a fast server response,
+and enabling text compression. FCPLCPUnscored
+Avoids redirects
+Server responds quickly (observed 52 ms)
+Applies text compression
+Optimize DOM size
+A large DOM can increase the duration of style calculations and layout reflows, impacting page responsiveness. A large DOM
+will also increase memory usage. Learn how to avoid an excessive DOM size .Unscored
+Duplicated JavaScript
+Remove large, duplicate JavaScript modules  from bundles to reduce unnecessary bytes consumed by network activity. FCP
+LCPUnscored
+Font display
+Consider setting font-display  to swap  or optional  to ensure text is consistently visible. swap  can be further optimized to
+mitigate layout shifts with font metric overrides .Unscored
+Improve image delivery
+Total
+elements2,070
+DOM depth 16
+Most
+children22
+body .outfit_43d50961-module__K OAtAG__className .min-h-screen .flex.flex-col .pb-[120px] .sm:pb-0Statistic Element Value2/25/26, 12:26 PM about:blank
+about:blank 48/75Reducing the download time of images can improve the perceived load time of the page and L CP. Learn more about
+optimizing image size FCPLCPUnscored
+INP breakdown
+Start investigating how to improve INP  by looking at the longest subpart. Unscored
+LCP request discovery
+Optimize L CP by making the L CP image discoverable from the HTML immediately, and avoiding lazy-loading Unscored
+Modern HT TP
+HTTP/2 and HT TP/3 offer many benefits over HT TP/1.1, such as multiplexing. Learn more about using modern HT TP.FCP
+LCPUnscored
+Render blocking requests
+Requests are blocking the page's initial render, which may delay L CP. Deferring or inlining  can move these network requests
+out of the critical path. FCPLCPUnscored
+Optimize viewport for mobile
+Tap interactions may be delayed by up to 300 ms  if the viewport is not optimized for mobile. Unscored
+Minify CSS
+Minifying CSS files can reduce network payload sizes. Learn how to minify CSS .FCPLCPUnscored
+Reduce unused CSS
+Reduce unused rules from stylesheets and defer CSS not used for above-the-fold content to decrease bytes consumed by
+network activity. Learn how to reduce unused CSS .FCPLCPUnscored
+Avoids enormous network payloads  —Total size was 1,513 KiB
+Large network payloads cost users real money and are highly correlated with long load times. Learn how to reduce payload
+sizes .Unscoredmeta
+localhost 1st Party 1,138.6 KiB
+…chunks/node_modules_next_dist_compiled_next-devtools_index_….js 220.0 KiB
+(localhost)URL Transfer Size2/25/26, 12:26 PM about:blank
+about:blank 49/75These checks highlight opportunities to improve the accessibility of your
+web app . Automatic detection can only detect a subset of issues and does
+not guarantee the accessibility of your web app, so manual testing  is also
+encouraged.Avoid non-composited animations
+Animations which are not composited can be janky and increase CLS. Learn how to avoid non-composited animations CLS
+Unscored
+Image elements have explicit width and height
+Set an explicit width and height on image elements to reduce layout shifts and improve CLS. Learn how to set image
+dimensions CLSUnscored…chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js 178.9 KiB
+…chunks/node_modules_83d40b18._.js 164.9 KiB
+…chunks/node_modules_11e7c078._.js 155.2 KiB
+…chunks/node_modules_next_dist_client_17643121._.js 120.8 KiB
+…chunks/node_modules_highlight_c3f27ba7.js 104.3 KiB
+…chunks/node_modules_prosemirror-view_dist_index_21ada2c5.js 59.0 KiB
+…chunks/node_modules_%40tiptap_core_dist_f5afb391._.js 49.5 KiB
+…chunks/node_modules_%40tiptap_60f49dc3._.js 46.7 KiB
+…chunks/node_modules_next_dist_f3530cac._.js 39.3 KiB
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+Accessibility
+100
+ADDITIONAL ITEMS TO MANUALLY CHECK (10) Hide
+Interactive controls are keyboard focusable
+Custom interactive controls are keyboard focusable and display a focus indicator. Learn how to make custom controls
+focusable .UnscoredURL Transfer Size2/25/26, 12:26 PM about:blank
+about:blank 50/75Interactive elements indicate their purpose and state
+Interactive elements, such as links and buttons, should indicate their state and be distinguishable from non-interactive
+elements. Learn how to decorate interactive elements with affordance hints .Unscored
+The page has a logical tab order
+Tabbing through the page follows the visual layout. Users cannot focus elements that are offscreen. Learn more about logical
+tab ordering .Unscored
+Visual order on the page follows DOM order
+DOM order matches the visual order, improving navigation for assistive technology. Learn more about DOM and visual
+ordering .Unscored
+User focus is not accidentally trapped in a region
+A user can tab into and out of any control or region without accidentally trapping their focus. Learn how to avoid focus
+traps .Unscored
+The user's focus is directed to new content added to the page
+If new content, such as a dialog, is added to the page, the user's focus is directed to it. Learn how to direct focus to new
+content .Unscored
+HTML5 landmark elements are used to improve navigation
+Landmark elements ( <main> , <nav> , etc.) are used to improve the keyboard navigation of the page for assistive technology.
+Learn more about landmark elements .Unscored
+Offscreen content is hidden from assistive technology
+Offscreen content is hidden with display: none or aria-hidden=true. Learn how to properly hide offscreen content .Unscored
+Custom controls have associated labels
+Custom interactive controls have associated labels, provided by aria-label or aria-labelledby. Learn more about custom
+controls and labels .Unscored
+Custom controls have ARIA roles
+Custom interactive controls have appropriate ARIA roles. Learn how to add roles to custom controls .Unscored
+These items address areas which an automated testing tool cannot cover. Learn more in our guide on conducting an accessibility
+review .2/25/26, 12:26 PM about:blank
+about:blank 51/75PASSED AUDITS (23) Hide
+[aria-*] attributes match their roles
+Each ARIA role  supports a specific subset of aria-*  attributes. Mismatching these invalidates the aria-*  attributes. Learn
+how to match ARIA attributes to their roles .
+[aria-hidden="true"] is not present on the document <body>
+Assistive technologies, like screen readers, work inconsistently when aria-hidden="true"  is set on the document <body> .
+Learn how aria-hidden  affects the document body .
+[role]s have all required [aria-*] attributes
+Some ARIA roles have required attributes that describe the state of the element to screen readers. Learn more about roles
+and required attributes .
+[role] values are valid
+ARIA roles must have valid values in order to perform their intended accessibility functions. Learn more about valid ARIA
+roles .
+[aria-*] attributes have valid values
+Assistive technologies, like screen readers, can't interpret ARIA attributes with invalid values. Learn more about valid values
+for ARIA attributes .
+[aria-*] attributes are valid and not misspelled
+Assistive technologies, like screen readers, can't interpret ARIA attributes with invalid names. Learn more about valid ARIA
+attributes .
+Buttons have an accessible name
+When a button doesn't have an accessible name, screen readers announce it as "button", making it unusable for users who
+rely on screen readers. Learn how to make buttons more accessible .
+Image elements have [alt] attributes
+Informative elements should aim for short, descriptive alternate text. Decorative elements can be ignored with an empty alt
+attribute. Learn more about the alt attribute .
+[user-scalable="no"] is not used in the <meta name="viewport"> element and the [maximum-scale] attribute is not less
+than 5.
+Disabling zooming is problematic for users with low vision who rely on screen magnification to properly see the contents of
+a web page. Learn more about the viewport meta tag .2/25/26, 12:26 PM about:blank
+about:blank 52/75ARIA attributes are used as specified for the element's role
+Some ARIA attributes are only allowed on an element under certain conditions. Learn more about conditional ARIA
+attributes .
+[aria-hidden="true"] elements do not contain focusable descendents
+Focusable descendents within an [aria-hidden="true"]  element prevent those interactive elements from being available
+to users of assistive technologies like screen readers. Learn how aria-hidden  affects focusable elements .
+Elements use only permitted ARIA attributes
+Using ARIA attributes in roles where they are prohibited can mean that important information is not communicated to users
+of assistive technologies. Learn more about prohibited ARIA roles .
+Background and foreground colors have a sufficient contrast ratio
+Low-contrast text is difficult or impossible for many users to read. Learn how to provide sufficient color contrast .
+Document has a <title> element
+The title gives screen reader users an overview of the page, and search engine users rely on it heavily to determine if a page
+is relevant to their search. Learn more about document titles .
+<html> element has a [lang] attribute
+If a page doesn't specify a lang  attribute, a screen reader assumes that the page is in the default language that the user
+chose when setting up the screen reader. If the page isn't actually in the default language, then the screen reader might not
+announce the page's text correctly. Learn more about the lang  attribute .
+<html> element has a valid value for its [lang] attribute
+Specifying a valid BCP 47 language  helps screen readers announce text properly. Learn how to use the lang  attribute .
+Links have a discernible name
+Link text (and alternate text for images, when used as links) that is discernible, unique, and focusable improves the
+navigation experience for screen reader users. Learn how to make links accessible .
+Lists contain only <li> elements and script supporting elements ( <script> and <template>).
+Screen readers have a specific way of announcing lists. Ensuring proper list structure aids screen reader output. Learn more
+about proper list structure .
+No element has a [tabindex] value greater than 02/25/26, 12:26 PM about:blank
+about:blank 53/75A value greater than 0 implies an explicit navigation ordering. Although technically valid, this often creates frustrating
+experiences for users who rely on assistive technologies. Learn more about the tabindex  attribute .
+Touch targets have sufficient size and spacing.
+Touch targets with sufficient size and spacing help users who may have difficulty targeting small controls to activate the
+targets. Learn more about touch targets .
+Heading elements appear in a sequentially-descending order
+Properly ordered headings that do not skip levels convey the semantic structure of the page, making it easier to navigate
+and understand when using assistive technologies. Learn more about heading order .
+Document has a main landmark.
+One main landmark helps screen reader users navigate a web page. Learn more about landmarks .
+Deprecated ARIA roles were not used
+Deprecated ARIA roles may not be processed correctly by assistive technology. Learn more about deprecated ARIA roles .
+NOT APPLICABLE (37) Hide
+[accesskey] values are unique
+Access keys let users quickly focus a part of the page. For proper navigation, each access key must be unique. Learn more
+about access keys .Unscored
+button, link, and menuitem elements have accessible names
+When an element doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for
+users who rely on screen readers. Learn how to make command elements more accessible .Unscored
+Elements with role="dialog" or role="alertdialog" have accessible names.
+ARIA dialog elements without accessible names may prevent screen readers users from discerning the purpose of these
+elements. Learn how to make ARIA dialog elements more accessible .Unscored
+ARIA input fields have accessible names
+When an input field doesn't have an accessible name, screen readers announce it with a generic name, making it unusable
+for users who rely on screen readers. Learn more about input field labels .Unscored
+ARIA meter elements have accessible names2/25/26, 12:26 PM about:blank
+about:blank 54/75When a meter element doesn't have an accessible name, screen readers announce it with a generic name, making it
+unusable for users who rely on screen readers. Learn how to name meter  elements .Unscored
+ARIA progressbar elements have accessible names
+When a progressbar  element doesn't have an accessible name, screen readers announce it with a generic name, making it
+unusable for users who rely on screen readers. Learn how to label progressbar  elements .Unscored
+Elements with an ARIA [role] that require children to contain a specific [role] have all required children.
+Some ARIA parent roles must contain specific child roles to perform their intended accessibility functions. Learn more about
+roles and required children elements .Unscored
+[role]s are contained by their required parent element
+Some ARIA child roles must be contained by specific parent roles to properly perform their intended accessibility functions.
+Learn more about ARIA roles and required parent element .Unscored
+Elements with the role=text attribute do not have focusable descendents.
+Adding role=text  around a text node split by markup enables V oiceOver to treat it as one phrase, but the element's
+focusable descendents will not be announced. Learn more about the role=text  attribute .Unscored
+ARIA toggle fields have accessible names
+When a toggle field doesn't have an accessible name, screen readers announce it with a generic name, making it unusable
+for users who rely on screen readers. Learn more about toggle fields .Unscored
+ARIA tooltip elements have accessible names
+When a tooltip element doesn't have an accessible name, screen readers announce it with a generic name, making it
+unusable for users who rely on screen readers. Learn how to name tooltip  elements .Unscored
+ARIA treeitem elements have accessible names
+When a treeitem  element doesn't have an accessible name, screen readers announce it with a generic name, making it
+unusable for users who rely on screen readers. Learn more about labeling treeitem  elements .Unscored
+The page contains a heading, skip link, or landmark region
+Adding ways to bypass repetitive content lets keyboard users navigate the page more efficiently. Learn more about bypass
+blocks .Unscored
+<dl>'s contain only properly-ordered <dt> and <dd> groups, <script>, <template> or <div> elements.
+When definition lists are not properly marked up, screen readers may produce confusing or inaccurate output. Learn how to2/25/26, 12:26 PM about:blank
+about:blank 55/75structure definition lists correctly .Unscored
+Definition list items are wrapped in <dl> elements
+Definition list items ( <dt>  and <dd> ) must be wrapped in a parent <dl>  element to ensure that screen readers can properly
+announce them. Learn how to structure definition lists correctly .Unscored
+ARIA IDs are unique
+The value of an ARIA ID must be unique to prevent other instances from being overlooked by assistive technologies. Learn
+how to fix duplicate ARIA IDs .Unscored
+No form fields have multiple labels
+Form fields with multiple labels can be confusingly announced by assistive technologies like screen readers which use either
+the first, the last, or all of the labels. Learn how to use form labels .Unscored
+<frame> or <iframe> elements have a title
+Screen reader users rely on frame titles to describe the contents of frames. Learn more about frame titles .Unscored
+<html> element has an [xml:lang] attribute with the same base language as the [lang] attribute.
+If the webpage does not specify a consistent language, then the screen reader might not announce the page's text correctly.
+Learn more about the lang  attribute .Unscored
+Input buttons have discernible text.
+Adding discernable and accessible text to input buttons may help screen reader users understand the purpose of the input
+button. Learn more about input buttons .Unscored
+<input type="image"> elements have [alt] text
+When an image is being used as an <input>  button, providing alternative text can help screen reader users understand the
+purpose of the button. Learn about input image alt text .Unscored
+Form elements have associated labels
+Labels ensure that form controls are announced properly by assistive technologies, like screen readers. Learn more about
+form element labels .Unscored
+Links are distinguishable without relying on color.
+Low-contrast text is difficult or impossible for many users to read. Link text that is discernible improves the experience for
+users with low vision. Learn how to make links distinguishable .Unscored2/25/26, 12:26 PM about:blank
+about:blank 56/75List items ( <li>) are contained within <ul>, <ol> or <menu> parent elements
+Screen readers require list items ( <li> ) to be contained within a parent <ul> , <ol>  or <menu>  to be announced properly.
+Learn more about proper list structure .Unscored
+The document does not use <meta http-equiv="refresh">
+Users do not expect a page to refresh automatically, and doing so will move focus back to the top of the page. This may
+create a frustrating or confusing experience. Learn more about the refresh meta tag .Unscored
+<object> elements have alternate text
+Screen readers cannot translate non-text content. Adding alternate text to <object>  elements helps screen readers convey
+meaning to users. Learn more about alt text for object  elements .Unscored
+Select elements have associated label elements.
+Form elements without effective labels can create frustrating experiences for screen reader users. Learn more about the
+select  element .Unscored
+Skip links are focusable.
+Including a skip link can help users skip to the main content to save time. Learn more about skip links .Unscored
+Cells in a <table> element that use the [headers] attribute refer to table cells within the same table.
+Screen readers have features to make navigating tables easier. Ensuring <td>  cells using the [headers]  attribute only refer
+to other cells in the same table may improve the experience for screen reader users. Learn more about the headers
+attribute .Unscored
+<th> elements and elements with [role="columnheader"/"rowheader"] have data cells they describe.
+Screen readers have features to make navigating tables easier. Ensuring table headers always refer to some set of cells may
+improve the experience for screen reader users. Learn more about table headers .Unscored
+[lang] attributes have a valid value
+Specifying a valid BCP 47 language  on elements helps ensure that text is pronounced correctly by a screen reader. Learn how
+to use the lang  attribute .Unscored
+<video> elements contain a <track> element with [kind="captions"]
+When a video provides a caption it is easier for deaf and hearing impaired users to access its information. Learn more about
+video captions .Unscored
+Tables have different content in the summary attribute and <caption>.2/25/26, 12:26 PM about:blank
+about:blank 57/75The summary attribute should describe the table structure, while <caption>  should have the onscreen title. Accurate table
+mark-up helps users of screen readers. Learn more about summary and caption .Unscored
+All heading elements contain content.
+A heading with no content or inaccessible text prevent screen reader users from accessing information on the page's
+structure. Learn more about headings .Unscored
+Uses ARIA roles only on compatible elements
+Many HTML elements can only be assigned certain ARIA roles. Using ARIA roles where they are not allowed can interfere
+with the accessibility of the web page. Learn more about ARIA roles .Unscored
+Image elements do not have [alt] attributes that are redundant text.
+Informative elements should aim for short, descriptive alternative text. Alternative text that is exactly the same as the text
+adjacent to the link or image is potentially confusing for screen reader users, because the text will be read twice. Learn more
+about the alt attribute .Unscored
+Identical links have the same purpose.
+Links with the same destination should have the same description, to help users understand the link's purpose and decide
+whether to follow it. Learn more about identical links .Unscored
+Best Practices
+92
+ Show 3rd-party resources  (8)GENERAL
+Browser errors were logged to the console
+Errors logged to the console indicate unresolved problems. They can come from network request failures and other browser
+concerns. Learn more about this errors in console diagnostic audit
+localhost 1st Party
+(index):1 Denying load of
+chrome-
+extension://djbb
+okpfbbipcdnodgadSource Description2/25/26, 12:26 PM about:blank
+about:blank 58/75kidppckgajgp/fon
+ts/open_sans/ope
+n-sans-v18-
+latin-800.woff.
+Resources must
+be listed in the
+web_accessible_r
+esources
+manifest key in
+order to be
+loaded by pages
+outside the
+extension.
+(index):1Denying load of
+chrome-
+extension://djbb
+okpfbbipcdnodgad
+kidppckgajgp/fon
+ts/open_sans/ope
+n-sans-v18-
+latin-
+regular.woff.
+Resources must
+be listed in the
+web_accessible_r
+esources
+manifest key in
+order to be
+loaded by pages
+outside the
+extension.
+(index):1Denying load of
+chrome-
+extension://djbb
+okpfbbipcdnodgad
+kidppckgajgp/fon
+ts/open_sans/Ope
+nSans-Bold.woff.
+Resources must
+be listed in the
+web_accessible_r
+esources
+manifest key in
+order to be
+loaded by pages
+outside the
+extension.
+(index):1 Error: Access to
+storage is notSource Description2/25/26, 12:26 PM about:blank
+about:blank 59/75allowed from
+this context.
+(index):1Error: Access to
+storage is not
+allowed from
+this context.
+(index):1Error: Access to
+storage is not
+allowed from
+this context.
+(index):1Error: Access to
+storage is not
+allowed from
+this context.
+node_modules_11e7c078._.js:125Loading the
+script
+'https://va.verc
+el-
+scripts.com/v1/s
+cript.debug.js'
+violates the
+following
+Content Security
+Policy
+directive:
+"script-src
+'self' 'unsafe-
+inline' 'unsafe-
+eval'
+https://www.goog
+letagmanager.com
+https://cdn.verc
+el-insights.com
+https://vercel.l
+ive". Note that
+'script-src-
+elem' was not
+explicitly set,
+so 'script-src'
+is used as a
+fallback. The
+action has been
+blocked.
+paperpal.comSource Description2/25/26, 12:26 PM about:blank
+about:blank 60/75collect:1Failed to load
+resource: the
+server responded
+with a status of
+400 (Bad
+Request)
+collect:1Failed to load
+resource: the
+server responded
+with a status of
+400 (Bad
+Request)
+collect:1Failed to load
+resource: the
+server responded
+with a status of
+400 (Bad
+Request)
+Paperpal: Free Grammar Checker, AI Writing Tool & Research Assistant Chrome Extension 
+chat-pdf.js:26 Faro
+@grafana/faro-
+web-
+sdk:transport-
+fetch Failed
+sending payload
+to the receiver
+[object Object]
+TypeError:
+Failed to fetch
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29944
+at s (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:96925)
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/conSource Description2/25/26, 12:26 PM about:blank
+about:blank 61/75tent-
+scripts/chat-
+pdf.js:22:97108
+at new Promise
+(<anonymous>) at
+Object.add
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97048)
+at Ik.
+<anonymous>
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29809)
+at
+Generator.next
+(<anonymous>) at
+chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28759
+at new Promise
+(<anonymous>) at
+kk (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28556)
+chat-pdf.js:26 Faro
+@grafana/faro-
+web-
+sdk:transport-
+fetch Failed
+sending payload
+to the receiver
+[object Object]
+TypeError:
+Failed to fetchSource Description2/25/26, 12:26 PM about:blank
+about:blank 62/75at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29944
+at s (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:96925)
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97108
+at new Promise
+(<anonymous>) at
+Object.add
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97048)
+at Ik.
+<anonymous>
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29809)
+at
+Generator.next
+(<anonymous>) at
+chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28759
+at new Promise
+(<anonymous>) atSource Description2/25/26, 12:26 PM about:blank
+about:blank 63/75kk (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28556)
+chat-pdf.js:26 Faro
+@grafana/faro-
+web-
+sdk:transport-
+fetch Failed
+sending payload
+to the receiver
+[object Object]
+TypeError:
+Failed to fetch
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29944
+at s (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:96925)
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97108
+at new Promise
+(<anonymous>) at
+Object.add
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97048)
+at Ik.
+<anonymous>
+(chrome-Source Description2/25/26, 12:26 PM about:blank
+about:blank 64/75extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29809)
+at
+Generator.next
+(<anonymous>) at
+chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28759
+at new Promise
+(<anonymous>) at
+kk (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28556)
+chat-pdf.js:26 Faro
+@grafana/faro-
+web-
+sdk:transport-
+fetch Failed
+sending payload
+to the receiver
+[object Object]
+TypeError:
+Failed to fetch
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29944
+at s (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:96925)
+at chrome-
+extension://mhpjSource Description2/25/26, 12:26 PM about:blank
+about:blank 65/75gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97108
+at new Promise
+(<anonymous>) at
+Object.add
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97048)
+at Ik.
+<anonymous>
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29809)
+at
+Generator.next
+(<anonymous>) at
+chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28759
+at new Promise
+(<anonymous>) at
+kk (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28556)
+chat-pdf.js:26 Faro
+@grafana/faro-
+web-
+sdk:transport-
+fetch Failed
+sending payload
+to the receiver
+[object Object]Source Description2/25/26, 12:26 PM about:blank
+about:blank 66/75TypeError:
+Failed to fetch
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29944
+at s (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:96925)
+at chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97108
+at new Promise
+(<anonymous>) at
+Object.add
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:22:97048)
+at Ik.
+<anonymous>
+(chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:29809)
+at
+Generator.next
+(<anonymous>) at
+chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28759Source Description2/25/26, 12:26 PM about:blank
+about:blank 67/75Issues were logged in the Issues panel in Chrome Devtools
+Issues logged to the Issues  panel in Chrome Devtools indicate unresolved problems. They can come from network request
+failures, insufficient security controls, and other browser concerns. Open up the Issues panel in Chrome DevT ools for more
+details on each issue.
+Missing source maps for large first-party JavaScript
+Source maps translate minified code to the original source code. This helps developers debug in production. In addition,
+Lighthouse is able to provide further insights. Consider deploying source maps to take advantage of these benefits. Learn
+more about source maps .Unscoredat new Promise
+(<anonymous>) at
+kk (chrome-
+extension://mhpj
+gcccinlocgiklkfl
+lehilgmcnimp/con
+tent-
+scripts/chat-
+pdf.js:52:28556)
+Content security policy
+/v1/script.debug.js
+(va.vercel-scripts.com)
+localhost 1st Party
+…chunks/node_modules_next_dist_compiled_react-
+dom_1e674e59._.js…chunks/node_modules_next_dist_compiled_react-
+dom_1e674e59.….map
+Large JavaScript file is missing a source map
+Error: Map has no `mappings` field
+…chunks/node_modules_next_dist_compiled_next-
+devtools_index_….js…chunks/node_modules_next_dist_compiled_next-
+devtools_index….map
+Large JavaScript file is missing a source map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_next_dist_client_17643121._.js…
+chunks/node_modules_next_dist_client_17643121._.js.ma
+p
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(lo
+calhost)
+(localhost)Source Description
+Issue type
+URL Map URL2/25/26, 12:26 PM about:blank
+about:blank 68/75Large JavaScript file is missing a source map
+Error: Map has no `mappings` field
+…chunks/node_modules_83d40b18._.js …chunks/node_modules_83d40b18._.js.map
+Large JavaScript file is missing a source map
+Error: Map has no `mappings` field
+…chunks/node_modules_11e7c078._.js …chunks/node_modules_11e7c078._.js.map
+Large JavaScript file is missing a source map
+Error: Map has no `mappings` field
+…chunks/turbopack-_23a915ee._.js …chunks/_23a915ee._.js.map
+Error: Map has no `mappings` field
+…chunks/node_modules_prosemirror-
+view_dist_index_21ada2c5.js…chunks/node_modules_prosemirror-
+view_dist_index_21ada2c5.js.map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_next_dist_f3530cac._.js…
+chunks/node_modules_next_dist_f3530cac._.js.map
+Error: Map has no `mappings` field
+…chunks/node_modules_next_dist_compiled_react-
+server-dom-tur….js…chunks/node_modules_next_dist_compiled_react-
+server-dom-tu….map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_next_dist_compiled_a0e4c7b4._.js…
+chunks/node_modules_next_dist_compiled_a0e4c7b4._.js
+.map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_next_dist_be32b49c._.js…
+chunks/node_modules_next_dist_be32b49c._.js.map
+Error: Map has no `mappings` field
+…chunks/node_modules_highlight_c3f27ba7.js…
+chunks/node_modules_highlight_c3f27ba7.js.map
+Error: Map has no `mappings` field
+…chunks/node_modules_9947cb1b._.js …chunks/node_modules_9947cb1b._.js.map
+Error: Map has no `mappings` field
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(local
+host)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(loc
+alhost)
+(localhost)
+(localh
+ost)
+(localhost)
+(localhost)URL Map URL2/25/26, 12:26 PM about:blank
+about:blank 69/75…
+chunks/node_modules_%40tiptap_core_dist_f5afb391._.js…
+chunks/node_modules_%40tiptap_core_dist_f5afb391._.js
+.map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_%40tiptap_60f49dc3._.js…
+chunks/node_modules_%40tiptap_60f49dc3._.js.map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_%40swc_helpers_cjs_d80fb378._.js…
+chunks/node_modules_%40swc_helpers_cjs_d80fb378._.j
+s.map
+Error: Map has no `mappings` field
+…
+chunks/node_modules_%40popperjs_core_lib_a6f1ab07._
+.js…
+chunks/node_modules_%40popperjs_core_lib_a6f1ab07.
+_.js.map
+Error: Map has no `mappings` field
+…chunks/node_modules_%40floating-
+ui_72928cc6._.js…chunks/node_modules_%40floating-
+ui_72928cc6._.js.map
+Error: Map has no `mappings` field
+…chunks/components_f54cfa52._.js …chunks/components_f54cfa52._.js.map
+Error: Map has no `mappings` field
+…chunks/%5Bturbopack%5D_browser_dev_hmr-
+client_hmr-client_ts….js…chunks/%5Bturbopack%5D_browser_dev_hmr-
+client_hmr-client_t….map
+Error: Map has no `mappings` field
+…chunks/_9cb896ca._.js …chunks/_9cb896ca._.js.map
+Error: Map has no `mappings` field
+…chunks/_30327fb8._.js …chunks/_30327fb8._.js.map
+Error: Map has no `mappings` field
+Unattributable
+chrome-
+extension://npclhjbddhklpbnacpjloidibaggcgon/events.jschrome-
+extension://npclhjbddhklpbnacpjloidibaggcgon/events.j
+s.map
+Error: Failed fetching source map (null)
+(localhost)
+(localhost)
+(localhos
+t)
+(loc
+alhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)
+(localhost)URL Map URL2/25/26, 12:26 PM about:blank
+about:blank 70/75chrome-
+extension://npclhjbddhklpbnacpjloidibaggcgon/content.jschrome-
+extension://npclhjbddhklpbnacpjloidibaggcgon/content.
+js.map
+Error: Failed fetching source map (null)
+chrome-
+extension://fmkadmapgofadopljbjfkapdkoienihi/build/reac
+t_devtools_backend_compact.jschrome-
+extension://fmkadmapgofadopljbjfkapdkoienihi/build/re
+act_devtools_backend_compact.js.map
+Error: Failed fetching source map (null)
+chrome-
+extension://fmkadmapgofadopljbjfkapdkoienihi/build/inst
+allHook.jschrome-
+extension://fmkadmapgofadopljbjfkapdkoienihi/build/in
+stallHook.js.map
+Error: Failed fetching source map (null)
+chrome-
+extension://egjidjbpglichdcondbcbdnbeeppgdph/oneTap.jschrome-
+extension://egjidjbpglichdcondbcbdnbeeppgdph/oneTap.j
+s.map
+Error: Failed fetching source map (null)
+chrome-
+extension://egjidjbpglichdcondbcbdnbeeppgdph/inpage.jschrome-
+extension://egjidjbpglichdcondbcbdnbeeppgdph/inpage.j
+s.map
+Error: Failed fetching source map (null)
+chrome-
+extension://egjidjbpglichdcondbcbdnbeeppgdph/content.jschrome-
+extension://egjidjbpglichdcondbcbdnbeeppgdph/content.
+js.map
+Error: Failed fetching source map (null)
+chrome-
+extension://djbbokpfbbipcdnodgadkidppckgajgp/polyfills/
+browser-polyfill.min.jschrome-
+extension://djbbokpfbbipcdnodgadkidppckgajgp/polyfill
+s/browser-polyfill.min.js.map
+Error: Failed fetching source map (null)
+TRUST AND SAFETY
+Ensure CSP is effective against XSS attacks
+A strong Content Security P olicy (CSP) significantly reduces the risk of cross-site scripting (XSS) attacks. Learn how to use a
+CSP to prevent XSS UnscoredURL Map URL2/25/26, 12:26 PM about:blank
+about:blank 71/75Ensure proper origin isolation with C OOP
+The Cross-Origin-Opener-P olicy (C OOP) can be used to isolate the top-level window from other documents such as pop-
+ups. Learn more about deploying the C OOP header. Unscored
+Mitigate DOM-based XSS with T rusted T ypes
+The require-trusted-types-for  directive in the Content-Security-Policy  (CSP) header instructs user agents to
+control the data passed to DOM XSS sink functions. Learn more about mitigating DOM-based XSS with T rusted T ypes.
+UnscoredHost allowlists can frequently be bypassed. Consider using CSP nonces or hashes
+instead, along with `'strict-dynamic'` if necessary.script-src High
+`'unsafe-inline'` allows the execution of unsafe in-page scripts and event handlers.
+Consider using CSP nonces or hashes to allow scripts individually.script-src High
+No C OOP header found High
+No `Content-Security-P olicy` header with T rusted T ypes directive found High
+PASSED AUDITS (10) Hide
+Uses HT TPS
+All sites should be protected with HT TPS, even ones that don't handle sensitive data. This includes avoiding mixed content ,
+where some resources are loaded over HT TP despite the initial request being served over HT TPS. HT TPS prevents intruders
+from tampering with or passively listening in on the communications between your app and your users, and is a prerequisite
+for HT TP/2 and many new web platform APIs. Learn more about HT TPS.
+Avoids deprecated APIs
+Deprecated APIs will eventually be removed from the browser. Learn more about deprecated APIs .
+Avoids third-party cookies
+Third-party cookies may be blocked in some contexts. Learn more about preparing for third-party cookie restrictions .
+Allows users to paste into input fieldsDescription Directive Severity
+Description Directive Severity
+Description Severity2/25/26, 12:26 PM about:blank
+about:blank 72/75Preventing input pasting is a bad practice for the UX, and weakens security by blocking password managers. Learn more
+about user-friendly input fields .
+Avoids requesting the geolocation permission on page load
+Users are mistrustful of or confused by sites that request their location without context. Consider tying the request to a user
+action instead. Learn more about the geolocation permission .
+Avoids requesting the notification permission on page load
+Users are mistrustful of or confused by sites that request to send notifications without context. Consider tying the request to
+user gestures instead. Learn more about responsibly getting permission for notifications .
+Displays images with correct aspect ratio
+Image display dimensions should match natural aspect ratio. Learn more about image aspect ratio .
+Serves images with appropriate resolution
+Image natural dimensions should be proportional to the display size and the pixel ratio to maximize image clarity. Learn how
+to provide responsive images .
+Page has the HTML doctype
+Specifying a doctype prevents the browser from switching to quirks-mode. Learn more about the doctype declaration .
+Properly defines charset
+A character encoding declaration is required. It can be done with a <meta>  tag in the first 1024 bytes of the HTML or in the
+Content-T ype HT TP response header. Learn more about declaring the character encoding .
+NOT APPLICABLE (4) Hide
+Redirects HT TP traffic to HT TPS
+Make sure that you redirect all HT TP traffic to HT TPS in order to enable secure web features for all your users. Learn more .
+Unscored
+Use a strong HST S policy
+Deployment of the HST S header significantly reduces the risk of downgrading HT TP connections and eavesdropping attacks.
+A rollout in stages, starting with a low max-age is recommended. Learn more about using a strong HST S policy. Unscored
+Mitigate clickjacking with XFO or CSP
+The X-Frame-Options  (XFO) header or the frame-ancestors  directive in the Content-Security-Policy  (CSP) header
+control where a page can be embedded. These can mitigate clickjacking attacks by blocking some or all sites from2/25/26, 12:26 PM about:blank
+about:blank 73/75These checks ensure that your page is following basic search engine
+optimization advice. There are many additional factors Lighthouse does not
+score here that may affect your search ranking, including performance on
+Core W eb Vitals . Learn more about Google Search Essentials .embedding the page. Learn more about mitigating clickjacking .Unscored
+Detected JavaScript libraries
+All front-end JavaScript libraries detected on the page. Learn more about this JavaScript library detection diagnostic audit .
+Unscored
+SEO
+100
+ADDITIONAL ITEMS TO MANUALLY CHECK (1) Hide
+Structured data is valid
+Run the Structured Data T esting T ool to validate structured data. Learn more about S tructured Data .Unscored
+Run these additional validators on your site to check additional SEO best practices.
+PASSED AUDITS (9) Hide
+Page isn’t blocked from indexing
+Search engines are unable to include your pages in search results if they don't have permission to crawl them. Learn more
+about crawler directives .
+Document has a <title> element
+The title gives screen reader users an overview of the page, and search engine users rely on it heavily to determine if a page
+is relevant to their search. Learn more about document titles .
+Document has a meta description
+Meta descriptions may be included in search results to concisely summarize page content. Learn more about the meta
+description .
+Page has successful HT TP status code
+Pages with unsuccessful HT TP status codes may not be indexed properly. Learn more about HT TP status codes .2/25/26, 12:26 PM about:blank
+about:blank 74/75Generated by Lighthouse  13.0.1  | File an issueLinks have descriptive text
+Descriptive link text helps search engines understand your content. Learn how to make links more accessible .
+Links are crawlable
+Search engines may use href  attributes on links to crawl websites. Ensure that the href  attribute of anchor elements links to
+an appropriate destination, so more pages of the site can be discovered. Learn how to make links crawlable
+robots.txt is valid
+If your robots.txt file is malformed, crawlers may not be able to understand how you want your website to be crawled or
+indexed. Learn more about robots.txt .
+Image elements have [alt] attributes
+Informative elements should aim for short, descriptive alternate text. Decorative elements can be ignored with an empty alt
+attribute. Learn more about the alt attribute .
+Document has a valid hreflang
+hreflang links tell search engines what version of a page they should list in search results for a given language or region.
+Learn more about hreflang .
+NOT APPLICABLE (1) Hide
+Document has a valid rel=canonical
+Canonical links suggest which URL to show in search results. Learn more about canonical links .Unscored
+Captured at Feb 25, 2026, 12:24
+PM GMT+3
+Emulated Moto G P ower with
+Lighthouse 13.0.1
+Single page session
+Initial page load
+ Slow 4G throttling
+ Using Chromium 145.0.0.0 with
+devtools
+2/25/26, 12:26 PM about:blank
+about:blank 75/75
