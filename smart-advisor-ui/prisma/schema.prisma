@@ -13,6 +13,8 @@ model StudentProgress {
   major      String
   completed  String @default("[]")
   updated_at BigInt
+  user_id    Int?
+  user       User?  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([student_id, major])
   @@index([student_id])
@@ -25,6 +27,8 @@ model StudentProfile {
   previous_gpa     Float?
   previous_credits Float?
   updated_at       BigInt
+  user_id          Int?
+  user             User?  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("student_profile")
 }
@@ -40,6 +44,8 @@ model VisitorLog {
   os_version    String?
   browser_name  String?
   visited_at    DateTime? @default(now())
+  user_id       Int?
+  user          User?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("visitor_logs")
 }
@@ -63,6 +69,10 @@ model User {
   semesters            Semester[]
   study_sessions       StudySession[]
   user_badges          UserBadge[]
+  student_progress     StudentProgress[]
+  student_profile      StudentProfile[]
+  visitor_logs         VisitorLog[]
+  course_notes         CourseNote[]
 
   @@map("users")
 }
@@ -157,7 +167,9 @@ model CourseNote {
   id           Int       @id @default(autoincrement())
   student_id   String?
   updated_at   DateTime? @default(now())
+  user_id      Int?
   db_course    Course?   @relation(fields: [db_course_id], references: [id], onDelete: Cascade)
+  user         User?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("course_notes")
 }
@@ -192,17 +204,18 @@ model GPAHistory {
 }
 
 model IntegrationToken {
-  id            Int       @id @default(autoincrement())
-  student_id    String?
-  provider      String
-  access_token  String
-  refresh_token String?
-  expires_at    BigInt?
-  updated_at    DateTime? @default(now())
-  created_at    DateTime? @default(now())
-  user_id       Int?
-  metadata      Json?     @default("{}")
-  user          User?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                  Int       @id @default(autoincrement())
+  student_id          String?
+  provider            String
+  access_token        String
+  refresh_token       String?
+  expires_at          BigInt?
+  updated_at          DateTime? @default(now())
+  created_at          DateTime? @default(now())
+  user_id             Int?
+  metadata            Json?     @default("{}")
+  provider_account_id String?
+  user                User?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([student_id, provider])
   @@map("integration_tokens")

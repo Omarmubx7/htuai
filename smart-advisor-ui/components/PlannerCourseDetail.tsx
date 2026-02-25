@@ -24,6 +24,9 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     const [sessionNotes, setSessionNotes] = useState("");
     const [logging, setLogging] = useState(false);
 
+    // Notes State
+    const [courseContent, setCourseContent] = useState<any>(null);
+
     // Exam Dates State
     const [midtermDate, setMidtermDate] = useState<string>("");
     const [finalDate, setFinalDate] = useState<string>("");
@@ -131,11 +134,32 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                 parseAndSetSchedule(foundCourse.class_schedule);
             }
 
+            // Fetch dedicated course notes content if available
+            try {
+                const notesRes = await fetch(`/api/courses/${courseId}/notes`);
+                if (notesRes.ok) {
+                    const notesData = await notesRes.json();
+                    setCourseContent(notesData.notes);
+                }
+            } catch (e) { console.error(e); }
+
             await fetchSessions();
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAutoSaveNotes = async (content: any) => {
+        try {
+            await fetch(`/api/courses/${courseId}/notes`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ notes: content }),
+            });
+        } catch (e) {
+            console.error("Failed to autosave notes:", e);
         }
     };
 
@@ -464,9 +488,9 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-black/20">
                             <CourseNotesEditor
-                                courseTitle={course.code}
-                                value={course.course_notes?.[0]?.content} // This works because we'll fetch via the modal later, but for this standalone page we should fetch. 
-                            // Actually, let's use the actual string ID for this page's notes because CourseTracker also uses string IDs! Wait, we'll implement it inside the component.
+                                courseTitle={course.name}
+                                value={courseContent || course.course_notes?.[0]?.content}
+                                onAutoSave={handleAutoSaveNotes}
                             />
                         </div>
                     </div>

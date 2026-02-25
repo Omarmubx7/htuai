@@ -93,7 +93,10 @@ export async function GET(req: NextRequest) {
         let currentSemester = await prisma.semester.findFirst({
             where: {
                 user_id: user.id,
-                end_date: { gte: todayForComparison }
+                OR: [
+                    { end_date: { gte: todayForComparison } },
+                    { end_date: null }
+                ]
             },
             orderBy: { start_date: 'asc' }, // The earliest one that hasn't ended
             include: { courses: true }
@@ -167,7 +170,10 @@ export async function GET(req: NextRequest) {
             d.setDate(d.getDate() - i);
             const dateStr = d.toISOString().split('T')[0];
             const mins = recentSessions
-                .filter(s => s.date?.toISOString().split('T')[0] === dateStr)
+                .filter(s => {
+                    const sessionDate = s.date ? new Date(s.date) : null;
+                    return sessionDate ? sessionDate.toISOString().split('T')[0] === dateStr : false;
+                })
                 .reduce((acc, s) => acc + s.duration_minutes, 0);
             return { date: dateStr, minutes: mins };
         }).reverse();
@@ -199,10 +205,17 @@ export async function GET(req: NextRequest) {
         // Fetch full session details for history log
         const fullRecentSessions = await prisma.studySession.findMany({
             where: { user_id: user.id },
-            orderBy: { date: 'desc' },
+            orderBy: { created_at: 'desc' },
             take: 20,
             include: { course: true }
         });
+
+        // Sum total logged minutes historically across all time
+        const allSessions = await prisma.studySession.aggregate({
+            where: { user_id: user.id },
+            _sum: { duration_minutes: true }
+        });
+        const total_study_minutes = allSessions._sum.duration_minutes || 0;
 
         return NextResponse.json({
             cgpa,
@@ -212,10 +225,11 @@ export async function GET(req: NextRequest) {
             gamification,
             studyTrends,
             studyLogStats: {
+                total_study_minutes,
                 study_sessions: fullRecentSessions,
                 neglected_course: neglectedCourse ? {
                     course: { name: neglectedCourse.name },
-                    last_studied: neglectedCourse.study_sessions.toSorted((x: any, y: any) => y.date - x.date)[0]?.date || null
+                    last_studied: neglectedCourse.study_sessions.toSorted((x: any, y: any) => new Date(y.created_at).getTime() - new Date(x.created_at).getTime())[0]?.created_at || null
                 } : null
             },
             neglectedCourse: neglectedCourse ? {

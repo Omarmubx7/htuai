@@ -19,7 +19,7 @@ export default function PlannerSettings() {
     const [resetting, setResetting] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
-    const [preferences, setPreferences] = useState({
+    const [preferences, setPreferences] = useState<{ sync_daily: boolean; exam_reminders: boolean; exam_reminders_days?: number }>({
         sync_daily: false,
         exam_reminders: true
     });
@@ -97,7 +97,7 @@ export default function PlannerSettings() {
         }
     };
 
-    const updatePreference = async (key: string, val: boolean) => {
+    const updatePreference = async (key: string, val: any) => {
         const newPrefs = { ...preferences, [key]: val };
         setPreferences(newPrefs);
 
@@ -141,9 +141,14 @@ export default function PlannerSettings() {
                             <ArrowLeft className="w-5 h-5 text-white/60 group-hover:text-white" />
                         </Link>
                         <div>
-                            <h1 className="font-bold text-lg flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-0.5">
+                                <Link href="/planner" className="hover:text-white/80 transition-colors">Planner</Link>
+                                <span>/</span>
+                                <span className="text-violet-400">Settings</span>
+                            </div>
+                            <h1 className="font-bold text-lg flex items-center gap-2 leading-none">
                                 <Settings2 className="w-5 h-5 text-zinc-400" />
-                                Planner Settings
+                                Profile & Preferences
                             </h1>
                         </div>
                     </div>
@@ -168,7 +173,7 @@ export default function PlannerSettings() {
                                     <img src={userProfile.image} alt="Profile" width={80} height={80} className="w-full h-full rounded-full object-cover border-2 border-black" />
                                 ) : (
                                     <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-2xl font-black">
-                                        {userProfile.name?.[0]?.toUpperCase() || 'S'}
+                                        {userProfile.name?.[0]?.toUpperCase() || 'H'}
                                     </div>
                                 )}
                             </div>
@@ -177,7 +182,7 @@ export default function PlannerSettings() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><User className="w-3 h-3" /> Full Name</p>
-                                        <p className="text-sm font-bold text-white/90">{userProfile.name}</p>
+                                        <p className="text-sm font-bold text-white/90">{userProfile.name || "HTU Student"}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><Mail className="w-3 h-3" /> Email Address</p>
@@ -252,14 +257,18 @@ export default function PlannerSettings() {
                             </button>
                         </div>
                         <div className="flex items-center justify-between pt-2">
-                            <span>Reminder for Exams (7 Days Before)</span>
-                            <button
-                                onClick={() => updatePreference('exam_reminders', !preferences.exam_reminders)}
+                            <span>Reminder for Exams (Before Date)</span>
+                            <select
+                                value={preferences.exam_reminders_days !== undefined ? preferences.exam_reminders_days : (preferences.exam_reminders ? 7 : 0)}
+                                onChange={(e) => updatePreference('exam_reminders_days', Number.parseInt(e.target.value))}
                                 disabled={!calendarConnected}
-                                className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 ${preferences.exam_reminders ? 'bg-emerald-500' : 'bg-white/10'} ${calendarConnected ? 'cursor-pointer' : 'opacity-30 cursor-not-allowed'}`}
+                                className={`bg-black border border-white/10 rounded-xl px-2 py-1 text-white text-xs focus:outline-hidden ${!calendarConnected && 'opacity-50'}`}
                             >
-                                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${preferences.exam_reminders ? 'translate-x-6' : 'translate-x-0'}`} />
-                            </button>
+                                <option value={7}>7 Days</option>
+                                <option value={3}>3 Days</option>
+                                <option value={1}>1 Day</option>
+                                <option value={0}>Disabled</option>
+                            </select>
                         </div>
                     </div>
                 </div>

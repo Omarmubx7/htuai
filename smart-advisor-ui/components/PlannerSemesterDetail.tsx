@@ -318,7 +318,7 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
     const liveGPA = calculateLiveGPA();
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans pb-24">
+        <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans pb-36">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -373,7 +373,7 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
                     <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex items-center justify-center">
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="w-full h-full min-h-[100px] border-2 border-dashed border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 rounded-3xl transition-all flex flex-col items-center justify-center text-white/50 hover:text-white group"
+                            className="w-full h-full min-h-[100px] border-2 sm:border-dashed border-violet-500/30 sm:border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 bg-violet-600/10 sm:bg-transparent rounded-3xl transition-all flex flex-col items-center justify-center text-violet-400 sm:text-white/50 hover:text-white group"
                         >
                             <Plus className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
                             <span className="font-bold text-sm tracking-tight">Add Course</span>
@@ -448,6 +448,12 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
                         <div className="py-16 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30">
                             <BookOpen className="w-8 h-8 mb-3 opacity-50" />
                             <p className="text-sm font-semibold">No courses logged for this semester.</p>
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="mt-6 px-6 py-3 bg-violet-600/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-400 font-bold rounded-xl text-sm transition-all"
+                            >
+                                Add Your First Course
+                            </button>
                         </div>
                     )}
                 </div>

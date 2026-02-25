@@ -86,9 +86,9 @@ export default function PlannerStudyLogClient() {
                             <h3 className="font-bold text-lg">Total Time Streamed</h3>
                         </div>
                         <div className="text-4xl font-black tabular-nums">
-                            {Math.floor((stats?.gamification?.total_study_minutes || 0) / 60)}<span className="text-lg text-white/40 font-bold ml-1">hrs</span>
+                            {Math.floor((stats?.studyLogStats?.total_study_minutes || 0) / 60)}<span className="text-lg text-white/40 font-bold ml-1">hrs</span>
                             {' '}
-                            {(stats?.gamification?.total_study_minutes || 0) % 60}<span className="text-lg text-white/40 font-bold ml-1">mins</span>
+                            {(stats?.studyLogStats?.total_study_minutes || 0) % 60}<span className="text-lg text-white/40 font-bold ml-1">mins</span>
                         </div>
                     </div>
 

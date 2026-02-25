@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Loader2 } from "lucide-react";
+import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
@@ -202,18 +202,22 @@ export default function PlannerHomeClient() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors">
-                            <Settings className="w-4 h-4" />
-                        </Link>
+                        <div className="hidden sm:block">
+                            <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors flex items-center justify-center">
+                                <Settings className="w-4 h-4" />
+                            </Link>
+                        </div>
                         <Link href="/" className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold sm:text-sm text-white/70 transition-colors">
                             Course Tracker
                         </Link>
-                        <ThemeToggle />
+                        <div className="hidden sm:block">
+                            <ThemeToggle />
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-7xl mx-auto px-4 md:px-6 pt-8 space-y-6">
+            <main className="max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-7xl mx-auto px-4 md:px-6 pt-8 pb-36 space-y-6">
 
                 {/* Gamification & User Stats Bar */}
                 {summary?.gamification && (
@@ -262,7 +266,7 @@ export default function PlannerHomeClient() {
                             {summary?.cgpa > 0 ? summary.cgpa.toFixed(2) : '-.--'}
                         </div>
                         <p className="text-sm text-white/40 mt-2 max-w-[200px]">
-                            Calculated dynamically based strictly on your completed HTU Planner modules.
+                            Calculated dynamically combining your imported academic history and HTU Planner tracked modules.
                         </p>
                     </motion.div>
 
@@ -288,17 +292,29 @@ export default function PlannerHomeClient() {
                                     <p className="text-white/50 text-sm mt-1">{summary.currentSemester.courses?.length || 0} Courses Tracked</p>
                                 </>
                             ) : (
-                                <p className="text-white/40">No active tracking semester.</p>
+                                <div className="mt-2">
+                                    <p className="text-white/40 text-sm mb-4">No active tracking semester found. Start logging your progress today.</p>
+                                </div>
                             )}
                         </div>
 
-                        <Link
-                            href="/planner/semesters"
-                            className="mt-6 flex items-center justify-between px-5 py-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group w-full"
-                        >
-                            <span className="font-semibold text-sm">Manage Semesters</span>
-                            <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                        </Link>
+                        {summary?.currentSemester ? (
+                            <Link
+                                href="/planner/semesters"
+                                className="mt-6 flex items-center justify-between px-5 py-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group w-full relative z-10"
+                            >
+                                <span className="font-semibold text-sm">Manage Semesters</span>
+                                <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/planner/semesters"
+                                className="mt-4 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl bg-violet-600 hover:bg-violet-500 shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all group w-full relative z-10"
+                            >
+                                <span className="font-black text-sm text-white">Start an Active Semester</span>
+                                <Plus className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                            </Link>
+                        )}
                     </motion.div>
                 </div>
 
@@ -413,8 +429,8 @@ export default function PlannerHomeClient() {
                                     <div key={`trend-${day.date}-${i}`} className="flex-1 flex flex-col items-center gap-2 group">
                                         <div className="relative w-full flex justify-center items-end h-full">
                                             <div
-                                                className={`w-full max-w-[40px] rounded-t-lg transition-all duration-700 bg-linear-to-t ${day.minutes > 0 ? 'from-violet-600 to-blue-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]' : 'bg-white/5'}`}
-                                                style={{ height: `${Math.max(height, 5)}%` }}
+                                                className={`w-full max-w-[40px] rounded-t-lg transition-all duration-700 ${day.minutes > 0 ? 'bg-linear-to-t from-violet-600 to-blue-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]' : 'border-2 border-dashed border-white/10 bg-transparent'}`}
+                                                style={{ height: `${Math.max(height, 10)}%` }}
                                             />
                                             {day.minutes > 0 && (
                                                 <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 border border-white/10 px-2 py-1 rounded text-[10px] font-bold z-10">

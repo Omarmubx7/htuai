@@ -44,8 +44,9 @@ export default function StudentDashboard({
     setPreviousGpaHistory,
 }: Readonly<StudentDashboardProps>) {
     const [isEditingGpa, setIsEditingGpa] = useState(false);
-    const [editGpa, setEditGpa] = useState(previousGpaHistory?.gpa?.toString() || "");
-    const [editCredits, setEditCredits] = useState(previousGpaHistory?.credits?.toString() || "");
+    const [terms, setTerms] = useState<{ gpa: string, credits: string }[]>([
+        { gpa: previousGpaHistory?.gpa?.toString() || "", credits: previousGpaHistory?.credits?.toString() || "" }
+    ]);
     const [savingGpa, setSavingGpa] = useState(false);
     const completedCount = completedCourses.size;
     const progress = Math.min(completedCredits / totalCredits, 1);
@@ -88,23 +89,34 @@ export default function StudentDashboard({
 
     const classification = getClassification(trueCGPA);
 
+    // Overriding the previous save handler to sum terms:
     const handleSavePreviousGpa = async () => {
         setSavingGpa(true);
+        let totalQp = 0;
+        let totalCr = 0;
+        terms.forEach(t => {
+            const g = Number.parseFloat(t.gpa);
+            const c = Number.parseFloat(t.credits);
+            if (!Number.isNaN(g) && !Number.isNaN(c)) {
+                totalQp += (g * c);
+                totalCr += c;
+            }
+        });
+        const finalGpa = totalCr > 0 ? (totalQp / totalCr) : null;
+        const finalCr = totalCr > 0 ? totalCr : null;
+
         try {
             const res = await fetch('/api/student/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    previous_gpa: editGpa ? Number.parseFloat(editGpa) : null,
-                    previous_credits: editCredits ? Number.parseFloat(editCredits) : null
+                    previous_gpa: finalGpa,
+                    previous_credits: finalCr
                 })
             });
             if (res.ok) {
                 if (setPreviousGpaHistory) {
-                    setPreviousGpaHistory({
-                        gpa: editGpa ? Number.parseFloat(editGpa) : null,
-                        credits: editCredits ? Number.parseFloat(editCredits) : null
-                    });
+                    setPreviousGpaHistory({ gpa: finalGpa, credits: finalCr });
                 }
                 setIsEditingGpa(false);
             }
@@ -402,27 +414,45 @@ export default function StudentDashboard({
                         <h3 className="text-lg font-bold text-white mb-2">Previous Academic History</h3>
                         <p className="text-xs text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
 
-                        <div className="space-y-4 mb-6">
-                            <div>
-                                <label htmlFor="prevGpaInput" className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">Previous CGPA (e.g. 3.45)</label>
-                                <input
-                                    id="prevGpaInput"
-                                    type="number" step="0.01" min="0" max="4"
-                                    value={editGpa} onChange={e => setEditGpa(e.target.value)}
-                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="prevCreditsInput" className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">Previous Credits Earned</label>
-                                <input
-                                    id="prevCreditsInput"
-                                    type="number" step="1" min="0"
-                                    value={editCredits} onChange={e => setEditCredits(e.target.value)}
-                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
-                                    placeholder="0"
-                                />
-                            </div>
+                        <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-1">
+                            {terms.map((term, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
+                                        <input
+                                            type="number" step="0.01" min="0" max="4.0"
+                                            value={term.gpa} onChange={e => {
+                                                const newTerms = [...terms];
+                                                newTerms[i].gpa = e.target.value;
+                                                setTerms(newTerms);
+                                            }}
+                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
+                                        <input
+                                            type="number" step="1" min="0"
+                                            value={term.credits} onChange={e => {
+                                                const newTerms = [...terms];
+                                                newTerms[i].credits = e.target.value;
+                                                setTerms(newTerms);
+                                            }}
+                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    {terms.length > 1 && (
+                                        <button onClick={() => setTerms(terms.filter((_, idx) => idx !== i))} className="mt-5 p-2 bg-white/5 hover:bg-white/10 rounded-xl text-white/50 hover:text-red-400 transition-colors">
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <button onClick={() => setTerms([...terms, { gpa: "", credits: "" }])} className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors mt-2">
+                                + Add Another Term
+                            </button>
                         </div>
 
                         <div className="flex items-center gap-3">

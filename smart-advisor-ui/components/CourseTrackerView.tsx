@@ -181,7 +181,7 @@ export default function CourseTrackerView({
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-24 space-y-8 sm:space-y-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-36 space-y-8 sm:space-y-12">
             <ConfirmDialog
                 isOpen={showResetConfirm}
                 title="Reset All Progress"
@@ -321,7 +321,7 @@ export default function CourseTrackerView({
                             className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 relative group
                                 ${viewMode === mode
                                     ? "text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                                    : "text-white/40 hover:text-white"
+                                    : "text-white/40 bg-white/[0.03] hover:text-white hover:bg-white/[0.08]"
                                 }`}
                         >
                             {mode === "level" ? "Roadmap" : "Categories"}
@@ -352,16 +352,18 @@ export default function CourseTrackerView({
 
                     if (courses.length === 0) return null;
 
+                    const displayTitle = title === "University Requirements" && isMobile ? "Uni. Requirements" : title;
+
                     return (
-                        <section key={title}>
-                            <div className="flex items-center gap-3 mb-6">
+                        <section key={title} className="bg-white/[0.02] border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-[2rem] sm:rounded-none">
+                            <div className="flex items-center gap-3 mb-5 sm:mb-6">
                                 {viewMode === 'level'
-                                    ? <Trophy className="w-4 h-4 text-violet-400/60" />
-                                    : style && <span style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
+                                    ? <Trophy className="w-4 h-4 text-violet-400/60 shrink-0" />
+                                    : style && <span className="shrink-0" style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
                                 }
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-sm font-semibold text-white/65 uppercase tracking-widest">
-                                        {title}
+                                    <h2 className="text-sm font-semibold text-white/65 uppercase tracking-widest whitespace-nowrap">
+                                        {displayTitle}
                                     </h2>
                                     {groupGpa > 0 && (
                                         <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-bold text-white/80 uppercase tracking-widest">
@@ -370,7 +372,7 @@ export default function CourseTrackerView({
                                     )}
                                 </div>
                                 <div className="flex-1 h-px bg-white/5" />
-                                <span className="text-[11px] text-white/20">{courses.length} courses</span>
+                                <span className="text-[11px] text-white/20 shrink-0">{courses.length} courses</span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

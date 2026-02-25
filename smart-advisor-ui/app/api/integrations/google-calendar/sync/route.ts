@@ -44,6 +44,12 @@ export async function POST(req: NextRequest) {
                     where: { course_id: course.id, type }
                 });
 
+                const prefDays = (token.metadata as any)?.exam_reminders_days ?? ((token.metadata as any)?.exam_reminders !== false ? 7 : 0);
+                const overrides = [];
+                if (prefDays > 0) {
+                    overrides.push({ method: "popup", minutes: prefDays * 24 * 60 });
+                }
+
                 const eventData = {
                     summary: `${course.name} — ${type}`,
                     description: `${type} exam for ${course.name} (${course.credits} CH)`,
@@ -51,11 +57,7 @@ export async function POST(req: NextRequest) {
                     end: { dateTime: new Date(new Date(dateVal).getTime() + 2 * 60 * 60 * 1000).toISOString(), timeZone: "Asia/Amman" }, // 2 hour duration
                     reminders: {
                         useDefault: false,
-                        overrides: [
-                            { method: "popup", minutes: 10080 }, // 7 days
-                            { method: "popup", minutes: 4320 },  // 3 days
-                            { method: "popup", minutes: 1440 },  // 1 day
-                        ]
+                        overrides
                     }
                 };
 

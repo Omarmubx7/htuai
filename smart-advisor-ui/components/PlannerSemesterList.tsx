@@ -118,7 +118,7 @@ export default function PlannerSemesterList() {
                             today.setHours(0, 0, 0, 0);
 
                             // A semester is past/completed if its end date is strictly before today
-                            const isPast = new Date(sem.end_date) < today;
+                            const isPast = sem.end_date ? new Date(sem.end_date) < today : false;
 
                             // Calculate dynamic GPA if not officially set
                             let gpa = sem.semester_gpa !== null ? sem.semester_gpa : 0;

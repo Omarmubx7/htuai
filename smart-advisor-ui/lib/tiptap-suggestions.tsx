@@ -3,9 +3,9 @@ import { ReactRenderer } from '@tiptap/react';
 import tippy, { Instance } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import {
-    Heading1, Heading2, Heading3,
+    Heading1, Heading2, Heading3, Heading4,
     List, ListOrdered, CheckSquare,
-    Quote, Code, Minus, Info
+    Quote, Code, Minus, Info, Terminal
 } from "lucide-react";
 
 export const suggestion = {
@@ -60,9 +60,33 @@ export const suggestion = {
                 },
             },
             {
+                title: 'Heading 3',
+                description: 'Small section heading',
+                icon: Heading3,
+                command: ({ editor, range }: any) => {
+                    editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
+                },
+            },
+            {
+                title: 'Heading 4',
+                description: 'Sub-section heading',
+                icon: Heading4,
+                command: ({ editor, range }: any) => {
+                    editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run();
+                },
+            },
+            {
+                title: 'Inline Code',
+                description: 'Monospace font',
+                icon: Code,
+                command: ({ editor, range }: any) => {
+                    editor.chain().focus().deleteRange(range).toggleCode().run();
+                },
+            },
+            {
                 title: 'Code Block',
                 description: 'Code with highlighting',
-                icon: Code,
+                icon: Terminal,
                 command: ({ editor, range }: any) => {
                     editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
                 },
@@ -131,6 +155,10 @@ export const suggestion = {
 
 const CommandList = React.forwardRef(({ items, command }: any, ref) => {
     const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+    React.useEffect(() => {
+        setSelectedIndex(0);
+    }, [items]);
 
     const selectItem = (index: number) => {
         const item = items[index];

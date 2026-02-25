@@ -41,7 +41,7 @@ export default function PrivacyPage() {
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-sm">
                             <li><span className="text-white font-bold">Account Data:</span> University ID and progress logs.</li>
-                            <li><span className="text-white font-bold">Google User Data:</span> When you authorize integrations, we access your <span className="text-white font-semibold">Google Calendar</span> (to add study events) and <span className="text-white font-semibold">Google Sheets</span> (to export planner data).</li>
+                            <li><span className="text-white font-bold">Google User Data:</span> When you authorize integrations, we access your <span className="text-white font-semibold">Google Calendar</span> to push study session and exam events.</li>
                         </ul>
                     </section>
 
@@ -55,7 +55,6 @@ export default function PrivacyPage() {
                             </p>
                             <ul className="list-disc pl-6 space-y-3">
                                 <li><span className="text-white font-bold">Personalized Scheduling:</span> We process your course dates to create calendar events for midterm and final exams. We do not read or modify unrelated calendar events.</li>
-                                <li><span className="text-white font-bold">Data Portability:</span> We process your planner data to generate and sync Google Sheets at your request. We do not access other files in your Google Drive.</li>
                                 <li><span className="text-white font-bold">Limited Scope:</span> We only request the minimum permissions (scopes) required to perform these specific actions.</li>
                             </ul>
 

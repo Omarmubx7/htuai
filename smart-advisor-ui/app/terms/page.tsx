@@ -61,7 +61,7 @@ export default function TermsPage() {
                             <HelpCircle className="w-5 h-5 text-violet-400" /> External Integrations
                         </h2>
                         <p>
-                            Our integrations with Google Calendar and Google Sheets are optional features designed to sync your academic schedule and data. Your use of these features is governed by these Terms and Google&apos;s Terms of Service.
+                            Our integrations with Google Calendar are optional features designed to sync your academic schedule and data. Your use of these features is governed by these Terms and Google&apos;s Terms of Service.
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-sm text-white/50">
                             <li>You maintain full ownership of your Google data.</li>
