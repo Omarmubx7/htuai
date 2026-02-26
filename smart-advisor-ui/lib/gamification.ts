@@ -50,35 +50,7 @@ export async function evaluateAchievements(userId: number, newMinutes: number = 
     }
 
     // Handle Quests (Active Quests)
-    const activeQuests = await prisma.quest.findMany({
-        where: { user_id: userId, status: "active" }
-    });
-
-    for (const quest of activeQuests) {
-        if (quest.type === "study_time" && newMinutes > 0) {
-            // Target value is usually minutes
-            const newProgress = Math.min(quest.current_value! + newMinutes, quest.target_value);
-
-            if (newProgress >= quest.target_value) {
-                // Completed Quest!
-                await prisma.quest.update({
-                    where: { id: quest.id },
-                    data: { current_value: quest.target_value, status: "completed" }
-                });
-
-                // Grant reward XP
-                await prisma.gamificationProfile.update({
-                    where: { user_id: userId },
-                    data: { xp: { increment: 50 } } // standard quest finish
-                });
-            } else {
-                await prisma.quest.update({
-                    where: { id: quest.id },
-                    data: { current_value: newProgress }
-                });
-            }
-        }
-    }
+    await processActiveQuests(userId, newMinutes);
 
     // Check level ups based on XP (Spec: level = floor(xp / 500) + 1)
     const currentLevel = profile.level || 1;
@@ -109,4 +81,37 @@ async function awardBadge(userId: number, code: string, name: string, descriptio
             badge_id: badge.id
         }
     });
+}
+
+async function processActiveQuests(userId: number, newMinutes: number) {
+    if (newMinutes <= 0) return;
+
+    const activeQuests = await prisma.quest.findMany({
+        where: { user_id: userId, status: "active" }
+    });
+
+    for (const quest of activeQuests) {
+        if (quest.type === "study_time") {
+            const newProgress = Math.min(quest.current_value! + newMinutes, quest.target_value);
+
+            if (newProgress >= quest.target_value) {
+                // Completed Quest!
+                await prisma.quest.update({
+                    where: { id: quest.id },
+                    data: { current_value: quest.target_value, status: "completed" }
+                });
+
+                // Grant reward XP
+                await prisma.gamificationProfile.update({
+                    where: { user_id: userId },
+                    data: { xp: { increment: 50 } } // standard quest finish
+                });
+            } else {
+                await prisma.quest.update({
+                    where: { id: quest.id },
+                    data: { current_value: newProgress }
+                });
+            }
+        }
+    }
 }

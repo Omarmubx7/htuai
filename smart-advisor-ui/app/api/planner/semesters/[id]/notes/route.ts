@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const semesterId = parseInt(id, 10);
+    const semesterId = Number.parseInt(id, 10);
 
     try {
         const notes = await (prisma as any).semesterNote.findMany({
@@ -17,6 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         });
         return NextResponse.json({ notes });
     } catch (e) {
+        console.error("Fetch notes error:", e);
         return NextResponse.json({ error: "Failed to fetch notes" }, { status: 500 });
     }
 }
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const semesterId = parseInt(id, 10);
+    const semesterId = Number.parseInt(id, 10);
 
     try {
         const body = await req.json();
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         });
         return NextResponse.json({ note: newNote });
     } catch (e) {
+        console.error("Create note error:", e);
         return NextResponse.json({ error: "Failed to create note" }, { status: 500 });
     }
 }
@@ -57,14 +59,15 @@ export async function PATCH(req: NextRequest) {
         const updated = await (prisma as any).semesterNote.update({
             where: { id: Number(id) },
             data: {
-                title: title !== undefined ? title : undefined,
-                notes: notes !== undefined ? notes : undefined,
-                content: content !== undefined ? content : undefined,
+                title: title ?? undefined,
+                notes: notes ?? undefined,
+                content: content ?? undefined,
                 updated_at: new Date()
             }
         });
         return NextResponse.json({ note: updated });
     } catch (e) {
+        console.error("Update note error:", e);
         return NextResponse.json({ error: "Failed to update note" }, { status: 500 });
     }
 }
@@ -84,6 +87,7 @@ export async function DELETE(req: NextRequest) {
         });
         return NextResponse.json({ success: true });
     } catch (e) {
+        console.error("Delete note error:", e);
         return NextResponse.json({ error: "Failed to delete note" }, { status: 500 });
     }
 }

@@ -35,6 +35,20 @@ export async function initDB() {
     // Handled by Prisma Migrations/db push.
 }
 
+/** Helper to resolve a user by whatever ID next-auth currently has for them */
+export async function resolveUserByString(identity: string) {
+    if (!identity) return null;
+    let user = await prisma.user.findUnique({ where: { student_id: identity } });
+    if (!user) user = await prisma.user.findUnique({ where: { email: identity } });
+    if (!user) user = await prisma.user.findFirst({ where: { name: identity } });
+    if (!user) {
+        // As a deep fallback, try parsing to an int in case they passed the user_id
+        const num = Number.parseInt(identity, 10);
+        if (!Number.isNaN(num)) user = await prisma.user.findUnique({ where: { id: num } });
+    }
+    return user;
+}
+
 /** Log visitor information */
 export async function logVisitor(data: VisitorLog): Promise<void> {
     try {
@@ -78,6 +92,7 @@ export async function loadProgress(studentId: string, major: string): Promise<st
         if (!record) return [];
         return JSON.parse(record.completed) as string[];
     } catch (e) {
+        console.error("Progress fetch error:", e);
         return [];
     }
 }
@@ -87,7 +102,7 @@ export async function saveProgress(studentId: string, major: string, completed: 
     const jsonStr = JSON.stringify(completed);
     const time = BigInt(Math.floor(Date.now() / 1000));
     
-    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    const user = await resolveUserByString(studentId);
     if (!user) return;
     
     await prisma.studentProgress.upsert({
@@ -122,13 +137,13 @@ export async function loadMajor(studentId: string): Promise<string | null> {
             where: { student_id: studentId }
         });
         return rec?.major || null;
-    } catch { return null; }
+    } catch (e) { console.error("Major load error:", e); return null; }
 }
 
 /** Save / update the student's chosen major */
 export async function saveMajor(studentId: string, major: string): Promise<void> {
     const time = BigInt(Math.floor(Date.now() / 1000));
-    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    const user = await resolveUserByString(studentId);
     if (!user) return;
     await prisma.studentProfile.upsert({
         where: { student_id: studentId },
@@ -242,14 +257,14 @@ export async function linkAccount(userId: number, provider: string, providerAcco
             update: {}, // DO NOTHING ON CONFLICT
             create: { user_id: userId, provider, provider_account_id: providerAccountId }
         });
-    } catch { }
+    } catch (e) { console.error("Account link error:", e); }
 }
 
 export async function saveIntegrationToken(
     studentId: string, provider: string, accessToken: string,
     refreshToken?: string, expiresAt?: number, metadata?: Record<string, any>
 ) {
-    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    const user = await resolveUserByString(studentId);
     if (!user) return;
     await prisma.integrationToken.upsert({
         where: { user_id_provider: { user_id: user.id, provider } },
@@ -273,7 +288,7 @@ export async function saveIntegrationToken(
 }
 
 export async function getIntegrationToken(studentId: string, provider: string) {
-    const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+    const user = await resolveUserByString(studentId);
     if (!user) return null;
     const token = await prisma.integrationToken.findUnique({
         where: { user_id_provider: { user_id: user.id, provider } }
@@ -283,18 +298,18 @@ export async function getIntegrationToken(studentId: string, provider: string) {
         accessToken: token.access_token,
         refreshToken: token.refresh_token,
         expiresAt: token.expires_at ? Number(token.expires_at) : null,
-        metadata: token.metadata ? JSON.parse(JSON.stringify(token.metadata)) : {},
+        metadata: token.metadata ? structuredClone(token.metadata) : {},
     };
 }
 
 export async function deleteIntegrationToken(studentId: string, provider: string) {
     try {
-        const user = await prisma.user.findUnique({ where: { student_id: studentId } });
+        const user = await resolveUserByString(studentId);
         if (!user) return;
         await prisma.integrationToken.delete({
             where: { user_id_provider: { user_id: user.id, provider } }
         });
-    } catch { }
+    } catch (e) { console.error("Token delete error:", e); }
 }
 
 export async function getCourseNotes(studentId: string, courseId: string): Promise<string | null> {
@@ -304,13 +319,14 @@ export async function getCourseNotes(studentId: string, courseId: string): Promi
         });
         return note?.notes || null;
     } catch (e) {
+        console.error("Notes load error:", e);
         return null;
     }
 }
 
 export async function saveCourseNotes(studentId: string, courseId: string, notes: string): Promise<void> {
     try {
-        const user = await prisma.user.findUnique({ where: { student_id: studentId }});
+        const user = await resolveUserByString(studentId);
         if (!user) return;
         
         const row = await prisma.courseNote.findFirst({
@@ -325,8 +341,8 @@ export async function saveCourseNotes(studentId: string, courseId: string, notes
         } else {
             // NOTE: db_course_id is now required, this needs resolving elsewhere if called
             await prisma.courseNote.create({
-                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date(), user_id: user.id, db_course_id: parseInt(courseId) || 0 }
+                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date(), user_id: user.id, db_course_id: Number.parseInt(courseId, 10) || 0 }
             });
         }
-    } catch { }
+    } catch (e) { console.error("Notes save error:", e); }
 }

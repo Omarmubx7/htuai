@@ -132,6 +132,8 @@ export default function PlannerSettings() {
         }
     };
 
+    const currentExamReminderDays = preferences.exam_reminders_days ?? (preferences.exam_reminders ? 7 : 0);
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans pb-24">
             <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4">
@@ -259,7 +261,7 @@ export default function PlannerSettings() {
                         <div className="flex items-center justify-between pt-2">
                             <span>Reminder for Exams (Before Date)</span>
                             <select
-                                value={preferences.exam_reminders_days !== undefined ? preferences.exam_reminders_days : (preferences.exam_reminders ? 7 : 0)}
+                                value={currentExamReminderDays}
                                 onChange={(e) => updatePreference('exam_reminders_days', Number.parseInt(e.target.value))}
                                 disabled={!calendarConnected}
                                 className={`bg-black border border-white/10 rounded-xl px-2 py-1 text-white text-xs focus:outline-hidden ${!calendarConnected && 'opacity-50'}`}
