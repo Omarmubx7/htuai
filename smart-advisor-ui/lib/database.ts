@@ -39,8 +39,8 @@ export async function initDB() {
 export async function resolveUserByString(identity: string) {
     if (!identity) return null;
     let user = await prisma.user.findUnique({ where: { student_id: identity } });
-    if (!user) user = await prisma.user.findUnique({ where: { email: identity } });
-    if (!user) user = await prisma.user.findFirst({ where: { name: identity } });
+    user ??= await prisma.user.findUnique({ where: { email: identity } });
+    user ??= await prisma.user.findFirst({ where: { name: identity } });
     if (!user) {
         // As a deep fallback, try parsing to an int in case they passed the user_id
         const num = Number.parseInt(identity, 10);
@@ -75,7 +75,10 @@ export async function getVisitorLogs(limit = 100) {
             orderBy: { visited_at: 'desc' },
         });
         return logs;
-    } catch (e) { return []; }
+    } catch (e) {
+        console.warn("Visitor log fetch error:", e);
+        return [];
+    }
 }
 
 /** Load a student's completed courses for a specific major */
@@ -266,32 +269,42 @@ export async function saveIntegrationToken(
 ) {
     const user = await resolveUserByString(studentId);
     if (!user) return;
-    await prisma.integrationToken.upsert({
-        where: { user_id_provider: { user_id: user.id, provider } },
-        update: {
-            access_token: accessToken,
-            refresh_token: refreshToken ?? undefined,
-            expires_at: expiresAt ? BigInt(expiresAt) : null,
-            metadata: metadata || {},
-            updated_at: new Date()
-        },
-        create: {
-            student_id: studentId,
-            provider,
-            access_token: accessToken,
-            refresh_token: refreshToken || null,
-            expires_at: expiresAt ? BigInt(expiresAt) : null,
-            metadata: metadata || {},
-            user_id: user.id
-        }
+    
+    const existing = await prisma.integrationToken.findFirst({
+        where: { user_id: user.id, provider }
     });
+
+    if (existing) {
+        await prisma.integrationToken.update({
+            where: { id: existing.id },
+            data: {
+                access_token: accessToken,
+                refresh_token: refreshToken ?? undefined,
+                expires_at: expiresAt ? BigInt(expiresAt) : null,
+                metadata: metadata || {},
+                updated_at: new Date()
+            }
+        });
+    } else {
+        await prisma.integrationToken.create({
+            data: {
+                student_id: studentId,
+                provider,
+                access_token: accessToken,
+                refresh_token: refreshToken || null,
+                expires_at: expiresAt ? BigInt(expiresAt) : null,
+                metadata: metadata || {},
+                user_id: user.id
+            }
+        });
+    }
 }
 
 export async function getIntegrationToken(studentId: string, provider: string) {
     const user = await resolveUserByString(studentId);
     if (!user) return null;
-    const token = await prisma.integrationToken.findUnique({
-        where: { user_id_provider: { user_id: user.id, provider } }
+    const token = await prisma.integrationToken.findFirst({
+        where: { user_id: user.id, provider }
     });
     if (!token) return null;
     return {
@@ -306,9 +319,14 @@ export async function deleteIntegrationToken(studentId: string, provider: string
     try {
         const user = await resolveUserByString(studentId);
         if (!user) return;
-        await prisma.integrationToken.delete({
-            where: { user_id_provider: { user_id: user.id, provider } }
+        const token = await prisma.integrationToken.findFirst({
+            where: { user_id: user.id, provider }
         });
+        if (token) {
+            await prisma.integrationToken.delete({
+                where: { id: token.id }
+            });
+        }
     } catch (e) { console.error("Token delete error:", e); }
 }
 
