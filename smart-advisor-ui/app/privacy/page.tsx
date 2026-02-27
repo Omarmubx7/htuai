@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, Lock, EyeOff, FileText } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Lock, EyeOff, FileText, Share2 } from "lucide-react";
 import Image from "next/image";
 
 export default function PrivacyPage() {
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
                             Privacy Policy
                         </h1>
                     </div>
-                    <p className="text-white/40 font-medium">Last updated: February 21, 2026</p>
+                    <p className="text-white/40 font-medium">Last updated: February 27, 2026</p>
                 </header>
 
                 <div id="privacy-content" className="space-y-12 text-white/70 leading-relaxed font-medium">
@@ -75,7 +75,25 @@ export default function PrivacyPage() {
 
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-violet-400" /> 3. Data Storage & Security
+                            <Share2 className="w-5 h-5 text-violet-400" /> 3. Data Sharing, Transfer & Disclosure
+                        </h2>
+                        <div className="glass-card-premium p-6 rounded-3xl border border-white/5 space-y-4 shadow-2xl shadow-violet-500/5">
+                            <p className="text-white/80 text-sm">
+                                HTUAI is committed to protecting your data. We are transparent about how your <span className="text-violet-400 font-bold">Google user data</span> is handled:
+                            </p>
+                            <ul className="list-disc pl-6 space-y-3 text-sm">
+                                <li><span className="text-white font-bold">No Selling or Renting:</span> We do not sell, rent, or trade your Google user data to any third parties, advertisers, or data brokers.</li>
+                                <li><span className="text-white font-bold">No Third-Party Sharing:</span> We do not share your Google user data with third-party companies, organizations, or individuals, except as described below.</li>
+                                <li><span className="text-white font-bold">No AI Training:</span> Your Google user data is never used to train artificial intelligence or machine learning models.</li>
+                                <li><span className="text-white font-bold">Service Providers:</span> The only transfer of your Google data is back to Google itself, through the Google Calendar API, to create exam and study session events on your behalf. No other service providers receive your Google user data.</li>
+                                <li><span className="text-white font-bold">Legal Requirements:</span> We may disclose your data if required to do so by law or in response to valid legal requests by public authorities (e.g., a court order or government agency).</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section className="space-y-4">
+                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-violet-400" /> 4. Data Storage & Security
                         </h2>
                         <div className="space-y-4">
                             <p>
@@ -91,7 +109,7 @@ export default function PrivacyPage() {
 
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-violet-400" /> 4. Data Retention & Deletion
+                            <ShieldCheck className="w-5 h-5 text-violet-400" /> 5. Data Retention & Deletion
                         </h2>
                         <div className="space-y-4">
                             <p>
