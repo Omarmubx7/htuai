@@ -22,7 +22,7 @@ export default function MobileNav() {
     }
 
     return (
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-70 px-4 pb-6 pt-3 bg-zinc-950/80 dark:bg-black/80 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)] flex justify-center">
+        <nav id="wt-mobile-nav" className="sm:hidden fixed bottom-0 left-0 right-0 z-70 px-4 pb-6 pt-3 bg-zinc-950/80 dark:bg-black/80 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)] flex justify-center">
             <div className="w-full max-w-md premium-card rounded-3xl flex items-center justify-around p-2 shadow-2xl">
                 {NAV_ITEMS.map((item) => {
                     const isActive = pathname === item.href || (item.href === "/" && pathname === "/");

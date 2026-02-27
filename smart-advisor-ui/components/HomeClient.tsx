@@ -11,6 +11,7 @@ import { useSession, signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import WalkthroughOverlay, { useWalkthrough, TRACKER_WALKTHROUGH_STEPS, WalkthroughHelpButton } from "@/components/WalkthroughOverlay";
 
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
 const MajorSelector = dynamic(() => import("@/components/MajorSelector"), { ssr: false });
@@ -33,6 +34,7 @@ export default function HomeClient() {
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map()); // Added courseNameMap state
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
+    const walkthrough = useWalkthrough();
 
     useEffect(() => {
         if (status === "loading") return;
@@ -333,7 +335,7 @@ export default function HomeClient() {
                     >
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             {/* Brand section */}
-                            <div className="flex items-center gap-3">
+                            <div id="wt-header-brand" className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
                                     <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={20} height={20} className="object-contain dark-logo" />
                                     <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={20} height={20} className="object-contain light-logo" />
@@ -342,7 +344,7 @@ export default function HomeClient() {
                             </div>
 
 
-                            <div className="flex items-center gap-3">
+                            <div id="wt-profile" className="flex items-center gap-3">
                                 <div className="flex flex-col items-end">
                                     <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest leading-none mb-1">{studentId}</span>
                                     {majorInfo && (
@@ -375,6 +377,9 @@ export default function HomeClient() {
                                 </div>
                                 <div className="hidden sm:block">
                                     <ThemeToggle />
+                                </div>
+                                <div className="hidden sm:block">
+                                    <WalkthroughHelpButton onClick={walkthrough.open} />
                                 </div>
                             </div>
                         </div>
@@ -410,6 +415,13 @@ export default function HomeClient() {
                             </motion.div>
                         </AnimatePresence>
                     </main>
+
+                    {/* Walkthrough Overlay */}
+                    <WalkthroughOverlay
+                        steps={TRACKER_WALKTHROUGH_STEPS}
+                        isOpen={walkthrough.isOpen}
+                        onClose={walkthrough.close}
+                    />
                 </motion.div>
             )}
         </AnimatePresence>

@@ -231,6 +231,7 @@ export default function CourseTrackerView({
                         <div className="h-4 w-px bg-white/10" />
 
                         <motion.button
+                            id="wt-reset-btn"
                             whileHover={{ scale: 1.05, x: 2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setShowResetConfirm(true)}
@@ -242,7 +243,7 @@ export default function CourseTrackerView({
                     </div>
                 </div>
 
-                <div className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-100 shrink-0 relative overflow-hidden group">
+                <div id="wt-progress-card" className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-100 shrink-0 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
                         <Trophy className="w-24 h-24 text-white" />
                     </div>
@@ -313,7 +314,7 @@ export default function CourseTrackerView({
                     </div>
                 </div>
 
-                <div className="flex p-1 bg-white/3 border border-white/5 rounded-xl sm:rounded-[1.25rem] shadow-inner backdrop-blur-xl w-full sm:w-auto">
+                <div id="wt-view-toggle" className="flex p-1 bg-white/3 border border-white/5 rounded-xl sm:rounded-[1.25rem] shadow-inner backdrop-blur-xl w-full sm:w-auto">
                     {(["level", "category"] as const).map((mode) => (
                         <button
                             key={mode}
@@ -376,7 +377,11 @@ export default function CourseTrackerView({
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                                {visibleCourses.map(renderCourseCard)}
+                                {visibleCourses.map((course: Course, idx: number) => (
+                                    <div key={course.code} {...(idx === 0 && title === Object.keys(groups)[0] ? { id: "wt-first-course" } : {})}>
+                                        {renderCourseCard(course)}
+                                    </div>
+                                ))}
                             </div>
 
                             {/* Show More Button (Mobile only) */}
@@ -393,6 +398,7 @@ export default function CourseTrackerView({
                             )}
                         </section>
                     );
+                    /* ^^^ end of section */
                 })}
             </div>
 

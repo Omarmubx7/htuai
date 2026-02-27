@@ -210,7 +210,7 @@ export default function StudentDashboard({
         >
             {/* ── Header: Student Status ────────────────── */}
             <div className="flex flex-col md:flex-row gap-4 items-stretch">
-                <div className="flex-1 glass-card p-6 rounded-[32px] relative overflow-hidden group border-white/10 bg-white/[0.02] shadow-2xl">
+                <div id="wt-student-status" className="flex-1 glass-card p-6 rounded-[32px] relative overflow-hidden group border-white/10 bg-white/[0.02] shadow-2xl">
                     <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-transparent to-blue-600/10 opacity-50" />
 
                     <div className="relative flex items-center gap-6">
@@ -239,7 +239,7 @@ export default function StudentDashboard({
                             <span className="text-xl font-black text-white tracking-tighter">{graduationEstimate}</span>
                         </div>
                     </div>
-                    <Link href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all active:scale-[0.98]">
+                    <Link id="wt-planner-btn" href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all active:scale-[0.98]">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             <span className="text-sm font-bold tracking-wide">Semester Planner</span>
@@ -252,7 +252,7 @@ export default function StudentDashboard({
             </div>
 
             {/* ── Additional Data Parity Stats (Desktop Grid / Mobile Stack) ──────────────── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div id="wt-stat-cards" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 <StatCard
                     icon={<Target className="w-4 h-4" />}
                     label="Credits Done"
@@ -262,7 +262,7 @@ export default function StudentDashboard({
                     delay={0.1}
                     progress={progress}
                 />
-                <div className="relative group/gpa">
+                <div id="wt-cgpa-card" className="relative group/gpa">
                     <StatCard
                         icon={<GpaIcon className="w-4 h-4" />}
                         label="True CGPA"
@@ -327,6 +327,7 @@ export default function StudentDashboard({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
+                id="wt-roadmap"
                 className="rounded-[40px] p-8 glass-card-premium group/next"
             >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 justify-between w-full relative z-10">
