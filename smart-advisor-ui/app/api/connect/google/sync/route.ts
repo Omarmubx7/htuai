@@ -150,10 +150,12 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
         if (courseData.instructor_name) {
             const instructor = courseData.instructor_name;
             let instructorStr = "";
-            if (typeof instructor === 'string' || typeof instructor === 'number') {
-                instructorStr = String(instructor);
+            if (typeof instructor === 'string') {
+                instructorStr = instructor;
+            } else if (typeof instructor === 'number') {
+                instructorStr = instructor.toString();
             } else if (instructor && typeof instructor === 'object') {
-                instructorStr = (instructor as any).name || JSON.stringify(instructor);
+                instructorStr = (instructor as any).name || (instructor as any).title || JSON.stringify(instructor);
             }
             if (instructorStr) description += `\nInstructor: ${instructorStr}`;
         }
