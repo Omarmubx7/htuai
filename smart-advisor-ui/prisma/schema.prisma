@@ -240,6 +240,7 @@ model IntegrationToken {
   user_id             Int
   metadata            Json?     @default("{}")
   provider_account_id String?
+  account_email       String?
   user                User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, provider])

@@ -53,9 +53,11 @@ export async function GET(req: NextRequest) {
         });
 
         let googleEmail: string | undefined = undefined;
+        let googleId: string | undefined = undefined;
         if (profileRes.ok) {
             const profile = await profileRes.json();
             googleEmail = profile.email;
+            googleId = profile.id;
         }
 
         await saveIntegrationToken(
@@ -64,6 +66,7 @@ export async function GET(req: NextRequest) {
             (tokens.access_token as string) || "",
             (tokens.refresh_token as string) || "",
             tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined,
+            googleId,
             googleEmail
         );
 
