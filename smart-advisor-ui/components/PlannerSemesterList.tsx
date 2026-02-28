@@ -74,20 +74,20 @@ export default function PlannerSemesterList() {
     return (
         <div className="min-h-screen pb-24 bg-black text-white selection:bg-violet-500/30">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
-                <div className="flex flex-col">
+            <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between gap-2">
+                <div className="flex flex-col min-w-0">
                     <Link href="/planner" className="text-[10px] text-white/40 uppercase tracking-widest font-bold hover:text-white transition-colors mb-1 flex items-center gap-1">
                         ← Dashboard
                     </Link>
-                    <h1 className="font-bold text-lg flex items-center gap-2">
-                        <CalendarDays className="w-5 h-5 text-violet-400" /> All Semesters
+                    <h1 className="font-bold text-base sm:text-lg flex items-center gap-2 truncate">
+                        <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400 shrink-0" /> <span className="truncate">All Semesters</span>
                     </h1>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors" title="Settings">
                         <Settings2 className="w-4 h-4" />
                     </Link>
-                    <Link href="/" className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold sm:text-sm text-white/70 transition-colors">
+                    <Link href="/" className="px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] sm:text-xs font-semibold sm:text-sm text-white/70 transition-colors whitespace-nowrap">
                         Course Tracker
                     </Link>
                 </div>

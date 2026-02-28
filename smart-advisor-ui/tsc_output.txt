@@ -1,0 +1,23 @@
+components/HomeClient.tsx(5,34): error TS2307: Cannot find module '@/lib/useMajor' or its corresponding type declarations.
+components/HomeClient.tsx(6,25): error TS2307: Cannot find module '@/components/LandingPage' or its corresponding type declarations.
+components/HomeClient.tsx(7,28): error TS2307: Cannot find module '@/types' or its corresponding type declarations.
+components/HomeClient.tsx(11,25): error TS2307: Cannot find module '@/components/ThemeToggle' or its corresponding type declarations.
+components/HomeClient.tsx(14,102): error TS2307: Cannot find module '@/components/WalkthroughOverlay' or its corresponding type declarations.
+components/HomeClient.tsx(16,43): error TS2307: Cannot find module '@/components/StudentLogin' or its corresponding type declarations.
+components/HomeClient.tsx(17,44): error TS2307: Cannot find module '@/components/MajorSelector' or its corresponding type declarations.
+components/HomeClient.tsx(18,48): error TS2307: Cannot find module '@/components/CourseTrackerView' or its corresponding type declarations.
+components/HomeClient.tsx(311,36): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: {}, context?: any): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...>', gave the following error.
+    Type '{ onSelect: (key: MajorKey) => Promise<void>; }' is not assignable to type 'IntrinsicAttributes'.
+      Property 'onSelect' does not exist on type 'IntrinsicAttributes'.
+  Overload 2 of 2, '(props: {}): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...>', gave the following error.
+    Type '{ onSelect: (key: MajorKey) => Promise<void>; }' is not assignable to type 'IntrinsicAttributes'.
+      Property 'onSelect' does not exist on type 'IntrinsicAttributes'.
+components/HomeClient.tsx(393,41): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: {}, context?: any): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...>', gave the following error.
+    Type '{ data: any; studentId: string; majorKey: any; rules: any; completedCourses: Map<string, string>; toggleCourse: (code: string) => Promise<void>; updateCourseGrade: (code: string, grade: string) => void; saveStatus: "saved" | "saving"; previousGpaHistory: { ...; }; setPreviousGpaHistory: Dispatch<...>; resetProgress:...' is not assignable to type 'IntrinsicAttributes'.
+      Property 'data' does not exist on type 'IntrinsicAttributes'.
+  Overload 2 of 2, '(props: {}): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...>', gave the following error.
+    Type '{ data: any; studentId: string; majorKey: any; rules: any; completedCourses: Map<string, string>; toggleCourse: (code: string) => Promise<void>; updateCourseGrade: (code: string, grade: string) => void; saveStatus: "saved" | "saving"; previousGpaHistory: { ...; }; setPreviousGpaHistory: Dispatch<...>; resetProgress:...' is not assignable to type 'IntrinsicAttributes'.
+      Property 'data' does not exist on type 'IntrinsicAttributes'.
+components/PlannerSettings.tsx(10,25): error TS2307: Cannot find module '@/components/ThemeToggle' or its corresponding type declarations.

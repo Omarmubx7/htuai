@@ -223,8 +223,8 @@ export default function PlannerSettings() {
                     </h3>
 
                     <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                            <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2">Google Calendar <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${calendarConnected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>{calendarConnected ? 'Connected' : 'Disconnected'}</span></h4>
                                 <p className="text-sm text-white/50 mt-1 max-w-sm">
                                     Automatically push your course schedules and exam dates securely to your external Google Calendar agenda.
@@ -234,7 +234,7 @@ export default function PlannerSettings() {
                             {calendarConnected ? (
                                 <button
                                     onClick={handleSyncNow} disabled={syncing}
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-2 shrink-0"
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center sm:justify-start gap-2 shrink-0 w-full sm:w-auto"
                                 >
                                     <RefreshCcw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                                     {syncing ? 'Syncing...' : 'Force Sync Now'}
@@ -242,7 +242,7 @@ export default function PlannerSettings() {
                             ) : (
                                 <button
                                     onClick={handleGoogleConnect}
-                                    className="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm transition-all hover:bg-white/90 shrink-0"
+                                    className="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm transition-all hover:bg-white/90 shrink-0 w-full sm:w-auto"
                                 >
                                     Connect Account
                                 </button>
@@ -291,8 +291,8 @@ export default function PlannerSettings() {
                         Danger Zone
                     </h3>
                     <div className="glass-panel p-6 rounded-[2rem] border border-red-500/20 bg-red-500/[0.02]">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                            <div className="flex-1">
                                 <h4 className="font-bold text-base text-red-400">Reset Semester Planner</h4>
                                 <p className="text-sm text-white/50 mt-1 max-w-sm">
                                     Permanently wipe all planned semesters, grades, study sessions, and notes inside this application. (Course Tracker sync is unaffected).
@@ -300,7 +300,7 @@ export default function PlannerSettings() {
                             </div>
                             <button
                                 onClick={() => setShowResetConfirm(true)} disabled={resetting}
-                                className="px-6 py-3 bg-red-600/20 hover:bg-red-600/40 border border-red-500/50 disabled:opacity-50 text-red-400 font-bold rounded-xl text-sm transition-all shrink-0"
+                                className="px-6 py-3 bg-red-600/20 hover:bg-red-600/40 border border-red-500/50 disabled:opacity-50 text-red-400 font-bold rounded-xl text-sm transition-all shrink-0 w-full sm:w-auto"
                             >
                                 {resetting ? 'Resetting...' : 'Reset Planner Now'}
                             </button>

@@ -61,16 +61,10 @@ export default function HomeClient() {
         const processCategory = (category: any) => {
             if (!Array.isArray(category)) return;
             for (const item of category) {
-                if (item.code && item.name) {
-                    newMap.set(item.code, item.name);
-                }
-                if (item.courses && Array.isArray(item.courses)) {
-                    for (const course of item.courses) {
-                        if (course.code && course.name) {
-                            newMap.set(course.code, course.name);
-                        }
-                    }
-                }
+                if (item.code && item.name) newMap.set(item.code, item.name);
+                item.courses?.forEach((course: any) => {
+                    if (course.code && course.name) newMap.set(course.code, course.name);
+                });
             }
         };
 
@@ -366,19 +360,19 @@ export default function HomeClient() {
                                     {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
-                                <div className="hidden sm:flex items-center justify-center">
+                                <div className="flex items-center justify-center">
                                     <button
                                         onClick={() => handleLogout()}
-                                        className="p-3 sm:p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
+                                        className="p-2 sm:p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
                                         title="Sign out"
                                     >
-                                        <LogOut className="w-5 h-5 sm:w-4.5 sm:h-4.5" />
+                                        <LogOut className="w-4.5 h-4.5 sm:w-4.5 sm:h-4.5" />
                                     </button>
                                 </div>
-                                <div className="hidden sm:block">
+                                <div className="flex items-center">
                                     <ThemeToggle />
                                 </div>
-                                <div className="hidden sm:block">
+                                <div className="flex items-center">
                                     <WalkthroughHelpButton onClick={walkthrough.open} />
                                 </div>
                             </div>
