@@ -360,7 +360,7 @@ export default function HomeClient() {
                                     {studentId?.substring(0, 2).toUpperCase()}
                                 </div>
 
-                                <div className="flex items-center justify-center">
+                                <div className="hidden sm:flex items-center justify-center">
                                     <button
                                         onClick={() => handleLogout()}
                                         className="p-2 sm:p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-red-400 hover:bg-red-400/5 transition-all"
@@ -369,10 +369,10 @@ export default function HomeClient() {
                                         <LogOut className="w-4.5 h-4.5 sm:w-4.5 sm:h-4.5" />
                                     </button>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="hidden sm:flex items-center">
                                     <ThemeToggle />
                                 </div>
-                                <div className="flex items-center">
+                                <div className="hidden sm:flex items-center">
                                     <WalkthroughHelpButton onClick={walkthrough.open} />
                                 </div>
                             </div>

@@ -84,10 +84,10 @@ export default function PlannerSemesterList() {
                     </h1>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                    <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors" title="Settings">
+                    <Link href="/planner/settings" className="hidden sm:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors" title="Settings">
                         <Settings2 className="w-4 h-4" />
                     </Link>
-                    <Link href="/" className="px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] sm:text-xs font-semibold sm:text-sm text-white/70 transition-colors whitespace-nowrap">
+                    <Link href="/" className="hidden sm:flex px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] sm:text-xs font-semibold sm:text-sm text-white/70 transition-colors whitespace-nowrap">
                         Course Tracker
                     </Link>
                 </div>
