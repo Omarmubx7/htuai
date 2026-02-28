@@ -73,8 +73,10 @@ export async function GET(req: NextRequest) {
         const redirectUrl = new URL(state, req.url);
         redirectUrl.searchParams.set("connected", "google");
         return NextResponse.redirect(redirectUrl);
-    } catch (e: unknown) {
-        console.error("Google Calendar callback error:", e instanceof Error ? e.message : String(e));
-        return NextResponse.redirect(new URL("/?error=google_callback_error", req.url));
+    } catch (e: any) {
+        console.error("Calendar OAuth error:", e);
+        const errUrl = new URL("/?error=oauth_failed", req.url);
+        errUrl.searchParams.set("details", e?.message || "unknown_error");
+        return NextResponse.redirect(errUrl);
     }
 }
