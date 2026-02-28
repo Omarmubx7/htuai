@@ -22,7 +22,9 @@ export async function GET(req: NextRequest) {
     const state = req.nextUrl.searchParams.get("state") || "/planner/settings";
 
     if (error || !code) {
-        return NextResponse.redirect(new URL("/?error=google_denied", req.url));
+        const errUrl = new URL(state, req.url);
+        errUrl.searchParams.set("error", "google_denied");
+        return NextResponse.redirect(errUrl);
     }
 
     try {
@@ -43,7 +45,9 @@ export async function GET(req: NextRequest) {
 
         if (!tokenRes.ok) {
             console.error("Google token exchange failed:", await tokenRes.text());
-            return NextResponse.redirect(new URL("/?error=google_token_failed", req.url));
+            const errUrl = new URL(state, req.url);
+            errUrl.searchParams.set("error", "google_token_failed");
+            return NextResponse.redirect(errUrl);
         }
 
         const tokens = await tokenRes.json();
@@ -80,7 +84,8 @@ export async function GET(req: NextRequest) {
             console.error("Failed to write to oauth_debug.txt", error_);
         }
         
-        const errUrl = new URL("/?error=oauth_failed", req.url);
+        const errUrl = new URL(state, req.url);
+        errUrl.searchParams.set("error", "oauth_failed");
         errUrl.searchParams.set("details", e?.message || "unknown_error");
         return NextResponse.redirect(errUrl);
     }

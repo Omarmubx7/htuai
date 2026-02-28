@@ -41,6 +41,16 @@ export default function PlannerSettings() {
             // Refresh integration status and profile to reflect connection immediately
             checkIntegrationStatus();
             fetchUserProfile();
+        } else if (searchParams.get("error")) {
+            const errCode = searchParams.get("error");
+            if (errCode === "google_denied") {
+                toast("Google Calendar connection was cancelled or denied.", "error");
+            } else if (errCode === "google_token_failed") {
+                toast("Failed to connect to Google Calendar. Please try again.", "error");
+            } else {
+                toast("An error occurred while connecting to Google Calendar.", "error");
+            }
+            router.replace(globalThis.location.pathname, { scroll: false });
         }
     }, [searchParams, router, toast]);
 

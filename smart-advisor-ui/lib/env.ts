@@ -4,6 +4,15 @@ import { NextRequest } from "next/server";
 export function getBaseUrl(req?: Request | NextRequest) {
     if (req) {
         try {
+            // First check for proxy headers which take precedence in production
+            const forwardedHost = req.headers.get("x-forwarded-host");
+            const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+
+            if (forwardedHost) {
+                return `${forwardedProto}://${forwardedHost}`;
+            }
+
+            // Fallback to regular url parsing
             const url = new URL(req.url);
             return url.origin;
         } catch (e) {

@@ -23,7 +23,11 @@ export async function POST() {
     }
 
     // Ensure integration tokens exist for testing
-    await saveIntegrationToken(studentId, "google_calendar", "test-gcal-token", undefined, undefined, undefined, undefined, {});
+    await saveIntegrationToken({
+      studentId,
+      provider: "google_calendar",
+      accessToken: "test-gcal-token"
+    });
 
     return NextResponse.json({ message: "Test user created", id: userId });
   } catch (e: any) {
