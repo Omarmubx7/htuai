@@ -271,18 +271,24 @@ export interface SaveIntegrationTokenOptions {
     expiresAt?: number;
     providerAccountId?: string;
     accountEmail?: string;
+    studentName?: string;
     metadata?: Record<string, any>;
 }
 
 export async function saveIntegrationToken({
     studentId, provider, accessToken,
-    refreshToken, expiresAt, providerAccountId, accountEmail, metadata
+    refreshToken, expiresAt, providerAccountId, accountEmail, studentName, metadata
 }: SaveIntegrationTokenOptions) {
     const user = await resolveUserByString(studentId);
     if (!user) return;
     
     // Use a real Prisma upsert to be robust against race conditions
     try {
+        const finalMetadata = {
+            ...(metadata ?? {}),
+            student_name: studentName || (metadata?.student_name) || undefined
+        };
+
         await prisma.integrationToken.upsert({
             where: {
                 user_id_provider: {
@@ -291,21 +297,25 @@ export async function saveIntegrationToken({
                 }
             },
             update: {
+                student_id: studentId,
                 access_token: accessToken,
                 refresh_token: refreshToken ?? undefined,
                 expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
                 provider_account_id: providerAccountId ?? undefined,
-                metadata: metadata || {},
+                account_email: accountEmail ?? undefined,
+                metadata: finalMetadata,
                 updated_at: new Date()
             },
             create: {
                 user_id: user.id,
+                student_id: studentId,
                 provider,
                 access_token: accessToken,
                 refresh_token: refreshToken || null,
                 expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
                 provider_account_id: providerAccountId || null,
-                metadata: metadata || {},
+                account_email: accountEmail || null,
+                metadata: finalMetadata,
                 updated_at: new Date()
             }
         });

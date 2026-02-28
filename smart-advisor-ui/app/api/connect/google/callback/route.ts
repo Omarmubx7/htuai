@@ -59,10 +59,12 @@ export async function GET(req: NextRequest) {
 
         let googleEmail: string | undefined = undefined;
         let googleId: string | undefined = undefined;
+        let googleName: string | undefined = undefined;
         if (profileRes.ok) {
             const profile = await profileRes.json();
             googleEmail = profile.email;
             googleId = profile.id;
+            googleName = profile.name;
         }
 
         await saveIntegrationToken({
@@ -72,7 +74,8 @@ export async function GET(req: NextRequest) {
             refreshToken: (tokens.refresh_token as string) || "",
             expiresAt: tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined,
             providerAccountId: googleId,
-            accountEmail: googleEmail
+            accountEmail: googleEmail,
+            studentName: googleName
         });
 
         const redirectUrl = new URL(state, req.url);
