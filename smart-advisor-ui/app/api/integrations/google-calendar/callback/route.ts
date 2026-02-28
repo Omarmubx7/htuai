@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { saveIntegrationToken, initDB } from "@/lib/database";
 import { getBaseUrl } from "@/lib/env";
-import fs from "fs";
+import fs from "node:fs";
 
 // GET /api/integrations/google-calendar/callback?code=...
 // Google redirects here after the user authorizes
@@ -61,22 +61,24 @@ export async function GET(req: NextRequest) {
             googleId = profile.id;
         }
 
-        await saveIntegrationToken(
+        await saveIntegrationToken({
             studentId,
-            "google_calendar",
-            (tokens.access_token as string) || "",
-            (tokens.refresh_token as string) || "",
-            tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined,
-            googleId,
-            googleEmail
-        );
+            provider: "google_calendar",
+            accessToken: (tokens.access_token as string) || "",
+            refreshToken: (tokens.refresh_token as string) || "",
+            expiresAt: tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined,
+            providerAccountId: googleId,
+            accountEmail: googleEmail
+        });
 
         const redirectUrl = new URL(state, req.url);
         redirectUrl.searchParams.set("connected", "google");
         return NextResponse.redirect(redirectUrl);
     } catch (e: any) {
         console.error("Calendar OAuth error:", e);
-        try { fs.appendFileSync("C:\\Users\\omara\\htuai\\smart-advisor-ui\\oauth_debug.txt", `\n[${new Date().toISOString()}] OAUTH ERROR: ${e?.message}\n${e?.stack}\n`); } catch(ignored) {}
+        try { fs.appendFileSync("C:\\Users\\omara\\htuai\\smart-advisor-ui\\oauth_debug.txt", String.raw`\n[${new Date().toISOString()}] OAUTH ERROR: ${e?.message}\n${e?.stack}\n`); } catch(error_) {
+            console.error("Failed to write to oauth_debug.txt", error_);
+        }
         
         const errUrl = new URL("/?error=oauth_failed", req.url);
         errUrl.searchParams.set("details", e?.message || "unknown_error");

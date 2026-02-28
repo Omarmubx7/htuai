@@ -263,10 +263,21 @@ export async function linkAccount(userId: number, provider: string, providerAcco
     } catch (e) { console.error("Account link error:", e); }
 }
 
-export async function saveIntegrationToken(
-    studentId: string, provider: string, accessToken: string,
-    refreshToken?: string, expiresAt?: number, providerAccountId?: string, accountEmail?: string, metadata?: Record<string, any>
-) {
+export interface SaveIntegrationTokenOptions {
+    studentId: string;
+    provider: string;
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt?: number;
+    providerAccountId?: string;
+    accountEmail?: string;
+    metadata?: Record<string, any>;
+}
+
+export async function saveIntegrationToken({
+    studentId, provider, accessToken,
+    refreshToken, expiresAt, providerAccountId, accountEmail, metadata
+}: SaveIntegrationTokenOptions) {
     const user = await resolveUserByString(studentId);
     if (!user) return;
     
@@ -290,9 +301,9 @@ export async function saveIntegrationToken(
                 }
             });
             console.log("[saveIntegrationToken] Successfully updated token.");
-        } catch (updateErr) {
-            console.error("[saveIntegrationToken] Prisma UPDATE failed:", updateErr);
-            throw updateErr;
+        } catch (error_) {
+            console.error("[saveIntegrationToken] Prisma UPDATE failed:", error_);
+            throw error_;
         }
     } else {
         try {
@@ -311,9 +322,9 @@ export async function saveIntegrationToken(
                 }
             });
             console.log("[saveIntegrationToken] Successfully created new token.");
-        } catch (createErr) {
-            console.error("[saveIntegrationToken] Prisma CREATE failed:", createErr);
-            throw createErr;
+        } catch (error_) {
+            console.error("[saveIntegrationToken] Prisma CREATE failed:", error_);
+            throw error_;
         }
     }
 }
