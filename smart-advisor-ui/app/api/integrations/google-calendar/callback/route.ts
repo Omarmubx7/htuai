@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { saveIntegrationToken, initDB } from "@/lib/database";
 import { getBaseUrl } from "@/lib/env";
+import fs from "fs";
 
 // GET /api/integrations/google-calendar/callback?code=...
 // Google redirects here after the user authorizes
@@ -75,6 +76,8 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(redirectUrl);
     } catch (e: any) {
         console.error("Calendar OAuth error:", e);
+        try { fs.appendFileSync("C:\\Users\\omara\\htuai\\smart-advisor-ui\\oauth_debug.txt", `\n[${new Date().toISOString()}] OAUTH ERROR: ${e?.message}\n${e?.stack}\n`); } catch(ignored) {}
+        
         const errUrl = new URL("/?error=oauth_failed", req.url);
         errUrl.searchParams.set("details", e?.message || "unknown_error");
         return NextResponse.redirect(errUrl);
