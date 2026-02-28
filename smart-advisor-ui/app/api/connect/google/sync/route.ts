@@ -148,9 +148,11 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
 
         let description = `Weekly class schedule for ${course.name}.`;
         if (courseData.instructor_name) {
-            let instructorStr = String(courseData.instructor_name);
+            let instructorStr = "";
             if (typeof courseData.instructor_name === 'object' && courseData.instructor_name !== null) {
                 instructorStr = (courseData.instructor_name as any).name || JSON.stringify(courseData.instructor_name);
+            } else {
+                instructorStr = String(courseData.instructor_name);
             }
             description += `\nInstructor: ${instructorStr}`;
         }
@@ -193,7 +195,7 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
     }
 }
 
-// POST /api/integrations/google-calendar/sync — Force pushes semester courses and study sessions to Calendar
+// POST /api/connect/google/sync — Force pushes semester courses and study sessions to Calendar
 export async function POST() {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

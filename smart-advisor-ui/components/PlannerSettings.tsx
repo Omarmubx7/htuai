@@ -56,7 +56,7 @@ export default function PlannerSettings() {
 
     const checkIntegrationStatus = async () => {
         try {
-            const res = await fetch("/api/integrations/status");
+            const res = await fetch("/api/connect/status");
             if (res.ok) {
                 const data = await res.json();
                 setCalendarConnected(data.google_calendar);
@@ -86,14 +86,14 @@ export default function PlannerSettings() {
 
     const handleGoogleConnect = () => {
         // Redirect to external Google OAuth flow specific to the calendar
-        globalThis.location.href = `/api/integrations/google-calendar?returnTo=${encodeURIComponent(globalThis.location.pathname)}`;
+        globalThis.location.href = `/api/connect/google?returnTo=${encodeURIComponent(globalThis.location.pathname)}`;
     };
 
     const handleSyncNow = async () => {
         if (!calendarConnected) return;
         setSyncing(true);
         try {
-            const res = await fetch("/api/integrations/google-calendar/sync", { method: "POST" });
+            const res = await fetch("/api/connect/google/sync", { method: "POST" });
             if (res.ok) {
                 toast("Your schedule has been pushed to Google Calendar.", "success");
             } else {
@@ -112,7 +112,7 @@ export default function PlannerSettings() {
         setPreferences(newPrefs);
 
         try {
-            await fetch("/api/integrations/google-calendar/preferences", {
+            await fetch("/api/connect/google/preferences", {
                 method: "POST",
                 body: JSON.stringify({ preferences: newPrefs })
             });
