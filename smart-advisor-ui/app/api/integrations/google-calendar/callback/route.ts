@@ -12,7 +12,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
 
-    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+    const studentId = ((session.user as Record<string, unknown>).student_id as string) || session.user.email || session.user.name;
+    if (!studentId) {
+        return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
+    }
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
     const state = req.nextUrl.searchParams.get("state") || "/planner/settings";
@@ -43,19 +46,32 @@ export async function GET(req: NextRequest) {
         }
 
         const tokens = await tokenRes.json();
+
+        // Fetch user profile to get the Google Account email
+        const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: { Authorization: `Bearer ${tokens.access_token}` },
+        });
+
+        let googleEmail: string | undefined = undefined;
+        if (profileRes.ok) {
+            const profile = await profileRes.json();
+            googleEmail = profile.email;
+        }
+
         await saveIntegrationToken(
             studentId,
             "google_calendar",
-            tokens.access_token,
-            tokens.refresh_token,
-            tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined
+            (tokens.access_token as string) || "",
+            (tokens.refresh_token as string) || "",
+            tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined,
+            googleEmail
         );
 
         const redirectUrl = new URL(state, req.url);
         redirectUrl.searchParams.set("connected", "google");
         return NextResponse.redirect(redirectUrl);
-    } catch (e: any) {
-        console.error("Google Calendar callback error:", e);
+    } catch (e: unknown) {
+        console.error("Google Calendar callback error:", e instanceof Error ? e.message : String(e));
         return NextResponse.redirect(new URL("/?error=google_callback_error", req.url));
     }
 }

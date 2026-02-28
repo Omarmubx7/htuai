@@ -265,7 +265,7 @@ export async function linkAccount(userId: number, provider: string, providerAcco
 
 export async function saveIntegrationToken(
     studentId: string, provider: string, accessToken: string,
-    refreshToken?: string, expiresAt?: number, metadata?: Record<string, any>
+    refreshToken?: string, expiresAt?: number, providerAccountId?: string, metadata?: Record<string, any>
 ) {
     const user = await resolveUserByString(studentId);
     if (!user) return;
@@ -281,6 +281,7 @@ export async function saveIntegrationToken(
                 access_token: accessToken,
                 refresh_token: refreshToken ?? undefined,
                 expires_at: expiresAt ? BigInt(expiresAt) : null,
+                provider_account_id: providerAccountId ?? undefined,
                 metadata: metadata || {},
                 updated_at: new Date()
             }
@@ -293,6 +294,7 @@ export async function saveIntegrationToken(
                 access_token: accessToken,
                 refresh_token: refreshToken || null,
                 expires_at: expiresAt ? BigInt(expiresAt) : null,
+                provider_account_id: providerAccountId || null,
                 metadata: metadata || {},
                 user_id: user.id
             }

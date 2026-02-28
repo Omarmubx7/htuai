@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getIntegrationToken } from "@/lib/database";
 import { prisma } from "@/lib/prisma";
 
 // POST /api/integrations/google-calendar/sync — Force pushes semester courses and study sessions to Calendar
-export async function POST(req: NextRequest) {
+export async function POST() {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+    const studentId = (session.user as Record<string, unknown>).student_id as string || session.user.email || session.user.name;
     if (!studentId) return NextResponse.json({ error: "No student ID" }, { status: 400 });
 
     const token = await getIntegrationToken(studentId, "google_calendar");
@@ -34,9 +34,9 @@ export async function POST(req: NextRequest) {
         const upcomingClasses = activeSemesters.flatMap(sem => sem.courses.map(c => ({ ...c, semester_object: sem })));
 
         for (const course of upcomingClasses) {
-            const courseData = course as any;
+            const courseData = course as Record<string, unknown>;
             for (const [field, type] of [["midterm_date", "Midterm"], ["final_date", "Final"]] as const) {
-                const dateVal = courseData[field];
+                const dateVal = courseData[field] as string | number | Date;
                 if (!dateVal) continue;
 
                 // Check if we already have a calendar event record for this course/type
@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
                     where: { course_id: course.id, type }
                 });
 
-                const prefDays = (token.metadata as any)?.exam_reminders_days ?? ((token.metadata as any)?.exam_reminders !== false ? 7 : 0);
+                const metadata = token.metadata as Record<string, unknown> | null;
+                const prefDays = (metadata?.exam_reminders_days as number) ?? (metadata?.exam_reminders !== false ? 7 : 0);
                 const overrides = [];
                 if (prefDays > 0) {
                     overrides.push({ method: "popup", minutes: prefDays * 24 * 60 });
@@ -127,8 +128,8 @@ export async function POST(req: NextRequest) {
                         const errText = await googleRes.text();
                         results.push({ course: course.code, type, success: false, error: errText });
                     }
-                } catch (err: any) {
-                    results.push({ course: course.code, type, success: false, error: err.message });
+                } catch (err: unknown) {
+                    results.push({ course: course.code, type, success: false, error: err instanceof Error ? err.message : String(err) });
                 }
             }
 
@@ -158,11 +159,12 @@ export async function POST(req: NextRequest) {
                             };
                             const rruleDays = days.map((d: string) => dayMap[d]).filter(Boolean).join(",");
 
-                            const baseDate = courseData.semester_object?.start_date ? new Date(courseData.semester_object.start_date) : new Date();
+                            const semesterObj = courseData.semester_object as Record<string, unknown> | undefined;
+                            const baseDate = semesterObj?.start_date ? new Date(semesterObj.start_date as string | number | Date) : new Date();
                             const dayToNum: Record<string, number> = { "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6 };
                             const targetDays = new Set(days.map((d: string) => dayToNum[d]).filter((n: number) => n !== undefined));
 
-                            let firstDate = new Date(baseDate);
+                            const firstDate = new Date(baseDate);
                             firstDate.setHours(startH, startM, 0, 0);
 
                             // Find next valid class day after the base date
@@ -177,7 +179,7 @@ export async function POST(req: NextRequest) {
                             endDateTime.setHours(endH, endM, 0, 0);
 
                             // Calculate UNTIL string: YYYYMMDDTHHmmssZ
-                            const untilDate = courseData.semester_object?.end_date ? new Date(courseData.semester_object.end_date) : new Date(baseDate.getTime() + 120 * 24 * 60 * 60 * 1000); // 4 months
+                            const untilDate = semesterObj?.end_date ? new Date(semesterObj.end_date as string | number | Date) : new Date(baseDate.getTime() + 120 * 24 * 60 * 60 * 1000); // 4 months
                             untilDate.setHours(23, 59, 59, 0);
                             const untilStr = untilDate.toISOString().replaceAll("-", "").replaceAll(":", "").split(".")[0] + "Z";
 
@@ -186,7 +188,7 @@ export async function POST(req: NextRequest) {
                             });
 
                             let description = `Weekly class schedule for ${course.name}.`;
-                            if (courseData.instructor_name) description += `\nInstructor: ${courseData.instructor_name}`;
+                            if (courseData.instructor_name) description += `\nInstructor: ${String(courseData.instructor_name)}`;
 
                             const eventData = {
                                 summary: `${course.name} (Class)`,
@@ -270,16 +272,16 @@ export async function POST(req: NextRequest) {
                             }
                         }
                     }
-                } catch (err: any) {
-                    results.push({ course: course.code, type: "Schedule", success: false, error: err.message });
+                } catch (err: unknown) {
+                    results.push({ course: course.code, type: "Schedule", success: false, error: err instanceof Error ? err.message : String(err) });
                 }
             }
         }
 
         return NextResponse.json({ success: true, syncedItems: results.length, details: results });
 
-    } catch (e: any) {
-        console.error("Calendar Sync Error:", e);
+    } catch (e: unknown) {
+        console.error("Calendar Sync Error:", e instanceof Error ? e.message : String(e));
         return NextResponse.json({ error: "Sync failed" }, { status: 500 });
     }
 }

@@ -17,13 +17,13 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
     }
 
-    const scope = "https://www.googleapis.com/auth/calendar.events";
+    // Append scopes
 
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.append("client_id", clientId);
     url.searchParams.append("redirect_uri", redirectUri);
     url.searchParams.append("response_type", "code");
-    url.searchParams.append("scope", scope);
+    url.searchParams.append("scope", "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email");
     url.searchParams.append("access_type", "offline");
     url.searchParams.append("prompt", "consent");
     url.searchParams.append("state", returnTo);
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+    const studentId = (session.user as Record<string, unknown>).student_id as string || session.user.email || session.user.name;
     if (!studentId) return NextResponse.json({ error: "No student ID" }, { status: 400 });
 
     const token = await getIntegrationToken(studentId, "google_calendar");
@@ -50,12 +50,10 @@ export async function POST(req: NextRequest) {
     }
 
     const results: { course: string; type: string; success: boolean; eventId?: string; error?: string }[] = [];
-    const updatedCourses: any[] = [];
+    const updatedCourses: Record<string, unknown>[] = [];
 
     for (const course of courses) {
         const updatedCourse = { ...course };
-        let courseChanged = false;
-
         for (const [field, type] of [["midtermDate", "Midterm"], ["finalDate", "Final"]] as const) {
             const date = course[field];
             if (!date) continue;
@@ -117,10 +115,9 @@ export async function POST(req: NextRequest) {
 
                     if (type === "Midterm") updatedCourse.midtermEventId = newEventId;
                     else updatedCourse.finalEventId = newEventId;
-                    courseChanged = true;
                 }
-            } catch (e: any) {
-                results.push({ course: course.name, type, success: false, error: e.message });
+            } catch (e: unknown) {
+                results.push({ course: course.name, type, success: false, error: e instanceof Error ? e.message : String(e) });
             }
         }
         updatedCourses.push(updatedCourse);
