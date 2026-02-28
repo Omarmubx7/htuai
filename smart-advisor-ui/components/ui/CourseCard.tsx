@@ -36,14 +36,124 @@ const fw: Record<string, { badge: string; dot: string }> = {
 };
 
 function extractRequiredCH(prereq: string): number | null {
-    const m = prereq.match(/>=\s*(\d+)/);
-    return m ? parseInt(m[1], 10) : null;
+    const m = />=\s*(\d+)/.exec(prereq);
+    return m ? Number.parseInt(m[1], 10) : null;
+}
+
+function StatusIcon({ isLocked, hasPrereqWarning, isCompleted }: { isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean }) {
+    if (isLocked) return <Lock className="w-4 h-4 text-white/10" />;
+    if (hasPrereqWarning) return <AlertCircle className="w-4 h-4 text-amber-500/60" />;
+    if (isCompleted) return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+    return <Circle className="w-4 h-4 text-white/10" />;
+}
+
+function PrerequisiteSection({
+    isMobile,
+    isExpanded,
+    setIsExpanded,
+    shouldShowPrereqs,
+    prereqCodes,
+    hasCHRule,
+    hasOtherText,
+    completedCredits,
+    requiredCH,
+    courseMap,
+    missingPrereqs,
+    fullPrereq
+}: {
+    isMobile: boolean;
+    isExpanded: boolean;
+    setIsExpanded: (v: boolean) => void;
+    shouldShowPrereqs: boolean;
+    prereqCodes: string[];
+    hasCHRule: boolean;
+    hasOtherText: boolean;
+    completedCredits: number;
+    requiredCH: number | null;
+    courseMap: Record<string, string>;
+    missingPrereqs: string[];
+    fullPrereq?: string;
+}) {
+    if (!prereqCodes.length && !hasCHRule && !hasOtherText) return null;
+
+    return (
+        <div className="mt-4 pt-4 border-t border-white/5 relative z-10 transition-colors">
+            {isMobile ? (
+                <button
+                    onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                    className="w-full flex items-center justify-between text-[10px] text-white/40 hover:text-white/60 transition-colors uppercase font-black tracking-[0.2em] mb-2"
+                >
+                    <span>Prerequisites ({prereqCodes.length + (hasCHRule ? 1 : 0) + (hasOtherText ? 1 : 0)})</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+            ) : (
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">Prerequisites</p>
+                    {hasCHRule && <span className="text-[8px] font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
+                </div>
+            )}
+
+            <AnimatePresence initial={false}>
+                {shouldShowPrereqs && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className="space-y-3 overflow-hidden"
+                    >
+                        {isMobile && hasCHRule && requiredCH !== null && (
+                            <div className="flex items-center justify-between mb-1.5 mt-2">
+                                <span className="text-[9px] text-white/40 font-bold tracking-widest uppercase">Credit Req</span>
+                                <span className="text-[9px] font-bold text-white/60">{completedCredits}/{requiredCH} CH</span>
+                            </div>
+                        )}
+
+                        {hasCHRule && requiredCH !== null && (
+                            <div className="h-1 bg-white/3 rounded-full overflow-hidden border border-white/5">
+                                <motion.div
+                                    className={`h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] transition-all duration-1000 ${completedCredits >= requiredCH ? "bg-emerald-500" : "bg-violet-500"}`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min(100, (completedCredits / requiredCH) * 100)}%` }}
+                                />
+                            </div>
+                        )}
+
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                            {prereqCodes.map((code) => {
+                                const name = courseMap[code];
+                                const isMissing = missingPrereqs.includes(code);
+                                return (
+                                    <span key={code} title={name ?? code}
+                                        className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all ${isMobile ? "w-full" : ""}
+                                            ${isMissing
+                                                ? "bg-red-500/10 border-red-500/20 text-red-400/60"
+                                                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60"
+                                            }`}>
+                                        {isMissing
+                                            ? <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
+                                            : <CheckCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />}
+                                        <span className="truncate">{name ?? code}</span>
+                                    </span>
+                                );
+                            })}
+                            {hasOtherText && (
+                                <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60 ${isMobile ? "w-full" : ""}`}>
+                                    <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
+                                    <span className="truncate">{fullPrereq}</span>
+                                </span>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
 }
 
 export default function CourseCard({
     course,
     isCompleted,
-    grade = "M",
     isLocked,
     hasPrereqWarning,
     lockReason,
@@ -52,8 +162,7 @@ export default function CourseCard({
     completedCredits = 0,
     onToggle,
     onOpenNotes,
-}: CourseCardProps) {
-    const grades: string[] = ["D", "M", "P", "U"];
+}: Readonly<CourseCardProps>) {
     const prereqCodes = course.prereq ? parsePrereqCodes(course.prereq) : [];
     const requiredCH = course.prereq ? extractRequiredCH(course.prereq) : null;
     const hasCHRule = requiredCH !== null;
@@ -72,9 +181,16 @@ export default function CourseCard({
     // Force expand on desktop to match the layout requirements
     const shouldShowPrereqs = !isMobile || isExpanded;
 
-    const handleClick = () => { if (!isLocked) onToggle(); };
-
     const accent = fw[course.framework] ?? { badge: "text-white/40 border-white/10 bg-white/3", dot: "bg-white/40" };
+
+    let cardBorder = "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4";
+    if (isCompleted) {
+        cardBorder = "border-emerald-500/30 bg-emerald-500/4 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.2)]";
+    } else if (isLocked) {
+        cardBorder = "border-white/5 bg-white/1 opacity-40";
+    } else if (hasPrereqWarning) {
+        cardBorder = "border-amber-500/20 bg-amber-500/3 hover:border-amber-500/40";
+    }
 
     return (
         <motion.div
@@ -83,17 +199,10 @@ export default function CourseCard({
             className={`
                 relative p-5 rounded-[28px] border transition-all duration-500 select-none overflow-hidden group/card animate-shimmer
                 ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}
-                ${isCompleted
-                    ? "border-emerald-500/30 bg-emerald-500/4 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.2)]"
-                    : isLocked
-                        ? "border-white/5 bg-white/1 opacity-40"
-                        : hasPrereqWarning
-                            ? "border-amber-500/20 bg-amber-500/3 hover:border-amber-500/40"
-                            : "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4"
-                }
+                ${cardBorder}
             `}
             style={{ backdropFilter: "blur(24px)" }}
-            onClick={handleClick}
+            onClick={() => { if (!isLocked) onToggle(); }}
             title={lockReason}
         >
             {/* Completed/Hover Glows */}
@@ -108,15 +217,7 @@ export default function CourseCard({
                     {course.framework}
                 </span>
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
-                    {isLocked ? (
-                        <Lock className="w-4 h-4 text-white/10" />
-                    ) : hasPrereqWarning ? (
-                        <AlertCircle className="w-4 h-4 text-amber-500/60" />
-                    ) : isCompleted ? (
-                        <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                        <Circle className="w-4 h-4 text-white/10" />
-                    )}
+                    <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
                 </div>
             </div>
 
@@ -138,7 +239,7 @@ export default function CourseCard({
                         <span className="text-[10px] font-bold text-white/60 group-hover/notes:text-violet-300 transition-colors">Notes</span>
                     </button>
                 </div>
-                
+
                 <span className={`text-[10px] font-black tracking-widest px-3 py-1.5 rounded-xl border transition-all duration-500
                     ${isCompleted
                         ? "bg-white/5 border-white/10 text-white/80"
@@ -148,85 +249,13 @@ export default function CourseCard({
                 </span>
             </div>
 
-            {/* Prerequisites Section */}
-            {(prereqCodes.length > 0 || hasCHRule || hasOtherText) && (
-                <div className="mt-4 pt-4 border-t border-white/5 relative z-10 transition-colors">
-                    {/* Mobile Toggle Button (hidden on desktop) */}
-                    {isMobile ? (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-                            className="w-full flex items-center justify-between text-[10px] text-white/40 hover:text-white/60 transition-colors uppercase font-black tracking-[0.2em] mb-2"
-                        >
-                            <span>Prerequisites ({prereqCodes.length + (hasCHRule ? 1 : 0) + (hasOtherText ? 1 : 0)})</span>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
-                        </button>
-                    ) : (
-                        <div className="flex items-center justify-between mb-3">
-                            <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">Prerequisites</p>
-                            {hasCHRule && <span className="text-[8px] font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
-                        </div>
-                    )}
-
-                    {/* Expandable Content Area */}
-                    <AnimatePresence initial={false}>
-                        {shouldShowPrereqs && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                className="space-y-3 overflow-hidden"
-                            >
-                                {/* Progress Bar for CH Rule (Mobile only, desktop rendered above) */}
-                                {isMobile && hasCHRule && requiredCH !== null && (
-                                    <div className="flex items-center justify-between mb-1.5 mt-2">
-                                        <span className="text-[9px] text-white/40 font-bold tracking-widest uppercase">Credit Req</span>
-                                        <span className="text-[9px] font-bold text-white/60">{completedCredits}/{requiredCH} CH</span>
-                                    </div>
-                                )}
-
-                                {/* Progress Bar */}
-                                {hasCHRule && requiredCH !== null && (
-                                    <div className="h-1 bg-white/3 rounded-full overflow-hidden border border-white/5">
-                                        <motion.div
-                                            className={`h-full rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)] transition-all duration-1000 ${completedCredits >= requiredCH ? "bg-emerald-500" : "bg-violet-500"}`}
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${Math.min(100, (completedCredits / requiredCH) * 100)}%` }}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Prereq Chips */}
-                                <div className="flex flex-wrap gap-1.5 pt-1">
-                                    {prereqCodes.map((code) => {
-                                        const name = courseMap[code];
-                                        const isMissing = missingPrereqs.includes(code);
-                                        return (
-                                            <span key={code} title={name ?? code}
-                                                className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all ${isMobile ? "w-full" : ""}
-                                                    ${isMissing
-                                                        ? "bg-red-500/10 border-red-500/20 text-red-400/60"
-                                                        : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60"
-                                                    }`}>
-                                                {isMissing
-                                                    ? <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
-                                                    : <CheckCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />}
-                                                <span className="truncate">{name ?? code}</span>
-                                            </span>
-                                        );
-                                    })}
-                                    {hasOtherText && (
-                                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60 ${isMobile ? "w-full" : ""}`}>
-                                            <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
-                                            <span className="truncate">{course.prereq}</span>
-                                        </span>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            )}
+            <PrerequisiteSection
+                isMobile={isMobile} isExpanded={isExpanded} setIsExpanded={setIsExpanded}
+                shouldShowPrereqs={shouldShowPrereqs} prereqCodes={prereqCodes}
+                hasCHRule={hasCHRule} hasOtherText={hasOtherText} completedCredits={completedCredits}
+                requiredCH={requiredCH} courseMap={courseMap} missingPrereqs={missingPrereqs}
+                fullPrereq={course.prereq}
+            />
 
             {/* No prerequisites */}
             {!course.prereq && (

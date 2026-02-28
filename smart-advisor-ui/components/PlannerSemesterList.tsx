@@ -32,8 +32,8 @@ export default function PlannerSemesterList() {
             if (!res.ok) throw new Error("Failed");
             const data = await res.json();
             setSemesters(data.semesters || []);
-        } catch (e) {
-            console.error("Failed to load semesters.");
+        } catch (e: unknown) {
+            console.error("Failed to load semesters:", e instanceof Error ? e.message : String(e));
         } finally {
             setLoading(false);
         }
@@ -56,8 +56,8 @@ export default function PlannerSemesterList() {
                 setSemesters([data.semester, ...semesters]);
                 setShowAddModal(false);
             }
-        } catch (e) {
-            console.error("Failed to add semester");
+        } catch (e: unknown) {
+            console.error("Failed to add semester:", e instanceof Error ? e.message : String(e));
         } finally {
             setCreating(false);
         }
@@ -121,7 +121,7 @@ export default function PlannerSemesterList() {
                             const isPast = sem.end_date ? new Date(sem.end_date) < today : false;
 
                             // Calculate dynamic GPA if not officially set
-                            let gpa = sem.semester_gpa !== null ? sem.semester_gpa : 0;
+                            let gpa = sem.semester_gpa ?? 0;
                             if (sem.semester_gpa === null && sem.courses?.length > 0) {
                                 let totalPoints = 0;
                                 let totalCredits = 0;
@@ -203,8 +203,9 @@ export default function PlannerSemesterList() {
                             <h3 className="text-xl font-bold mb-4">Add Semester</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Term Type</label>
+                                    <label htmlFor="term-type" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Term Type</label>
                                     <select
+                                        id="term-type"
                                         value={newSem.type} onChange={e => setNewSem({ ...newSem, type: e.target.value })}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500 transition-colors appearance-none"
                                     >
@@ -215,11 +216,12 @@ export default function PlannerSemesterList() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Academic Year</label>
+                                    <label htmlFor="academic-year" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Academic Year</label>
                                     <input
+                                        id="academic-year"
                                         type="number"
                                         value={newSem.year}
-                                        onChange={e => setNewSem({ ...newSem, year: parseInt(e.target.value) })}
+                                        onChange={e => setNewSem({ ...newSem, year: Number.parseInt(e.target.value) })}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500 transition-colors"
                                     />
                                 </div>
