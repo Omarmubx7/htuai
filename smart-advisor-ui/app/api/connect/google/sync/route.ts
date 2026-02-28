@@ -148,13 +148,14 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
 
         let description = `Weekly class schedule for ${course.name}.`;
         if (courseData.instructor_name) {
+            const instructor = courseData.instructor_name;
             let instructorStr = "";
-            if (typeof courseData.instructor_name === 'object' && courseData.instructor_name !== null) {
-                instructorStr = (courseData.instructor_name as any).name || JSON.stringify(courseData.instructor_name);
-            } else {
-                instructorStr = String(courseData.instructor_name);
+            if (typeof instructor === 'string' || typeof instructor === 'number') {
+                instructorStr = String(instructor);
+            } else if (instructor && typeof instructor === 'object') {
+                instructorStr = (instructor as any).name || JSON.stringify(instructor);
             }
-            description += `\nInstructor: ${instructorStr}`;
+            if (instructorStr) description += `\nInstructor: ${instructorStr}`;
         }
 
         const eventData = {

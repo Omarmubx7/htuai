@@ -284,10 +284,8 @@ export async function saveIntegrationToken({
     
     // Use a real Prisma upsert to be robust against race conditions
     try {
-        const finalMetadata = {
-            ...(metadata ?? {}),
-            student_name: studentName || (metadata?.student_name) || undefined
-        };
+        const finalMetadata = metadata ? { ...metadata } : {};
+        if (studentName) (finalMetadata as any).student_name = studentName;
 
         await prisma.integrationToken.upsert({
             where: {
