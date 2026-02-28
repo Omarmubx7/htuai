@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(redirectUrl);
     } catch (e: any) {
         console.error("Calendar OAuth error:", e);
-        try { fs.appendFileSync("C:\\Users\\omara\\htuai\\smart-advisor-ui\\oauth_debug.txt", String.raw`\n[${new Date().toISOString()}] OAUTH ERROR: ${e?.message}\n${e?.stack}\n`); } catch(error_) {
+        try { fs.appendFileSync("oauth_debug.txt", String.raw`\n[${new Date().toISOString()}] OAUTH ERROR: ${e?.message}\n${e?.stack}\n`); } catch(error_) {
             console.error("Failed to write to oauth_debug.txt", error_);
         }
         

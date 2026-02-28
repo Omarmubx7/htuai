@@ -281,51 +281,37 @@ export async function saveIntegrationToken({
     const user = await resolveUserByString(studentId);
     if (!user) return;
     
-    const existing = await prisma.integrationToken.findFirst({
-        where: { user_id: user.id, provider }
-    });
-
-    if (existing) {
-        try {
-            console.log("[saveIntegrationToken] Updating existing token for", user.id);
-            await prisma.integrationToken.update({
-                where: { id: existing.id },
-                data: {
-                    access_token: accessToken,
-                    refresh_token: refreshToken ?? undefined,
-                    expires_at: expiresAt ? BigInt(expiresAt) : null,
-                    provider_account_id: providerAccountId ?? undefined,
-                    account_email: accountEmail ?? undefined,
-                    metadata: metadata || {},
-                    updated_at: new Date()
+    // Use a real Prisma upsert to be robust against race conditions
+    try {
+        await prisma.integrationToken.upsert({
+            where: {
+                user_id_provider: {
+                    user_id: user.id,
+                    provider: provider
                 }
-            });
-            console.log("[saveIntegrationToken] Successfully updated token.");
-        } catch (error_) {
-            console.error("[saveIntegrationToken] Prisma UPDATE failed:", error_);
-            throw error_;
-        }
-    } else {
-        try {
-            console.log("[saveIntegrationToken] Creating completely new token for", user.id);
-            await prisma.integrationToken.create({
-                data: {
-                    student_id: studentId,
-                    provider,
-                    access_token: accessToken,
-                    refresh_token: refreshToken || null,
-                    expires_at: expiresAt ? BigInt(expiresAt) : null,
-                    provider_account_id: providerAccountId || null,
-                    account_email: accountEmail || null,
-                    metadata: metadata || {},
-                    user_id: user.id
-                }
-            });
-            console.log("[saveIntegrationToken] Successfully created new token.");
-        } catch (error_) {
-            console.error("[saveIntegrationToken] Prisma CREATE failed:", error_);
-            throw error_;
-        }
+            },
+            update: {
+                access_token: accessToken,
+                refresh_token: refreshToken ?? undefined,
+                expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
+                provider_account_id: providerAccountId ?? undefined,
+                metadata: metadata || {},
+                updated_at: new Date()
+            },
+            create: {
+                user_id: user.id,
+                provider,
+                access_token: accessToken,
+                refresh_token: refreshToken || null,
+                expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
+                provider_account_id: providerAccountId || null,
+                metadata: metadata || {},
+                updated_at: new Date()
+            }
+        });
+    } catch (error) {
+        console.error("[saveIntegrationToken] Prisma UPSERT failed:", error);
+        throw error;
     }
 }
 
