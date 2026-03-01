@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { safeStorage } from "./safe-storage";
 
 export type MajorKey = "data_science" | "computer_science" | "cybersecurity" | "game_design" | "electrical_engineering" | "energy_engineering" | "industrial_engineering" | "mechanical_engineering";
 
@@ -88,13 +89,9 @@ export function useMajor() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY) as MajorKey | null;
-                if (saved && MAJORS.find((m) => m.key === saved)) {
-                    setMajorState(saved);
-                }
-            } catch (e) {
-                console.warn("localStorage access denied:", e);
+            const saved = safeStorage.get(STORAGE_KEY) as MajorKey | null;
+            if (saved && MAJORS.find((m) => m.key === saved)) {
+                setMajorState(saved);
             }
             setLoaded(true);
         }, 0);
@@ -102,20 +99,12 @@ export function useMajor() {
     }, []);
 
     const setMajor = (key: MajorKey) => {
-        try {
-            localStorage.setItem(STORAGE_KEY, key);
-        } catch (e) {
-            console.warn("localStorage access denied:", e);
-        }
+        safeStorage.set(STORAGE_KEY, key);
         setMajorState(key);
     };
 
     const clearMajor = () => {
-        try {
-            localStorage.removeItem(STORAGE_KEY);
-        } catch (e) {
-            console.warn("localStorage access denied:", e);
-        }
+        safeStorage.remove(STORAGE_KEY);
         setMajorState(null);
     };
 
