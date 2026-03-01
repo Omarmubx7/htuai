@@ -115,7 +115,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(typeof window!=='undefined'&&window.localStorage){var t=window.localStorage.getItem('htuai-theme');if(t==='light')document.documentElement.classList.add('light-theme');}}catch(e){}`
+            __html: `(function(){try{window.addEventListener('unhandledrejection',function(e){if(e.reason&&e.reason.message&&e.reason.message.includes('storage')){e.preventDefault();}});var x='__storage_test__';window.localStorage.setItem(x,x);window.localStorage.removeItem(x);}catch(e){var m={getItem:function(){return null},setItem:function(){},removeItem:function(){},clear:function(){},length:0,key:function(){return null}};Object.defineProperty(window,'localStorage',{value:m,configurable:true});Object.defineProperty(window,'sessionStorage',{value:m,configurable:true})}}catch(e){}})();try{if(typeof window!=='undefined'&&window.localStorage){var t=window.localStorage.getItem('htuai-theme');if(t==='light')document.documentElement.classList.add('light-theme');}}catch(e){}`
           }}
         />
       </head>

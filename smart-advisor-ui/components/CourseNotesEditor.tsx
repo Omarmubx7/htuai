@@ -86,6 +86,11 @@ export default function CourseNotesEditor({
         italic: false,
         strike: false,
         code: false,
+        // Ensure these are disabled if StarterKit includes them in this version
+        // @ts-ignore
+        underline: false,
+        // @ts-ignore
+        link: false,
       }),
       Underline,
       Color,
