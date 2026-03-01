@@ -227,7 +227,15 @@ export default function PlannerSettings() {
                     <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
-                                <h4 className="font-bold text-base flex items-center gap-2">Google Calendar <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${calendarConnected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>{calendarConnected ? 'Connected' : 'Disconnected'}</span></h4>
+                                <h4 className="font-bold text-base flex items-center gap-2">
+                                    Google Calendar 
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${calendarConnected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {calendarConnected ? 'Connected' : 'Disconnected'}
+                                    </span>
+                                </h4>
+                                {calendarConnected && connectedEmail && (
+                                    <p className="text-[10px] font-mono text-blue-400/60 mt-0.5">Account: {connectedEmail}</p>
+                                )}
                                 <p className="text-sm text-white/50 mt-1 max-w-sm">
                                     Automatically push your course schedules and exam dates securely to your external Google Calendar agenda.
                                 </p>
