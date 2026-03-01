@@ -56,14 +56,14 @@ export default function PlannerHomeClient() {
 
         const intervalId = setInterval(async () => {
             try {
-                const res = await fetch("/api/integrations/google-calendar/sync", { method: "POST" });
+                const res = await fetch("/api/connect/google/sync", { method: "POST" });
                 if (!res.ok) {
                     console.warn("Background auto-sync failed with status:", res.status);
                 }
             } catch (e) {
                 console.error("Background sync error:", e);
             }
-        }, 30000); // 30 seconds
+        }, 120000); // 2 minutes
 
         return () => clearInterval(intervalId);
     }, [summary?.google_calendar_connected]);
@@ -76,9 +76,13 @@ export default function PlannerHomeClient() {
 
         setSyncing(true);
         try {
-            const res = await fetch("/api/integrations/google-calendar/sync", { method: "POST" });
+            const res = await fetch("/api/connect/google/sync", { method: "POST" });
             if (res.ok) {
                 toast("Sync complete! Your calendar is up to date.", "success");
+            } else if (res.status === 401) {
+                toast("Google Calendar disconnected. Please reconnect in settings.", "error");
+                // Optionally update state to show it's disconnected
+                setSummary({ ...summary, google_calendar_connected: false });
             } else {
                 throw new Error("Sync failed");
             }
