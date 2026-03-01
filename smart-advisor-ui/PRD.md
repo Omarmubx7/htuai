@@ -57,10 +57,8 @@
 - **POST /api/integrations/google-calendar:** Pushes midterm & final exam dates as Google Calendar events with reminders (1 day + 1 hour before). Body: `{ courses: [{ name, midtermDate?, finalDate?, credits }] }`. Requires stored Google OAuth token.
 - **GET /api/integrations/google-calendar/callback:** OAuth2 callback — exchanges authorization code for tokens, saves to DB, redirects to `/planner`.
 
-### 3.7 Google Sheets Integration
-
-- **POST /api/integrations/google-sheets:** Syncs courses and study sessions to a Google Sheets spreadsheet. Body: `{ courses[], studySessions[] }`. Requires stored Google OAuth token. Auto-provisions a spreadsheet with "Courses" and "Study Logs" sheets if none exists.
-- **GET /api/integrations/google-sheets/callback:** OAuth2 callback — exchanges auth code for access token, saves to DB, redirects to `/planner`.
+### 3.7 (Future Feature)
+- Reserved for future Spreadsheet integration.
 
 ### 3.8 Admin Dashboard
 

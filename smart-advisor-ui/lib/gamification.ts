@@ -22,12 +22,12 @@ export async function evaluateAchievements(userId: number, newMinutes: number = 
         where: { user_id: userId }
     });
 
-    // Total logged minutes
-    const sessions = await prisma.studySession.findMany({
+    // Total logged minutes - Optimized with aggregate
+    const aggregate = await prisma.studySession.aggregate({
         where: { user_id: userId },
-        select: { duration_minutes: true }
+        _sum: { duration_minutes: true }
     });
-    const totalMinutes = sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
+    const totalMinutes = aggregate._sum.duration_minutes || 0;
 
     const newBadgesUnlocked: string[] = [];
 

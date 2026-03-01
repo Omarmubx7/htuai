@@ -86,6 +86,28 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
         return () => globalThis.removeEventListener("resize", handleResize);
     }, [isOpen, currentStep, measureTarget]);
 
+    // ── Navigation handlers ──────────────────────────────────────────
+    const handleSkip = useCallback(() => {
+        setCurrentStep(0);
+        localStorage.setItem(STORAGE_KEY, "true");
+        onClose();
+    }, [onClose]);
+
+    const handleNext = useCallback(() => {
+        setCurrentStep((s) => {
+            if (s < activeSteps.length - 1) {
+                return s + 1;
+            } else {
+                handleSkip();
+                return s;
+            }
+        });
+    }, [activeSteps.length, handleSkip]);
+
+    const handlePrev = useCallback(() => {
+        setCurrentStep((s) => Math.max(0, s - 1));
+    }, []);
+
     // ── Keyboard navigation ──────────────────────────────────────────
     useEffect(() => {
         if (!isOpen) return;
@@ -96,26 +118,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
         };
         globalThis.addEventListener("keydown", handler);
         return () => globalThis.removeEventListener("keydown", handler);
-    });
-
-    // ── Navigation handlers ──────────────────────────────────────────
-    const handleNext = () => {
-        if (currentStep < activeSteps.length - 1) {
-            setCurrentStep((s) => s + 1);
-        } else {
-            handleSkip();
-        }
-    };
-
-    const handlePrev = () => {
-        if (currentStep > 0) setCurrentStep((s) => s - 1);
-    };
-
-    const handleSkip = () => {
-        setCurrentStep(0);
-        localStorage.setItem(STORAGE_KEY, "true");
-        onClose();
-    };
+    }, [isOpen, handleNext, handlePrev, handleSkip]);
 
     if (!isOpen || !step) return null;
 

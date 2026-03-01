@@ -35,6 +35,45 @@ function checkCreditHours(prereqStr: string, completedCredits: number): PrereqRe
     return null;
 }
 
+/**
+ * Improved prerequisite parser that handles basic logical groups.
+ */
+function evaluateLogic(str: string, completed: Set<string> | Map<string, any>, rules: any, allCodes: Set<string>): { isLocked: boolean; missing: string[] } {
+    const s = str.trim();
+    if (!s) return { isLocked: false, missing: [] };
+
+    // 1. Handle "OR" first (lowest precedence)
+    if (s.includes(' OR ')) {
+        const parts = s.split(/\s+OR\s+/i);
+        const results = parts.map(p => evaluateLogic(p, completed, rules, allCodes));
+        
+        // If any branch is unlocked, the OR is unlocked
+        if (results.some(r => !r.isLocked)) {
+            return { isLocked: false, missing: [] };
+        }
+        // If all locked, collect all possible missing codes (student can pick any)
+        return { isLocked: true, missing: results.flatMap(r => r.missing) };
+    }
+
+    // 2. Handle "AND" (higher precedence)
+    if (s.includes(' AND ') || s.includes(' & ')) {
+        const parts = s.split(/\s+(?:AND|&)\s+/i);
+        const results = parts.map(p => evaluateLogic(p, completed, rules, allCodes));
+        
+        const missing = results.filter(r => r.isLocked).flatMap(r => r.missing);
+        return { isLocked: missing.length > 0, missing };
+    }
+
+    // 3. Leaf node: extract code
+    const code = extractCode(s, rules);
+    if (code && (allCodes.size === 0 || allCodes.has(code))) {
+        if (completed.has(code)) return { isLocked: false, missing: [] };
+        return { isLocked: true, missing: [code] };
+    }
+
+    return { isLocked: false, missing: [] };
+}
+
 export function checkPrerequisites(
     course: Course,
     completedCourses: Map<string, any> | Set<string>,
@@ -59,47 +98,25 @@ export function checkPrerequisites(
     const hoursResult = checkCreditHours(prereqStr, completedCredits);
     if (hoursResult) return hoursResult;
 
+    // Clean credit hour rules from string to focus on course codes
     const hourPattern = /(?:>=\s*\d+)|(?:\d+\s*(?:HRS|HOURS?|CH|CREDITS?))/gi;
     const includePattern = /(?:\d+\s*INCLUDING[^)]*)/gi;
-    const codeOnlyStr = prereqStr.replaceAll(hourPattern, '').replaceAll(includePattern, '').trim();
+    const logicOnlyStr = prereqStr.replaceAll(hourPattern, '').replaceAll(includePattern, '').trim();
 
     const codeRegex = new RegExp(rules.code_regex);
-    if (!codeRegex.exec(codeOnlyStr)) {
+    if (!codeRegex.exec(logicOnlyStr)) {
         return { isLocked: false, missing: [] };
     }
 
-    let missing: string[] = [];
-    const extract = (s: string) => extractCode(s, rules);
-
-    if (codeOnlyStr.includes(' OR ')) {
-        const orRegex = new RegExp(String.raw`\s*(?:${rules.separators.or.join('|')})\s*`, 'i');
-        const codes = codeOnlyStr.split(orRegex)
-            .map(s => extract(s.trim()))
-            .filter((c): c is string => c !== null)
-            .filter(c => allCourseCodes.size === 0 || allCourseCodes.has(c));
-
-        if (codes.length === 0) return { isLocked: false, missing: [] };
-        if (!codes.some(code => completedCourses.has(code))) missing = codes;
-    } else {
-        const andRegex = new RegExp(String.raw`\s*(?:${rules.separators.and.join('|')})\s*`, 'i');
-        const codes = codeOnlyStr.split(andRegex)
-            .map(s => extract(s.trim()))
-            .filter((c): c is string => c !== null)
-            .filter(c => allCourseCodes.size === 0 || allCourseCodes.has(c));
-
-        for (const code of codes) {
-            if (!completedCourses.has(code)) missing.push(code);
-        }
-    }
-
-    return { isLocked: missing.length > 0, missing };
+    const result = evaluateLogic(logicOnlyStr, completedCourses, rules, allCourseCodes);
+    return { isLocked: result.isLocked, missing: result.missing };
 }
 
 function extractCode(str: string, rules: any): string | null {
     const regexStr = rules.code_regex;
     const match = new RegExp(regexStr).exec(str);
     if (match) {
-        let code = match[0];
+        const code = match[0];
         const { leading_zeros_if_length } = rules.stripping || {};
 
         if (leading_zeros_if_length && code.length === leading_zeros_if_length && code.startsWith('00')) {

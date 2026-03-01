@@ -28,11 +28,17 @@ export interface VisitorLog {
 }
 
 /**
- * Initialize the database tables if they don't exist.
- * Replaced by prisma db push or migrations.
+ * Checks database health and connection.
+ * Table structure is managed by Prisma db push/migrations.
  */
 export async function initDB() {
-    // Handled by Prisma Migrations/db push.
+    try {
+        await prisma.$connect();
+        console.log("[DB] Connection initialized and healthy.");
+    } catch (e) {
+        console.error("[DB] Initialization failed:", e);
+        throw e;
+    }
 }
 
 /** Helper to resolve a user by whatever ID next-auth currently has for them */
@@ -325,14 +331,55 @@ export async function saveIntegrationToken({
 export async function getIntegrationToken(studentId: string, provider: string) {
     const user = await resolveUserByString(studentId);
     if (!user) return null;
-    const token = await prisma.integrationToken.findFirst({
+    let token = await prisma.integrationToken.findFirst({
         where: { user_id: user.id, provider }
     });
     if (!token) return null;
+
+    let accessToken = token.access_token;
+    let expiresAt = token.expires_at ? Number(token.expires_at) : null;
+
+    // Check if token is expired or expires in less than 5 minutes (300 seconds)
+    const now = Math.floor(Date.now() / 1000);
+    if (expiresAt && (expiresAt - now < 300) && token.refresh_token && provider === 'google_calendar') {
+        try {
+            const res = await fetch("https://oauth2.googleapis.com/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    client_id: process.env.GOOGLE_CLIENT_ID!,
+                    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+                    refresh_token: token.refresh_token,
+                    grant_type: "refresh_token",
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                accessToken = data.access_token;
+                expiresAt = now + data.expires_in;
+
+                // Update in database
+                token = await prisma.integrationToken.update({
+                    where: { id: token.id },
+                    data: {
+                        access_token: accessToken,
+                        expires_at: BigInt(expiresAt),
+                        updated_at: new Date()
+                    }
+                });
+            } else {
+                console.error("Failed to refresh Google token:", await res.text());
+            }
+        } catch (error) {
+            console.error("Error refreshing token:", error);
+        }
+    }
+
     return {
-        accessToken: token.access_token,
+        accessToken: accessToken,
         refreshToken: token.refresh_token,
-        expiresAt: token.expires_at ? Number(token.expires_at) : null,
+        expiresAt: expiresAt,
         metadata: token.metadata ? structuredClone(token.metadata) : {},
     };
 }
@@ -379,9 +426,8 @@ export async function saveCourseNotes(studentId: string, courseId: string, notes
                 data: { notes, updated_at: new Date() }
             });
         } else {
-            // NOTE: db_course_id is now required, this needs resolving elsewhere if called
             await prisma.courseNote.create({
-                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date(), user_id: user.id, db_course_id: Number.parseInt(courseId, 10) || 0 }
+                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date(), user_id: user.id }
             });
         }
     } catch (e) { console.error("Notes save error:", e); }

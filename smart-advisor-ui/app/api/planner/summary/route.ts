@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
         const todayForComparison = new Date();
         todayForComparison.setHours(0, 0, 0, 0);
 
-        let currentSemester = await prisma.semester.findFirst({
+        const currentSemester = await prisma.semester.findFirst({
             where: {
                 user_id: user.id,
                 OR: [
@@ -178,10 +178,11 @@ export async function GET(req: NextRequest) {
             return { date: dateStr, minutes: mins };
         }).reverse();
 
-        // 8. Identify Most Neglected Course
+        // 8. Identify Most Neglected Course (Optimized)
         // Course with exam in next 14 days and lowest study minutes
         const twoWeeks = new Date();
         twoWeeks.setDate(twoWeeks.getDate() + 14);
+        
         const upcomingExamCourses = await prisma.course.findMany({
             where: {
                 semester: { user_id: user.id },
@@ -189,15 +190,27 @@ export async function GET(req: NextRequest) {
                     { midterm_date: { gte: new Date(), lte: twoWeeks } },
                     { final_date: { gte: new Date(), lte: twoWeeks } }
                 ]
-            } as any,
-            include: { study_sessions: true }
-        }) as any[];
+            },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                midterm_date: true,
+                final_date: true,
+                study_sessions: {
+                    select: {
+                        duration_minutes: true,
+                        created_at: true
+                    }
+                }
+            }
+        });
 
         let neglectedCourse = null;
         if (upcomingExamCourses.length > 0) {
-            neglectedCourse = upcomingExamCourses.toSorted((a: any, b: any) => {
-                const aMins = a.study_sessions.reduce((acc: number, s: any) => acc + s.duration_minutes, 0);
-                const bMins = b.study_sessions.reduce((acc: number, s: any) => acc + s.duration_minutes, 0);
+            neglectedCourse = upcomingExamCourses.sort((a, b) => {
+                const aMins = a.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
+                const bMins = b.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
                 return aMins - bMins;
             })[0];
         }

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { previous_gpa, previous_credits } = body;
 
-        let user = await prisma.user.findFirst({
+        const user = await prisma.user.findFirst({
             where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] },
         });
 

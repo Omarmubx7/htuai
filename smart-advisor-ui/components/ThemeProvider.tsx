@@ -20,6 +20,7 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
     useEffect(() => {
         const stored = localStorage.getItem("htuai-theme");
         if (stored === "light") {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLightMode(true);
             document.documentElement.classList.add("light-theme");
         }

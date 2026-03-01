@@ -11,13 +11,14 @@ export default function AdminGate({ children }: { children: ReactNode }) {
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        setIsMounted(true);
         if (typeof window !== 'undefined') {
             try {
                 const saved = sessionStorage.getItem('admin_secret');
                 if (saved) setSecret(saved);
             } catch { }
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsMounted(true);
     }, []);
 
     const [input, setInput] = useState('');

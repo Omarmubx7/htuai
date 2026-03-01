@@ -100,7 +100,6 @@ export default function PlannerSemesterList() {
                         <h2 className="text-2xl font-black font-display tracking-tight">Timeline</h2>
                         <p className="text-white/40 text-sm mt-1">Manage your active and completed semesters.</p>
                     </div>
-                    {/* Placeholder for Add Semester modal trigger - to be implemented fully if needed */}
                     <button
                         onClick={() => setShowAddModal(true)}
                         className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all group"
