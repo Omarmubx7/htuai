@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, X, HelpCircle } from "lucide-react";
 
+import { safeStorage } from "@/lib/safe-storage";
+
 /* ═══════════════════════════════════════════════════════════════════
    Types
    ═══════════════════════════════════════════════════════════════════ */
@@ -95,7 +97,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
     // ── Navigation handlers ──────────────────────────────────────────
     const handleSkip = useCallback(() => {
         setCurrentStep(0);
-        localStorage.setItem(STORAGE_KEY, "true");
+        safeStorage.set(STORAGE_KEY, "true");
         onClose();
     }, [onClose]);
 
@@ -340,7 +342,7 @@ export function useWalkthrough() {
     useEffect(() => {
         // Auto-show for first-time users after a short delay
         const timer = setTimeout(() => {
-            const done = localStorage.getItem(STORAGE_KEY);
+            const done = safeStorage.get(STORAGE_KEY);
             if (!done) {
                 setIsOpen(true);
             }

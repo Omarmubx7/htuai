@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { KeyRound, Loader2, ShieldAlert } from 'lucide-react';
+import { safeStorage } from '@/lib/safe-storage';
 
 const AdminSecretContext = createContext<string>('');
 export const useAdminSecret = () => useContext(AdminSecretContext);
@@ -11,12 +12,8 @@ export default function AdminGate({ children }: { children: ReactNode }) {
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const saved = sessionStorage.getItem('admin_secret');
-                if (saved) setSecret(saved);
-            } catch { }
-        }
+        const saved = safeStorage.session.get('admin_secret');
+        if (saved) setSecret(saved);
          
         setIsMounted(true);
     }, []);
@@ -35,9 +32,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
                 headers: { 'x-admin-secret': input.trim() }
             });
             if (res.ok) {
-                try {
-                    sessionStorage.setItem('admin_secret', input.trim());
-                } catch { }
+                safeStorage.session.set('admin_secret', input.trim());
                 setSecret(input.trim());
             } else {
                 setError('Invalid admin secret');

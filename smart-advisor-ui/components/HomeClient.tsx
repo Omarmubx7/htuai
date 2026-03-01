@@ -12,6 +12,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import WalkthroughOverlay, { useWalkthrough, TRACKER_WALKTHROUGH_STEPS, WalkthroughHelpButton } from "@/components/WalkthroughOverlay";
+import { safeStorage } from "@/lib/safe-storage";
 
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
 const MajorSelector = dynamic(() => import("@/components/MajorSelector"), { ssr: false });
@@ -32,9 +33,17 @@ export default function HomeClient() {
     const [previousGpaHistory, setPreviousGpaHistory] = useState<{ gpa: number | null, credits: number | null }>({ gpa: null, credits: null });
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map()); // Added courseNameMap state
+    const [isLoaded, setIsLoaded] = useState(false);
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
     const walkthrough = useWalkthrough();
+
+    // Load initial major if studentId is not available yet but stored in localStorage
+    useEffect(() => {
+        const storedMajor = safeStorage.get("htuai-major");
+        if (storedMajor) setMajor(storedMajor as MajorKey);
+        setIsLoaded(true);
+    }, []);
 
     const loadCourses = useCallback(async (key: MajorKey) => {
         try {
@@ -203,6 +212,7 @@ export default function HomeClient() {
     /** Save major to DB + move to transcript — called only for new students */
     const handleMajorSelect = async (key: MajorKey) => {
         setMajor(key);
+        safeStorage.set("htuai-major", key);
         const sid = studentId || (session?.user as any).student_id || session?.user?.name;
         if (sid) {
             await fetch(`/api/profile/${encodeURIComponent(sid)}/save`, {

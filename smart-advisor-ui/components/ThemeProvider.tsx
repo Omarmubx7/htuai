@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { safeStorage } from "@/lib/safe-storage";
 
 type ThemeContextType = {
     isLightMode: boolean;
@@ -18,7 +19,7 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
     const [isLightMode, setIsLightMode] = useState(false);
 
     useEffect(() => {
-        const stored = localStorage.getItem("htuai-theme");
+        const stored = safeStorage.get("htuai-theme");
         if (stored === "light") {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLightMode(true);
@@ -31,10 +32,10 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
             const next = !prev;
             if (next) {
                 document.documentElement.classList.add("light-theme");
-                localStorage.setItem("htuai-theme", "light");
+                safeStorage.set("htuai-theme", "light");
             } else {
                 document.documentElement.classList.remove("light-theme");
-                localStorage.setItem("htuai-theme", "dark");
+                safeStorage.set("htuai-theme", "dark");
             }
             return next;
         });

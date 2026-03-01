@@ -81,7 +81,11 @@ export default function CourseNotesEditor({
       StarterKit.configure({
         bulletList: { keepMarks: true, keepAttributes: false },
         orderedList: { keepMarks: true, keepAttributes: false },
-        codeBlock: false, // Handled by lowlight
+        codeBlock: false, 
+        bold: false,
+        italic: false,
+        strike: false,
+        code: false,
       }),
       Underline,
       Color,

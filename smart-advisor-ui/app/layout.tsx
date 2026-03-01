@@ -115,7 +115,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('htuai-theme');if(t==='light')document.documentElement.classList.add('light-theme');}catch(e){}`
+            __html: `try{var t=window.localStorage.getItem('htuai-theme');if(t==='light')document.documentElement.classList.add('light-theme');}catch(e){console.warn('Storage access denied', e)}`
           }}
         />
       </head>
