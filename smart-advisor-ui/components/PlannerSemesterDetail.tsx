@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,16 +50,7 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
     const [showDeleteCourseConfirm, setShowDeleteCourseConfirm] = useState(false);
     const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
 
-    useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/");
-        } else if (status === "authenticated") {
-            fetchSemester();
-            fetchNotes();
-        }
-    }, [status, router, semesterId]);
-
-    const fetchNotes = async () => {
+    const fetchNotes = useCallback(async () => {
         try {
             const res = await fetch(`/api/planner/semesters/${semesterId}/notes`);
             if (res.ok) {
@@ -67,52 +58,9 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
                 setNotes(data.notes || []);
             }
         } catch (e) { console.error("Failed to fetch notes"); }
-    };
+    }, [semesterId]);
 
-    const handleSaveNote = async () => {
-        if (!noteDraft.title) return;
-        try {
-            const method = editingNote ? "PATCH" : "POST";
-            const body = editingNote ? { ...noteDraft, id: editingNote.id } : noteDraft;
-            const res = await fetch(`/api/planner/semesters/${semesterId}/notes`, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                if (editingNote) {
-                    setNotes(notes.map(n => n.id === editingNote.id ? data.note : n));
-                } else {
-                    setNotes([data.note, ...notes]);
-                }
-                setShowNoteModal(false);
-                setEditingNote(null);
-                setNoteDraft({ title: "", notes: "" });
-                toast("Note saved!", "success");
-            }
-        } catch (e) { toast("Failed to save note", "error"); }
-    };
-
-    const confirmDeleteNote = (id: number) => {
-        setNoteToDelete(id);
-        setShowDeleteNoteConfirm(true);
-    };
-
-    const handleDeleteNote = async () => {
-        if (!noteToDelete) return;
-        try {
-            const res = await fetch(`/api/planner/semesters/${semesterId}/notes?id=${noteToDelete}`, { method: "DELETE" });
-            if (res.ok) {
-                setNotes(notes.filter(n => n.id !== noteToDelete));
-                toast("Note deleted.", "success");
-            }
-        } catch (e) { toast("Failed to delete note", "error"); }
-        setShowDeleteNoteConfirm(false);
-        setNoteToDelete(null);
-    };
-    const fetchSemester = async () => {
+    const fetchSemester = useCallback(async () => {
         try {
             setLoading(true);
             const [res, currRes] = await Promise.all([
@@ -172,7 +120,16 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
         } finally {
             setLoading(false);
         }
-    };
+    }, [semesterId, router, toast]);
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/");
+        } else if (status === "authenticated") {
+            fetchSemester();
+            fetchNotes();
+        }
+    }, [status, router, fetchSemester, fetchNotes]);
 
     const handleAddCourse = async () => {
         if (!newCourse.code || !newCourse.name) return;
@@ -195,6 +152,50 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
         } catch (e) {
             toast("Failed to add course.", "error");
         }
+    };
+
+    const handleSaveNote = async () => {
+        if (!noteDraft.title) return;
+        try {
+            const method = editingNote ? "PATCH" : "POST";
+            const body = editingNote ? { ...noteDraft, id: editingNote.id } : noteDraft;
+            const res = await fetch(`/api/planner/semesters/${semesterId}/notes`, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (editingNote) {
+                    setNotes(notes.map(n => n.id === editingNote.id ? data.note : n));
+                } else {
+                    setNotes([data.note, ...notes]);
+                }
+                setShowNoteModal(false);
+                setEditingNote(null);
+                setNoteDraft({ title: "", notes: "" });
+                toast("Note saved!", "success");
+            }
+        } catch (e) { toast("Failed to save note", "error"); }
+    };
+
+    const confirmDeleteNote = (id: number) => {
+        setNoteToDelete(id);
+        setShowDeleteNoteConfirm(true);
+    };
+
+    const handleDeleteNote = async () => {
+        if (!noteToDelete) return;
+        try {
+            const res = await fetch(`/api/planner/semesters/${semesterId}/notes?id=${noteToDelete}`, { method: "DELETE" });
+            if (res.ok) {
+                setNotes(notes.filter(n => n.id !== noteToDelete));
+                toast("Note deleted.", "success");
+            }
+        } catch (e) { toast("Failed to delete note", "error"); }
+        setShowDeleteNoteConfirm(false);
+        setNoteToDelete(null);
     };
 
     const handleUpdateGrade = async (courseId: number, grade: string) => {

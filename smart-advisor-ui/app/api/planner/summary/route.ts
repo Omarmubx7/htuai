@@ -249,7 +249,11 @@ export async function GET(req: NextRequest) {
                 study_sessions: fullRecentSessions,
                 neglected_course: neglectedCourse ? {
                     course: { name: neglectedCourse.name },
-                    last_studied: neglectedCourse.study_sessions.toSorted((x: any, y: any) => new Date(y.created_at).getTime() - new Date(x.created_at).getTime())[0]?.created_at || null
+                    last_studied: neglectedCourse.study_sessions.toSorted((x: { created_at: Date | null }, y: { created_at: Date | null }) => {
+                        const tx = x.created_at ? new Date(x.created_at).getTime() : 0;
+                        const ty = y.created_at ? new Date(y.created_at).getTime() : 0;
+                        return ty - tx;
+                    })[0]?.created_at || null
                 } : null
             },
             neglectedCourse: neglectedCourse ? {
@@ -258,7 +262,7 @@ export async function GET(req: NextRequest) {
                 name: neglectedCourse.name,
                 midterm_date: neglectedCourse.midterm_date,
                 final_date: neglectedCourse.final_date,
-                total_study_minutes: neglectedCourse.study_sessions.reduce((acc: number, s: any) => acc + s.duration_minutes, 0)
+                total_study_minutes: neglectedCourse.study_sessions.reduce((acc: number, s: { duration_minutes: number }) => acc + s.duration_minutes, 0)
             } : null,
             google_calendar_connected: !!googleToken,
             google_preferences: googleToken?.metadata || {},
@@ -270,7 +274,7 @@ export async function GET(req: NextRequest) {
                 name: user.name,
                 email: user.email,
                 student_id: user.student_id,
-                role: (user as any).role || "student",
+                role: (user as Record<string, unknown>).role || "student",
                 image: user.image,
                 major: profile?.major || "undecided"
             }

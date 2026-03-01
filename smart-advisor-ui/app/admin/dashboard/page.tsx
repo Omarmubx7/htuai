@@ -52,7 +52,7 @@ interface Stats {
     recentActivity: ActivityEntry[];
     heatmap: HeatmapCell[];
     students: StudentRow[];
-    adminLogs: any[];
+    adminLogs: { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string }[];
     avgWeightedProgress?: number;
     avgCgpa?: number;
     avgStudyHours?: number;
@@ -220,7 +220,7 @@ function DashboardInner() {
     const progress = Object.entries(stats.progressDistribution);
     const maxProgress = Math.max(...Object.values(stats.progressDistribution), 1);
     const maxTraffic = Math.max(...stats.trafficByDay.map(d => d.count), 1);
-    const totalDeviceCount = (Array.isArray(stats.deviceBreakdown) ? stats.deviceBreakdown : []).reduce((s, d: any) => s + d.count, 0) || 1;
+    const totalDeviceCount = (Array.isArray(stats.deviceBreakdown) ? stats.deviceBreakdown : []).reduce((s, d: DeviceEntry) => s + d.count, 0) || 1;
     const weekChange = pctChange(stats.thisWeekVisits, stats.lastWeekVisits);
     const allMajorKeys = Object.keys(stats.majorCounts).sort();
 
@@ -567,7 +567,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
    Visitors Tab
    ═══════════════════════════════════════════════════════════════════ */
 
-function LogsTab({ logs }: { logs: any[] }) {
+function LogsTab({ logs }: { logs: Record<string, unknown>[] }) {
     if (!logs || logs.length === 0) return <Empty text="No system logs found" />;
 
     return (
@@ -578,34 +578,37 @@ function LogsTab({ logs }: { logs: any[] }) {
                     right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{logs.length} entries</span>} />
             </div>
             <div className="space-y-1 mt-2">
-                {logs.map((log, i) => (
-                    <div key={log.id} className="group hover:bg-white/[0.015] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/[0.04]">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${log.type === 'error' ? 'text-rose-400 bg-rose-500/10' : log.type === 'warning' ? 'text-amber-400 bg-amber-500/10' : 'text-cyan-400 bg-cyan-500/10'}`}>
-                                {log.type}
-                            </span>
-                            <span className="text-[10px] text-white/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
-                        </div>
-                        <p className="text-xs text-white/70 font-medium mb-1">{log.message}</p>
-                        
-                        {/* Display new relational columns if they exist */}
-                        {(log.event_kind || log.course_id || log.target_id) && (
-                            <div className="flex flex-wrap gap-2 mt-2 mb-1">
-                                {log.event_kind && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Event: {log.event_kind}</span>}
-                                {log.course_id && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Course ID: {log.course_id}</span>}
-                                {log.target_id && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Target: {log.target_id}</span>}
+                {logs.map((rawLog: Record<string, unknown>, i: number) => {
+                    const log = rawLog as { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string; details?: any };
+                    return (
+                        <div key={log.id} className="group hover:bg-white/[0.015] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/[0.04]">
+                            <div className="flex items-center justify-between mb-1">
+                                <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${log.type === 'error' ? 'text-rose-400 bg-rose-500/10' : log.type === 'warning' ? 'text-amber-400 bg-amber-500/10' : 'text-cyan-400 bg-cyan-500/10'}`}>
+                                    {log.type}
+                                </span>
+                                <span className="text-[10px] text-white/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
                             </div>
-                        )}
+                            <p className="text-xs text-white/70 font-medium mb-1">{log.message}</p>
 
-                        {log.details && Object.keys(log.details).length > 0 && (
-                            <div className="mt-1.5 p-2 rounded-lg bg-black/40 border border-white/5 overflow-x-auto">
-                                <pre className="text-[10px] text-white/30 font-mono italic">
-                                    {JSON.stringify(log.details, null, 2)}
-                                </pre>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                            {/* Display new relational columns if they exist */}
+                            {(log.event_kind || log.course_id || log.target_id) && (
+                                <div className="flex flex-wrap gap-2 mt-2 mb-1">
+                                    {log.event_kind && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Event: {log.event_kind}</span>}
+                                    {log.course_id && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Course ID: {log.course_id}</span>}
+                                    {log.target_id && <span className="text-[10px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Target: {log.target_id}</span>}
+                                </div>
+                            )}
+
+                            {log.details && Object.keys(log.details as object).length > 0 && (
+                                <div className="mt-1.5 p-2 rounded-lg bg-black/40 border border-white/5 overflow-x-auto">
+                                    <pre className="text-[10px] text-white/30 font-mono italic">
+                                        {JSON.stringify(log.details, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </GlassCard>
     );

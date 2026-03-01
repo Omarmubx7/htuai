@@ -79,12 +79,18 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
 
     useEffect(() => {
         if (!isOpen) return;
-        measureTarget();
+
+        const timer = setTimeout(() => {
+            measureTarget();
+        }, 100);
 
         const handleResize = () => measureTarget();
         globalThis.addEventListener("resize", handleResize);
-        return () => globalThis.removeEventListener("resize", handleResize);
-    }, [isOpen, currentStep, measureTarget]);
+        return () => {
+            clearTimeout(timer);
+            globalThis.removeEventListener("resize", handleResize);
+        };
+    }, [isOpen, measureTarget]);
 
     // ── Navigation handlers ──────────────────────────────────────────
     const handleSkip = useCallback(() => {

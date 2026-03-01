@@ -1,9 +1,30 @@
 
-import type { NextAuthOptions } from "next-auth";
+import type { NextAuthOptions, DefaultSession, User as NextAuthUser } from "next-auth";
+import type { DefaultJWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { getUserByStudentId, createUser, getUserByEmail, linkAccount } from "./lib/database";
+
+declare module "next-auth" {
+    interface Session {
+        user: {
+            id: string;
+            student_id?: string | null;
+            provider?: string;
+        } & DefaultSession["user"];
+    }
+    interface User {
+        student_id?: string | null;
+    }
+}
+
+declare module "next-auth/jwt" {
+    interface JWT extends DefaultJWT {
+        student_id?: string | null;
+        provider?: string;
+    }
+}
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -25,8 +46,8 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                const studentId = credentials.student_id as string;
-                const password = credentials.password as string;
+                const studentId = credentials.student_id;
+                const password = credentials.password;
                 const isClaiming = credentials.is_claiming === "true";
 
                 try {
@@ -35,7 +56,6 @@ export const authOptions: NextAuthOptions = {
 
                     if (isClaiming) {
                         if (user) {
-                            // Account already exists — cannot claim it, must login instead
                             console.log("Claim rejected: account already exists for", studentId);
                             return null;
                         }
@@ -48,7 +68,7 @@ export const authOptions: NextAuthOptions = {
                         });
 
                         console.log("User successfully claimed with id:", finalUser.id);
-                        return { id: finalUser.id.toString(), name: studentId, student_id: studentId } as any;
+                        return { id: finalUser.id.toString(), name: studentId, student_id: studentId };
                     }
 
                     if (!user || !user.password_hash) {
@@ -63,7 +83,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     console.log("Login successful for student_id:", studentId);
-                    return { id: user.id.toString(), name: user.student_id, student_id: user.student_id } as any;
+                    return { id: user.id.toString(), name: user.student_id, student_id: user.student_id };
                 } catch (error) {
                     console.error("Auth Error in authorize callback:", error);
                     throw error;
@@ -90,21 +110,21 @@ export const authOptions: NextAuthOptions = {
         },
         async session({ session, token }) {
             if (token.sub && session.user) {
-                (session.user as any).id = token.sub;
-                (session.user as any).provider = (token as any).provider;
+                session.user.id = token.sub;
+                session.user.provider = token.provider;
                 const dbUser = await getUserByEmail(session.user.email || "") || await getUserByStudentId(session.user.name || "");
                 if (dbUser) {
-                    (session.user as any).student_id = dbUser.student_id;
+                    session.user.student_id = dbUser.student_id;
                 }
             }
             return session;
         },
         async jwt({ token, user, account }) {
             if (user) {
-                (token as any).student_id = (user as any).student_id;
+                token.student_id = user.student_id;
             }
             if (account) {
-                (token as any).provider = account.provider;
+                token.provider = account.provider;
             }
             return token;
         }

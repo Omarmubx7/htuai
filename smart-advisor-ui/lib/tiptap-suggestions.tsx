@@ -5,7 +5,7 @@ import 'tippy.js/dist/tippy.css';
 import {
     Heading1, Heading2, Heading3, Heading4,
     List, ListOrdered, CheckSquare,
-    Quote, Code, Minus, Info, Terminal
+    Quote, Code, Minus, Terminal
 } from "lucide-react";
 
 export const suggestion = {
@@ -15,7 +15,7 @@ export const suggestion = {
                 title: 'Heading 1',
                 description: 'Big section heading',
                 icon: Heading1,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run();
                 },
             },
@@ -23,7 +23,7 @@ export const suggestion = {
                 title: 'Heading 2',
                 description: 'Medium section heading',
                 icon: Heading2,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
                 },
             },
@@ -31,7 +31,7 @@ export const suggestion = {
                 title: 'Bullet List',
                 description: 'Simple bulleted list',
                 icon: List,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).toggleBulletList().run();
                 },
             },
@@ -39,7 +39,7 @@ export const suggestion = {
                 title: 'Numbered List',
                 description: 'List with numbers',
                 icon: ListOrdered,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).toggleOrderedList().run();
                 },
             },
@@ -47,7 +47,7 @@ export const suggestion = {
                 title: 'Todo List',
                 description: 'Checkable list',
                 icon: CheckSquare,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).toggleTaskList().run();
                 },
             },
@@ -55,7 +55,7 @@ export const suggestion = {
                 title: 'Quote',
                 description: 'Capture a quote',
                 icon: Quote,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).toggleBlockquote().run();
                 },
             },
@@ -63,7 +63,7 @@ export const suggestion = {
                 title: 'Heading 3',
                 description: 'Small section heading',
                 icon: Heading3,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
                 },
             },
@@ -71,7 +71,7 @@ export const suggestion = {
                 title: 'Heading 4',
                 description: 'Sub-section heading',
                 icon: Heading4,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run();
                 },
             },
@@ -79,7 +79,7 @@ export const suggestion = {
                 title: 'Inline Code',
                 description: 'Monospace font',
                 icon: Code,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).toggleCode().run();
                 },
             },
@@ -87,7 +87,7 @@ export const suggestion = {
                 title: 'Code Block',
                 description: 'Code with highlighting',
                 icon: Terminal,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
                 },
             },
@@ -95,7 +95,7 @@ export const suggestion = {
                 title: 'Divider',
                 description: 'Section separator',
                 icon: Minus,
-                command: ({ editor, range }: any) => {
+                command: ({ editor, range }: { editor: any, range: any }) => {
                     editor.chain().focus().deleteRange(range).setHorizontalRule().run();
                 },
             },
@@ -103,18 +103,18 @@ export const suggestion = {
     },
 
     render: () => {
-        let component: any;
+        let component: ReactRenderer<any>;
         let popup: Instance[];
 
         return {
-            onStart: (props: any) => {
+            onStart: (props: Record<string, unknown>) => {
                 component = new ReactRenderer(CommandList, {
                     props,
-                    editor: props.editor,
+                    editor: props.editor as any,
                 });
 
                 popup = tippy('body', {
-                    getReferenceClientRect: props.clientRect,
+                    getReferenceClientRect: props.clientRect as any,
                     appendTo: () => document.body,
                     content: component.element,
                     showOnCreate: true,
@@ -124,17 +124,17 @@ export const suggestion = {
                 });
             },
 
-            onUpdate(props: any) {
+            onUpdate(props: Record<string, unknown>) {
                 component.updateProps(props);
 
                 if (popup?.[0]) {
                     popup[0].setProps({
-                        getReferenceClientRect: props.clientRect,
+                        getReferenceClientRect: props.clientRect as any,
                     });
                 }
             },
 
-            onKeyDown(props: any) {
+            onKeyDown(props: { event: KeyboardEvent }) {
                 if (props.event.key === 'Escape') {
                     popup[0].hide();
                     return true;
@@ -153,7 +153,7 @@ export const suggestion = {
     },
 };
 
-const CommandList = React.forwardRef(({ items, command }: any, ref) => {
+const CommandList = React.forwardRef(({ items, command }: { items: any[], command: (item: any) => void }, ref) => {
     const [selectedIndex, setSelectedIndex] = React.useState(0);
 
     React.useEffect(() => {
@@ -168,7 +168,7 @@ const CommandList = React.forwardRef(({ items, command }: any, ref) => {
     };
 
     React.useImperativeHandle(ref, () => ({
-        onKeyDown: ({ event }: any) => {
+        onKeyDown: ({ event }: { event: KeyboardEvent }) => {
             if (event.key === 'ArrowUp') {
                 setSelectedIndex((selectedIndex + items.length - 1) % items.length);
                 return true;

@@ -366,7 +366,7 @@ export async function getIntegrationToken(studentId: string, provider: string) {
                     where: { id: token.id },
                     data: {
                         access_token: accessToken,
-                        expires_at: BigInt(expiresAt),
+                        expires_at: BigInt(expiresAt || 0),
                         updated_at: new Date()
                     }
                 });

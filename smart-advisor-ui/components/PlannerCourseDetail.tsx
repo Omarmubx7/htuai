@@ -99,13 +99,12 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             const data = await res.json();
             let foundCourse = null;
             for (const sem of data.semesters) {
-                const match = sem.courses.find((c: any) => c.id.toString() === courseId);
+                const match = sem.courses.find((c: { id: number }) => c.id.toString() === courseId);
                 if (match) {
                     foundCourse = { ...match, semester: sem };
                     break;
                 }
             }
-
             if (!foundCourse) {
                 alert("Course not found.");
                 router.push("/planner/semesters");

@@ -17,7 +17,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
                 if (saved) setSecret(saved);
             } catch { }
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setIsMounted(true);
     }, []);
 

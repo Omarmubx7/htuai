@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
@@ -36,53 +36,62 @@ export default function HomeClient() {
     const router = useRouter();
     const walkthrough = useWalkthrough();
 
-    useEffect(() => {
-        if (status === "loading") return;
+    const loadCourses = useCallback(async (key: MajorKey) => {
+        try {
+            const rulesPath = "/data/curriculum_rules.json";
+            const curriculumPath = "/data/curriculum.json";
 
-        if (status === "unauthenticated") {
-            setAppState("landing");
-        } else if (status === "authenticated" && session?.user) {
-            const sid = (session.user as any).student_id || session.user.name;
-            if (sid) {
-                loadProfile(sid);
-            } else {
-                // Social user without linked ID yet
-                setAppState("major-select");
+            const [rulesRes, currRes] = await Promise.all([
+                fetch(rulesPath),
+                fetch(curriculumPath)
+            ]);
+
+            if (rulesRes.ok && currRes.ok) {
+                const rulesData = await rulesRes.json();
+                const currData = await currRes.json();
+                setRules(rulesData);
+
+                if (currData.majors && currData.majors[key]) {
+                    const mergedData = {
+                        ...currData.shared,
+                        ...currData.majors[key]
+                    };
+                    setCourseData(mergedData);
+                }
             }
+        } catch (e) {
+            console.error("Failed to load curriculum:", e);
         }
-    }, [status, session]);
+    }, []);
 
-    // Effect to build courseNameMap when courseData changes
-    useEffect(() => {
-        if (!courseData) return;
+    const loadProgress = useCallback(async (id: string, majorKey: string) => {
+        try {
+            const r = await fetch(`/api/progress/${encodeURIComponent(id)}?major=${majorKey}`);
+            const { completed } = await r.json();
 
-        const newMap = new Map<string, string>();
-
-        const processCategory = (category: any) => {
-            if (!Array.isArray(category)) return;
-            for (const item of category) {
-                if (item.code && item.name) newMap.set(item.code, item.name);
-                item.courses?.forEach((course: any) => {
-                    if (course.code && course.name) newMap.set(course.code, course.name);
-                });
-            }
-        };
-
-        const categories = [
-            courseData.university_requirements,
-            courseData.college_requirements,
-            courseData.university_electives,
-            courseData.department_requirements,
-            courseData.electives,
-            courseData.work_market_requirements,
-        ];
-
-        categories.forEach(processCategory);
-        setCourseNameMap(newMap);
-    }, [courseData]);
+            const gradeMap = new Map<string, string>();
+            completed.forEach((c: any) => {
+                const code = typeof c === 'string' ? c : c.code;
+                let grade = typeof c === 'object' && c.grade !== undefined ? String(c.grade) : "M";
+                // Legacy check: if it's numeric, map it to something sensible
+                if (!Number.isNaN(Number(grade)) && grade !== "WF") {
+                    const n = Number(grade);
+                    if (n >= 90) grade = "D";
+                    else if (n >= 80) grade = "M";
+                    else if (n >= 70) grade = "P";
+                    else grade = "U";
+                }
+                gradeMap.set(code, grade);
+            });
+            setCompletedCourses(gradeMap);
+        } catch (e) {
+            console.error("[Advisor] Failed to load progress:", e);
+            setCompletedCourses(new Map());
+        }
+    }, []);
 
     /** After login: fetch the student's saved major from the DB */
-    async function loadProfile(id: string) {
+    const loadProfile = useCallback(async (id: string) => {
         console.log(`[Advisor] Loading profile for: ${id}`);
         setStudentId(id);
         try {
@@ -112,33 +121,23 @@ export default function HomeClient() {
             console.error("[Advisor] Profile fetch error:", e);
             setAppState("major-select");
         }
-    }
+    }, [loadCourses, loadProgress]);
 
-    async function loadProgress(id: string, majorKey: string) {
-        try {
-            const r = await fetch(`/api/progress/${encodeURIComponent(id)}?major=${majorKey}`);
-            const { completed } = await r.json();
+    useEffect(() => {
+        if (status === "loading") return;
 
-            const gradeMap = new Map<string, string>();
-            completed.forEach((c: any) => {
-                const code = typeof c === 'string' ? c : c.code;
-                let grade = typeof c === 'object' && c.grade !== undefined ? String(c.grade) : "M";
-                // Legacy check: if it's numeric, map it to something sensible
-                if (!Number.isNaN(Number(grade)) && grade !== "WF") {
-                    const n = Number(grade);
-                    if (n >= 90) grade = "D";
-                    else if (n >= 80) grade = "M";
-                    else if (n >= 70) grade = "P";
-                    else grade = "U";
-                }
-                gradeMap.set(code, grade);
-            });
-            setCompletedCourses(gradeMap);
-        } catch (e) {
-            console.error("[Advisor] Failed to load progress:", e);
-            setCompletedCourses(new Map());
+        if (status === "unauthenticated") {
+            setAppState("landing");
+        } else if (status === "authenticated" && session?.user) {
+            const sid = (session.user as any).student_id || session.user.name;
+            if (sid) {
+                loadProfile(sid);
+            } else {
+                // Social user without linked ID yet
+                setAppState("major-select");
+            }
         }
-    }
+    }, [status, session, loadProfile]);
 
     const toggleCourse = async (code: string) => {
         if (!studentId || !major) return;
@@ -215,49 +214,6 @@ export default function HomeClient() {
         loadCourses(key);
         setAppState("course-tracker");
     };
-
-
-    /** Fetch + merge shared + major-specific data from curriculum.json + rules */
-    async function loadCourses(key: MajorKey) {
-        try {
-            const rulesPath = "/data/curriculum_rules.json";
-            const curriculumPath = "/data/curriculum.json";
-
-            console.log(`[Advisor] Fetching rules: ${rulesPath}`);
-            console.log(`[Advisor] Fetching curriculum: ${curriculumPath}`);
-
-            const [rulesRes, curriculumRes] = await Promise.all([
-                fetch(rulesPath),
-                fetch(curriculumPath),
-            ]);
-
-            if (!rulesRes.ok) throw new Error(`Rules fetch failed: ${rulesRes.status}`);
-            if (!curriculumRes.ok) throw new Error(`Curriculum fetch failed: ${curriculumRes.status}`);
-
-            const [rulesJson, curriculum] = await Promise.all([
-                rulesRes.json(),
-                curriculumRes.json(),
-            ]);
-
-            setRules(rulesJson);
-
-            const shared = curriculum.shared;
-            const majorData = curriculum.majors[key];
-
-            if (!majorData) throw new Error(`Major data not found for ${key}`);
-
-            setCourseData({
-                university_requirements: majorData.university_requirements ?? shared.university_requirements ?? [],
-                college_requirements: majorData.college_requirements ?? shared.college_requirements ?? [],
-                university_electives: majorData.university_electives ?? shared.university_electives ?? [],
-                department_requirements: majorData.department_requirements ?? [],
-                electives: majorData.electives ?? [],
-                work_market_requirements: majorData.work_market_requirements ?? [],
-            });
-        } catch (e) {
-            console.error("[Advisor] Data Load Error:", e);
-        }
-    }
 
     // ─── Render ──────────────────────────────────────────────────────────────
 
