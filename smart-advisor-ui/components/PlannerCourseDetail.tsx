@@ -192,6 +192,11 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         }
     };
 
+    const triggerBackgroundSync = () => {
+        // Fire and forget - syncs in background
+        fetch("/api/connect/google/sync", { method: "POST" }).catch(e => console.error("Auto-sync trigger failed", e));
+    };
+
     const handleSaveDates = async () => {
         setSavingDates(true);
         try {
@@ -206,6 +211,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
             if (res.ok) {
                 toast("Exam dates saved successfully!", "success");
+                triggerBackgroundSync();
             } else {
                 toast("Failed to save exam dates.", "error");
             }
@@ -238,6 +244,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
             if (res.ok) {
                 toast("Course info saved successfully!", "success");
+                triggerBackgroundSync();
             } else {
                 toast("Failed to save course info.", "error");
             }
