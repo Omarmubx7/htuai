@@ -62,14 +62,14 @@ async function syncCourseExams(course: any, courseData: Record<string, unknown>,
                 }
             });
 
-            // For exams, we set a default 2-hour duration
-            const startTime = dateObj.toISOString();
-            const endTime = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000).toISOString();
+            // Format for Google API: Remove 'Z' and milliseconds if providing timeZone
+            const startTime = dateObj.toISOString().split('.')[0].replace('Z', '');
+            const endTime = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000).toISOString().split('.')[0].replace('Z', '');
 
             const eventData = {
                 summary: `${course.name} — ${type} Exam`,
                 description: `${type} examination for ${course.name} (${course.credits} CH). Automatically synced from HTUAI.`,
-                location: (courseData.location as string) || undefined,
+                location: course.location || undefined,
                 start: { dateTime: startTime, timeZone: "Asia/Amman" },
                 end: { dateTime: endTime, timeZone: "Asia/Amman" },
                 reminders: { 
@@ -222,10 +222,10 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
 
         const eventData = {
             summary: `${course.name} (Class)`,
-            location: (courseData.location as string) || undefined,
+            location: course.location || undefined,
             description,
-            start: { dateTime: start.toISOString(), timeZone: "Asia/Amman" },
-            end: { dateTime: end.toISOString(), timeZone: "Asia/Amman" },
+            start: { dateTime: start.toISOString().split('.')[0].replace('Z', ''), timeZone: "Asia/Amman" },
+            end: { dateTime: end.toISOString().split('.')[0].replace('Z', ''), timeZone: "Asia/Amman" },
             recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${rruleDays};UNTIL=${untilStr}`],
             reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }] },
             colorId: "1" // Lavender for classes

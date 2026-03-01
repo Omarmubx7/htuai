@@ -19,32 +19,48 @@ let localStore: any;
 let sessionStore: any;
 
 const getStores = () => {
-    if (localStore && sessionStore) return { local: localStore, session: sessionStore };
+    try {
+        if (localStore && sessionStore) return { local: localStore, session: sessionStore };
 
-    if (typeof window === 'undefined') {
+        if (typeof window === 'undefined') {
+            localStore = createFallbackStore();
+            sessionStore = createFallbackStore();
+        } else {
+            // Test LocalStorage
+            try {
+                const ls = window.localStorage;
+                if (!ls) throw new Error("no_ls");
+                const x = '__storage_test__';
+                ls.setItem(x, x);
+                ls.removeItem(x);
+                localStore = ls;
+            } catch (e) {
+                console.warn("[SafeStorage] LocalStorage restricted, using fallback");
+                localStore = createFallbackStore();
+            }
+
+            // Test SessionStorage
+            try {
+                const ss = window.sessionStorage;
+                if (!ss) throw new Error("no_ss");
+                const x = '__storage_test__';
+                ss.setItem(x, x);
+                ss.removeItem(x);
+                sessionStore = ss;
+            } catch (e) {
+                console.warn("[SafeStorage] SessionStorage restricted, using fallback");
+                sessionStore = createFallbackStore();
+            }
+        }
+    } catch (globalError) {
         localStore = createFallbackStore();
         sessionStore = createFallbackStore();
-    } else {
-        try {
-            localStore = window.localStorage;
-            const x = '__storage_test__';
-            localStore.setItem(x, x);
-            localStore.removeItem(x);
-        } catch (e) {
-            localStore = createFallbackStore();
-        }
-
-        try {
-            sessionStore = window.sessionStorage;
-            const x = '__storage_test__';
-            sessionStore.setItem(x, x);
-            sessionStore.removeItem(x);
-        } catch (e) {
-            sessionStore = createFallbackStore();
-        }
     }
 
-    return { local: localStore, session: sessionStore };
+    return { 
+        local: localStore || createFallbackStore(), 
+        session: sessionStore || createFallbackStore() 
+    };
 };
 
 export const safeStorage = {

@@ -115,7 +115,43 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{window.addEventListener('unhandledrejection',function(e){if(e.reason&&e.reason.message&&e.reason.message.includes('storage')){e.preventDefault();}});var x='__storage_test__';window.localStorage.setItem(x,x);window.localStorage.removeItem(x);}catch(e){var m={getItem:function(){return null},setItem:function(){},removeItem:function(){},clear:function(){},length:0,key:function(){return null}};Object.defineProperty(window,'localStorage',{value:m,configurable:true});Object.defineProperty(window,'sessionStorage',{value:m,configurable:true})}}catch(e){}})();try{if(typeof window!=='undefined'&&window.localStorage){var t=window.localStorage.getItem('htuai-theme');if(t==='light')document.documentElement.classList.add('light-theme');}}catch(e){}`
+            __html: `(function(){
+              var silence = function(e){
+                if(e && (e.message || e.reason?.message || "").toLowerCase().includes("storage")){
+                  if(e.preventDefault) e.preventDefault();
+                  return true;
+                }
+              };
+              window.addEventListener("unhandledrejection", silence);
+              window.addEventListener("error", silence);
+              try {
+                var x="__storage_test__";
+                window.localStorage.setItem(x, x);
+                window.localStorage.removeItem(x);
+              } catch (e) {
+                var handler = {
+                  get: function(target, prop) {
+                    if (prop === "getItem") return function() { return null; };
+                    if (prop === "setItem") return function() { return; };
+                    if (prop === "removeItem") return function() { return; };
+                    if (prop === "clear") return function() { return; };
+                    if (prop === "length") return 0;
+                    if (prop === "key") return function() { return null; };
+                    return undefined;
+                  }
+                };
+                var m = new Proxy({}, handler);
+                try {
+                  Object.defineProperty(window, "localStorage", { value: m, configurable: true, enumerable: true });
+                  Object.defineProperty(window, "sessionStorage", { value: m, configurable: true, enumerable: true });
+                } catch (err) {
+                  // Fallback for non-configurable properties
+                  window.localStorage = m;
+                  window.sessionStorage = m;
+                }
+              }
+            })();
+            try{if(typeof window!=="undefined"&&window.localStorage){var t=window.localStorage.getItem("htuai-theme");if(t==="light")document.documentElement.classList.add("light-theme");}}catch(e){}`
           }}
         />
       </head>
