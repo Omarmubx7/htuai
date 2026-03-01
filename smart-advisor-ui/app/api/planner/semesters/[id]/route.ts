@@ -30,14 +30,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (!existing) return NextResponse.json({ error: 'Semester not found' }, { status: 404 });
 
         const body = await req.json();
-        const { name, start_date, end_date } = body;
+        const { name, start_date, end_date, type, year } = body;
 
         const updated = await prisma.semester.update({
             where: { id: semesterId },
             data: {
                 name: name !== undefined ? name : existing.name,
-                start_date: start_date ? new Date(start_date) : existing.start_date,
-                end_date: end_date ? new Date(end_date) : existing.end_date,
+                type: type !== undefined ? type : existing.type,
+                year: year !== undefined ? year : existing.year,
+                start_date: start_date !== undefined ? (start_date ? new Date(start_date) : null) : existing.start_date,
+                end_date: end_date !== undefined ? (end_date ? new Date(end_date) : null) : existing.end_date,
                 updated_at: new Date()
             },
             include: { courses: true }

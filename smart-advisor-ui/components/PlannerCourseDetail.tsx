@@ -204,8 +204,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    midterm_date: midtermDate || null,
-                    final_date: finalDate || null
+                    midterm_date: midtermDate ? new Date(midtermDate).toISOString() : null,
+                    final_date: finalDate ? new Date(finalDate).toISOString() : null
                 })
             });
 
@@ -213,7 +213,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                 toast("Exam dates saved successfully!", "success");
                 triggerBackgroundSync();
             } else {
-                toast("Failed to save exam dates.", "error");
+                const data = await res.json();
+                toast(data.error || "Failed to save exam dates.", "error");
             }
         } catch (error) {
             console.error(error);

@@ -160,10 +160,18 @@ function parseSchedule(schedule: any): { days: string[]; startH: number; startM:
 function calculateScheduleDates(schedule: { days: string[]; startH: number; startM: number; endH: number; endM: number }, semesterObj?: Record<string, unknown>) {
     const dayToNum: Record<string, number> = { "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6 };
     const targetDays = new Set(schedule.days.map(d => dayToNum[d]).filter(n => n !== undefined));
-    const baseDate = semesterObj?.start_date ? new Date(semesterObj.start_date as CourseDate) : new Date();
+    
+    // Ensure we have a valid base date (start of semester or today)
+    let baseDate = new Date();
+    if (semesterObj?.start_date) {
+        const d = new Date(semesterObj.start_date as CourseDate);
+        if (!isNaN(d.getTime())) baseDate = d;
+    }
 
     const firstDate = new Date(baseDate);
     firstDate.setHours(schedule.startH, schedule.startM, 0, 0);
+    
+    // Find the first occurrence of the class
     let attempts = 0;
     while (!targetDays.has(firstDate.getDay()) && attempts < 7) {
         firstDate.setDate(firstDate.getDate() + 1);
@@ -174,7 +182,13 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     const end = new Date(firstDate);
     end.setHours(schedule.endH, schedule.endM, 0, 0);
 
-    const untilDate = semesterObj?.end_date ? new Date(semesterObj.end_date as CourseDate) : new Date(baseDate.getTime() + 120 * 24 * 60 * 60 * 1000);
+    // Calculate until date (end of semester or +4 months)
+    let untilDate = new Date(baseDate.getTime() + 120 * 24 * 60 * 60 * 1000);
+    if (semesterObj?.end_date) {
+        const d = new Date(semesterObj.end_date as CourseDate);
+        if (!isNaN(d.getTime())) untilDate = d;
+    }
+    
     untilDate.setHours(23, 59, 59, 0);
     const untilStr = untilDate.toISOString().replaceAll("-", "").replaceAll(":", "").split(".")[0] + "Z";
 
@@ -192,7 +206,7 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
         const dayMap: Record<string, string> = { "Sun": "SU", "Mon": "MO", "Tue": "TU", "Wed": "WE", "Thu": "TH", "Fri": "FR", "Sat": "SA" };
         const rruleDays = scheduleInfo.days.map(d => dayMap[d]).filter(Boolean).join(",");
 
-        let description = `Weekly class schedule for ${course.name}.`;
+        let description = `Weekly class schedule for ${course.name}. Automatically synced from HTUAI.`;
         if (courseData.instructor_name) {
             const instructor = courseData.instructor_name;
             let instructorStr = "";
@@ -213,16 +227,26 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
             start: { dateTime: start.toISOString(), timeZone: "Asia/Amman" },
             end: { dateTime: end.toISOString(), timeZone: "Asia/Amman" },
             recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${rruleDays};UNTIL=${untilStr}`],
-            reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }, { method: "popup", minutes: 10 }] }
+            reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }] },
+            colorId: "1" // Lavender for classes
         };
 
-        const existingEvent = await prisma.calendarEvent.findFirst({ where: { course_id: course.id, type: "Schedule" } });
+        const existingEvent = await prisma.calendarEvent.findFirst({ 
+            where: { 
+                course_id: course.id, 
+                type: "Schedule",
+                user_id: user.id
+            } 
+        });
+        
         const method = existingEvent?.google_event_id ? "PATCH" : "POST";
         const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "");
 
         const googleRes = await upsertGoogleEvent(url, method, token, eventData);
         if (!googleRes.ok) {
-            results.push({ course: course.code, type: "Schedule", success: false, error: await googleRes.text() });
+            const errText = await googleRes.text();
+            console.error(`[Sync] Schedule Error for ${course.code}:`, errText);
+            results.push({ course: course.code, type: "Schedule", success: false, error: errText });
             return;
         }
 
@@ -230,17 +254,39 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
         await prisma.$transaction([
             prisma.calendarEvent.upsert({
                 where: { id: existingEvent?.id || -1 },
-                update: { google_event_id: gEventId, start_datetime: start, end_datetime: end },
-                create: { user_id: user.id, course_id: course.id, type: "Schedule", google_event_id: gEventId, title: `${course.name} (Class)`, start_datetime: start, end_datetime: end }
+                update: { 
+                    google_event_id: gEventId, 
+                    start_datetime: start, 
+                    end_datetime: end,
+                    updated_at: new Date()
+                },
+                create: { 
+                    user_id: user.id, 
+                    course_id: course.id, 
+                    type: "Schedule", 
+                    google_event_id: gEventId, 
+                    title: `${course.name} (Class)`, 
+                    start_datetime: start, 
+                    end_datetime: end 
+                }
             }),
             prisma.adminLog.create({
-                data: { type: "sync_event", message: `Synced Schedule for ${course.code} to Calendar`, course_id: course.id, event_kind: "calendar_sync", target_id: gEventId, details: {} }
+                data: { 
+                    type: "sync_event", 
+                    message: `Synced Schedule for ${course.code} to Calendar`, 
+                    course_id: course.id, 
+                    event_kind: "calendar_sync", 
+                    target_id: gEventId, 
+                    details: { method, gEventId } 
+                }
             })
         ]);
 
         results.push({ course: course.code, type: "Schedule", success: true, eventId: gEventId });
     } catch (err: unknown) {
-        results.push({ course: course.code, type: "Schedule", success: false, error: err instanceof Error ? err.message : String(err) });
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[Sync] Schedule Unexpected Error for ${course.code}:`, msg);
+        results.push({ course: course.code, type: "Schedule", success: false, error: msg });
     }
 }
 
@@ -264,6 +310,8 @@ export async function POST() {
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
+        console.log(`[Sync] Starting sync for user ID: ${user.id} (${user.email})`);
+
         // Retrieve current active courses and study sessions for calendar push
         const activeSemesters = await prisma.semester.findMany({
             where: { user_id: user.id },
@@ -273,11 +321,15 @@ export async function POST() {
         const results: SyncResult[] = [];
         const upcomingClasses = activeSemesters.flatMap(sem => sem.courses.map(c => ({ ...c, semester_object: sem })));
 
+        console.log(`[Sync] Found ${activeSemesters.length} semesters and ${upcomingClasses.length} total courses for user ${user.id}`);
+
         for (const course of upcomingClasses) {
             const courseData = course as Record<string, unknown>;
             await syncCourseExams(course, courseData, token, user, results);
             await syncCourseSchedule(course, courseData, token, user, results);
         }
+
+        console.log(`[Sync] Completed. Results: ${results.filter(r => r.success).length} success, ${results.filter(r => !r.success).length} failed.`);
 
         return NextResponse.json({ success: true, syncedItems: results.length, details: results });
 

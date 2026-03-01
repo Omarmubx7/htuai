@@ -265,7 +265,7 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
     const handleSaveSemesterDates = async () => {
         setSavingDates(true);
         try {
-            const res = await fetch(`/api/planner/semesters/${semester.id}`, {
+            const res = await fetch(`/api/planner/semesters/${semesterId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -276,6 +276,8 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
 
             if (res.ok) {
                 toast("Semester dates saved successfully!", "success");
+                // Trigger background sync to update recurring schedules
+                fetch("/api/connect/google/sync", { method: "POST" }).catch(e => console.error(e));
             } else {
                 toast("Failed to save dates.", "error");
             }

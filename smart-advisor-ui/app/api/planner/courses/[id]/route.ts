@@ -49,7 +49,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (body.is_completed !== undefined) updatedInfo.is_completed = body.is_completed;
         if (body.instructor_name !== undefined) updatedInfo.instructor_name = body.instructor_name;
         if (body.location !== undefined) updatedInfo.location = body.location;
-        if (body.class_schedule !== undefined) updatedInfo.class_schedule = body.class_schedule;
+        if (body.class_schedule !== undefined) {
+            // If frontend sends array, pick first element
+            if (Array.isArray(body.class_schedule)) {
+                updatedInfo.class_schedule = body.class_schedule[0] || "";
+            } else {
+                updatedInfo.class_schedule = body.class_schedule;
+            }
+        }
         if (body.midterm_date !== undefined) updatedInfo.midterm_date = body.midterm_date ? new Date(body.midterm_date) : null;
         if (body.final_date !== undefined) updatedInfo.final_date = body.final_date ? new Date(body.final_date) : null;
 

@@ -14,7 +14,7 @@ export default function PlannerSemesterList() {
     const [loading, setLoading] = useState(true);
     const [semesters, setSemesters] = useState<any[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [newSem, setNewSem] = useState({ type: "Spring", year: new Date().getFullYear() });
+    const [newSem, setNewSem] = useState({ type: "Spring", year: new Date().getFullYear(), startDate: "", endDate: "" });
     const [creating, setCreating] = useState(false);
 
     useEffect(() => {
@@ -48,13 +48,16 @@ export default function PlannerSemesterList() {
                 body: JSON.stringify({
                     name: `${newSem.type} ${newSem.year}`,
                     type: newSem.type,
-                    year: newSem.year
+                    year: newSem.year,
+                    start_date: newSem.startDate || null,
+                    end_date: newSem.endDate || null
                 })
             });
             if (res.ok) {
                 const data = await res.json();
                 setSemesters([data.semester, ...semesters]);
                 setShowAddModal(false);
+                setNewSem({ type: "Spring", year: new Date().getFullYear(), startDate: "", endDate: "" });
             }
         } catch (e: unknown) {
             console.error("Failed to add semester:", e instanceof Error ? e.message : String(e));
@@ -223,6 +226,28 @@ export default function PlannerSemesterList() {
                                         onChange={e => setNewSem({ ...newSem, year: Number.parseInt(e.target.value) })}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500 transition-colors"
                                     />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label htmlFor="start-date" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Start Date</label>
+                                        <input
+                                            id="start-date"
+                                            type="date"
+                                            value={newSem.startDate}
+                                            onChange={e => setNewSem({ ...newSem, startDate: e.target.value })}
+                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="end-date" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">End Date</label>
+                                        <input
+                                            id="end-date"
+                                            type="date"
+                                            value={newSem.endDate}
+                                            onChange={e => setNewSem({ ...newSem, endDate: e.target.value })}
+                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 transition-colors"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex gap-3 mt-8">
