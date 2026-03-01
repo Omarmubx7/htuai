@@ -15,6 +15,7 @@ export default function PlannerSettings() {
     const searchParams = useSearchParams();
 
     const [calendarConnected, setCalendarConnected] = useState(false);
+    const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
     const [syncing, setSyncing] = useState(false);
     const [resetting, setResetting] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
@@ -60,6 +61,7 @@ export default function PlannerSettings() {
             if (res.ok) {
                 const data = await res.json();
                 setCalendarConnected(data.google_calendar);
+                setConnectedEmail(data.google_account_email || null);
             }
         } catch (e) {
             console.error("Failed to check integration status", e);

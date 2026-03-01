@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
         notion: !!notionToken,
-        google_calendar: !!googleToken
+        google_calendar: !!googleToken,
+        google_account_email: googleToken?.accountEmail || null
     });
 }

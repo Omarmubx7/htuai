@@ -334,51 +334,51 @@ export default function PlannerHomeClient() {
                             <h2 className="text-lg font-bold flex items-center gap-2">
                                 <Sparkles className="w-5 h-5 text-violet-400" /> Active Quests
                             </h2>
-                            <span className="px-2 py-1 bg-violet-600/20 text-violet-400 text-[10px] font-bold uppercase tracking-widest rounded-lg">
-                                Daily Refresh
-                            </span>
+                            <Link href="/planner/gamification" className="px-2 py-1 bg-violet-600/20 text-violet-400 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-violet-600/30 transition-colors">
+                                View All
+                            </Link>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Quest 1 */}
-                            <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex items-start gap-4 hover:bg-white/[0.06] transition-colors group">
-                                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex flex-col items-center justify-center shrink-0 border border-blue-500/30">
-                                    <BookOpen className="w-5 h-5 text-blue-400" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-sm text-white/90 group-hover:text-white transition-colors">Scholar's Focus</h3>
-                                    <p className="text-[11px] text-white/50 mt-1">Log 60 minutes of study time.</p>
-                                    <div className="mt-3 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-widest">
-                                        <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-blue-500 rounded-full w-[45%]"
-                                            />
+                            {summary.activeQuests && summary.activeQuests.length > 0 ? (
+                                summary.activeQuests.map((quest: any) => {
+                                    const progressPercent = Math.min((quest.current_value / quest.target_value) * 100, 100);
+                                    const isStudy = quest.type === 'study_minutes' || quest.type === 'study_sessions';
+                                    
+                                    return (
+                                        <div key={quest.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex items-start gap-4 hover:bg-white/[0.06] transition-colors group">
+                                            <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 border ${isStudy ? 'bg-blue-500/20 border-blue-500/30' : 'bg-orange-500/20 border-orange-500/30 relative overflow-hidden'}`}>
+                                                {isStudy ? (
+                                                    <BookOpen className="w-5 h-5 text-blue-400" />
+                                                ) : (
+                                                    <>
+                                                        <div className="absolute inset-0 bg-linear-to-t from-orange-500/20 to-transparent" />
+                                                        <span className="text-xl leading-none relative z-10">🔥</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-sm text-white/90 group-hover:text-white transition-colors truncate capitalize">{quest.type.replace('_', ' ')}</h3>
+                                                <p className="text-[11px] text-white/50 mt-1 line-clamp-1">{quest.target_value} {quest.type.includes('minutes') ? 'min' : 'sessions'} target</p>
+                                                <div className="mt-3 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-widest">
+                                                    <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={`h-full transition-all duration-1000 ${isStudy ? 'bg-blue-500' : 'bg-orange-500'}`}
+                                                            style={{ width: `${progressPercent}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className={progressPercent >= 100 ? "text-emerald-400" : (isStudy ? "text-blue-400" : "text-orange-400")}>
+                                                        {quest.current_value}/{quest.target_value}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span className="text-blue-400">45%</span>
-                                    </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="col-span-full py-4 text-center border border-dashed border-white/10 rounded-2xl">
+                                    <p className="text-xs text-white/40 font-medium">All quests completed! Check back later.</p>
                                 </div>
-                            </div>
-                            {/* Quest 2 */}
-                            <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex items-start gap-4 hover:bg-white/[0.06] transition-colors group">
-                                <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex flex-col items-center justify-center shrink-0 border border-orange-500/30 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-linear-to-t from-orange-500/20 to-transparent" />
-                                    <span className="text-xl leading-none relative z-10">🔥</span>
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-sm text-white/90 group-hover:text-white transition-colors">Consistency is Key</h3>
-                                    <p className="text-[11px] text-white/50 mt-1">Maintain a 3-day study streak.</p>
-                                    <div className="mt-3 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-widest">
-                                        <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-orange-500 rounded-full"
-                                                style={{ width: `${Math.min((summary.gamification.current_streak_days / 3) * 100, 100)}%` }}
-                                            />
-                                        </div>
-                                        <span className={summary.gamification.current_streak_days >= 3 ? "text-emerald-400" : "text-orange-400"}>
-                                            {summary.gamification.current_streak_days}/3
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </motion.div>
                 )}

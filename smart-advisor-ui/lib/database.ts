@@ -307,6 +307,7 @@ export async function saveIntegrationToken({
                 refresh_token: refreshToken ?? undefined,
                 expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
                 provider_account_id: providerAccountId ?? undefined,
+                account_email: accountEmail ?? undefined,
                 metadata: finalMetadata,
                 updated_at: new Date()
             },
@@ -318,6 +319,7 @@ export async function saveIntegrationToken({
                 refresh_token: refreshToken || null,
                 expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
                 provider_account_id: providerAccountId || null,
+                account_email: accountEmail || null,
                 metadata: finalMetadata,
                 updated_at: new Date()
             }
@@ -380,6 +382,7 @@ export async function getIntegrationToken(studentId: string, provider: string) {
         accessToken: accessToken,
         refreshToken: token.refresh_token,
         expiresAt: expiresAt,
+        accountEmail: token.account_email,
         metadata: token.metadata ? structuredClone(token.metadata) : {},
     };
 }

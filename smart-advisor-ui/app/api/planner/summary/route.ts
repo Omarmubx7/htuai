@@ -230,6 +230,12 @@ export async function GET(req: NextRequest) {
         });
         const total_study_minutes = allSessions._sum.duration_minutes || 0;
 
+        // Fetch active quests
+        const activeQuests = await prisma.quest.findMany({
+            where: { user_id: user.id, status: 'active' },
+            take: 2
+        });
+
         return NextResponse.json({
             cgpa,
             classification,
@@ -237,6 +243,7 @@ export async function GET(req: NextRequest) {
             upcomingEvents,
             gamification,
             studyTrends,
+            activeQuests,
             studyLogStats: {
                 total_study_minutes,
                 study_sessions: fullRecentSessions,
