@@ -31,23 +31,52 @@ async function upsertGoogleEvent(url: string, method: string, token: any, eventD
 }
 
 async function syncCourseExams(course: any, courseData: Record<string, unknown>, token: any, user: any, results: SyncResult[]) {
-    const examTypes = [["midterm_date", "Midterm"], ["final_date", "Final"]] as const;
+    // Both field names are lowercase in Prisma schema
+    const examTypes = [
+        { field: "midterm_date", type: "Midterm" },
+        { field: "final_date", type: "Final" }
+    ] as const;
 
-    for (const [field, type] of examTypes) {
+    for (const { field, type } of examTypes) {
         const dateVal = courseData[field] as CourseDate;
-        if (!dateVal) continue;
+        
+        // Ensure we have a valid date value
+        if (!dateVal) {
+            console.log(`[Sync] Skipping ${type} for ${course.code}: No date set.`);
+            continue;
+        }
 
         try {
+            const dateObj = new Date(dateVal);
+            if (isNaN(dateObj.getTime())) {
+                console.warn(`[Sync] Invalid date for ${course.code} ${type}:`, dateVal);
+                results.push({ course: course.code, type, success: false, error: "Invalid date format" });
+                continue;
+            }
+
             const existingEvent = await prisma.calendarEvent.findFirst({
-                where: { course_id: course.id, type }
+                where: { 
+                    course_id: course.id, 
+                    type,
+                    user_id: user.id 
+                }
             });
 
+            // For exams, we set a default 2-hour duration
+            const startTime = dateObj.toISOString();
+            const endTime = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
             const eventData = {
-                summary: `${course.name} — ${type}`,
-                description: `${type} exam for ${course.name} (${course.credits} CH)`,
-                start: { dateTime: new Date(dateVal).toISOString(), timeZone: "Asia/Amman" },
-                end: { dateTime: new Date(new Date(dateVal).getTime() + 2 * 60 * 60 * 1000).toISOString(), timeZone: "Asia/Amman" },
-                reminders: { useDefault: false, overrides: getExamReminders(token) }
+                summary: `${course.name} — ${type} Exam`,
+                description: `${type} examination for ${course.name} (${course.credits} CH). Automatically synced from HTUAI.`,
+                location: (courseData.location as string) || undefined,
+                start: { dateTime: startTime, timeZone: "Asia/Amman" },
+                end: { dateTime: endTime, timeZone: "Asia/Amman" },
+                reminders: { 
+                    useDefault: false, 
+                    overrides: getExamReminders(token) 
+                },
+                colorId: type === "Midterm" ? "5" : "11" // Different colors for Midterm (Yellow) and Final (Red/Tomato)
             };
 
             const method = existingEvent?.google_event_id ? "PATCH" : "POST";
@@ -56,7 +85,9 @@ async function syncCourseExams(course: any, courseData: Record<string, unknown>,
             const googleRes = await upsertGoogleEvent(url, method, token, eventData);
 
             if (!googleRes.ok) {
-                results.push({ course: course.code, type, success: false, error: await googleRes.text() });
+                const errText = await googleRes.text();
+                console.error(`[Sync] Google API Error (${type} for ${course.code}):`, errText);
+                results.push({ course: course.code, type, success: false, error: errText });
                 continue;
             }
 
@@ -66,24 +97,39 @@ async function syncCourseExams(course: any, courseData: Record<string, unknown>,
             await prisma.$transaction([
                 prisma.calendarEvent.upsert({
                     where: { id: existingEvent?.id || -1 },
-                    update: { google_event_id: gEventId, start_datetime: new Date(dateVal), end_datetime: new Date(new Date(dateVal).getTime() + 2 * 60 * 60 * 1000) },
+                    update: { 
+                        google_event_id: gEventId, 
+                        start_datetime: dateObj, 
+                        end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000),
+                        updated_at: new Date()
+                    },
                     create: {
-                        user_id: user.id, course_id: course.id, type, google_event_id: gEventId,
-                        title: `${course.name} — ${type}`, start_datetime: new Date(dateVal),
-                        end_datetime: new Date(new Date(dateVal).getTime() + 2 * 60 * 60 * 1000)
+                        user_id: user.id, 
+                        course_id: course.id, 
+                        type, 
+                        google_event_id: gEventId,
+                        title: `${course.name} — ${type} Exam`, 
+                        start_datetime: dateObj,
+                        end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000)
                     }
                 }),
                 prisma.adminLog.create({
                     data: {
-                        type: "sync_event", message: `Synced ${type} for ${course.code} to Calendar`,
-                        course_id: course.id, event_kind: "calendar_sync", target_id: gEventId, details: {}
+                        type: "sync_event", 
+                        message: `Synced ${type} for ${course.code} to Calendar`,
+                        course_id: course.id, 
+                        event_kind: "calendar_sync", 
+                        target_id: gEventId, 
+                        details: { method, gEventId }
                     }
                 })
             ]);
 
             results.push({ course: course.code, type, success: true, eventId: gEventId });
         } catch (err: unknown) {
-            results.push({ course: course.code, type, success: false, error: err instanceof Error ? err.message : String(err) });
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[Sync] Unexpected Error (${type} for ${course.code}):`, msg);
+            results.push({ course: course.code, type, success: false, error: msg });
         }
     }
 }
