@@ -80,15 +80,11 @@ export default function PlannerHomeClient() {
             const data = await res.json();
             
             if (res.ok) {
-                const successes = data.details?.filter((r: any) => r.success).length || 0;
-                const failures = data.details?.filter((r: any) => !r.success);
-                
-                if (successes > 0 && (!failures || failures.length === 0)) {
-                    toast(`Sync complete! ${successes} items added to your calendar.`, "success");
-                } else if (successes > 0 && failures.length > 0) {
-                    toast(`Partial sync: ${successes} items added. ${failures.length} items skipped (Check dates).`, "success");
+                const successes = data.syncedItems || 0;
+                if (successes > 0) {
+                    toast(data.message || `Sync complete! ${successes} items added.`, "success");
                 } else {
-                    toast("Sync ran but 0 items were added. Ensure your exams and class times are set.", "error");
+                    toast(data.message || "Nothing to sync. Check your course dates.", "error");
                 }
             } else if (res.status === 401) {
                 toast("Google Calendar disconnected. Please reconnect in settings.", "error");

@@ -5,7 +5,14 @@ import { getIntegrationToken } from "@/lib/database";
 import { prisma } from "@/lib/prisma";
 
 type CourseDate = string | number | Date;
-type SyncResult = { course: string; type: string; success: boolean; eventId?: string; error?: string };
+type SyncResult = { 
+    course: string; 
+    type: string; 
+    success: boolean; 
+    eventId?: string; 
+    error?: string;
+    status?: "synced" | "skipped" | "failed"
+};
 
 interface SyncCourse {
     id: number;
@@ -32,6 +39,7 @@ async function upsertGoogleEvent(url: string, method: string, token: any, eventD
         body: JSON.stringify(eventData),
     });
 
+    // If PATCH fails with 404, the event might have been deleted from Google. Fallback to POST.
     if (!res.ok && res.status === 404 && method === "PATCH") {
         res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
             method: "POST",
@@ -64,14 +72,14 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
     for (const { field, type } of examTypes) {
         const dateVal = course[field];
         if (!dateVal) {
-            results.push({ course: course.code, type, success: false, error: "No date set in planner" });
+            results.push({ course: course.code, type, success: false, status: "skipped", error: "Date not set in planner" });
             continue;
         }
 
         try {
             const dateObj = new Date(dateVal as string | number | Date);
             if (isNaN(dateObj.getTime())) {
-                results.push({ course: course.code, type, success: false, error: "Invalid date format" });
+                results.push({ course: course.code, type, success: false, status: "failed", error: "Invalid date format" });
                 continue;
             }
 
@@ -79,16 +87,12 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
                 where: { course_id: course.id, type, user_id: user.id }
             });
 
-            // Google needs YYYY-MM-DDTHH:mm:ss without the 'Z' when a timeZone is specified
-            const startTime = formatAmmanTime(dateObj);
-            const endTime = formatAmmanTime(new Date(dateObj.getTime() + 2 * 60 * 60 * 1000));
-
             const eventData = {
                 summary: `${course.name} — ${type} Exam`,
                 description: `${type} examination for ${course.name}. Automatically synced from HTUAI.`,
                 location: course.location || undefined,
-                start: { dateTime: startTime, timeZone: "Asia/Amman" },
-                end: { dateTime: endTime, timeZone: "Asia/Amman" },
+                start: { dateTime: formatAmmanTime(dateObj), timeZone: "Asia/Amman" },
+                end: { dateTime: formatAmmanTime(new Date(dateObj.getTime() + 2 * 60 * 60 * 1000)), timeZone: "Asia/Amman" },
                 reminders: { useDefault: false, overrides: getExamReminders(token) },
                 colorId: type === "Midterm" ? "5" : "11"
             };
@@ -99,7 +103,7 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
             const googleRes = await upsertGoogleEvent(url, method, token, eventData);
             if (!googleRes.ok) {
                 const errText = await googleRes.text();
-                results.push({ course: course.code, type, success: false, error: `Google API Error: ${errText}` });
+                results.push({ course: course.code, type, success: false, status: "failed", error: `Google API: ${errText}` });
                 continue;
             }
 
@@ -112,9 +116,9 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
                 create: { user_id: user.id, course_id: course.id, type, google_event_id: gEventId, title: `${course.name} — ${type} Exam`, start_datetime: dateObj, end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000) }
             });
 
-            results.push({ course: course.code, type, success: true, eventId: gEventId });
+            results.push({ course: course.code, type, success: true, status: "synced", eventId: gEventId });
         } catch (err: unknown) {
-            results.push({ course: course.code, type, success: false, error: String(err) });
+            results.push({ course: course.code, type, success: false, status: "failed", error: String(err) });
         }
     }
 }
@@ -179,7 +183,10 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
 
 async function syncCourseSchedule(course: SyncCourse, token: any, user: any, results: SyncResult[]) {
     const scheduleInfo = parseSchedule(course.class_schedule);
-    if (!scheduleInfo) return;
+    if (!scheduleInfo) {
+        results.push({ course: course.code, type: "Schedule", success: false, status: "skipped", error: "No valid class time set" });
+        return;
+    }
 
     try {
         const semesterObj = course.semester_object;
@@ -209,8 +216,7 @@ async function syncCourseSchedule(course: SyncCourse, token: any, user: any, res
         const googleRes = await upsertGoogleEvent(url, method, token, eventData);
         if (!googleRes.ok) {
             const errText = await googleRes.text();
-            console.error(`[Sync] Google API Schedule Error:`, errText);
-            results.push({ course: course.code, type: "Schedule", success: false, error: errText });
+            results.push({ course: course.code, type: "Schedule", success: false, status: "failed", error: `Google API: ${errText}` });
             return;
         }
 
@@ -221,9 +227,9 @@ async function syncCourseSchedule(course: SyncCourse, token: any, user: any, res
             create: { user_id: user.id, course_id: course.id, type: "Schedule", google_event_id: gEventId, title: `${course.name} (Class)`, start_datetime: start, end_datetime: end }
         });
 
-        results.push({ course: course.code, type: "Schedule", success: true, eventId: gEventId });
+        results.push({ course: course.code, type: "Schedule", success: true, status: "synced", eventId: gEventId });
     } catch (err: unknown) {
-        results.push({ course: course.code, type: "Schedule", success: false, error: String(err) });
+        results.push({ course: course.code, type: "Schedule", success: false, status: "failed", error: String(err) });
     }
 }
 
@@ -237,6 +243,13 @@ export async function POST() {
     const token = await getIntegrationToken(studentId, "google_calendar");
     if (!token) {
         return NextResponse.json({ error: "Unauthorized: Google Calendar disconnected" }, { status: 401 });
+    }
+
+    // Pre-sync validation: Check if token is valid by hitting a lightweight endpoint
+    const checkRes = await fetch("https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=" + token.accessToken);
+    if (!checkRes.ok) {
+        console.error("[Sync] Token validation failed:", await checkRes.text());
+        return NextResponse.json({ error: "Unauthorized: Google connection expired. Please reconnect in settings." }, { status: 401 });
     }
 
     try {
@@ -259,7 +272,21 @@ export async function POST() {
             await syncCourseSchedule(course as SyncCourse, token, user, results);
         }
 
-        return NextResponse.json({ success: true, syncedItems: results.length, details: results });
+        const successCount = results.filter(r => r.success).length;
+        const skipCount = results.filter(r => r.status === "skipped").length;
+        const failCount = results.filter(r => r.status === "failed").length;
+
+        let statusMessage = "Sync process finished.";
+        if (successCount > 0) statusMessage = `Successfully synced ${successCount} items.`;
+        if (failCount > 0) statusMessage += ` Failed to sync ${failCount} items due to API errors.`;
+        if (successCount === 0 && skipCount > 0) statusMessage = "Nothing was synced. Please ensure your courses have midterm/final dates and class times set.";
+
+        return NextResponse.json({ 
+            success: true, 
+            message: statusMessage,
+            syncedItems: successCount, 
+            details: results 
+        });
 
     } catch (e: unknown) {
         console.error("Calendar Sync Error:", e instanceof Error ? e.message : String(e));
