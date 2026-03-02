@@ -95,13 +95,26 @@ export default function HomeClient() {
                     const majorData = currData.majors[key];
                     const shared = currData.shared;
                     
+                    const seenGlobal = new Set<string>();
+                    
+                    const mergeAndDeduplicateGlobal = (sharedArr: any[], majorArr: any[]) => {
+                        const combined = [...(sharedArr || []), ...(majorArr || [])];
+                        return combined.filter(item => {
+                            if (!item.code) return true;
+                            if (seenGlobal.has(item.code)) return false;
+                            seenGlobal.add(item.code);
+                            return true;
+                        });
+                    };
+
+                    // Order matters: prioritize University -> College -> Department
                     const mergedData = {
-                        university_requirements: [...(shared.university_requirements || []), ...(majorData.university_requirements || [])],
-                        college_requirements: [...(shared.college_requirements || []), ...(majorData.college_requirements || [])],
-                        university_electives: [...(shared.university_electives || []), ...(majorData.university_electives || [])],
-                        department_requirements: [...(shared.department_requirements || []), ...(majorData.department_requirements || [])],
-                        electives: [...(shared.electives || []), ...(majorData.electives || [])],
-                        work_market_requirements: [...(shared.work_market_requirements || []), ...(majorData.work_market_requirements || [])],
+                        university_requirements: mergeAndDeduplicateGlobal(shared.university_requirements, majorData.university_requirements),
+                        college_requirements: mergeAndDeduplicateGlobal(shared.college_requirements, majorData.college_requirements),
+                        university_electives: mergeAndDeduplicateGlobal(shared.university_electives, majorData.university_electives),
+                        department_requirements: mergeAndDeduplicateGlobal(shared.department_requirements, majorData.department_requirements),
+                        electives: mergeAndDeduplicateGlobal(shared.electives, majorData.electives),
+                        work_market_requirements: mergeAndDeduplicateGlobal(shared.work_market_requirements, majorData.work_market_requirements),
                     };
                     setCourseData(mergedData);
                 }

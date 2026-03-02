@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
 
-    const studentId = ((session.user as Record<string, unknown>).student_id as string) || session.user.email || session.user.name;
+    const studentId = ((session.user as any).db_id?.toString()) || ((session.user as Record<string, unknown>).student_id as string) || session.user.email || session.user.name;
     if (!studentId) {
         console.error("OAuth Callback: Could not determine studentId from session", session.user);
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));

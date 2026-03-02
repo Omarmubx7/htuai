@@ -112,9 +112,13 @@ export const authOptions: NextAuthOptions = {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
                 session.user.provider = token.provider;
+                
+                // Fetch the definitive DB user to get the internal Int ID and student_id
                 const dbUser = await getUserByEmail(session.user.email || "") || await getUserByStudentId(session.user.name || "");
                 if (dbUser) {
                     session.user.student_id = dbUser.student_id;
+                    // Force the session ID to be the stable database ID string
+                    (session.user as any).db_id = dbUser.id;
                 }
             }
             return session;

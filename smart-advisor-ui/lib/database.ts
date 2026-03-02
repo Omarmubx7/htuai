@@ -45,18 +45,31 @@ export async function initDB() {
 /** Helper to resolve a user by whatever ID next-auth currently has for them */
 export async function resolveUserByString(identity: string) {
     if (!identity) return null;
+    
+    // 1. If it's a numeric string, it's likely the primary key ID
+    const numId = Number.parseInt(identity, 10);
+    if (!Number.isNaN(numId) && String(numId) === identity) {
+        const u = await prisma.user.findUnique({ where: { id: numId } });
+        if (u) return u;
+    }
+
     const idLower = identity.toLowerCase();
     
+    // 2. Try Student ID exactly
     let user = await prisma.user.findUnique({ where: { student_id: identity } });
-    user ??= await prisma.user.findUnique({ where: { email: identity } });
-    user ??= await prisma.user.findUnique({ where: { email: idLower } });
-    user ??= await prisma.user.findFirst({ where: { name: identity } });
+    if (user) return user;
+
+    // 3. Try Email
+    user = await prisma.user.findUnique({ where: { email: identity } });
+    if (user) return user;
+
+    // 4. Try Lowercase Email
+    user = await prisma.user.findUnique({ where: { email: idLower } });
+    if (user) return user;
+
+    // 5. Try Name (Display Name)
+    user = await prisma.user.findFirst({ where: { name: identity } });
     
-    if (!user) {
-        // As a deep fallback, try parsing to an int in case they passed the user_id
-        const num = Number.parseInt(identity, 10);
-        if (!Number.isNaN(num)) user = await prisma.user.findUnique({ where: { id: num } });
-    }
     return user;
 }
 
