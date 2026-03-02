@@ -259,6 +259,27 @@ export default function PlannerSettings() {
                             )}
                         </div>
                     </div>
+
+                    {/* Google Sheets - Reserved Future Feature */}
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.01] opacity-60">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <h4 className="font-bold text-base flex items-center gap-2 text-white/60">
+                                    Google Sheets 
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-white/5 text-white/40">Coming Soon</span>
+                                </h4>
+                                <p className="text-sm text-white/30 mt-1 max-w-sm">
+                                    Export your academic transcript and semester plans directly to a personal spreadsheet for custom analysis.
+                                </p>
+                            </div>
+                            <button
+                                disabled
+                                className="px-6 py-3 bg-white/5 text-white/20 font-bold rounded-xl text-sm cursor-not-allowed w-full sm:w-auto"
+                            >
+                                Connect Sheets
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Notification Preferences */}

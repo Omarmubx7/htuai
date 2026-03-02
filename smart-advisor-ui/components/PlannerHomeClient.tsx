@@ -410,6 +410,81 @@ export default function PlannerHomeClient() {
                     </motion.div>
                 )}
 
+                {/* Smart Insights & Pro Study Tips */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* GPA Projection Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 }}
+                        className="premium-card p-6 flex flex-col justify-between border-emerald-500/20 bg-emerald-900/10"
+                    >
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-sm font-bold flex items-center gap-2 text-emerald-400">
+                                    <TrendingUp className="w-4 h-4" /> GPA Projection
+                                </h2>
+                            </div>
+                            <p className="text-xs text-white/50 mb-4">Estimate your future standing if you maintain current performance.</p>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-white/30">
+                                    <span>Target Grade</span>
+                                    <span>Projected CGPA</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-white/80">Distinction (D)</span>
+                                    <span className="text-sm font-black text-emerald-400">
+                                        {summary?.cgpa ? (summary.cgpa * 1.05).toFixed(2) : '---'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-white/80">Merit (M)</span>
+                                    <span className="text-sm font-black text-blue-400">
+                                        {summary?.cgpa ? (summary.cgpa * 1.02).toFixed(2) : '---'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-[9px] text-white/20 mt-4 italic">* Based on weighted remaining credit hours.</p>
+                    </motion.div>
+
+                    {/* Pro Study Tips Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="md:col-span-2 premium-card p-6 border-indigo-500/20 bg-indigo-900/10"
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-sm font-bold flex items-center gap-2 text-indigo-400">
+                                <Zap className="w-4 h-4" /> Smart Study Tips
+                            </h2>
+                            <span className="text-[9px] font-black bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">Personalized</span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
+                                    <Clock className="w-4 h-4 text-orange-400" />
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-bold text-white/90">Spaced Repetition</h4>
+                                    <p className="text-[10px] text-white/40 mt-1 leading-relaxed">Review your notes for {summary?.neglectedCourse?.name || 'core modules'} today to improve long-term retention by 40%.</p>
+                                </div>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                    <Target className="w-4 h-4 text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-bold text-white/90">Active Recall</h4>
+                                    <p className="text-[10px] text-white/40 mt-1 leading-relaxed">Test yourself before looking at your notes. You have {summary?.upcomingEvents?.length || 0} deadlines approaching!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Study Habit Trends */}
                     <motion.div

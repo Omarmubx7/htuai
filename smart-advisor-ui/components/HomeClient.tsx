@@ -45,6 +45,37 @@ export default function HomeClient() {
         setIsLoaded(true);
     }, []);
 
+    // Effect to build courseNameMap when courseData changes
+    useEffect(() => {
+        if (!courseData) return;
+
+        const newMap = new Map<string, string>();
+
+        const processCategory = (category: any) => {
+            if (!Array.isArray(category)) return;
+            for (const item of category) {
+                if (item.code && item.name) newMap.set(item.code, item.name);
+                if (item.courses && Array.isArray(item.courses)) {
+                    item.courses.forEach((course: any) => {
+                        if (course.code && course.name) newMap.set(course.code, course.name);
+                    });
+                }
+            }
+        };
+
+        const categories = [
+            courseData.university_requirements,
+            courseData.college_requirements,
+            courseData.university_electives,
+            courseData.department_requirements,
+            courseData.electives,
+            courseData.work_market_requirements,
+        ];
+
+        categories.forEach(processCategory);
+        setCourseNameMap(newMap);
+    }, [courseData]);
+
     const loadCourses = useCallback(async (key: MajorKey) => {
         try {
             const rulesPath = "/data/curriculum_rules.json";
@@ -61,9 +92,16 @@ export default function HomeClient() {
                 setRules(rulesData);
 
                 if (currData.majors && currData.majors[key]) {
+                    const majorData = currData.majors[key];
+                    const shared = currData.shared;
+                    
                     const mergedData = {
-                        ...currData.shared,
-                        ...currData.majors[key]
+                        university_requirements: [...(shared.university_requirements || []), ...(majorData.university_requirements || [])],
+                        college_requirements: [...(shared.college_requirements || []), ...(majorData.college_requirements || [])],
+                        university_electives: [...(shared.university_electives || []), ...(majorData.university_electives || [])],
+                        department_requirements: [...(shared.department_requirements || []), ...(majorData.department_requirements || [])],
+                        electives: [...(shared.electives || []), ...(majorData.electives || [])],
+                        work_market_requirements: [...(shared.work_market_requirements || []), ...(majorData.work_market_requirements || [])],
                     };
                     setCourseData(mergedData);
                 }

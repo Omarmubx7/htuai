@@ -2,60 +2,56 @@
 
 ## 1. Product Overview
 
-**HTU Smart Advisor** is a Next.js academic advising and course-tracking platform built for Al Hussein Technical University (HTU). It allows students to track their degree progress across 8 majors, plan semesters, calculate GPA, and integrate with Google Calendar and Google Sheets. It includes an admin analytics dashboard.
+**HTU Smart Advisor** is a Next.js academic advising and course-tracking platform built for Al Hussein Technical University (HTU). It allows students to manage their degree progress, plan future semesters, and synchronize academic deadlines with external calendars.
 
-**Tech Stack:** Next.js 16 (App Router), NextAuth 4, Vercel Postgres, bcryptjs, TypeScript, Tailwind CSS, Framer Motion.
+## 2. Target Audience
 
----
+- **HTU Students:** Seeking a modern, mobile-friendly way to track their remaining credit hours and plan terms.
+- **Admin Staff:** Seeking high-level analytics on student progress, popular courses, and system traffic.
 
-## 2. User Roles
+## 3. Core Features
 
-| Role | Description |
-|------|-------------|
-| **Student** | Authenticated via credentials (student ID + password) or Google OAuth. Can track courses, plan semesters, and use integrations. |
-| **Admin** | Authenticated via `x-admin-secret` header. Can view analytics, logs, and reset/setup the database. |
+### 3.1 Authentication & Onboarding
 
----
-
-## 3. Features & Functional Requirements
-
-### 3.1 Authentication
-
-- **Credentials Login:** Students sign in with university ID + password.
-- **Account Claiming:** New students can sign up (claim) with a university ID and password (min 6 chars). If the ID already exists, claiming is rejected.
-- **Google OAuth:** Students can also sign in via Google. On first login, a new user record is created and linked.
-- **Session Management:** NextAuth manages JWT-based sessions. API routes check `getServerSession()` for auth.
+- **Credentials Provider:** Students sign up/login using their University ID and a personal password.
+- **Account Claiming:** First-time users "claim" their ID. Subsequent sign-ups for the same ID are rejected.
+- **Google OAuth:** Support for signing in with Google accounts for ease of access.
+- **Major Selection:** On first login, students select their specific major from the 8 supported HTU curriculums.
 
 ### 3.2 Student Profile
 
-- **GET /api/profile/[studentId]:** Returns the student's saved major. Session must match the target student.
-- **POST /api/profile/[studentId]/save:** Saves the student's chosen major. Body: `{ major: string }`.
+- **Persistent Profile:** Stores the student's major, name, and profile image.
+- **Academic History:** Allows students to input previous cumulative GPA and earned credits to ensure accurate CGPA calculations.
 
-### 3.3 Course Tracking (Transcript View)
+### 3.3 Course Tracker (Transcript View)
 
-- Students select from 8 majors: Data Science, Computer Science, Cybersecurity, Game Design, Electrical Engineering, Energy Engineering, Industrial Engineering, Mechanical Engineering.
-- Courses are displayed grouped by category: University Requirements, College Requirements, Department Requirements, Electives, University Electives, Work Market Requirements.
-- Students toggle courses as completed. Progress is auto-saved.
-- **Prerequisite enforcement:** Courses with unmet prerequisites are locked (AND/OR course-code logic + credit-hour thresholds + department approval locks).
-- **Elective caps:** University electives capped at 3; department electives vary by degree type.
-- **GET /api/progress/[studentId]?major=X:** Returns completed courses for a major.
-- **POST /api/progress/[studentId]/save:** Saves completed courses. Body: `{ major: string, completed: [{ code, name }] }`.
+- **Interactive Curriculum:** Displays all university, college, and department requirements specific to the chosen major.
+- **Progress Toggling:** Students toggle courses as completed. Progress is auto-saved.
+- **Prerequisite Engine:** Visual indicators for locked courses based on unmet prerequisites (AND/OR course-code logic + credit-hour thresholds + department approval locks).
+- **Elective Caps:** University electives are capped at 3 selections to prevent inaccurate credit counting.
+- **Courses Autocomplete:** Global search for any course in the HTU catalog.
 
-### 3.4 Courses Autocomplete
+### 3.4 Course Notes (Rich Text)
 
-- **GET /api/courses:** Returns a flat, sorted list of all courses across all majors `[{ name, code, ch }]`. No auth required.
+- **Tiptap Editor:** A Notion-style rich-text editor for each course.
+- **Features:** Slash commands (/), floating menus, task lists, tables, and bubble menus.
+- **Auto-save:** Notes are saved to the database as the student types.
 
 ### 3.5 Semester Planner
 
-- **GET /api/planner:** Load the authenticated user's planner (courses + study sessions).
-- **POST /api/planner:** Save/update planner data. Body: `{ id, name?, courses[], studySessions[] }`.
-- **DELETE /api/planner:** Delete the user's planner.
-- Features: editable course table (grade, midterm/final dates, status), study-log with per-course hour tracking, GPA calculation (HTU D/M/P/U scale), smart insights (at-risk warnings, upcoming exams, study tips, GPA projection), weekly summary.
+- **GET /api/planner/summary:** Returns a unified overview: CGPA, classification, active semester, upcoming 7-day events, gamification stats, study trends, and active quests.
+- **GET /api/planner/semesters:** Load all semesters for the user.
+- **POST /api/planner/semesters:** Create a new semester. Body: `{ name, year, type, start_date?, end_date? }`.
+- **PUT /api/planner/semesters/[id]:** Update semester metadata (name, dates).
+- **POST /api/planner/courses:** Add course to semester.
+- **PUT /api/planner/courses/[id]:** Update course details (grades, exam dates, schedule).
+- **POST /api/planner/study-sessions:** Log new study minutes.
+- **Features:** Editable course table (grade, midterm/final dates, status), study-log with per-course minute tracking, GPA calculation (HTU scale), smart insights (Neglected Course Alerts, upcoming exams, GPA projection, pro study tips).
 
 ### 3.6 Google Calendar Integration
 
-- **POST /api/integrations/google-calendar:** Pushes midterm & final exam dates as Google Calendar events with reminders (1 day + 1 hour before). Body: `{ courses: [{ name, midtermDate?, finalDate?, credits }] }`. Requires stored Google OAuth token.
-- **GET /api/integrations/google-calendar/callback:** OAuth2 callback — exchanges authorization code for tokens, saves to DB, redirects to `/planner`.
+- **POST /api/connect/google/sync:** Pushes midterm, final exams, and weekly class schedules to Google Calendar. Automatically handles timezone (Asia/Amman) and adds reminders.
+- **GET /api/connect/google/callback:** OAuth2 callback — exchanges auth code for tokens, saves to DB with account email storage.
 
 ### 3.7 (Future Feature)
 - Reserved for future Spreadsheet integration.
@@ -63,12 +59,12 @@
 ### 3.8 Admin Dashboard
 
 - **GET /api/admin/stats:** Comprehensive analytics: total students, visitor counts, major distribution, progress distribution, top courses, 30-day traffic, device breakdown, recent activity, activity heatmap, per-student credit-hour data. Auth: `x-admin-secret` header.
-- **GET /api/admin/logs:** Returns the 100 most recent visitor log entries. Auth: `x-admin-secret` header.
-- Admin pages at `/admin/dashboard` (3 tabs: Overview, Students, Visitors) and `/admin/logs`.
+- **GET /api/admin/logs:** Returns recent activity log entries. Auth: `x-admin-secret` header.
+- Admin pages at `/admin/dashboard` (4 tabs: Overview, Students, Visitors, Logs).
 
 ### 3.9 Database Management
 
-- **POST /api/setup:** Initialize (create) all database tables without dropping existing data. Auth: `x-admin-secret` header.
+- **POST /api/setup:** Initialize (create) all database tables and check connection health. Auth: `x-admin-secret` header.
 - **POST /api/reset:** Nuclear reset — drops and re-creates all database tables. Auth: `x-admin-secret` header.
 
 ---
@@ -82,17 +78,13 @@
 | POST | `/api/profile/[studentId]/save` | Session | Save student's major |
 | GET | `/api/progress/[studentId]?major=X` | Session | Get completed courses |
 | POST | `/api/progress/[studentId]/save` | Session | Save completed courses |
-| GET | `/api/planner` | Session | Load planner data |
-| POST | `/api/planner` | Session | Save planner data |
-| DELETE | `/api/planner` | Session | Delete planner |
-| POST | `/api/integrations/google-calendar` | Session + OAuth token | Push exam dates to Google Calendar |
-| GET | `/api/integrations/google-calendar/callback` | OAuth flow | Google OAuth callback |
-| POST | `/api/integrations/google-sheets` | Session + OAuth token | Sync planner data to Google Sheets |
-| GET | `/api/integrations/google-sheets/callback` | OAuth flow | Google Sheets OAuth callback |
+| GET | `/api/planner/summary` | Session | Load unified hub overview |
+| POST | `/api/planner/semesters` | Session | Create a new term |
+| PUT | `/api/planner/courses/[id]` | Session | Update course details |
+| POST | `/api/connect/google/sync` | Session + OAuth token | Push sync to Google Calendar |
+| GET | `/api/connect/google/callback` | OAuth flow | Google OAuth callback |
 | GET | `/api/admin/stats` | Admin secret | Get analytics data |
-| GET | `/api/admin/logs` | Admin secret | Get visitor logs |
-| POST | `/api/setup` | Admin secret | Initialize DB tables |
-| POST | `/api/reset` | Admin secret | Reset all DB tables |
+| POST | `/api/setup` | Admin secret | Initialize/Check DB |
 | GET/POST | `/api/auth/[...nextauth]` | NextAuth | Auth endpoints |
 
 ---
@@ -101,13 +93,16 @@
 
 | Table | Key Fields | Purpose |
 |-------|-----------|---------|
-| **users** | id, student_id (unique), email (unique), password_hash, name, image | User authentication |
-| **accounts** | user_id (FK→users), provider, provider_account_id | OAuth provider accounts |
-| **student_profile** | student_id (PK), major, updated_at | Per-student major selection |
-| **student_progress** | (student_id, major) PK, completed (JSON), updated_at | Completed courses per major |
-| **visitor_logs** | id, student_id, ip_address, device/OS/browser, visited_at | Analytics tracking |
-| **planner_semesters** | id (PK), student_id, name, courses (JSON), study_sessions (JSON) | Semester planner data |
-| **integration_tokens** | (student_id, provider) unique, access_token, refresh_token, expires_at, metadata | OAuth tokens for integrations |
+| **users** | id, student_id (unique), email (unique), password_hash, role | User authentication |
+| **student_profile** | student_id (PK), major, previous_gpa, previous_credits | Per-student major and academic history |
+| **student_progress** | (student_id, major) PK, completed (JSON), updated_at | Completed courses transcript |
+| **semesters** | id (PK), user_id, name, year, type, start_date, end_date | Semester containers |
+| **courses** | id (PK), semester_id, code, name, credits, grade, exam_dates | Courses within semesters |
+| **study_sessions** | id (PK), user_id, course_id, duration_minutes, date | Logged study time |
+| **integration_tokens** | (user_id, provider) unique, access_token, account_email | OAuth tokens |
+| **calendar_events** | id, user_id, course_id, google_event_id | Tracked sync status |
+| **quests** | id, user_id, type, target_value, current_value | Gamification goals |
+| **visitor_logs** | id, student_id, ip_address, browser_info | Analytics tracking |
 
 ---
 
@@ -121,14 +116,14 @@
 6. GPA uses HTU's D (4.0) / M (3.2) / P (2.4) / U (0.0) grading scale.
 7. Admin endpoints require `x-admin-secret` header matching the `ADMIN_SECRET` environment variable.
 8. The `/api/reset` endpoint drops ALL tables — it is destructive and admin-only.
-9. Integration tokens (Google Calendar, Google Sheets) are stored per-student and per-provider.
-10. Visitor logging captures IP, device info, OS, and browser on each page load.
+9. Integration tokens (Google Calendar) are stored per-user and per-provider with auto-refresh logic.
+10. Visitor logging captures IP, device info, OS, and browser on each major action.
 
 ---
 
 ## 7. Non-Functional Requirements
 
-- **Database:** Vercel Postgres (production), with `@vercel/postgres` SDK.
+- **Database:** Vercel Postgres (production), with `@vercel/postgres` SDK and Prisma ORM.
 - **Authentication:** NextAuth v4 with JWT strategy.
 - **Deployment Target:** Vercel.
 - **Framework:** Next.js 16 with App Router (Server Components + API Routes).
