@@ -119,7 +119,7 @@ export default async function RootLayout({
               var m={getItem:function(){return null},setItem:function(){},removeItem:function(){},clear:function(){},length:0,key:function(){return null}};
               var s=function(e){
                 var msg=(e.message||e.reason?.message||"").toLowerCase();
-                if(msg.includes("storage")||msg.includes("zap")||msg.includes("clock")||msg.includes("extension")||msg.includes("cactus")){
+                if(msg.includes("storage")||msg.includes("access")||msg.includes("zap")||msg.includes("clock")||msg.includes("extension")||msg.includes("cactus")){
                   if(e.stopImmediatePropagation)e.stopImmediatePropagation();
                   if(e.preventDefault)e.preventDefault();
                   return true;
@@ -127,15 +127,12 @@ export default async function RootLayout({
               };
               window.addEventListener("error",s,true);
               window.addEventListener("unhandledrejection",s,true);
-              try{
-                var x="__t";window.localStorage.setItem(x,x);window.localStorage.removeItem(x);
-              }catch(e){
-                var p={get:function(t,k){if(k in m)return m[k];return undefined}};
-                var proxy=new Proxy({},p);
-                try{Object.defineProperty(window,"localStorage",{get:function(){return proxy},configurable:true});}catch(ex){window.localStorage=proxy;}
-                try{Object.defineProperty(window,"sessionStorage",{get:function(){return proxy},configurable:true});}catch(ex){window.sessionStorage=proxy;}
-              }
-              var f=function(a){if(a&&typeof a==="string"&&(a.includes("Zustand")||a.includes("deprecated")||a.includes("extension")||a.includes("storage")||a.includes("Clock")||a.includes("Zap")))return true;return false;};
+              try {
+                Object.defineProperty(window, 'localStorage', { get: function(){ return m; } });
+                Object.defineProperty(window, 'sessionStorage', { get: function(){ return m; } });
+              } catch(e){}
+              
+              var f=function(a){if(a&&typeof a==="string"&&(a.includes("Zustand")||a.includes("deprecated")||a.includes("extension")||a.includes("storage")||a.includes("Clock")||a.includes("Zap")||a.includes("Access")))return true;return false;};
               var ow=console.warn;console.warn=function(){if(f(arguments[0]))return;ow.apply(console,arguments)};
               var oe=console.error;console.error=function(){if(f(arguments[0]))return;oe.apply(console,arguments)};
               var ol=console.log;console.log=function(){if(f(arguments[0]))return;ol.apply(console,arguments)};

@@ -298,6 +298,7 @@ export async function saveIntegrationToken({
     try {
         const finalMetadata = metadata ? { ...metadata } : {};
         if (studentName) (finalMetadata as any).student_name = studentName;
+        // Always store email in metadata as a fallback for the "Unknown argument" error
         if (accountEmail) (finalMetadata as any).account_email = accountEmail;
 
         const dataPayload = {
@@ -306,7 +307,6 @@ export async function saveIntegrationToken({
             refresh_token: refreshToken || null,
             expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
             provider_account_id: providerAccountId || null,
-            account_email: accountEmail || null,
             metadata: finalMetadata as any,
             updated_at: new Date()
         };
@@ -390,12 +390,13 @@ export async function getIntegrationToken(studentId: string, provider: string) {
         return null;
     }
 
+    const metadata = token.metadata ? (token.metadata as any) : {};
     return {
         accessToken: accessToken,
         refreshToken: token.refresh_token,
         expiresAt: expiresAt,
-        accountEmail: token.account_email,
-        metadata: token.metadata ? structuredClone(token.metadata) : {},
+        accountEmail: token.account_email || metadata.account_email,
+        metadata: metadata,
     };
 }
 
