@@ -205,6 +205,15 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     };
 
     const handleSaveDates = async () => {
+        if (midtermDate && finalDate) {
+            const m = new Date(midtermDate);
+            const f = new Date(finalDate);
+            if (f < m) {
+                toast("Final exam cannot be before the Midterm.", "error");
+                return;
+            }
+        }
+
         setSavingDates(true);
         try {
             const res = await fetch(`/api/planner/courses/${course.id}`, {

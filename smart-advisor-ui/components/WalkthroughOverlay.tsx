@@ -340,18 +340,21 @@ export function useWalkthrough() {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        // Auto-show for first-time users after a short delay
-        const timer = setTimeout(() => {
-            const done = safeStorage.get(STORAGE_KEY);
-            if (!done) {
+        // Auto-show only for first-time users after a short delay
+        const done = safeStorage.get(STORAGE_KEY);
+        if (!done) {
+            const timer = setTimeout(() => {
                 setIsOpen(true);
-            }
-        }, 1500);
-        return () => clearTimeout(timer);
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     const open = useCallback(() => setIsOpen(true), []);
-    const close = useCallback(() => setIsOpen(false), []);
+    const close = useCallback(() => {
+        setIsOpen(false);
+        safeStorage.set(STORAGE_KEY, "true");
+    }, []);
 
     return { isOpen, open, close };
 }

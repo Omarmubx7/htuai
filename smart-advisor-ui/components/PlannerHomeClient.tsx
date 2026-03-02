@@ -83,8 +83,10 @@ export default function PlannerHomeClient() {
                 const successes = data.syncedItems || 0;
                 if (successes > 0) {
                     toast(data.message || `Successfully synced ${successes} items to ${data.googleAccount || 'your calendar'}.`, "success");
+                    // Refresh summary to show new upcoming events
+                    fetchSummary();
                 } else {
-                    toast(data.message || "Nothing to sync. Ensure your course dates are set.", "error");
+                    toast(data.message || "Nothing new to sync. Ensure your course dates are set.", "success");
                 }
             } else if (res.status === 401) {
                 toast("Google Calendar disconnected. Please reconnect in settings.", "error");
@@ -94,7 +96,7 @@ export default function PlannerHomeClient() {
             }
         } catch (e) {
             console.error("Sync error:", e);
-            toast("Failed to sync with Google Calendar.", "error");
+            toast("Failed to sync with Google Calendar. Check your connection.", "error");
         } finally {
             setSyncing(false);
         }
