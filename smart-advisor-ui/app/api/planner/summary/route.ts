@@ -4,6 +4,8 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
 import { calculateCumulativeGpaFromHistory, getClassification } from "@/lib/grading";
+import { promises as fs } from 'fs';
+import path from 'path';
 
 async function handleDailyGamificationXP(user: any, today: Date) {
     let gamification = user.gamification_profile;
@@ -102,9 +104,6 @@ export async function GET(req: NextRequest) {
             include: { courses: true }
         });
 
-        // If no active semester found, just don't return one, or return null
-        // The dashboard handles currentSemester being null gracefully
-
         // 3. Fetch upcoming calendar events within next 7 days
         const nextWeek = new Date();
         nextWeek.setDate(nextWeek.getDate() + 7);
@@ -145,7 +144,6 @@ export async function GET(req: NextRequest) {
 
         upcomingEvents = upcomingEvents.toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()).slice(0, 5);
 
-
         // 5. Fetch Major and Progress
         const profile = await prisma.studentProfile.findUnique({
             where: { student_id: user.student_id || "" }
@@ -162,14 +160,108 @@ export async function GET(req: NextRequest) {
 
         let completedCreditsFromTracker = 0;
         if (progress?.completed) {
-            const completedList = progress.completed as any[];
-            // This is a rough estimate - in real app we'd sum actual CH from curriculum.json
-            // but for projection, we'll assume each completed course is ~3 CH if not specified
-            completedCreditsFromTracker = completedList.length * 3;
+            let completedList: any[] = [];
+            try {
+                completedList = typeof progress.completed === 'string' ? JSON.parse(progress.completed) : progress.completed as any[];
+            } catch { /* ok */ }
+            completedCreditsFromTracker = Array.isArray(completedList) ? completedList.length * 3 : 0;
         }
 
+        // 6. Check for integration status and preferences
+        const googleToken = await prisma.integrationToken.findFirst({
+            where: { user_id: user.id, provider: "google_calendar" }
+        });
+
+        // 7. Calculate Study Trends (Last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const recentSessions = await prisma.studySession.findMany({
+            where: { user_id: user.id, date: { gte: sevenDaysAgo } },
+            select: { duration_minutes: true, date: true }
+        });
+
+        const studyTrends = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const mins = recentSessions
+                .filter(s => {
+                    const sessionDate = s.date ? new Date(s.date) : null;
+                    return sessionDate ? sessionDate.toISOString().split('T')[0] === dateStr : false;
+                })
+                .reduce((acc, s) => acc + s.duration_minutes, 0);
+            return { date: dateStr, minutes: mins };
+        }).reverse();
+
+        // 8. Identify Most Neglected Course
+        const twoWeeks = new Date();
+        twoWeeks.setDate(twoWeeks.getDate() + 14);
+        
+        const upcomingExamCourses = await prisma.course.findMany({
+            where: {
+                semester: { user_id: user.id },
+                OR: [
+                    { midterm_date: { gte: new Date(), lte: twoWeeks } },
+                    { final_date: { gte: new Date(), lte: twoWeeks } }
+                ]
+            },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                midterm_date: true,
+                final_date: true,
+                study_sessions: {
+                    select: {
+                        duration_minutes: true,
+                        created_at: true
+                    }
+                }
+            }
+        });
+
+        let neglectedCourse = null;
+        if (upcomingExamCourses.length > 0) {
+            neglectedCourse = upcomingExamCourses.sort((a, b) => {
+                const aMins = a.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
+                const bMins = b.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
+                return aMins - bMins;
+            })[0];
+        }
+
+        // Fetch full session details for history log
+        const fullRecentSessions = await prisma.studySession.findMany({
+            where: { user_id: user.id },
+            orderBy: { created_at: 'desc' },
+            take: 20,
+            include: { course: true }
+        });
+
+        // Sum total logged minutes historically across all time
+        const allSessions = await prisma.studySession.aggregate({
+            where: { user_id: user.id },
+            _sum: { duration_minutes: true }
+        });
+        const total_study_minutes = allSessions._sum.duration_minutes || 0;
+
+        // Fetch active quests
+        const activeQuests = await prisma.quest.findMany({
+            where: { user_id: user.id, status: 'active' },
+            take: 2
+        });
+
         // 9. Calculate Real GPA Projections
-        const TOTAL_DEGREE_CH = 160;
+        const rulesRaw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum_rules.json'), 'utf-8');
+        const rulesJson = JSON.parse(rulesRaw);
+        
+        let TOTAL_DEGREE_CH = 135;
+        for (const type in rulesJson.degree_types) {
+            if (rulesJson.degree_types[type].major_keys.includes(profile?.major || "")) {
+                TOTAL_DEGREE_CH = rulesJson.degree_types[type].total_credits;
+                break;
+            }
+        }
+
         const currentCompletedCH = (profile?.previous_credits || 0) + completedCreditsFromTracker;
         const remainingCH = Math.max(0, TOTAL_DEGREE_CH - currentCompletedCH);
         

@@ -404,8 +404,10 @@ export async function deleteIntegrationToken(studentId: string, provider: string
 
 export async function getCourseNotes(studentId: string, courseId: string): Promise<string | null> {
     try {
-        const note = await prisma.courseNote.findFirst({
-            where: { student_id: studentId, course_id: courseId }
+        const user = await resolveUserByString(studentId);
+        if (!user) return null;
+        const note = await prisma.courseNote.findUnique({
+            where: { user_id_course_id: { user_id: user.id, course_id: courseId } }
         });
         return note?.notes || null;
     } catch (e) {
@@ -419,19 +421,16 @@ export async function saveCourseNotes(studentId: string, courseId: string, notes
         const user = await resolveUserByString(studentId);
         if (!user) return;
         
-        const row = await prisma.courseNote.findFirst({
-            where: { student_id: studentId, course_id: courseId }
+        await prisma.courseNote.upsert({
+            where: { user_id_course_id: { user_id: user.id, course_id: courseId } },
+            update: { notes, updated_at: new Date() },
+            create: { 
+                user_id: user.id, 
+                course_id: courseId, 
+                notes, 
+                student_id: user.student_id,
+                updated_at: new Date() 
+            }
         });
-
-        if (row) {
-            await prisma.courseNote.update({
-                where: { id: row.id },
-                data: { notes, updated_at: new Date() }
-            });
-        } else {
-            await prisma.courseNote.create({
-                data: { student_id: studentId, course_id: courseId, notes, updated_at: new Date(), user_id: user.id }
-            });
-        }
     } catch (e) { console.error("Notes save error:", e); }
 }

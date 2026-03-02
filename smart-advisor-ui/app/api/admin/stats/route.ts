@@ -75,7 +75,6 @@ export async function GET(request: Request) {
         const progressDistribution: Record<string, number> = {
             "0-25%": 0, "26-50%": 0, "51-75%": 0, "76-100%": 0,
         };
-        const TOTAL_CREDITS = 135;
         let totalCompletedCourses = 0;
 
         // ── 4. Course Counts (from completed arrays) ─────────────────
@@ -95,6 +94,18 @@ export async function GET(request: Request) {
         // Build a lookup of student_id+major → real credit hours
         const studentCHMap = new Map<string, number>();
 
+        // Load degree rules for total credits lookup
+        const rulesRaw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum_rules.json'), 'utf-8');
+        const rulesJson = JSON.parse(rulesRaw);
+        const getMajorTotalCredits = (majorKey: string) => {
+            for (const type in rulesJson.degree_types) {
+                if (rulesJson.degree_types[type].major_keys.includes(majorKey)) {
+                    return rulesJson.degree_types[type].total_credits;
+                }
+            }
+            return 135; // Default fallback
+        };
+
         for (const row of progressRows) {
             let courses: (string | { code: string; name?: string })[] = [];
             try {
@@ -107,14 +118,13 @@ export async function GET(request: Request) {
                 if (!c) continue;
                 const rawCode = typeof c === 'string' ? c : c.code;
                 const code = rawCode?.trim() || 'UNKNOWN';
-                const name = typeof c === 'object' && c.name ? c.name : code;
 
-                // Group by code only for stats to avoid duplicates in UI keys
+                // Group by code only for stats
                 courseCounts[code] = (courseCounts[code] || 0) + 1;
 
-                // Look up real credit hours from course catalog
+                // Look up real credit hours
                 const catalogEntry = courseMap.get(code);
-                studentCH += catalogEntry ? catalogEntry.ch : 3; // fallback to 3 if not found
+                studentCH += catalogEntry ? catalogEntry.ch : 3;
             }
 
             const mapKey = `${row.student_id}||${row.major}`;
@@ -123,6 +133,7 @@ export async function GET(request: Request) {
         }
 
         // Process student summaries with real CH
+        let totalWeightedProgress = 0;
         for (const s of students) {
             const major = s.major || "Unknown";
             majorCounts[major] = (majorCounts[major] || 0) + 1;
@@ -133,12 +144,19 @@ export async function GET(request: Request) {
 
             studentRealCH.push({ ...s, ch: realCH });
 
-            const percent = Math.min((realCH / TOTAL_CREDITS) * 100, 100);
+            const majorTotalCredits = getMajorTotalCredits(s.major);
+            const percent = Math.min((realCH / majorTotalCredits) * 100, 100);
+            totalWeightedProgress += percent;
+
             if (percent <= 25) progressDistribution["0-25%"]++;
             else if (percent <= 50) progressDistribution["26-50%"]++;
             else if (percent <= 75) progressDistribution["51-75%"]++;
             else progressDistribution["76-100%"]++;
         }
+
+        const avgWeightedProgress = totalStudents > 0 
+            ? Math.round(totalWeightedProgress / totalStudents) 
+            : 0;
 
         const topCourses = Object.entries(courseCounts)
             .map(([code, count]) => {
@@ -285,9 +303,6 @@ export async function GET(request: Request) {
             }
         } catch { /* ok */ }
 
-        // Build device breakdown (already populated as an array of {os, browser, count} from SQL)
-        // If SQL failed, it remains an empty array.
-
         // ── 12. Admin Logs ──────────────────────────────────────────
         let adminLogs: any[] = [];
         try {
@@ -300,8 +315,6 @@ export async function GET(request: Request) {
         // Sort unified recent activity
         recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         recentActivity = recentActivity.slice(0, 50);
-
-        const avgWeightedProgress = Math.min(Math.round((avgCreditHours / 135) * 100), 100);
 
         return NextResponse.json({
             totalStudents,

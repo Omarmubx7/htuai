@@ -32,7 +32,19 @@ function getExamReminders(token: any): { method: string; minutes: number }[] {
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function getOrCreateHtuCalendar(token: any): Promise<string> {
+async function updateTokenMetadata(studentId: string, metadata: any) {
+    const user = await prisma.user.findFirst({
+        where: { OR: [{ student_id: studentId }, { email: studentId }, { name: studentId }] }
+    });
+    if (!user) return;
+
+    await prisma.integrationToken.update({
+        where: { user_id_provider: { user_id: user.id, provider: "google_calendar" } },
+        data: { metadata }
+    });
+}
+
+async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<string> {
     try {
         if (token.metadata?.htu_calendar_id) return token.metadata.htu_calendar_id;
 
@@ -43,7 +55,10 @@ async function getOrCreateHtuCalendar(token: any): Promise<string> {
         if (listRes.ok) {
             const listData = await listRes.json();
             const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
-            if (existing) return existing.id;
+            if (existing) {
+                await updateTokenMetadata(studentId, { ...token.metadata, htu_calendar_id: existing.id });
+                return existing.id;
+            }
         }
 
         const createRes = await fetch("https://www.googleapis.com/calendar/v3/calendars", {
@@ -54,7 +69,16 @@ async function getOrCreateHtuCalendar(token: any): Promise<string> {
 
         if (createRes.ok) {
             const newCal = await createRes.json();
-            return newCal.id;
+            const newId = newCal.id;
+
+            await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token.accessToken}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ id: newId, selected: true, colorId: "14" })
+            });
+
+            await updateTokenMetadata(studentId, { ...token.metadata, htu_calendar_id: newId });
+            return newId;
         }
     } catch (e) {
         console.error("Calendar creation failed", e);
@@ -291,7 +315,7 @@ export async function POST() {
         return NextResponse.json({ error: "Connection to Google failed." }, { status: 503 });
     }
 
-    const htuCalendarId = await getOrCreateHtuCalendar(token);
+    const htuCalendarId = await getOrCreateHtuCalendar(token, studentId);
 
     try {
         const user = await prisma.user.findFirst({
