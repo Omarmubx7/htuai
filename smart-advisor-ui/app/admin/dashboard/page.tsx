@@ -9,7 +9,7 @@ import {
     Eye, Clock, ArrowUpRight, Database,
     Search, ChevronUp, ChevronDown, RefreshCw,
     Flame, BarChart3, ArrowUp, ArrowDown, Filter,
-    GraduationCap, Zap, Terminal
+    GraduationCap, Terminal
 } from 'lucide-react';
 import Image from 'next/image';
 import ThemeToggle from "@/components/ThemeToggle";
@@ -375,7 +375,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                     badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.08} />
                 <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.12} />
-                <StatCard icon={<Zap className="w-4 h-4" />} label="Avg CGPA" value={(stats.avgCgpa || 0).toFixed(2)} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#10b981" delay={0.16} />
+                <StatCard icon={<Flame className="w-4 h-4" />} label="Avg CGPA" value={(stats.avgCgpa || 0).toFixed(2)} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#10b981" delay={0.16} />
                 <StatCard icon={<Clock className="w-4 h-4" />} label="Avg Study Time" value={`${stats.avgStudyHours || 0}h`} gradient="from-orange-500/20 to-yellow-500/5" iconBg="#f59e0b" delay={0.2} />
             </div>
 

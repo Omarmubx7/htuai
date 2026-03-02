@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Loader2, Plus } from "lucide-react";
+import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Loader2, Plus, Flame } from "lucide-react";
 import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
@@ -457,7 +457,7 @@ export default function PlannerHomeClient() {
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-sm font-bold flex items-center gap-2 text-indigo-400">
-                                <Zap className="w-4 h-4" /> Smart Study Tips
+                                <Flame className="w-4 h-4" /> Smart Study Tips
                             </h2>
                             <span className="text-[9px] font-black bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">Personalized</span>
                         </div>
