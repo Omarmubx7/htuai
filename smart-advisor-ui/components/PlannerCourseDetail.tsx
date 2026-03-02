@@ -191,9 +191,17 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         }
     };
 
-    const triggerBackgroundSync = () => {
-        // Fire and forget - syncs in background
-        fetch("/api/connect/google/sync", { method: "POST" }).catch(e => console.error("Auto-sync trigger failed", e));
+    const triggerBackgroundSync = async () => {
+        try {
+            const res = await fetch("/api/connect/google/sync", { method: "POST" });
+            if (res.status === 401) {
+                toast("Google connection expired. Please reconnect in Settings to sync your calendar.", "error");
+            } else if (!res.ok) {
+                console.warn("Background sync failed");
+            }
+        } catch (e) {
+            console.error("Auto-sync trigger failed", e);
+        }
     };
 
     const handleSaveDates = async () => {

@@ -288,44 +288,42 @@ export async function saveIntegrationToken({
     const user = await resolveUserByString(studentId);
     if (!user) return;
     
-    // Use a real Prisma upsert to be robust against race conditions
     try {
         const finalMetadata = metadata ? { ...metadata } : {};
         if (studentName) (finalMetadata as any).student_name = studentName;
         if (accountEmail) (finalMetadata as any).account_email = accountEmail;
 
-        await prisma.integrationToken.upsert({
-            where: {
-                user_id_provider: {
-                    user_id: user.id,
-                    provider: provider
-                }
-            },
-            update: {
-                student_id: studentId,
-                access_token: accessToken,
-                refresh_token: refreshToken ?? undefined,
-                expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
-                provider_account_id: providerAccountId ?? undefined,
-                account_email: accountEmail ?? undefined,
-                metadata: finalMetadata,
-                updated_at: new Date()
-            },
-            create: {
-                user_id: user.id,
-                student_id: studentId,
-                provider,
-                access_token: accessToken,
-                refresh_token: refreshToken || null,
-                expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
-                provider_account_id: providerAccountId || null,
-                account_email: accountEmail || null,
-                metadata: finalMetadata,
-                updated_at: new Date()
-            }
+        const existing = await prisma.integrationToken.findFirst({
+            where: { user_id: user.id, provider }
         });
+
+        const dataPayload = {
+            student_id: studentId,
+            access_token: accessToken,
+            refresh_token: refreshToken || null,
+            expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
+            provider_account_id: providerAccountId || null,
+            account_email: accountEmail || null,
+            metadata: finalMetadata as any,
+            updated_at: new Date()
+        };
+
+        if (existing) {
+            await prisma.integrationToken.update({
+                where: { id: existing.id },
+                data: dataPayload
+            });
+        } else {
+            await prisma.integrationToken.create({
+                data: {
+                    ...dataPayload,
+                    user_id: user.id,
+                    provider
+                }
+            });
+        }
     } catch (error) {
-        console.error("[saveIntegrationToken] Prisma UPSERT failed:", error);
+        console.error("[saveIntegrationToken] Save failed:", error);
         throw error;
     }
 }
@@ -372,10 +370,16 @@ export async function getIntegrationToken(studentId: string, provider: string) {
                 });
             } else {
                 console.error("Failed to refresh Google token:", await res.text());
+                // Token is expired and refresh failed - it's effectively null/invalid
+                return null;
             }
         } catch (error) {
             console.error("Error refreshing token:", error);
+            return null;
         }
+    } else if (expiresAt && (expiresAt - now < 0) && !token.refresh_token) {
+        // Expired and no way to refresh
+        return null;
     }
 
     return {
