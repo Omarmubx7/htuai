@@ -69,10 +69,20 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
-                    className="text-base md:text-xl text-white/40 max-w-2xl mb-14 font-medium leading-relaxed px-6 tracking-tight"
+                    className="text-base md:text-xl text-white/40 max-w-2xl mb-6 font-medium leading-relaxed px-6 tracking-tight"
                 >
                     The all-in-one AI platform for Al Hussein Technical University students to master their academic journey, from 0 to 160 CH.
                 </motion.p>
+
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4, duration: 0.8 }}
+                    className="flex items-center gap-2 mb-14 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] select-none"
+                >
+                    <div className="w-1 h-1 rounded-full bg-violet-500 animate-pulse" />
+                    Powered by Google Gemini
+                </motion.div>
 
                 {/* Feature Grid with Staggered Entrance & Shimmer */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20 w-full px-4">

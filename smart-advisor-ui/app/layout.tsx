@@ -287,6 +287,8 @@ export default async function RootLayout({
             <a href="/privacy" className="hover:text-white/40 transition-colors pointer-events-auto">Privacy</a>
             <div className="w-1 h-1 rounded-full bg-white/10" />
             <a href="/terms" className="hover:text-white/40 transition-colors pointer-events-auto">Terms</a>
+            <div className="w-1 h-1 rounded-full bg-white/10" />
+            <a href="/ai-transparency" className="hover:text-white/40 transition-colors pointer-events-auto">AI Transparency</a>
           </div>
           <div className="flex items-center gap-2">
             <span>Made with ❤️ by</span>
