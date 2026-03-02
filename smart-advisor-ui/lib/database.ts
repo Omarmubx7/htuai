@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import fs from 'node:fs';
 
 /**
  * Drop all tables and recreate them. (Nuclear Reset)
@@ -44,9 +45,13 @@ export async function initDB() {
 /** Helper to resolve a user by whatever ID next-auth currently has for them */
 export async function resolveUserByString(identity: string) {
     if (!identity) return null;
+    const idLower = identity.toLowerCase();
+    
     let user = await prisma.user.findUnique({ where: { student_id: identity } });
     user ??= await prisma.user.findUnique({ where: { email: identity } });
+    user ??= await prisma.user.findUnique({ where: { email: idLower } });
     user ??= await prisma.user.findFirst({ where: { name: identity } });
+    
     if (!user) {
         // As a deep fallback, try parsing to an int in case they passed the user_id
         const num = Number.parseInt(identity, 10);
@@ -286,19 +291,17 @@ export async function saveIntegrationToken({
     refreshToken, expiresAt, providerAccountId, accountEmail, studentName, metadata
 }: SaveIntegrationTokenOptions) {
     const user = await resolveUserByString(studentId);
-    if (!user) return;
+    if (!user) {
+        throw new Error(`Could not resolve user for identity: ${studentId}`);
+    }
     
     try {
         const finalMetadata = metadata ? { ...metadata } : {};
         if (studentName) (finalMetadata as any).student_name = studentName;
         if (accountEmail) (finalMetadata as any).account_email = accountEmail;
 
-        const existing = await prisma.integrationToken.findFirst({
-            where: { user_id: user.id, provider }
-        });
-
         const dataPayload = {
-            student_id: studentId,
+            student_id: user.student_id || studentId,
             access_token: accessToken,
             refresh_token: refreshToken || null,
             expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
@@ -308,22 +311,28 @@ export async function saveIntegrationToken({
             updated_at: new Date()
         };
 
-        if (existing) {
-            await prisma.integrationToken.update({
-                where: { id: existing.id },
-                data: dataPayload
+        await prisma.$transaction(async (tx) => {
+            const existing = await tx.integrationToken.findFirst({
+                where: { user_id: user.id, provider }
             });
-        } else {
-            await prisma.integrationToken.create({
-                data: {
-                    ...dataPayload,
-                    user_id: user.id,
-                    provider
-                }
-            });
-        }
-    } catch (error) {
-        console.error("[saveIntegrationToken] Save failed:", error);
+
+            if (existing) {
+                await tx.integrationToken.update({
+                    where: { id: existing.id },
+                    data: dataPayload
+                });
+            } else {
+                await tx.integrationToken.create({
+                    data: {
+                        ...dataPayload,
+                        user_id: user.id,
+                        provider
+                    }
+                });
+            }
+        });
+    } catch (error: any) {
+        console.error(`[DB] saveIntegrationToken failure: ${error.message}`);
         throw error;
     }
 }
@@ -331,9 +340,11 @@ export async function saveIntegrationToken({
 export async function getIntegrationToken(studentId: string, provider: string) {
     const user = await resolveUserByString(studentId);
     if (!user) return null;
+    
     let token = await prisma.integrationToken.findFirst({
         where: { user_id: user.id, provider }
     });
+    
     if (!token) return null;
 
     let accessToken = token.access_token;
@@ -359,7 +370,6 @@ export async function getIntegrationToken(studentId: string, provider: string) {
                 accessToken = data.access_token;
                 expiresAt = now + data.expires_in;
 
-                // Update in database
                 token = await prisma.integrationToken.update({
                     where: { id: token.id },
                     data: {
@@ -369,16 +379,14 @@ export async function getIntegrationToken(studentId: string, provider: string) {
                     }
                 });
             } else {
-                console.error("Failed to refresh Google token:", await res.text());
-                // Token is expired and refresh failed - it's effectively null/invalid
+                console.error("[DB] Failed to refresh Google token:", await res.text());
                 return null;
             }
         } catch (error) {
-            console.error("Error refreshing token:", error);
+            console.error("[DB] Error refreshing token:", error);
             return null;
         }
     } else if (expiresAt && (expiresAt - now < 0) && !token.refresh_token) {
-        // Expired and no way to refresh
         return null;
     }
 

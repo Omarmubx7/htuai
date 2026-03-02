@@ -15,13 +15,18 @@ export async function GET(req: NextRequest) {
 
     const studentId = ((session.user as Record<string, unknown>).student_id as string) || session.user.email || session.user.name;
     if (!studentId) {
+        console.error("OAuth Callback: Could not determine studentId from session", session.user);
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
+    
+    console.log(`OAuth Callback: Starting exchange for studentId: ${studentId}`);
+
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
     const state = req.nextUrl.searchParams.get("state") || "/planner/settings";
 
     if (error || !code) {
+        console.error("OAuth Callback: Google returned error or no code", { error, code });
         const errUrl = new URL(state, req.url);
         errUrl.searchParams.set("error", "google_denied");
         return NextResponse.redirect(errUrl);
@@ -31,6 +36,7 @@ export async function GET(req: NextRequest) {
         await initDB();
 
         // Exchange code for tokens
+        console.log("OAuth Callback: Exchanging code for tokens...");
         const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -44,13 +50,15 @@ export async function GET(req: NextRequest) {
         });
 
         if (!tokenRes.ok) {
-            console.error("Google token exchange failed:", await tokenRes.text());
+            const errBody = await tokenRes.text();
+            console.error("Google token exchange failed:", errBody);
             const errUrl = new URL(state, req.url);
             errUrl.searchParams.set("error", "google_token_failed");
             return NextResponse.redirect(errUrl);
         }
 
         const tokens = await tokenRes.json();
+        console.log("OAuth Callback: Token exchange successful. Fetching profile...");
 
         // Fetch user profile to get the Google Account email
         const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
@@ -65,8 +73,12 @@ export async function GET(req: NextRequest) {
             googleEmail = profile.email;
             googleId = profile.id;
             googleName = profile.name;
+            console.log(`OAuth Callback: Connected to Google account: ${googleEmail}`);
+        } else {
+            console.warn("OAuth Callback: Could not fetch Google user profile");
         }
 
+        console.log("OAuth Callback: Saving token to database...");
         await saveIntegrationToken({
             studentId,
             provider: "google_calendar",
@@ -78,6 +90,7 @@ export async function GET(req: NextRequest) {
             studentName: googleName
         });
 
+        console.log("OAuth Callback: Redirecting to success...");
         const redirectUrl = new URL(state, req.url);
         redirectUrl.searchParams.set("connected", "google");
         return NextResponse.redirect(redirectUrl);
