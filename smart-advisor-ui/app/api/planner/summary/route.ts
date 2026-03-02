@@ -146,95 +146,71 @@ export async function GET(req: NextRequest) {
         upcomingEvents = upcomingEvents.toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()).slice(0, 5);
 
 
-        // 5. Fetch Major from StudentProfile
+        // 5. Fetch Major and Progress
         const profile = await prisma.studentProfile.findUnique({
             where: { student_id: user.student_id || "" }
         });
 
-        // 6. Check for integration status and preferences
-        const googleToken = await prisma.integrationToken.findFirst({
-            where: { user_id: user.id, provider: "google_calendar" }
-        });
-
-        // 7. Calculate Study Trends (Last 7 days)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const recentSessions = await prisma.studySession.findMany({
-            where: { user_id: user.id, date: { gte: sevenDaysAgo } },
-            select: { duration_minutes: true, date: true }
-        });
-
-        // Group by day for a simple chart
-        const studyTrends = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
-            const mins = recentSessions
-                .filter(s => {
-                    const sessionDate = s.date ? new Date(s.date) : null;
-                    return sessionDate ? sessionDate.toISOString().split('T')[0] === dateStr : false;
-                })
-                .reduce((acc, s) => acc + s.duration_minutes, 0);
-            return { date: dateStr, minutes: mins };
-        }).reverse();
-
-        // 8. Identify Most Neglected Course (Optimized)
-        // Course with exam in next 14 days and lowest study minutes
-        const twoWeeks = new Date();
-        twoWeeks.setDate(twoWeeks.getDate() + 14);
-        
-        const upcomingExamCourses = await prisma.course.findMany({
-            where: {
-                semester: { user_id: user.id },
-                OR: [
-                    { midterm_date: { gte: new Date(), lte: twoWeeks } },
-                    { final_date: { gte: new Date(), lte: twoWeeks } }
-                ]
-            },
-            select: {
-                id: true,
-                code: true,
-                name: true,
-                midterm_date: true,
-                final_date: true,
-                study_sessions: {
-                    select: {
-                        duration_minutes: true,
-                        created_at: true
-                    }
-                }
+        const progress = await prisma.studentProgress.findUnique({
+            where: { 
+                student_id_major: { 
+                    student_id: user.student_id || "", 
+                    major: profile?.major || "" 
+                } 
             }
         });
 
-        let neglectedCourse = null;
-        if (upcomingExamCourses.length > 0) {
-            neglectedCourse = upcomingExamCourses.sort((a, b) => {
-                const aMins = a.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
-                const bMins = b.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
-                return aMins - bMins;
-            })[0];
+        let completedCreditsFromTracker = 0;
+        if (progress?.completed) {
+            const completedList = progress.completed as any[];
+            // This is a rough estimate - in real app we'd sum actual CH from curriculum.json
+            // but for projection, we'll assume each completed course is ~3 CH if not specified
+            completedCreditsFromTracker = completedList.length * 3;
         }
 
-        // Fetch full session details for history log
-        const fullRecentSessions = await prisma.studySession.findMany({
-            where: { user_id: user.id },
-            orderBy: { created_at: 'desc' },
-            take: 20,
-            include: { course: true }
-        });
+        // 9. Calculate Real GPA Projections
+        const TOTAL_DEGREE_CH = 160;
+        const currentCompletedCH = (profile?.previous_credits || 0) + completedCreditsFromTracker;
+        const remainingCH = Math.max(0, TOTAL_DEGREE_CH - currentCompletedCH);
+        
+        const currentTotalPoints = (cgpa * currentCompletedCH);
+        
+        // Projection assuming 4.0 (D) in all remaining
+        const projectedDistinction = remainingCH > 0 
+            ? (currentTotalPoints + (4.0 * remainingCH)) / TOTAL_DEGREE_CH 
+            : cgpa;
+            
+        // Projection assuming 3.2 (M) in all remaining
+        const projectedMerit = remainingCH > 0 
+            ? (currentTotalPoints + (3.2 * remainingCH)) / TOTAL_DEGREE_CH 
+            : cgpa;
 
-        // Sum total logged minutes historically across all time
-        const allSessions = await prisma.studySession.aggregate({
-            where: { user_id: user.id },
-            _sum: { duration_minutes: true }
-        });
-        const total_study_minutes = allSessions._sum.duration_minutes || 0;
-
-        // Fetch active quests
-        const activeQuests = await prisma.quest.findMany({
-            where: { user_id: user.id, status: 'active' },
-            take: 2
-        });
+        // 10. Generate Dynamic Study Tips
+        const dynamicTips = [];
+        if (neglectedCourse) {
+            dynamicTips.push({
+                title: "Spaced Repetition",
+                text: `You haven't studied ${neglectedCourse.name} much. Review your notes for it today to boost retention.`,
+                icon: "clock",
+                color: "orange"
+            });
+        }
+        if (upcomingEvents.length > 0) {
+            dynamicTips.push({
+                title: "Active Recall",
+                text: `You have ${upcomingEvents.length} upcoming deadlines. Test your knowledge without looking at your notes!`,
+                icon: "target",
+                color: "emerald"
+            });
+        }
+        if (dynamicTips.length < 2) {
+            dynamicTips.push({
+                title: "Pomodoro Technique",
+                text: "Try studying in 25-minute bursts with 5-minute breaks to maintain peak focus.",
+                icon: "flame",
+                color: "rose"
+            });
+        }
 
         return NextResponse.json({
             cgpa,
@@ -244,6 +220,12 @@ export async function GET(req: NextRequest) {
             gamification,
             studyTrends,
             activeQuests,
+            projections: {
+                distinction: projectedDistinction.toFixed(2),
+                merit: projectedMerit.toFixed(2),
+                remainingCH
+            },
+            studyTips: dynamicTips,
             studyLogStats: {
                 total_study_minutes,
                 study_sessions: fullRecentSessions,

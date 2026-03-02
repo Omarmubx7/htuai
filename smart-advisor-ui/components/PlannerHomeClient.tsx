@@ -82,9 +82,9 @@ export default function PlannerHomeClient() {
             if (res.ok) {
                 const successes = data.syncedItems || 0;
                 if (successes > 0) {
-                    toast(data.message || `Sync complete! ${successes} items added.`, "success");
+                    toast(data.message || `Successfully synced ${successes} items to ${data.googleAccount || 'your calendar'}.`, "success");
                 } else {
-                    toast(data.message || "Nothing to sync. Check your course dates.", "error");
+                    toast(data.message || "Nothing to sync. Ensure your course dates are set.", "error");
                 }
             } else if (res.status === 401) {
                 toast("Google Calendar disconnected. Please reconnect in settings.", "error");
@@ -420,8 +420,8 @@ export default function PlannerHomeClient() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* GPA Projection Card */}
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.35 }}
                         className="premium-card p-6 flex flex-col justify-between border-emerald-500/20 bg-emerald-900/10"
                     >
@@ -440,24 +440,24 @@ export default function PlannerHomeClient() {
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-bold text-white/80">Distinction (D)</span>
                                     <span className="text-sm font-black text-emerald-400">
-                                        {summary?.cgpa ? (summary.cgpa * 1.05).toFixed(2) : '---'}
+                                        {summary?.projections?.distinction || '---'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs font-bold text-white/80">Merit (M)</span>
                                     <span className="text-sm font-black text-blue-400">
-                                        {summary?.cgpa ? (summary.cgpa * 1.02).toFixed(2) : '---'}
+                                        {summary?.projections?.merit || '---'}
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <p className="text-[9px] text-white/20 mt-4 italic">* Based on weighted remaining credit hours.</p>
+                        <p className="text-[9px] text-white/20 mt-4 italic">* Based on {summary?.projections?.remainingCH || 0} remaining CH.</p>
                     </motion.div>
 
                     {/* Pro Study Tips Card */}
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
                         className="md:col-span-2 premium-card p-6 border-indigo-500/20 bg-indigo-900/10"
                     >
@@ -469,24 +469,23 @@ export default function PlannerHomeClient() {
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
-                                    <Clock className="w-4 h-4 text-orange-400" />
+                            {summary?.studyTips?.map((tip: any, i: number) => (
+                                <div key={`tip-${i}`} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                        tip.color === 'orange' ? 'bg-orange-500/20' : 
+                                        tip.color === 'emerald' ? 'bg-emerald-500/20' : 
+                                        'bg-indigo-500/20'
+                                    }`}>
+                                        {tip.icon === 'clock' && <Clock className="w-4 h-4 text-orange-400" />}
+                                        {tip.icon === 'target' && <Target className="w-4 h-4 text-emerald-400" />}
+                                        {tip.icon === 'flame' && <Flame className="w-4 h-4 text-indigo-400" />}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-bold text-white/90">{tip.title}</h4>
+                                        <p className="text-[10px] text-white/40 mt-1 leading-relaxed">{tip.text}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-xs font-bold text-white/90">Spaced Repetition</h4>
-                                    <p className="text-[10px] text-white/40 mt-1 leading-relaxed">Review your notes for {summary?.neglectedCourse?.name || 'core modules'} today to improve long-term retention by 40%.</p>
-                                </div>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
-                                    <Target className="w-4 h-4 text-emerald-400" />
-                                </div>
-                                <div>
-                                    <h4 className="text-xs font-bold text-white/90">Active Recall</h4>
-                                    <p className="text-[10px] text-white/40 mt-1 leading-relaxed">Test yourself before looking at your notes. You have {summary?.upcomingEvents?.length || 0} deadlines approaching!</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </motion.div>
                 </div>

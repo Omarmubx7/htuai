@@ -32,16 +32,47 @@ function getExamReminders(token: any): { method: string; minutes: number }[] {
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function upsertGoogleEvent(url: string, method: string, token: any, eventData: any): Promise<Response> {
-    let res = await fetch(url, {
+async function getOrCreateHtuCalendar(token: any): Promise<string> {
+    try {
+        if (token.metadata?.htu_calendar_id) return token.metadata.htu_calendar_id;
+
+        const listRes = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
+            headers: { Authorization: `Bearer ${token.accessToken}` }
+        });
+        
+        if (listRes.ok) {
+            const listData = await listRes.json();
+            const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
+            if (existing) return existing.id;
+        }
+
+        const createRes = await fetch("https://www.googleapis.com/calendar/v3/calendars", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token.accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ summary: "HTU Smart Advisor", timeZone: "Asia/Amman" })
+        });
+
+        if (createRes.ok) {
+            const newCal = await createRes.json();
+            return newCal.id;
+        }
+    } catch (e) {
+        console.error("Calendar creation failed", e);
+    }
+    return "primary";
+}
+
+async function upsertGoogleEvent(calendarId: string, url: string, method: string, token: any, eventData: any): Promise<Response> {
+    const finalUrl = url.replace("primary", encodeURIComponent(calendarId));
+    let res = await fetch(finalUrl, {
         method,
         headers: { Authorization: `Bearer ${token.accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
     });
 
-    // If PATCH fails with 404, the event might have been deleted from Google. Fallback to POST.
     if (!res.ok && res.status === 404 && method === "PATCH") {
-        res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+        const postUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+        res = await fetch(postUrl, {
             method: "POST",
             headers: { Authorization: `Bearer ${token.accessToken}`, "Content-Type": "application/json" },
             body: JSON.stringify(eventData),
@@ -63,7 +94,7 @@ function formatAmmanTime(date: Date) {
     return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
-async function syncCourseExams(course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+async function syncCourseExams(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
     const examTypes = [
         { field: "midterm_date" as const, type: "Midterm" },
         { field: "final_date" as const, type: "Final" }
@@ -98,12 +129,12 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
             };
 
             const method = existingEvent?.google_event_id ? "PATCH" : "POST";
-            const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "");
+            const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events${existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : ""}`;
 
-            const googleRes = await upsertGoogleEvent(url, method, token, eventData);
+            const googleRes = await upsertGoogleEvent(calendarId, url, method, token, eventData);
             if (!googleRes.ok) {
                 const errText = await googleRes.text();
-                results.push({ course: course.code, type, success: false, status: "failed", error: `Google API: ${errText}` });
+                results.push({ course: course.code, type, success: false, status: "failed", error: `Google API Error: ${errText}` });
                 continue;
             }
 
@@ -181,7 +212,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     return { start, end, untilStr };
 }
 
-async function syncCourseSchedule(course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
     const scheduleInfo = parseSchedule(course.class_schedule);
     if (!scheduleInfo) {
         results.push({ course: course.code, type: "Schedule", success: false, status: "skipped", error: "No valid class time set" });
@@ -211,12 +242,12 @@ async function syncCourseSchedule(course: SyncCourse, token: any, user: any, res
         });
         
         const method = existingEvent?.google_event_id ? "PATCH" : "POST";
-        const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "");
+        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events${existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : ""}`;
 
-        const googleRes = await upsertGoogleEvent(url, method, token, eventData);
+        const googleRes = await upsertGoogleEvent(calendarId, url, method, token, eventData);
         if (!googleRes.ok) {
             const errText = await googleRes.text();
-            results.push({ course: course.code, type: "Schedule", success: false, status: "failed", error: `Google API: ${errText}` });
+            results.push({ course: course.code, type: "Schedule", success: false, status: "failed", error: `Google API Error: ${errText}` });
             return;
         }
 
@@ -245,12 +276,22 @@ export async function POST() {
         return NextResponse.json({ error: "Unauthorized: Google Calendar disconnected" }, { status: 401 });
     }
 
-    // Pre-sync validation: Check if token is valid by hitting a lightweight endpoint
-    const checkRes = await fetch("https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=" + token.accessToken);
-    if (!checkRes.ok) {
-        console.error("[Sync] Token validation failed:", await checkRes.text());
-        return NextResponse.json({ error: "Unauthorized: Google connection expired. Please reconnect in settings." }, { status: 401 });
+    let googleAccountEmail = "unknown";
+    try {
+        const checkRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: { Authorization: `Bearer ${token.accessToken}` }
+        });
+        if (checkRes.ok) {
+            const userData = await checkRes.json();
+            googleAccountEmail = userData.email;
+        } else {
+            return NextResponse.json({ error: "Unauthorized: Google connection expired. Please reconnect in settings." }, { status: 401 });
+        }
+    } catch (e) {
+        return NextResponse.json({ error: "Connection to Google failed." }, { status: 503 });
     }
+
+    const htuCalendarId = await getOrCreateHtuCalendar(token);
 
     try {
         const user = await prisma.user.findFirst({
@@ -268,23 +309,28 @@ export async function POST() {
         const upcomingClasses = activeSemesters.flatMap(sem => sem.courses.map(c => ({ ...c, semester_object: sem })));
 
         for (const course of upcomingClasses) {
-            await syncCourseExams(course as SyncCourse, token, user, results);
-            await syncCourseSchedule(course as SyncCourse, token, user, results);
+            await syncCourseExams(htuCalendarId, course as SyncCourse, token, user, results);
+            await syncCourseSchedule(htuCalendarId, course as SyncCourse, token, user, results);
         }
 
         const successCount = results.filter(r => r.success).length;
         const skipCount = results.filter(r => r.status === "skipped").length;
         const failCount = results.filter(r => r.status === "failed").length;
 
-        let statusMessage = "Sync process finished.";
-        if (successCount > 0) statusMessage = `Successfully synced ${successCount} items.`;
-        if (failCount > 0) statusMessage += ` Failed to sync ${failCount} items due to API errors.`;
-        if (successCount === 0 && skipCount > 0) statusMessage = "Nothing was synced. Please ensure your courses have midterm/final dates and class times set.";
+        let statusMessage = "";
+        if (successCount > 0) {
+            statusMessage = `Successfully synced ${successCount} items to your '${htuCalendarId === 'primary' ? 'Primary' : 'HTU Smart Advisor'}' calendar on ${googleAccountEmail}.`;
+        } else if (failCount > 0) {
+            statusMessage = `Failed to sync. Google API returned errors for ${failCount} items.`;
+        } else {
+            statusMessage = `Nothing synced. Found ${skipCount} courses with missing dates or class times.`;
+        }
 
         return NextResponse.json({ 
             success: true, 
             message: statusMessage,
-            syncedItems: successCount, 
+            syncedItems: successCount,
+            googleAccount: googleAccountEmail,
             details: results 
         });
 
