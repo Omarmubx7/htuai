@@ -77,14 +77,24 @@ export default function PlannerHomeClient() {
         setSyncing(true);
         try {
             const res = await fetch("/api/connect/google/sync", { method: "POST" });
+            const data = await res.json();
+            
             if (res.ok) {
-                toast("Sync complete! Your calendar is up to date.", "success");
+                const successes = data.details?.filter((r: any) => r.success).length || 0;
+                const failures = data.details?.filter((r: any) => !r.success);
+                
+                if (successes > 0 && (!failures || failures.length === 0)) {
+                    toast(`Sync complete! ${successes} items added to your calendar.`, "success");
+                } else if (successes > 0 && failures.length > 0) {
+                    toast(`Partial sync: ${successes} items added. ${failures.length} items skipped (Check dates).`, "success");
+                } else {
+                    toast("Sync ran but 0 items were added. Ensure your exams and class times are set.", "error");
+                }
             } else if (res.status === 401) {
                 toast("Google Calendar disconnected. Please reconnect in settings.", "error");
-                // Optionally update state to show it's disconnected
                 setSummary({ ...summary, google_calendar_connected: false });
             } else {
-                throw new Error("Sync failed");
+                throw new Error(data.error || "Sync failed");
             }
         } catch (e) {
             console.error("Sync error:", e);

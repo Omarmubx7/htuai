@@ -63,16 +63,23 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
 
     for (const { field, type } of examTypes) {
         const dateVal = course[field];
-        if (!dateVal) continue;
+        if (!dateVal) {
+            results.push({ course: course.code, type, success: false, error: "No date set in planner" });
+            continue;
+        }
 
         try {
             const dateObj = new Date(dateVal as string | number | Date);
-            if (isNaN(dateObj.getTime())) continue;
+            if (isNaN(dateObj.getTime())) {
+                results.push({ course: course.code, type, success: false, error: "Invalid date format" });
+                continue;
+            }
 
             const existingEvent = await prisma.calendarEvent.findFirst({
                 where: { course_id: course.id, type, user_id: user.id }
             });
 
+            // Google needs YYYY-MM-DDTHH:mm:ss without the 'Z' when a timeZone is specified
             const startTime = formatAmmanTime(dateObj);
             const endTime = formatAmmanTime(new Date(dateObj.getTime() + 2 * 60 * 60 * 1000));
 
@@ -88,20 +95,16 @@ async function syncCourseExams(course: SyncCourse, token: any, user: any, result
 
             const method = existingEvent?.google_event_id ? "PATCH" : "POST";
             const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "");
-            console.log(`[Sync] Syncing ${type} for ${course.code}. Start: ${startTime}`);
 
-const googleRes = await upsertGoogleEvent(url, method, token, eventData);
+            const googleRes = await upsertGoogleEvent(url, method, token, eventData);
+            if (!googleRes.ok) {
+                const errText = await googleRes.text();
+                results.push({ course: course.code, type, success: false, error: `Google API Error: ${errText}` });
+                continue;
+            }
 
-if (!googleRes.ok) {
-    const errText = await googleRes.text();
-    console.error(`[Sync] Google API Error (${type} for ${course.code}): ${googleRes.status}`, errText);
-    results.push({ course: course.code, type, success: false, error: errText });
-    continue;
-}
-
-const data = await googleRes.json();
-const gEventId = data.id;
-console.log(`[Sync] Successfully ${method}ed ${type} for ${course.code}. G-ID: ${gEventId}`);
+            const data = await googleRes.json();
+            const gEventId = data.id;
 
             await prisma.calendarEvent.upsert({
                 where: { id: existingEvent?.id || -1 },
