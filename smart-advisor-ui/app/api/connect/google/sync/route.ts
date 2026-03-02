@@ -106,6 +106,7 @@ async function upsertGoogleEvent(calendarId: string, url: string, method: string
 }
 
 function formatAmmanTime(date: Date) {
+    // We want YYYY-MM-DDTHH:mm:ss+03:00
     const options: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Amman",
         year: "numeric", month: "2-digit", day: "2-digit",
@@ -115,7 +116,10 @@ function formatAmmanTime(date: Date) {
     const formatter = new Intl.DateTimeFormat("en-US", options);
     const parts = formatter.formatToParts(date);
     const get = (type: string) => parts.find(p => p.type === type)?.value;
-    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
+    
+    // Amman is UTC+3. Note: If Jordan ever returns to DST, this would need to be dynamic.
+    // For now, fixed offset is standard for the region.
+    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}+03:00`;
 }
 
 async function syncCourseExams(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
