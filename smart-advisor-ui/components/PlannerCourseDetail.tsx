@@ -236,7 +236,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                 body: JSON.stringify({
                     instructor_name: instructorName || null,
                     location: location || null,
-                    class_schedule: compiledSchedule ? [compiledSchedule] : [],
+                    class_schedule: compiledSchedule || "",
                     final_mark: finalMark === "" ? null : finalMark,
                     status: courseStatus
                 })

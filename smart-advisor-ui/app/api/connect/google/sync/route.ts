@@ -7,6 +7,18 @@ import { prisma } from "@/lib/prisma";
 type CourseDate = string | number | Date;
 type SyncResult = { course: string; type: string; success: boolean; eventId?: string; error?: string };
 
+interface SyncCourse {
+    id: number;
+    code: string;
+    name: string;
+    credits: number;
+    midterm_date?: Date | string | null;
+    final_date?: Date | string | null;
+    location?: string | null;
+    class_schedule?: any;
+    semester_object?: Record<string, unknown>;
+}
+
 function getExamReminders(token: any): { method: string; minutes: number }[] {
     const metadata = token.metadata as Record<string, unknown> | null;
     const prefDays = (metadata?.exam_reminders_days as number) ?? (metadata?.exam_reminders === false ? 0 : 7);
@@ -30,106 +42,76 @@ async function upsertGoogleEvent(url: string, method: string, token: any, eventD
     return res;
 }
 
-async function syncCourseExams(course: any, courseData: Record<string, unknown>, token: any, user: any, results: SyncResult[]) {
-    // Both field names are lowercase in Prisma schema
+function formatAmmanTime(date: Date) {
+    const options: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Amman",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+        hour12: false
+    };
+    const formatter = new Intl.DateTimeFormat("en-US", options);
+    const parts = formatter.formatToParts(date);
+    const get = (type: string) => parts.find(p => p.type === type)?.value;
+    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
+}
+
+async function syncCourseExams(course: SyncCourse, token: any, user: any, results: SyncResult[]) {
     const examTypes = [
-        { field: "midterm_date", type: "Midterm" },
-        { field: "final_date", type: "Final" }
+        { field: "midterm_date" as const, type: "Midterm" },
+        { field: "final_date" as const, type: "Final" }
     ] as const;
 
     for (const { field, type } of examTypes) {
-        const dateVal = courseData[field] as CourseDate;
-        
-        // Ensure we have a valid date value
-        if (!dateVal) {
-            console.log(`[Sync] Skipping ${type} for ${course.code}: No date set.`);
-            continue;
-        }
+        const dateVal = course[field];
+        if (!dateVal) continue;
 
         try {
-            const dateObj = new Date(dateVal);
-            if (isNaN(dateObj.getTime())) {
-                console.warn(`[Sync] Invalid date for ${course.code} ${type}:`, dateVal);
-                results.push({ course: course.code, type, success: false, error: "Invalid date format" });
-                continue;
-            }
+            const dateObj = new Date(dateVal as string | number | Date);
+            if (isNaN(dateObj.getTime())) continue;
 
             const existingEvent = await prisma.calendarEvent.findFirst({
-                where: { 
-                    course_id: course.id, 
-                    type,
-                    user_id: user.id 
-                }
+                where: { course_id: course.id, type, user_id: user.id }
             });
 
-            // Format for Google API: Remove 'Z' and milliseconds if providing timeZone
-            const startTime = dateObj.toISOString().split('.')[0].replace('Z', '');
-            const endTime = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000).toISOString().split('.')[0].replace('Z', '');
+            const startTime = formatAmmanTime(dateObj);
+            const endTime = formatAmmanTime(new Date(dateObj.getTime() + 2 * 60 * 60 * 1000));
 
             const eventData = {
                 summary: `${course.name} — ${type} Exam`,
-                description: `${type} examination for ${course.name} (${course.credits} CH). Automatically synced from HTUAI.`,
+                description: `${type} examination for ${course.name}. Automatically synced from HTUAI.`,
                 location: course.location || undefined,
                 start: { dateTime: startTime, timeZone: "Asia/Amman" },
                 end: { dateTime: endTime, timeZone: "Asia/Amman" },
-                reminders: { 
-                    useDefault: false, 
-                    overrides: getExamReminders(token) 
-                },
-                colorId: type === "Midterm" ? "5" : "11" // Different colors for Midterm (Yellow) and Final (Red/Tomato)
+                reminders: { useDefault: false, overrides: getExamReminders(token) },
+                colorId: type === "Midterm" ? "5" : "11"
             };
 
             const method = existingEvent?.google_event_id ? "PATCH" : "POST";
             const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "");
+            console.log(`[Sync] Syncing ${type} for ${course.code}. Start: ${startTime}`);
 
-            const googleRes = await upsertGoogleEvent(url, method, token, eventData);
+const googleRes = await upsertGoogleEvent(url, method, token, eventData);
 
-            if (!googleRes.ok) {
-                const errText = await googleRes.text();
-                console.error(`[Sync] Google API Error (${type} for ${course.code}):`, errText);
-                results.push({ course: course.code, type, success: false, error: errText });
-                continue;
-            }
+if (!googleRes.ok) {
+    const errText = await googleRes.text();
+    console.error(`[Sync] Google API Error (${type} for ${course.code}): ${googleRes.status}`, errText);
+    results.push({ course: course.code, type, success: false, error: errText });
+    continue;
+}
 
-            const data = await googleRes.json();
-            const gEventId = data.id;
+const data = await googleRes.json();
+const gEventId = data.id;
+console.log(`[Sync] Successfully ${method}ed ${type} for ${course.code}. G-ID: ${gEventId}`);
 
-            await prisma.$transaction([
-                prisma.calendarEvent.upsert({
-                    where: { id: existingEvent?.id || -1 },
-                    update: { 
-                        google_event_id: gEventId, 
-                        start_datetime: dateObj, 
-                        end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000),
-                        updated_at: new Date()
-                    },
-                    create: {
-                        user_id: user.id, 
-                        course_id: course.id, 
-                        type, 
-                        google_event_id: gEventId,
-                        title: `${course.name} — ${type} Exam`, 
-                        start_datetime: dateObj,
-                        end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000)
-                    }
-                }),
-                prisma.adminLog.create({
-                    data: {
-                        type: "sync_event", 
-                        message: `Synced ${type} for ${course.code} to Calendar`,
-                        course_id: course.id, 
-                        event_kind: "calendar_sync", 
-                        target_id: gEventId, 
-                        details: { method, gEventId }
-                    }
-                })
-            ]);
+            await prisma.calendarEvent.upsert({
+                where: { id: existingEvent?.id || -1 },
+                update: { google_event_id: gEventId, start_datetime: dateObj, end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000), updated_at: new Date() },
+                create: { user_id: user.id, course_id: course.id, type, google_event_id: gEventId, title: `${course.name} — ${type} Exam`, start_datetime: dateObj, end_datetime: new Date(dateObj.getTime() + 2 * 60 * 60 * 1000) }
+            });
 
             results.push({ course: course.code, type, success: true, eventId: gEventId });
         } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : String(err);
-            console.error(`[Sync] Unexpected Error (${type} for ${course.code}):`, msg);
-            results.push({ course: course.code, type, success: false, error: msg });
+            results.push({ course: course.code, type, success: false, error: String(err) });
         }
     }
 }
@@ -161,7 +143,6 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     const dayToNum: Record<string, number> = { "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6 };
     const targetDays = new Set(schedule.days.map(d => dayToNum[d]).filter(n => n !== undefined));
     
-    // Ensure we have a valid base date (start of semester or today)
     let baseDate = new Date();
     if (semesterObj?.start_date) {
         const d = new Date(semesterObj.start_date as CourseDate);
@@ -171,7 +152,6 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     const firstDate = new Date(baseDate);
     firstDate.setHours(schedule.startH, schedule.startM, 0, 0);
     
-    // Find the first occurrence of the class
     let attempts = 0;
     while (!targetDays.has(firstDate.getDay()) && attempts < 7) {
         firstDate.setDate(firstDate.getDate() + 1);
@@ -182,7 +162,6 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     const end = new Date(firstDate);
     end.setHours(schedule.endH, schedule.endM, 0, 0);
 
-    // Calculate until date (end of semester or +4 months)
     let untilDate = new Date(baseDate.getTime() + 120 * 24 * 60 * 60 * 1000);
     if (semesterObj?.end_date) {
         const d = new Date(semesterObj.end_date as CourseDate);
@@ -195,48 +174,30 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     return { start, end, untilStr };
 }
 
-async function syncCourseSchedule(course: any, courseData: Record<string, unknown>, token: any, user: any, results: SyncResult[]) {
-    const scheduleInfo = parseSchedule(courseData.class_schedule);
+async function syncCourseSchedule(course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+    const scheduleInfo = parseSchedule(course.class_schedule);
     if (!scheduleInfo) return;
 
     try {
-        const semesterObj = courseData.semester_object as Record<string, unknown> | undefined;
+        const semesterObj = course.semester_object;
         const { start, end, untilStr } = calculateScheduleDates(scheduleInfo, semesterObj);
 
         const dayMap: Record<string, string> = { "Sun": "SU", "Mon": "MO", "Tue": "TU", "Wed": "WE", "Thu": "TH", "Fri": "FR", "Sat": "SA" };
         const rruleDays = scheduleInfo.days.map(d => dayMap[d]).filter(Boolean).join(",");
 
-        let description = `Weekly class schedule for ${course.name}. Automatically synced from HTUAI.`;
-        if (courseData.instructor_name) {
-            const instructor = courseData.instructor_name;
-            let instructorStr = "";
-            if (typeof instructor === 'string') {
-                instructorStr = instructor;
-            } else if (typeof instructor === 'number') {
-                instructorStr = instructor.toString();
-            } else if (instructor && typeof instructor === 'object') {
-                instructorStr = (instructor as any).name || (instructor as any).title || JSON.stringify(instructor);
-            }
-            if (instructorStr) description += `\nInstructor: ${instructorStr}`;
-        }
-
         const eventData = {
             summary: `${course.name} (Class)`,
             location: course.location || undefined,
-            description,
-            start: { dateTime: start.toISOString().split('.')[0].replace('Z', ''), timeZone: "Asia/Amman" },
-            end: { dateTime: end.toISOString().split('.')[0].replace('Z', ''), timeZone: "Asia/Amman" },
+            description: `Weekly class schedule for ${course.name}. Automatically synced from HTUAI.`,
+            start: { dateTime: formatAmmanTime(start), timeZone: "Asia/Amman" },
+            end: { dateTime: formatAmmanTime(end), timeZone: "Asia/Amman" },
             recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${rruleDays};UNTIL=${untilStr}`],
             reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 30 }] },
-            colorId: "1" // Lavender for classes
+            colorId: "1"
         };
 
         const existingEvent = await prisma.calendarEvent.findFirst({ 
-            where: { 
-                course_id: course.id, 
-                type: "Schedule",
-                user_id: user.id
-            } 
+            where: { course_id: course.id, type: "Schedule", user_id: user.id } 
         });
         
         const method = existingEvent?.google_event_id ? "PATCH" : "POST";
@@ -245,52 +206,24 @@ async function syncCourseSchedule(course: any, courseData: Record<string, unknow
         const googleRes = await upsertGoogleEvent(url, method, token, eventData);
         if (!googleRes.ok) {
             const errText = await googleRes.text();
-            console.error(`[Sync] Schedule Error for ${course.code}:`, errText);
+            console.error(`[Sync] Google API Schedule Error:`, errText);
             results.push({ course: course.code, type: "Schedule", success: false, error: errText });
             return;
         }
 
         const gEventId = (await googleRes.json()).id;
-        await prisma.$transaction([
-            prisma.calendarEvent.upsert({
-                where: { id: existingEvent?.id || -1 },
-                update: { 
-                    google_event_id: gEventId, 
-                    start_datetime: start, 
-                    end_datetime: end,
-                    updated_at: new Date()
-                },
-                create: { 
-                    user_id: user.id, 
-                    course_id: course.id, 
-                    type: "Schedule", 
-                    google_event_id: gEventId, 
-                    title: `${course.name} (Class)`, 
-                    start_datetime: start, 
-                    end_datetime: end 
-                }
-            }),
-            prisma.adminLog.create({
-                data: { 
-                    type: "sync_event", 
-                    message: `Synced Schedule for ${course.code} to Calendar`, 
-                    course_id: course.id, 
-                    event_kind: "calendar_sync", 
-                    target_id: gEventId, 
-                    details: { method, gEventId } 
-                }
-            })
-        ]);
+        await prisma.calendarEvent.upsert({
+            where: { id: existingEvent?.id || -1 },
+            update: { google_event_id: gEventId, start_datetime: start, end_datetime: end, updated_at: new Date() },
+            create: { user_id: user.id, course_id: course.id, type: "Schedule", google_event_id: gEventId, title: `${course.name} (Class)`, start_datetime: start, end_datetime: end }
+        });
 
         results.push({ course: course.code, type: "Schedule", success: true, eventId: gEventId });
     } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error(`[Sync] Schedule Unexpected Error for ${course.code}:`, msg);
-        results.push({ course: course.code, type: "Schedule", success: false, error: msg });
+        results.push({ course: course.code, type: "Schedule", success: false, error: String(err) });
     }
 }
 
-// POST /api/connect/google/sync — Force pushes semester courses and study sessions to Calendar
 export async function POST() {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -310,9 +243,6 @@ export async function POST() {
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-        console.log(`[Sync] Starting sync for user ID: ${user.id} (${user.email})`);
-
-        // Retrieve current active courses and study sessions for calendar push
         const activeSemesters = await prisma.semester.findMany({
             where: { user_id: user.id },
             include: { courses: true }
@@ -321,15 +251,10 @@ export async function POST() {
         const results: SyncResult[] = [];
         const upcomingClasses = activeSemesters.flatMap(sem => sem.courses.map(c => ({ ...c, semester_object: sem })));
 
-        console.log(`[Sync] Found ${activeSemesters.length} semesters and ${upcomingClasses.length} total courses for user ${user.id}`);
-
         for (const course of upcomingClasses) {
-            const courseData = course as Record<string, unknown>;
-            await syncCourseExams(course, courseData, token, user, results);
-            await syncCourseSchedule(course, courseData, token, user, results);
+            await syncCourseExams(course as SyncCourse, token, user, results);
+            await syncCourseSchedule(course as SyncCourse, token, user, results);
         }
-
-        console.log(`[Sync] Completed. Results: ${results.filter(r => r.success).length} success, ${results.filter(r => !r.success).length} failed.`);
 
         return NextResponse.json({ success: true, syncedItems: results.length, details: results });
 
