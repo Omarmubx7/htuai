@@ -106,11 +106,13 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
             if (s < activeSteps.length - 1) {
                 return s + 1;
             } else {
-                handleSkip();
+                // Final step - save and close
+                safeStorage.set(STORAGE_KEY, "true");
+                onClose();
                 return s;
             }
         });
-    }, [activeSteps.length, handleSkip]);
+    }, [activeSteps.length, onClose]);
 
     const handlePrev = useCallback(() => {
         setCurrentStep((s) => Math.max(0, s - 1));

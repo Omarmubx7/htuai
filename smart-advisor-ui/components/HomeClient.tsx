@@ -43,38 +43,32 @@ export default function HomeClient() {
     // Only initialize walkthrough if we're authenticated and in tracker
     const walkthrough = useWalkthrough();
 
-    // Load initial major
-    useEffect(() => {
-        const storedMajor = safeStorage.get("htuai-major");
-        if (storedMajor) setMajor(storedMajor as MajorKey);
-        setIsLoaded(true);
-    }, []);
+    // ─── 1. Core Logic & Data Fetching (Defined first to avoid ReferenceErrors) ────────────────
 
-    // Build course name map
-    useEffect(() => {
-        if (!courseData) return;
-        const newMap = new Map<string, string>();
-        const processCategory = (category: any) => {
-            if (!Array.isArray(category)) return;
-            for (const item of category) {
-                if (item.code && item.name) newMap.set(item.code, item.name);
-                if (item.courses && Array.isArray(item.courses)) {
-                    item.courses.forEach((course: any) => {
-                        if (course.code && course.name) newMap.set(course.code, course.name);
-                    });
-                }
-            }
-        };
-        [
-            courseData.university_requirements,
-            courseData.college_requirements,
-            courseData.university_electives,
-            courseData.department_requirements,
-            courseData.electives,
-            courseData.work_market_requirements,
-        ].forEach(processCategory);
-        setCourseNameMap(newMap);
-    }, [courseData]);
+    const saveProgressRemote = useCallback(async (currentProgress: Map<string, string>) => {
+        if (!studentId) return;
+        try {
+            const completedObjects = Array.from(currentProgress.entries()).map(([c, g]) => ({
+                code: c,
+                name: courseNameMap.get(c) || "",
+                grade: g
+            }));
+            await fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ major, completed: completedObjects }),
+            });
+            setSaveStatus("saved");
+            router.refresh();
+            setTimeout(() => setSaveStatus(null), 1500);
+        } catch (e) { setSaveStatus(null); }
+    }, [studentId, major, courseNameMap, router]);
+
+    const debouncedSave = useCallback((nextState: Map<string, string>) => {
+        setSaveStatus("saving");
+        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = setTimeout(() => saveProgressRemote(nextState), 1200);
+    }, [saveProgressRemote]);
 
     const loadCourses = useCallback(async (key: MajorKey) => {
         try {
@@ -151,15 +145,7 @@ export default function HomeClient() {
         } catch (e) { setAppState("major-select"); }
     }, [loadCourses, loadProgress]);
 
-    useEffect(() => {
-        if (status === "loading") return;
-        if (status === "unauthenticated") {
-            setAppState("landing");
-        } else if (status === "authenticated" && session?.user) {
-            const sid = (session.user as any).student_id || session.user.name;
-            if (sid) loadProfile(sid); else setAppState("major-select");
-        }
-    }, [status, session, loadProfile]);
+    // ─── 2. Mutation Handlers (Referencing core logic) ───────────────────────
 
     const toggleCourse = useCallback(async (code: string) => {
         if (!studentId || !major) return;
@@ -169,16 +155,11 @@ export default function HomeClient() {
                 const next = new Map(prev);
                 if (next.has(code)) next.delete(code);
                 else next.set(code, "M");
-                
-                // Debounce only the DB save, not the state update
-                setSaveStatus("saving");
-                if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-                syncTimeoutRef.current = setTimeout(() => saveProgressRemote(next), 1200);
-                
+                debouncedSave(next);
                 return next;
             });
         });
-    }, [studentId, major, saveProgressRemote]);
+    }, [studentId, major, debouncedSave]);
 
     const updateCourseGrade = useCallback((code: string, grade: string) => {
         if (!studentId || !major) return;
@@ -187,39 +168,11 @@ export default function HomeClient() {
             setCompletedCourses(prev => {
                 const next = new Map(prev);
                 next.set(code, grade);
-                
-                setSaveStatus("saving");
-                if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-                syncTimeoutRef.current = setTimeout(() => saveProgressRemote(next), 1200);
-                
+                debouncedSave(next);
                 return next;
             });
         });
-    }, [studentId, major, saveProgressRemote]);
-
-    const debouncedSave = (nextState: Map<string, string>) => {
-        setSaveStatus("saving");
-        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-        syncTimeoutRef.current = setTimeout(() => saveProgressRemote(nextState), 1200);
-    };
-
-    const saveProgressRemote = async (currentProgress: Map<string, string>) => {
-        try {
-            const completedObjects = Array.from(currentProgress.entries()).map(([c, g]) => ({
-                code: c,
-                name: courseNameMap.get(c) || "",
-                grade: g
-            }));
-            await fetch(`/api/progress/${encodeURIComponent(studentId!)}/save`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ major, completed: completedObjects }),
-            });
-            setSaveStatus("saved");
-            router.refresh();
-            setTimeout(() => setSaveStatus(null), 1500);
-        } catch (e) { setSaveStatus(null); }
-    };
+    }, [studentId, major, debouncedSave]);
 
     const handleMajorSelect = async (key: MajorKey) => {
         setAppState("changing-major");
@@ -238,6 +191,51 @@ export default function HomeClient() {
             setAppState("course-tracker");
         });
     };
+
+    // ─── 3. Life Cycle Effects ──────────────────────────────────────────────
+
+    // Load initial major
+    useEffect(() => {
+        const storedMajor = safeStorage.get("htuai-major");
+        if (storedMajor) setMajor(storedMajor as MajorKey);
+        setIsLoaded(true);
+    }, []);
+
+    // Build course name map
+    useEffect(() => {
+        if (!courseData) return;
+        const newMap = new Map<string, string>();
+        const processCategory = (category: any) => {
+            if (!Array.isArray(category)) return;
+            for (const item of category) {
+                if (item.code && item.name) newMap.set(item.code, item.name);
+                if (item.courses && Array.isArray(item.courses)) {
+                    item.courses.forEach((course: any) => {
+                        if (course.code && course.name) newMap.set(course.code, course.name);
+                    });
+                }
+            }
+        };
+        [
+            courseData.university_requirements,
+            courseData.college_requirements,
+            courseData.university_electives,
+            courseData.department_requirements,
+            courseData.electives,
+            courseData.work_market_requirements,
+        ].forEach(processCategory);
+        setCourseNameMap(newMap);
+    }, [courseData]);
+
+    useEffect(() => {
+        if (status === "loading") return;
+        if (status === "unauthenticated") {
+            setAppState("landing");
+        } else if (status === "authenticated" && session?.user) {
+            const sid = (session.user as any).student_id || session.user.name;
+            if (sid) loadProfile(sid); else setAppState("major-select");
+        }
+    }, [status, session, loadProfile]);
 
     const majorInfo = major ? MAJORS.find(m => m.key === major) : null;
 
