@@ -140,7 +140,9 @@ export async function saveProgress(studentId: string, major: string, completed: 
             major: major,
             completed: jsonStr,
             updated_at: time,
-            user_id: user.id
+            user: {
+                connect: { id: user.id }
+            }
         }
     });
 }
@@ -175,7 +177,14 @@ export async function saveMajor(studentId: string, major: string): Promise<void>
     await prisma.studentProfile.upsert({
         where: { student_id: studentId },
         update: { major, updated_at: time },
-        create: { student_id: studentId, major, updated_at: time, user_id: user.id }
+        create: { 
+            student_id: studentId, 
+            major, 
+            updated_at: time, 
+            user: {
+                connect: { id: user.id }
+            }
+        }
     });
 }
 
@@ -338,8 +347,10 @@ export async function saveIntegrationToken({
                 await tx.integrationToken.create({
                     data: {
                         ...dataPayload,
-                        user_id: user.id,
-                        provider
+                        provider,
+                        user: {
+                            connect: { id: user.id }
+                        }
                     }
                 });
             }
@@ -451,11 +462,13 @@ export async function saveCourseNotes(studentId: string, courseId: string, notes
             where: { user_id_course_id: { user_id: user.id, course_id: courseId } },
             update: { notes, updated_at: new Date() },
             create: { 
-                user_id: user.id, 
                 course_id: courseId, 
                 notes, 
                 student_id: user.student_id,
-                updated_at: new Date() 
+                updated_at: new Date(),
+                user: {
+                    connect: { id: user.id }
+                }
             }
         });
     } catch (e) { console.error("Notes save error:", e); }

@@ -133,6 +133,17 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
 
     const handleAddCourse = async () => {
         if (!newCourse.code || !newCourse.name) return;
+        
+        // Check if course already exists in this semester
+        const isDuplicate = courses.some(c => 
+            c.code.toUpperCase() === newCourse.code.toUpperCase()
+        );
+        
+        if (isDuplicate) {
+            toast("This course is already added to the semester.", "error");
+            return;
+        }
+        
         try {
             const res = await fetch("/api/planner/courses", {
                 method: "POST",
@@ -148,6 +159,10 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
                 setShowAddModal(false);
                 setNewCourse({ code: "", name: "", credits: 3 });
                 setSearchQuery("");
+                toast("Course added successfully!", "success");
+            } else {
+                const errorData = await res.json();
+                toast(errorData.error || "Failed to add course.", "error");
             }
         } catch (e) {
             toast("Failed to add course.", "error");
@@ -302,10 +317,17 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
         return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '-.--';
     };
 
-    const filteredSuggestions = availableCourses.filter(c =>
-        c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 10); // Show max 10 suggestions
+    const filteredSuggestions = availableCourses.filter(c => {
+        // Filter out courses already in the semester
+        const alreadyAdded = courses.some(existingCourse => 
+            existingCourse.code.toUpperCase() === c.code.toUpperCase()
+        );
+        if (alreadyAdded) return false;
+        
+        // Filter by search query
+        return c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               c.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }).slice(0, 10); // Show max 10 suggestions
 
     // Note: Due to time constraints, the Course Detail Page (Notes/StudyLog/Quests) is built inside 
     // the semantic modal or separate route `/planner/courses/[id]`. We will link there.

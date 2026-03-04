@@ -42,11 +42,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         // Allow updates of attributes
         const updatedInfo: any = { updated_at: new Date() };
 
+        // Core course fields
+        if (body.code !== undefined) updatedInfo.code = body.code.toUpperCase();
+        if (body.name !== undefined) updatedInfo.name = body.name;
+        if (body.credits !== undefined) updatedInfo.credits = Number(body.credits);
+        
+        // Status and grade fields
         if (body.status !== undefined) updatedInfo.status = body.status;
         if (body.grade_letter !== undefined) updatedInfo.grade_letter = body.grade_letter;
         if (body.grade_point !== undefined) updatedInfo.grade_point = body.grade_point;
         if (body.final_mark !== undefined) updatedInfo.final_mark = body.final_mark;
         if (body.is_completed !== undefined) updatedInfo.is_completed = body.is_completed;
+        
+        // Metadata fields
         if (body.instructor_name !== undefined) updatedInfo.instructor_name = body.instructor_name;
         if (body.location !== undefined) updatedInfo.location = body.location;
         if (body.class_schedule !== undefined) {

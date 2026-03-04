@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             const lastActivityDay = new Date(lastActivity.getFullYear(), lastActivity.getMonth(), lastActivity.getDate());
 
             const diffTime = Math.abs(today.getTime() - lastActivityDay.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
             if (diffDays === 0) {
                 // Same day, streak remains the same

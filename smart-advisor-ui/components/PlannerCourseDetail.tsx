@@ -205,11 +205,61 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     };
 
     const handleSaveDates = async () => {
+        // Validate dates individually and against each other
+        if (midtermDate) {
+            const m = new Date(midtermDate);
+            if (isNaN(m.getTime())) {
+                toast("Invalid midterm date format.", "error");
+                return;
+            }
+            
+            // Validate against semester boundaries if available
+            if (course.semester?.start_date) {
+                const semStart = new Date(course.semester.start_date);
+                if (m < semStart) {
+                    toast("Midterm date cannot be before semester start date.", "error");
+                    return;
+                }
+            }
+            if (course.semester?.end_date) {
+                const semEnd = new Date(course.semester.end_date);
+                if (m > semEnd) {
+                    toast("Midterm date cannot be after semester end date.", "error");
+                    return;
+                }
+            }
+        }
+
+        if (finalDate) {
+            const f = new Date(finalDate);
+            if (isNaN(f.getTime())) {
+                toast("Invalid final exam date format.", "error");
+                return;
+            }
+            
+            // Validate against semester boundaries
+            if (course.semester?.start_date) {
+                const semStart = new Date(course.semester.start_date);
+                if (f < semStart) {
+                    toast("Final exam date cannot be before semester start date.", "error");
+                    return;
+                }
+            }
+            if (course.semester?.end_date) {
+                const semEnd = new Date(course.semester.end_date);
+                if (f > semEnd) {
+                    toast("Final exam date cannot be after semester end date.", "error");
+                    return;
+                }
+            }
+        }
+
+        // Validate that final is after midterm (if both are set)
         if (midtermDate && finalDate) {
             const m = new Date(midtermDate);
             const f = new Date(finalDate);
-            if (f < m) {
-                toast("Final exam cannot be before the Midterm.", "error");
+            if (f <= m) {
+                toast("Final exam must be scheduled after the Midterm.", "error");
                 return;
             }
         }

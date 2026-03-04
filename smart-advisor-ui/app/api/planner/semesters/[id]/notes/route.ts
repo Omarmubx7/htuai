@@ -56,6 +56,24 @@ export async function PATCH(req: NextRequest) {
         const body = await req.json();
         const { id, title, notes, content } = body;
 
+        // Verify ownership: check that the note's semester belongs to the authenticated user
+        const email = session.user.email;
+        const studentId = (session.user as any).student_id || session.user.name;
+        const user = await prisma.user.findFirst({
+            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
+        });
+
+        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+        const note = await (prisma as any).semesterNote.findUnique({
+            where: { id: Number(id) },
+            include: { semester: true }
+        });
+
+        if (!note || note.semester.user_id !== user.id) {
+            return NextResponse.json({ error: "Note not found or access denied" }, { status: 403 });
+        }
+
         const updated = await (prisma as any).semesterNote.update({
             where: { id: Number(id) },
             data: {
@@ -81,6 +99,24 @@ export async function DELETE(req: NextRequest) {
         const id = searchParams.get("id");
 
         if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
+        // Verify ownership before deletion
+        const email = session.user.email;
+        const studentId = (session.user as any).student_id || session.user.name;
+        const user = await prisma.user.findFirst({
+            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
+        });
+
+        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+        const note = await (prisma as any).semesterNote.findUnique({
+            where: { id: Number(id) },
+            include: { semester: true }
+        });
+
+        if (!note || note.semester.user_id !== user.id) {
+            return NextResponse.json({ error: "Note not found or access denied" }, { status: 403 });
+        }
 
         await (prisma as any).semesterNote.delete({
             where: { id: Number(id) }

@@ -31,11 +31,25 @@ export async function POST(req: NextRequest) {
 
         if (!semester) return NextResponse.json({ error: 'Semester not found' }, { status: 404 });
 
+        // Check for duplicate course in same semester
+        const existingCourse = await prisma.course.findFirst({
+            where: { 
+                semester_id: Number(semester_id), 
+                code: code.toUpperCase() 
+            }
+        });
+
+        if (existingCourse) {
+            return NextResponse.json({ 
+                error: 'Course already exists in this semester. Please choose a different course or edit the existing one.' 
+            }, { status: 400 });
+        }
+
         const newCourse = await prisma.course.create({
             data: {
                 semester_id: Number(semester_id),
                 name,
-                code,
+                code: code.toUpperCase(),
                 credits: Number(credits),
                 instructor_name: instructor_name || null,
                 location: location || null,
