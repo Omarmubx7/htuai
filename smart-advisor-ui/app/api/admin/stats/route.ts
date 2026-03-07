@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { getAllStudents, initDB } from '@/lib/database';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
+import type { StatsResponse } from '@/types/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,7 +53,7 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
     return map;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     const secret = request.headers.get('x-admin-secret');
     if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

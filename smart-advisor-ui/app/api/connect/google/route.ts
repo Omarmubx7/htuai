@@ -5,7 +5,7 @@ import { getIntegrationToken } from "@/lib/database";
 import { getBaseUrl } from "@/lib/env";
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<Response> {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
 

@@ -60,7 +60,7 @@ export default function PrivacyPage() {
 
                             <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 text-[11px] text-violet-300 leading-relaxed">
                                 <span className="font-bold text-white block mb-1">Google Limited Use Disclosure:</span>
-                                HTUAI's use and transfer to any other app of information received from Google APIs will adhere to{" "}
+                                HTUAI&apos;s use and transfer to any other app of information received from Google APIs will adhere to{" "}
                                 <a
                                     href="https://developers.google.com/terms/api-services-user-data-policy#limited-use-requirements"
                                     target="_blank"
@@ -119,7 +119,7 @@ export default function PrivacyPage() {
                             </p>
                             <ul className="list-disc pl-6 space-y-3 text-sm">
                                 <li><span className="text-white font-bold">Retention Period:</span> We retain your personal data and tokens only for as long as your account is active or as needed to provide you with our services.</li>
-                                <li><span className="text-white font-bold">Self-Service Deletion:</span> You can delete your account and all associated data instantly through the "Settings" menu in the dashboard.</li>
+                                <li><span className="text-white font-bold">Self-Service Deletion:</span> You can delete your account and all associated data instantly through the &quot;Settings&quot; menu in the dashboard.</li>
                                 <li><span className="text-white font-bold">Deletion Requests:</span> You may email <span className="text-violet-400 font-bold">omarmubaidincs@gmail.com</span> to request complete data removal. We honor all requests within 30 days.</li>
                                 <li><span className="text-white font-bold">Token Revocation:</span> Disconnecting an integration immediately deletes the associated OAuth tokens from our systems.</li>
                             </ul>

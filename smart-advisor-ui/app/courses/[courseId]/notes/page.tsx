@@ -3,7 +3,7 @@
 import CourseNotesEditor from "@/components/CourseNotesEditor";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 export default function CourseNotesPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = use(params);

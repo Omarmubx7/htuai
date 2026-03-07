@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from "next/server";
 import { sql } from '@vercel/postgres';
 import { initDB, resetDB } from '@/lib/database';
 

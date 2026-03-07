@@ -194,6 +194,7 @@ function CourseCard({
 
     return (
         <motion.div
+            data-testid="course-card"
             whileHover={isLocked ? {} : { y: -6, scale: 1.02, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
             whileTap={isLocked ? {} : { scale: 0.98 }}
             className={`
@@ -216,20 +217,20 @@ function CourseCard({
                     <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
                     {course.framework}
                 </span>
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
+                <div data-testid="status-icon" className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
                     <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
                 </div>
             </div>
 
             {/* Course Name */}
-            <h3 className={`font-bold text-base leading-tight mb-2 tracking-tight relative z-10 transition-colors ${isCompleted ? "text-white" : "text-white/80 group-hover/card:text-white"}`}>
+            <h3 data-testid="course-name" className={`font-bold text-base leading-tight mb-2 tracking-tight relative z-10 transition-colors ${isCompleted ? "text-white" : "text-white/80 group-hover/card:text-white"}`}>
                 {course.name}
             </h3>
 
             {/* Code + Credits + Notes */}
             <div className="flex flex-wrap items-center justify-between gap-y-3 mt-5 relative z-10">
                 <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-[10px] text-white/20 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors mt-0.5">{course.code}</span>
+                    <span data-testid="course-code" className="text-[10px] text-white/20 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors mt-0.5">{course.code}</span>
                     <button
                         onClick={(e) => { e.stopPropagation(); onOpenNotes?.(); }}
                         className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-white/5 border border-white/10 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes min-h-[32px]"

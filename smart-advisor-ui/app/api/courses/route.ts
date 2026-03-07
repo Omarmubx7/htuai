@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import type { CourseData } from "@/types/api";
 import path from "path";
 import fs from "fs/promises";
 

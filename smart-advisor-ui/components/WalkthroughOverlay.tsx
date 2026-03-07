@@ -235,6 +235,9 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
 
                 {/* Tooltip */}
                 <motion.div
+                    role="dialog"
+                    aria-labelledby="walkthrough-title"
+                    aria-describedby="walkthrough-description"
                     ref={tooltipRef}
                     key={currentStep}
                     initial={{ opacity: 0, y: tooltipPos === "top" ? 10 : -10 }}
@@ -271,10 +274,10 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
 
                         {/* Content */}
                         <div className="mb-6">
-                            <h3 className="text-lg font-black text-white tracking-tight mb-2">
+                            <h3 id="walkthrough-title" className="text-lg font-black text-white tracking-tight mb-2">
                                 {step.title}
                             </h3>
-                            <p className="text-sm text-white/50 leading-relaxed font-medium">
+                            <p id="walkthrough-description" className="text-sm text-white/50 leading-relaxed font-medium">
                                 {step.description}
                             </p>
                         </div>

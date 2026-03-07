@@ -6,7 +6,7 @@ import AdminGate, { useAdminSecret } from '@/components/AdminGate';
 import {
     Users, Activity, PieChart, TrendingUp,
     Monitor, Smartphone, Globe, BookOpen,
-    Eye, Clock, ArrowUpRight, Database,
+    Eye, Clock, Database,
     Search, ChevronUp, ChevronDown, RefreshCw,
     Flame, BarChart3, ArrowUp, ArrowDown, Filter,
     GraduationCap, Terminal

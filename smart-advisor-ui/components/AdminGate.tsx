@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { KeyRound, Loader2, ShieldAlert } from 'lucide-react';
 import { safeStorage } from '@/lib/safe-storage';
 
@@ -8,15 +8,10 @@ const AdminSecretContext = createContext<string>('');
 export const useAdminSecret = () => useContext(AdminSecretContext);
 
 export default function AdminGate({ children }: { children: ReactNode }) {
-    const [secret, setSecret] = useState<string | null>(null);
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        const saved = safeStorage.session.get('admin_secret');
-        if (saved) setSecret(saved);
-         
-        setIsMounted(true);
-    }, []);
+    const [secret, setSecret] = useState<string | null>(() => {
+        if (typeof window === 'undefined') return null;
+        return safeStorage.session.get('admin_secret');
+    });
 
     const [input, setInput] = useState('');
     const [error, setError] = useState('');
@@ -42,8 +37,6 @@ export default function AdminGate({ children }: { children: ReactNode }) {
         }
         setVerifying(false);
     };
-
-    if (!isMounted) return null;
 
     if (!secret) return (
         <div className="min-h-screen flex items-center justify-center px-4"

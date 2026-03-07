@@ -197,8 +197,8 @@ export default function HomeClient() {
     // Load initial major
     useEffect(() => {
         const storedMajor = safeStorage.get("htuai-major");
-        if (storedMajor) setMajor(storedMajor as MajorKey);
-        setIsLoaded(true);
+        if (storedMajor) queueMicrotask(() => setMajor(storedMajor as MajorKey));
+        queueMicrotask(() => setIsLoaded(true));
     }, []);
 
     // Build course name map
@@ -224,16 +224,22 @@ export default function HomeClient() {
             courseData.electives,
             courseData.work_market_requirements,
         ].forEach(processCategory);
-        setCourseNameMap(newMap);
+        queueMicrotask(() => setCourseNameMap(newMap));
     }, [courseData]);
 
     useEffect(() => {
         if (status === "loading") return;
         if (status === "unauthenticated") {
-            setAppState("landing");
+            queueMicrotask(() => setAppState("landing"));
         } else if (status === "authenticated" && session?.user) {
             const sid = (session.user as any).student_id || session.user.name;
-            if (sid) loadProfile(sid); else setAppState("major-select");
+            if (sid) {
+                queueMicrotask(() => {
+                    void loadProfile(sid);
+                });
+            } else {
+                queueMicrotask(() => setAppState("major-select"));
+            }
         }
     }, [status, session, loadProfile]);
 
