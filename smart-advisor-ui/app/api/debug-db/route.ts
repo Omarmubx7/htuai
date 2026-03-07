@@ -11,36 +11,34 @@ export async function GET(request: Request) {
     try {
         if (trace === 'init') {
             try {
-                console.log("Debug: Running initDB...");
                 await initDB();
                 return NextResponse.json({
                     status: 'success',
                     message: 'Database initialized Successfully'
                 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Initialization Error:", err);
                 return NextResponse.json({
                     status: 'error',
-                    message: err.message,
-                    stack: err.stack
+                    message: err instanceof Error ? err.message : 'Unknown error',
+                    stack: err instanceof Error ? err.stack : undefined
                 }, { status: 500 });
             }
         }
 
         if (trace === 'reset') {
             try {
-                console.log("Debug: Running resetDB...");
                 await resetDB();
                 return NextResponse.json({
                     status: 'success',
                     message: 'Database reset and re-initialized Successfully'
                 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Reset Error:", err);
                 return NextResponse.json({
                     status: 'error',
-                    message: err.message,
-                    stack: err.stack
+                    message: err instanceof Error ? err.message : 'Unknown error',
+                    stack: err instanceof Error ? err.stack : undefined
                 }, { status: 500 });
             }
         }
@@ -51,12 +49,12 @@ export async function GET(request: Request) {
             status: 'success',
             tables: rows.map(r => r.table_name)
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Debug Route Error:", error);
         return NextResponse.json({
             status: 'error',
-            message: error.message,
-            stack: error.stack
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
         }, { status: 500 });
     }
 }

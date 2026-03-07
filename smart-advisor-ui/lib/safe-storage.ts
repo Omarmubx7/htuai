@@ -15,8 +15,11 @@ const createFallbackStore = () => {
     };
 };
 
-let localStore: any;
-let sessionStore: any;
+type FallbackStore = ReturnType<typeof createFallbackStore>;
+type StorageLike = Storage | FallbackStore;
+
+let localStore: StorageLike | undefined;
+let sessionStore: StorageLike | undefined;
 
 const getStores = () => {
     try {

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 
 const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
@@ -29,7 +30,7 @@ export default function CourseNotesModal({
     courseTitle,
     studentId
 }: CourseNotesModalProps) {
-    const [notes, setNotes] = useState<any>(null);
+    const [notes, setNotes] = useState<Record<string, unknown> | string | null>(null);
     const [loading, setLoading] = useState(false);
     const [updatedAt, setUpdatedAt] = useState<string | undefined>();
 
@@ -42,28 +43,29 @@ export default function CourseNotesModal({
     const loadNotes = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/courses/${courseId}/notes`);
-            if (res.ok) {
-                const data = await res.json();
-                setNotes(data.notes);
-                setUpdatedAt(data.updatedAt);
-            }
-        } catch (e) {
-            console.error("Failed to load notes:", e);
+            const data = await fetchJSON<{ notes: Record<string, unknown> | string | null; updatedAt?: string }>(
+                `/api/courses/${courseId}/notes`,
+                { retries: 2 }
+            );
+            setNotes(data.notes);
+            setUpdatedAt(data.updatedAt);
+        } catch (error) {
+            console.error("Failed to load notes:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAutoSave = async (content: any) => {
+    const handleAutoSave = async (content: Record<string, unknown> | string | null) => {
         try {
-            await fetch(`/api/courses/${courseId}/notes`, {
+            await fetchWithRetry(`/api/courses/${courseId}/notes`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ notes: content }),
+                retries: 2
             });
-        } catch (e) {
-            console.error("Failed to autosave notes:", e);
+        } catch (error) {
+            console.error("Failed to autosave notes:", error);
         }
     };
 

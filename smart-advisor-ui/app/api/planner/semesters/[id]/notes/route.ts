@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const semesterId = Number.parseInt(id, 10);
 
     try {
-        const notes = await (prisma as any).semesterNote.findMany({
+        const notes = await prisma.semesterNote.findMany({
             where: { semester_id: semesterId },
             orderBy: { created_at: "desc" }
         });
@@ -30,10 +30,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const semesterId = Number.parseInt(id, 10);
 
     try {
-        const body = await req.json();
+        const body = await req.json() as { title?: string; notes?: string; content?: Record<string, unknown> };
         const { title, notes, content } = body;
 
-        const newNote = await (prisma as any).semesterNote.create({
+        const newNote = await prisma.semesterNote.create({
             data: {
                 semester_id: semesterId,
                 title: title || "Untitled Note",
@@ -53,19 +53,19 @@ export async function PATCH(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {
-        const body = await req.json();
+        const body = await req.json() as { id: number | string; title?: string; notes?: string; content?: Record<string, unknown> };
         const { id, title, notes, content } = body;
 
         // Verify ownership: check that the note's semester belongs to the authenticated user
         const email = session.user.email;
-        const studentId = (session.user as any).student_id || session.user.name;
+        const studentId = session.user.student_id || session.user.name;
         const user = await prisma.user.findFirst({
             where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
         });
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        const note = await (prisma as any).semesterNote.findUnique({
+        const note = await prisma.semesterNote.findUnique({
             where: { id: Number(id) },
             include: { semester: true }
         });
@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "Note not found or access denied" }, { status: 403 });
         }
 
-        const updated = await (prisma as any).semesterNote.update({
+        const updated = await prisma.semesterNote.update({
             where: { id: Number(id) },
             data: {
                 title: title ?? undefined,
@@ -102,14 +102,14 @@ export async function DELETE(req: NextRequest) {
 
         // Verify ownership before deletion
         const email = session.user.email;
-        const studentId = (session.user as any).student_id || session.user.name;
+        const studentId = session.user.student_id || session.user.name;
         const user = await prisma.user.findFirst({
             where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
         });
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        const note = await (prisma as any).semesterNote.findUnique({
+        const note = await prisma.semesterNote.findUnique({
             where: { id: Number(id) },
             include: { semester: true }
         });
@@ -118,7 +118,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Note not found or access denied" }, { status: 403 });
         }
 
-        await (prisma as any).semesterNote.delete({
+        await prisma.semesterNote.delete({
             where: { id: Number(id) }
         });
         return NextResponse.json({ success: true });

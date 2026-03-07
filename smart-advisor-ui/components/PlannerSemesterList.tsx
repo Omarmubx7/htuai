@@ -6,13 +6,30 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, ArrowRight, BookOpen, Clock, Target, Settings2 } from "lucide-react";
 import Link from "next/link";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+
+interface SemesterCourse {
+    grade_point: number | null;
+    grade_letter: string | null;
+    credits: number;
+}
+
+interface SemesterItem {
+    id: number;
+    type: string;
+    year: number;
+    name: string;
+    end_date: string | null;
+    semester_gpa: number | null;
+    courses?: SemesterCourse[];
+}
 
 export default function PlannerSemesterList() {
     const { status } = useSession();
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
-    const [semesters, setSemesters] = useState<any[]>([]);
+    const [semesters, setSemesters] = useState<SemesterItem[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newSem, setNewSem] = useState({ type: "Spring", year: new Date().getFullYear(), startDate: "", endDate: "" });
     const [creating, setCreating] = useState(false);
@@ -28,12 +45,10 @@ export default function PlannerSemesterList() {
     const fetchSemesters = async () => {
         try {
             setLoading(true);
-            const res = await fetch("/api/planner/semesters");
-            if (!res.ok) throw new Error("Failed");
-            const data = await res.json();
+            const data = await fetchJSON<{ semesters?: SemesterItem[] }>("/api/planner/semesters", { retries: 2 });
             setSemesters(data.semesters || []);
-        } catch (e: unknown) {
-            console.error("Failed to load semesters:", e instanceof Error ? e.message : String(e));
+        } catch (error: unknown) {
+            console.error("Failed to load semesters:", error instanceof Error ? error.message : String(error));
         } finally {
             setLoading(false);
         }
@@ -42,7 +57,7 @@ export default function PlannerSemesterList() {
     const handleAddSemester = async () => {
         setCreating(true);
         try {
-            const res = await fetch("/api/planner/semesters", {
+            const res = await fetchWithRetry("/api/planner/semesters", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -51,7 +66,8 @@ export default function PlannerSemesterList() {
                     year: newSem.year,
                     start_date: newSem.startDate || null,
                     end_date: newSem.endDate || null
-                })
+                }),
+                retries: 2
             });
             if (res.ok) {
                 const data = await res.json();
@@ -59,8 +75,8 @@ export default function PlannerSemesterList() {
                 setShowAddModal(false);
                 setNewSem({ type: "Spring", year: new Date().getFullYear(), startDate: "", endDate: "" });
             }
-        } catch (e: unknown) {
-            console.error("Failed to add semester:", e instanceof Error ? e.message : String(e));
+        } catch (error: unknown) {
+            console.error("Failed to add semester:", error instanceof Error ? error.message : String(error));
         } finally {
             setCreating(false);
         }
@@ -119,15 +135,21 @@ export default function PlannerSemesterList() {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
 
-                            // A semester is past/completed if its end date is strictly before today
-                            const isPast = sem.end_date ? new Date(sem.end_date) < today : false;
+                            // A semester is past/completed if its end date has passed (is before or equal to today)
+                            // Normalize the end date to midnight for proper comparison
+                            let isPast = false;
+                            if (sem.end_date) {
+                                const endDate = new Date(sem.end_date);
+                                endDate.setHours(0, 0, 0, 0);
+                                isPast = endDate < today;
+                            }
 
                             // Calculate dynamic GPA if not officially set
                             let gpa = sem.semester_gpa ?? 0;
                             if (sem.semester_gpa === null && sem.courses?.length > 0) {
                                 let totalPoints = 0;
                                 let totalCredits = 0;
-                                sem.courses.forEach((c: any) => {
+                                sem.courses.forEach((c: SemesterCourse) => {
                                     if (c.grade_point !== null && c.grade_letter) {
                                         totalPoints += (c.grade_point * c.credits);
                                         totalCredits += c.credits;

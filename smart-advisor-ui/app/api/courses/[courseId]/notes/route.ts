@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cour
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+  const studentId = session.user.student_id || session.user.email || session.user.name;
   const { courseId } = await params;
 
   try {
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const studentId = (session.user as any).student_id || session.user.email || session.user.name;
+  const studentId = session.user.student_id || session.user.email || session.user.name;
   const { courseId } = await params;
   const { notes } = await req.json();
 

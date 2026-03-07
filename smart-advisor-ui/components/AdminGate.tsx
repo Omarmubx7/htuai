@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { KeyRound, Loader2, ShieldAlert } from 'lucide-react';
 import { safeStorage } from '@/lib/safe-storage';
+import { fetchWithRetry } from '@/lib/fetch-retry';
 
 const AdminSecretContext = createContext<string>('');
 export const useAdminSecret = () => useContext(AdminSecretContext);
@@ -23,8 +24,9 @@ export default function AdminGate({ children }: { children: ReactNode }) {
         setVerifying(true);
         setError('');
         try {
-            const res = await fetch('/api/admin/stats', {
-                headers: { 'x-admin-secret': input.trim() }
+            const res = await fetchWithRetry('/api/admin/stats', {
+                headers: { 'x-admin-secret': input.trim() },
+                retries: 1
             });
             if (res.ok) {
                 safeStorage.session.set('admin_secret', input.trim());
@@ -32,7 +34,8 @@ export default function AdminGate({ children }: { children: ReactNode }) {
             } else {
                 setError('Invalid admin secret');
             }
-        } catch {
+        } catch (error) {
+            console.error('Admin verification failed', error);
             setError('Connection failed');
         }
         setVerifying(false);

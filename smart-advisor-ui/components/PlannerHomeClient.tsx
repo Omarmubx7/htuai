@@ -10,12 +10,68 @@ import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import { fetchJSON, POLLING_INTERVALS } from "@/lib/fetch-retry";
+
+interface NotificationEvent {
+    id: number;
+    title: string;
+    type: string;
+    start_datetime: string;
+}
+
+interface QuestItem {
+    id: number;
+    type: string;
+    current_value: number;
+    target_value: number;
+}
+
+interface StudyTip {
+    icon: "clock" | "target" | "flame";
+    color: "orange" | "emerald" | "indigo";
+    title: string;
+    text: string;
+}
+
+interface StudyTrendPoint {
+    date: string;
+    minutes: number;
+}
+
+interface PlannerSummary {
+    google_calendar_connected?: boolean;
+    upcomingEvents?: NotificationEvent[];
+    gamification?: {
+        level: number;
+        xp: number;
+        current_streak_days: number;
+    };
+    classification?: string;
+    cgpa?: number;
+    currentSemester?: {
+        name: string;
+        courses?: Array<unknown>;
+    } | null;
+    activeQuests?: QuestItem[];
+    neglectedCourse?: {
+        id: number;
+        name: string;
+        total_study_minutes: number;
+    } | null;
+    projections?: {
+        distinction?: string;
+        merit?: string;
+        remainingCH?: number;
+    };
+    studyTips?: StudyTip[];
+    studyTrends?: StudyTrendPoint[];
+}
 
 function PlannerHomeClient() {
     const { status } = useSession();
     const router = useRouter();
 
-    const [summary, setSummary] = useState<any>(null);
+    const [summary, setSummary] = useState<PlannerSummary | null>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
@@ -33,7 +89,7 @@ function PlannerHomeClient() {
         try {
             const res = await fetch("/api/planner/summary");
             if (!res.ok) throw new Error("Failed to fetch summary");
-            const data = await res.json();
+            const data = await res.json() as PlannerSummary;
 
             setSummary(data);
 
@@ -56,14 +112,14 @@ function PlannerHomeClient() {
 
         const intervalId = setInterval(async () => {
             try {
-                const res = await fetch("/api/connect/google/sync", { method: "POST" });
-                if (!res.ok) {
-                    console.warn("Background auto-sync failed with status:", res.status);
-                }
-            } catch (e) {
-                console.error("Background sync error:", e);
+                await fetchJSON("/api/connect/google/sync", { 
+                    method: "POST",
+                    retries: 1
+                });
+            } catch (error) {
+                console.error("Background sync error:", error);
             }
-        }, 120000); // 2 minutes
+        }, POLLING_INTERVALS.GOOGLE_SYNC); // 3 minutes - optimized from 2m
 
         return () => clearInterval(intervalId);
     }, [summary?.google_calendar_connected]);
@@ -186,7 +242,7 @@ function PlannerHomeClient() {
                                         </h3>
                                         <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                                             {summary?.upcomingEvents?.length > 0 ? (
-                                                summary.upcomingEvents.map((ev: any, i: number) => (
+                                                summary.upcomingEvents.map((ev: NotificationEvent, i: number) => (
                                                     <div key={`notification-${i}-${ev.title}`} className="p-3 bg-white/5 rounded-2xl border border-white/5 hover:border-violet-500/30 transition-colors">
                                                         <div className="flex items-start gap-3">
                                                             <div className="w-8 h-8 rounded-lg bg-violet-600/20 flex items-center justify-center shrink-0">
@@ -348,7 +404,7 @@ function PlannerHomeClient() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {summary.activeQuests && summary.activeQuests.length > 0 ? (
-                                summary.activeQuests.map((quest: any) => {
+                                summary.activeQuests.map((quest: QuestItem) => {
                                     const progressPercent = Math.min((quest.current_value / quest.target_value) * 100, 100);
                                     const isStudy = quest.type === 'study_minutes' || quest.type === 'study_sessions';
                                     
@@ -471,7 +527,7 @@ function PlannerHomeClient() {
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {summary?.studyTips?.map((tip: any, i: number) => (
+                            {summary?.studyTips?.map((tip: StudyTip, i: number) => (
                                 <div key={`tip-${i}`} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                                         tip.color === 'orange' ? 'bg-orange-500/20' : 
@@ -508,8 +564,8 @@ function PlannerHomeClient() {
                         </div>
 
                         <div className="flex items-end justify-between h-48 gap-2 px-2">
-                            {summary?.studyTrends?.map((day: any, i: number) => {
-                                const maxMins = Math.max(...summary.studyTrends.map((d: any) => d.minutes), 60);
+                            {summary?.studyTrends?.map((day: StudyTrendPoint, i: number) => {
+                                const maxMins = Math.max(...summary.studyTrends.map((d: StudyTrendPoint) => d.minutes), 60);
                                 const height = (day.minutes / maxMins) * 100;
                                 return (
                                     <div key={`trend-${day.date}-${i}`} className="flex-1 flex flex-col items-center gap-2 group">
@@ -562,7 +618,7 @@ function PlannerHomeClient() {
 
                         <div className="space-y-3 h-[240px] overflow-y-auto pr-2 custom-scrollbar">
                             {summary?.upcomingEvents?.length > 0 ? (
-                                summary.upcomingEvents.map((event: any) => (
+                                summary.upcomingEvents.map((event: NotificationEvent) => (
                                     <div key={event.id} className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-3 min-w-0">

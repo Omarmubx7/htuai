@@ -7,7 +7,40 @@ import { calculateCumulativeGpaFromHistory, getClassification } from "@/lib/grad
 import { promises as fs } from 'fs';
 import path from 'path';
 
-async function handleDailyGamificationXP(user: any, today: Date) {
+interface PlannerSummaryUser {
+    id: number;
+    student_id: string | null;
+    email: string | null;
+    name: string | null;
+    image: string | null;
+    role: string | null;
+    gamification_profile: {
+        last_activity_date: Date | null;
+        current_streak_days: number | null;
+        longest_streak_days: number | null;
+    } | null;
+}
+
+interface UpcomingEventLike {
+    id: string | number;
+    type: string;
+    title: string;
+    start_datetime: Date;
+    course_id?: number;
+}
+
+interface CompletedProgressEntry {
+    code: string;
+    grade?: string;
+    name?: string;
+}
+
+interface SessionAggregateEntry {
+    duration_minutes: number;
+    created_at: Date | null;
+}
+
+async function handleDailyGamificationXP(user: PlannerSummaryUser, today: Date) {
     let gamification = user.gamification_profile;
     if (!gamification) {
         gamification = await prisma.gamificationProfile.create({
@@ -54,13 +87,13 @@ export async function GET(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const email = session.user.email;
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.name;
 
     try {
         const user = await prisma.user.findFirst({
             where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] },
             include: { gamification_profile: true }
-        });
+        }) as PlannerSummaryUser | null;
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
@@ -91,18 +124,28 @@ export async function GET(req: NextRequest) {
         // Check for improvement XP
         await handleGpaImprovement(user.id, cgpa, classification);
 
-        // 4. Fetch active semester
-        const currentSemester = await prisma.semester.findFirst({
+        // 4. Fetch active semester - prioritize semester where today falls within date range
+        let currentSemester = await prisma.semester.findFirst({
             where: {
                 user_id: user.id,
+                start_date: { lte: todayStart },
                 OR: [
                     { end_date: { gte: todayStart } },
                     { end_date: null }
                 ]
             },
-            orderBy: { start_date: 'asc' }, 
+            orderBy: { start_date: 'desc' }, 
             include: { courses: true }
         });
+
+        // Fallback: if no active semester found within date range, get most recent
+        if (!currentSemester) {
+            currentSemester = await prisma.semester.findFirst({
+                where: { user_id: user.id },
+                orderBy: { created_at: 'desc' },
+                include: { courses: true }
+            });
+        }
 
         // 5. Fetch upcoming calendar events within next 7 days
         const nextWeek = new Date(todayStart);
@@ -128,7 +171,7 @@ export async function GET(req: NextRequest) {
             include: { semester: true }
         });
 
-        let upcomingEvents: any[] = [...upcomingEventsDb];
+        let upcomingEvents: UpcomingEventLike[] = [...upcomingEventsDb];
         for (const course of upcomingCourseExams) {
             // Check Midterm
             if (course.midterm_date && course.midterm_date >= todayStart && course.midterm_date <= nextWeek) {
@@ -172,9 +215,11 @@ export async function GET(req: NextRequest) {
 
         let completedCreditsFromTracker = 0;
         if (progress?.completed) {
-            let completedList: any[] = [];
+            let completedList: CompletedProgressEntry[] = [];
             try {
-                completedList = typeof progress.completed === 'string' ? JSON.parse(progress.completed) : progress.completed as any[];
+                completedList = typeof progress.completed === 'string'
+                    ? (JSON.parse(progress.completed) as CompletedProgressEntry[])
+                    : (progress.completed as unknown as CompletedProgressEntry[]);
             } catch { /* ok */ }
             completedCreditsFromTracker = Array.isArray(completedList) ? completedList.length * 3 : 0;
         }
@@ -185,7 +230,7 @@ export async function GET(req: NextRequest) {
         
         const recentSessions = await prisma.studySession.findMany({
             where: { user_id: user.id, date: { gte: sevenDaysAgoQuery } },
-            select: { duration_minutes: true, date: true }
+            select: { duration_minutes: true, date: true, created_at: true }
         });
 
         const studyTrends = Array.from({ length: 7 }, (_, i) => {
@@ -195,9 +240,12 @@ export async function GET(req: NextRequest) {
             
             const mins = recentSessions
                 .filter(s => {
-                    const sessionDate = s.date ? new Date(s.date) : null;
+                    // Try both date field and created_at field for matching
+                    const sessionDate = s.date ? new Date(s.date) : (s.created_at ? new Date(s.created_at) : null);
                     if (!sessionDate) return false;
-                    const sDateStr = sessionDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' });
+                    
+                    // Normalize to date string for comparison
+                    const sDateStr = sessionDate.toISOString().slice(0, 10); // YYYY-MM-DD format
                     return sDateStr === dateStr;
                 })
                 .reduce((acc, s) => acc + s.duration_minutes, 0);
@@ -251,7 +299,18 @@ export async function GET(req: NextRequest) {
             where: { user_id: user.id },
             _sum: { duration_minutes: true }
         });
-        const total_study_minutes = allSessions._sum.duration_minutes || 0;
+        
+        // Calculate total from aggregate, with fallback to manual sum if aggregate returns null/0
+        let total_study_minutes = allSessions._sum.duration_minutes || 0;
+        
+        // Defensive: If aggregate is 0 but we have sessions, manually sum
+        if (total_study_minutes === 0 && fullRecentSessions.length > 0) {
+            const allSessionsList = await prisma.studySession.findMany({
+                where: { user_id: user.id },
+                select: { duration_minutes: true }
+            });
+            total_study_minutes = allSessionsList.reduce((sum, s) => sum + s.duration_minutes, 0);
+        }
 
         const activeQuests = await prisma.quest.findMany({
             where: { user_id: user.id, status: 'active' },
@@ -332,7 +391,7 @@ export async function GET(req: NextRequest) {
                 study_sessions: fullRecentSessions,
                 neglected_course: neglectedCourse ? {
                     course: { name: neglectedCourse.name },
-                    last_studied: neglectedCourse.study_sessions.toSorted((x: any, y: any) => {
+                    last_studied: (neglectedCourse.study_sessions as SessionAggregateEntry[]).toSorted((x, y) => {
                         const tx = x.created_at ? new Date(x.created_at).getTime() : 0;
                         const ty = y.created_at ? new Date(y.created_at).getTime() : 0;
                         return ty - tx;
@@ -345,7 +404,7 @@ export async function GET(req: NextRequest) {
                 name: neglectedCourse.name,
                 midterm_date: neglectedCourse.midterm_date,
                 final_date: neglectedCourse.final_date,
-                total_study_minutes: neglectedCourse.study_sessions.reduce((acc: number, s: any) => acc + s.duration_minutes, 0)
+                total_study_minutes: (neglectedCourse.study_sessions as SessionAggregateEntry[]).reduce((acc, s) => acc + s.duration_minutes, 0)
             } : null,
             google_calendar_connected: !!googleToken,
             google_preferences: googleToken?.metadata || {},

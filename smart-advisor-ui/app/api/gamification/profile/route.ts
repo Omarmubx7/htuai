@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const email = session.user.email;
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.name;
 
     try {
         const user = await prisma.user.findFirst({
@@ -25,12 +25,20 @@ export async function GET(req: NextRequest) {
             profile = await prisma.gamificationProfile.create({
                 data: {
                     user_id: user.id,
-                    xp: 0,
+                    xp: 10,
                     level: 1,
                     current_streak_days: 0,
                     longest_streak_days: 0,
                     last_activity_date: new Date()
                 }
+            });
+        }
+
+        // Safeguard: Ensure XP is never negative
+        if (profile.xp < 0) {
+            profile = await prisma.gamificationProfile.update({
+                where: { user_id: user.id },
+                data: { xp: 0 }
             });
         }
 

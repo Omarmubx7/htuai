@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AdminGate, { useAdminSecret } from '@/components/AdminGate';
 import { Loader2 } from 'lucide-react';
+import { fetchJSON } from '@/lib/fetch-retry';
 
 interface LogEntry {
     id: number;
@@ -26,10 +27,10 @@ function LogsInner() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/admin/logs', {
-            headers: { 'x-admin-secret': adminSecret }
+        fetchJSON<LogEntry[]>('/api/admin/logs', {
+            headers: { 'x-admin-secret': adminSecret },
+            retries: 2
         })
-            .then(res => res.json())
             .then(data => { setLogs(data); setLoading(false); })
             .catch(() => setLoading(false));
     }, [adminSecret]);

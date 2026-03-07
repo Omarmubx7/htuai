@@ -4,10 +4,11 @@ import CourseNotesEditor from "@/components/CourseNotesEditor";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 
-export default function CourseNotesPage({ params }: { params: Promise<{ courseId: string }> }) {
+export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{ courseId: string }> }>) {
   const { courseId } = use(params);
-  const [notes, setNotes] = useState<any>(null);
+  const [notes, setNotes] = useState<Record<string, unknown> | string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [courseName, setCourseName] = useState("");
@@ -18,19 +19,18 @@ export default function CourseNotesPage({ params }: { params: Promise<{ courseId
       setLoading(true);
       try {
         // Fetch curriculum for name
-        const curriculumRes = await fetch("/api/courses");
-        if (curriculumRes.ok) {
-          const curriculum = await curriculumRes.json();
-          const course = curriculum.find((c: any) => c.code === courseId);
-          if (course) setCourseName(course.name);
-        }
+        const curriculum = await fetchJSON<Array<{ code?: string; name?: string }>>("/api/courses", { retries: 2 });
+        const course = curriculum.find((c) => c.code === courseId);
+        if (course?.name) setCourseName(course.name);
 
-        const res = await fetch(`/api/courses/${courseId}/notes`);
-        const data = await res.json();
+        const data = await fetchJSON<{ notes: Record<string, unknown> | string | null; updatedAt?: string }>(
+          `/api/courses/${courseId}/notes`,
+          { retries: 2 }
+        );
         setNotes(data.notes || null);
         setUpdatedAt(data.updatedAt || "");
-      } catch (e) {
-        console.error("Fetch Data Error:", e);
+      } catch (error) {
+        console.error("Fetch Data Error:", error);
         setNotes(null);
       }
       setLoading(false);
@@ -39,15 +39,16 @@ export default function CourseNotesPage({ params }: { params: Promise<{ courseId
   }, [courseId]);
 
   // Save notes handler (for non-autosave changes or immediate feedback)
-  const handleSave = async (val: any) => {
+  const handleSave = async (val: Record<string, unknown> | string | null) => {
     try {
-      await fetch(`/api/courses/${courseId}/notes`, {
+      await fetchWithRetry(`/api/courses/${courseId}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: val }),
+        retries: 2
       });
-    } catch (e) {
-      console.error("Save Error:", e);
+    } catch (error) {
+      console.error("Save Error:", error);
     }
   };
 

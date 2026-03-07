@@ -23,20 +23,21 @@ async function getCourseMap(): Promise<Map<string, CourseEntry>> {
 
     try {
         const raw = await fs.readFile(masterFile, 'utf-8');
-        const json = JSON.parse(raw);
+        const json = JSON.parse(raw) as Record<string, unknown>;
 
-        const extractCourses = (obj: any) => {
+        const extractCourses = (obj: Record<string, unknown>) => {
             if (!obj || typeof obj !== 'object') return;
             for (const key in obj) {
                 const val = obj[key];
                 if (Array.isArray(val)) {
                     for (const c of val) {
                         if (c && typeof c === 'object' && 'code' in c && 'ch' in c) {
-                            map.set(c.code, { code: c.code, name: c.name || c.code, ch: c.ch, level: c.level });
+                            const entry = c as { code: string; name?: string; ch: number; level?: number };
+                            map.set(entry.code, { code: entry.code, name: entry.name || entry.code, ch: entry.ch, level: entry.level });
                         }
                     }
                 } else if (val && typeof val === 'object') {
-                    extractCourses(val);
+                    extractCourses(val as Record<string, unknown>);
                 }
             }
         };
@@ -211,7 +212,7 @@ export async function GET(request: NextRequest) {
         } catch { /* table might not exist */ }
 
         // ── 8. Recent Activity ───────────────────────────────────────
-        let recentActivity: any[] = [];
+        let recentActivity: Array<Record<string, string>> = [];
         try {
             const { rows: visitRows } = await sql`
                 SELECT student_id, ip_address, user_agent, device_vendor, device_model, os_name, os_version, browser_name, visited_at
@@ -305,7 +306,7 @@ export async function GET(request: NextRequest) {
         } catch { /* ok */ }
 
         // ── 12. Admin Logs ──────────────────────────────────────────
-        let adminLogs: any[] = [];
+        let adminLogs: Array<Record<string, unknown>> = [];
         try {
             adminLogs = await prisma.adminLog.findMany({
                 orderBy: { created_at: 'desc' },

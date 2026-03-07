@@ -8,6 +8,27 @@ import Link from "next/link";
 import { useToast } from "./ui/Toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import ThemeToggle from "@/components/ThemeToggle";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+
+interface PlannerUserProfile {
+    image?: string | null;
+    name?: string | null;
+    email?: string | null;
+    student_id: string;
+    major: string;
+    role: string;
+}
+
+interface GooglePreferences {
+    sync_daily: boolean;
+    exam_reminders: boolean;
+    exam_reminders_days?: number;
+}
+
+interface PlannerSummaryResponse {
+    user?: PlannerUserProfile;
+    google_preferences?: GooglePreferences;
+}
 
 export default function PlannerSettings() {
     const { status } = useSession();
@@ -18,9 +39,9 @@ export default function PlannerSettings() {
     const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
     const [syncing, setSyncing] = useState(false);
     const [resetting, setResetting] = useState(false);
-    const [userProfile, setUserProfile] = useState<any>(null);
+    const [userProfile, setUserProfile] = useState<PlannerUserProfile | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
-    const [preferences, setPreferences] = useState<{ sync_daily: boolean; exam_reminders: boolean; exam_reminders_days?: number }>({
+    const [preferences, setPreferences] = useState<GooglePreferences>({
         sync_daily: false,
         exam_reminders: true
     });
@@ -57,32 +78,28 @@ export default function PlannerSettings() {
 
     const checkIntegrationStatus = async () => {
         try {
-            const res = await fetch("/api/connect/status");
-            if (res.ok) {
-                const data = await res.json();
-                setCalendarConnected(data.google_calendar);
-                setConnectedEmail(data.google_account_email || null);
-            }
-        } catch (e) {
-            console.error("Failed to check integration status", e);
+            const data = await fetchJSON("/api/connect/status", { retries: 2 });
+            setCalendarConnected(data.google_calendar);
+            setConnectedEmail(data.google_account_email || null);
+        } catch (error) {
+            console.error("Failed to check integration status", error);
+            toast("Could not load integration status", "error");
         }
     };
 
     const fetchUserProfile = async () => {
         try {
-            const res = await fetch("/api/planner/summary");
-            if (res.ok) {
-                const data = await res.json();
-                setUserProfile(data.user);
-                if (data.google_preferences) {
-                    setPreferences({
-                        sync_daily: data.google_preferences.sync_daily ?? false,
-                        exam_reminders: data.google_preferences.exam_reminders ?? true
-                    });
-                }
+            const data = await fetchJSON<PlannerSummaryResponse>("/api/planner/summary", { retries: 2 });
+            setUserProfile(data.user ?? null);
+            if (data.google_preferences) {
+                setPreferences({
+                    sync_daily: data.google_preferences.sync_daily ?? false,
+                    exam_reminders: data.google_preferences.exam_reminders ?? true
+                });
             }
-        } catch (e) {
-            console.error("Failed to fetch user profile", e);
+        } catch (error) {
+            console.error("Failed to fetch user profile", error);
+            toast("Could not load profile settings", "error");
         }
     };
 
@@ -95,49 +112,56 @@ export default function PlannerSettings() {
         if (!calendarConnected) return;
         setSyncing(true);
         try {
-            const res = await fetch("/api/connect/google/sync", { method: "POST" });
+            const res = await fetchWithRetry("/api/connect/google/sync", { 
+                method: "POST",
+                retries: 2
+            });
             if (res.ok) {
-                toast("Your schedule has been pushed to Google Calendar.", "success");
+                toast("Your schedule has been synced to Google Calendar.", "success");
             } else {
-                throw new Error("Failed");
+                throw new Error(`Sync failed with status ${res.status}`);
             }
-        } catch (e) {
-            console.error(e);
-            toast("Could not synchronize with Calendar at this time.", "error");
+        } catch (error) {
+            console.error(error);
+            toast(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`, "error");
         } finally {
             setSyncing(false);
         }
     };
 
-    const updatePreference = async (key: string, val: any) => {
-        const newPrefs = { ...preferences, [key]: val };
+    const updatePreference = async (key: keyof GooglePreferences, val: GooglePreferences[keyof GooglePreferences]) => {
+        const newPrefs: GooglePreferences = { ...preferences, [key]: val };
         setPreferences(newPrefs);
 
         try {
-            await fetch("/api/connect/google/preferences", {
+            await fetchWithRetry("/api/connect/google/preferences", {
                 method: "POST",
-                body: JSON.stringify({ preferences: newPrefs })
+                body: JSON.stringify({ preferences: newPrefs }),
+                retries: 2
             });
-            toast("Preferences updated.", "success");
-        } catch (e) {
-            console.error(e);
-            toast("Failed to save preference.", "error");
+            toast("Preferences saved.", "success");
+        } catch (error) {
+            console.error(error);
+            toast(`Failed to save: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         }
     };
 
     const handleResetPlanner = async () => {
         setResetting(true);
         try {
-            const res = await fetch("/api/planner/reset", { method: "DELETE" });
+            const res = await fetchWithRetry("/api/planner/reset", { 
+                method: "DELETE",
+                retries: 1
+            });
             if (res.ok) {
-                toast("Planner has been successfully reset. Redirecting...", "success");
+                toast("Planner reset successfully. Redirecting...", "success");
                 router.push("/planner");
             } else {
-                toast("Failed to reset planner.", "error");
+                throw new Error(`Reset failed with status ${res.status}`);
             }
-        } catch (e) {
-            console.error(e);
-            toast("Error connecting to server.", "error");
+        } catch (error) {
+            console.error(error);
+            toast(`Reset failed: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setResetting(false);
             setShowResetConfirm(false);

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
-import { CourseData } from "@/types";
+import { Course, CourseData, CurriculumRules } from "@/types";
 import { Settings2, LogOut, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -12,6 +12,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { safeStorage } from "@/lib/safe-storage";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
 const MajorSelector = dynamic(() => import("@/components/MajorSelector"), { ssr: false });
@@ -25,7 +26,7 @@ export default function HomeClient() {
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajor] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);
-    const [rules, setRules] = useState<any>(null);
+    const [rules, setRules] = useState<CurriculumRules | null>(null);
     
     // Performance optimization: transitions for heavy UI changes
     const [isPending, startTransition] = useTransition();
@@ -49,13 +50,17 @@ export default function HomeClient() {
                 name: courseNameMap.get(c) || "",
                 grade: g
             }));
-            await fetch(`/api/progress/${encodeURIComponent(studentId)}/save`, {
+            await fetchWithRetry(`/api/progress/${encodeURIComponent(studentId)}/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ major, completed: completedObjects }),
+                retries: 2
             });
             setSaveStatus("saved");
-        } catch (e) { setSaveStatus(null); }
+        } catch (error) {
+            console.error("Failed to save progress", error);
+            setSaveStatus(null);
+        }
     }, [studentId, major, courseNameMap, router]);
 
     const debouncedSave = useCallback((nextState: Map<string, string>) => {
@@ -68,7 +73,10 @@ export default function HomeClient() {
         try {
             const rulesPath = "/data/curriculum_rules.json";
             const curriculumPath = "/data/curriculum.json";
-            const [rulesRes, currRes] = await Promise.all([fetch(rulesPath), fetch(curriculumPath)]);
+            const [rulesRes, currRes] = await Promise.all([
+                fetchWithRetry(rulesPath, { retries: 2 }), 
+                fetchWithRetry(curriculumPath, { retries: 2 })
+            ]);
 
             if (rulesRes.ok && currRes.ok) {
                 const rulesData = await rulesRes.json();
@@ -80,9 +88,9 @@ export default function HomeClient() {
                     const shared = currData.shared;
                     const seenGlobal = new Set<string>();
                     
-                    const mergeAndDeduplicateGlobal = (sharedArr: any[], majorArr: any[]) => {
-                        const combined = [...(sharedArr || []), ...(majorArr || [])];
-                        return combined.filter(item => {
+                    const mergeAndDeduplicateGlobal = (sharedArr: Course[] = [], majorArr: Course[] = []): Course[] => {
+                        const combined = [...sharedArr, ...majorArr];
+                        return combined.filter((item) => {
                             if (!item.code) return true;
                             if (seenGlobal.has(item.code)) return false;
                             seenGlobal.add(item.code);
@@ -100,15 +108,19 @@ export default function HomeClient() {
                     });
                 }
             }
-        } catch (e) { console.error(e); }
+        } catch (error) {
+            console.error("Failed to load courses", error);
+        }
     }, []);
 
     const loadProgress = useCallback(async (id: string, majorKey: string) => {
         try {
-            const r = await fetch(`/api/progress/${encodeURIComponent(id)}?major=${majorKey}`);
-            const { completed } = await r.json();
+            const data = await fetchJSON<{ completed: Array<string | { code: string; grade?: string | number }> }>(
+                `/api/progress/${encodeURIComponent(id)}?major=${majorKey}`,
+                { retries: 2 }
+            );
             const gradeMap = new Map<string, string>();
-            completed.forEach((c: any) => {
+            data.completed.forEach((c) => {
                 const code = typeof c === 'string' ? c : c.code;
                 let grade = typeof c === 'object' && c.grade !== undefined ? String(c.grade) : "M";
                 if (!Number.isNaN(Number(grade)) && grade !== "WF") {
@@ -118,14 +130,20 @@ export default function HomeClient() {
                 gradeMap.set(code, grade);
             });
             setCompletedCourses(gradeMap);
-        } catch (e) { setCompletedCourses(new Map()); }
+        } catch (error) {
+            console.error("Failed to load progress", error);
+            setCompletedCourses(new Map());
+        }
     }, []);
 
     const loadProfile = useCallback(async (id: string) => {
         setStudentId(id);
         try {
-            const res = await fetch(`/api/profile/${encodeURIComponent(id)}`);
-            if (!res.ok) { setAppState("major-select"); return; }
+            const res = await fetchWithRetry(`/api/profile/${encodeURIComponent(id)}`, { retries: 2 });
+            if (!res.ok) { 
+                setAppState("major-select"); 
+                return; 
+            }
             const { major: savedMajor, previous_gpa, previous_credits } = await res.json();
             if (savedMajor) {
                 setMajor(savedMajor as MajorKey);
@@ -136,7 +154,10 @@ export default function HomeClient() {
                     loadProgress(id, savedMajor as MajorKey);
                 });
             } else { setAppState("major-select"); }
-        } catch (e) { setAppState("major-select"); }
+        } catch (error) {
+            console.error("Failed to load profile", error);
+            setAppState("major-select");
+        }
     }, [loadCourses, loadProgress]);
 
     // ─── 2. Mutation Handlers (Referencing core logic) ───────────────────────
@@ -169,13 +190,18 @@ export default function HomeClient() {
         startTransition(async () => {
             setMajor(key);
             safeStorage.set("htuai-major", key);
-            const sid = studentId || (session?.user as any).student_id || session?.user?.name;
+            const sid = studentId || session?.user?.student_id || session?.user?.name;
             if (sid) {
-                await fetch(`/api/profile/${encodeURIComponent(sid)}/save`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ major: key }),
-                });
+                try {
+                    await fetchWithRetry(`/api/profile/${encodeURIComponent(sid)}/save`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ major: key }),
+                        retries: 2
+                    });
+                } catch (error) {
+                    console.error("Failed to save major choice", error);
+                }
             }
             await loadCourses(key);
             setAppState("course-tracker");
@@ -195,15 +221,10 @@ export default function HomeClient() {
     useEffect(() => {
         if (!courseData) return;
         const newMap = new Map<string, string>();
-        const processCategory = (category: any) => {
+        const processCategory = (category?: Course[]) => {
             if (!Array.isArray(category)) return;
             for (const item of category) {
                 if (item.code && item.name) newMap.set(item.code, item.name);
-                if (item.courses && Array.isArray(item.courses)) {
-                    item.courses.forEach((course: any) => {
-                        if (course.code && course.name) newMap.set(course.code, course.name);
-                    });
-                }
             }
         };
         [
@@ -222,7 +243,7 @@ export default function HomeClient() {
         if (status === "unauthenticated") {
             setAppState("landing");
         } else if (status === "authenticated" && session?.user) {
-            const sid = (session.user as any).student_id || session.user.name;
+            const sid = session.user.student_id || session.user.name;
             if (sid) {
                 void loadProfile(sid);
             } else {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, CalendarDays, Target, ArrowRight, ShieldCheck } from "lucide-react";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 
 export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete: () => void }>) {
     const [step, setStep] = useState(1);
@@ -16,22 +17,23 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
             if (today.getMonth() < 5) term = "spring";
             else if (today.getMonth() < 8) term = "summer";
 
-            const res = await fetch("/api/planner/semesters", {
+            const res = await fetchWithRetry("/api/planner/semesters", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     type: term,
                     year: today.getFullYear(),
                     name: `${term.charAt(0).toUpperCase() + term.slice(1)} ${today.getFullYear()}`
-                })
+                }),
+                retries: 2
             });
             if (res.ok) {
                 onComplete();
             } else {
                 throw new Error("Failed to create semester");
             }
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error("Failed to setup planner", error);
             alert("Something went wrong setting up your planner.");
         } finally {
             setLoading(false);

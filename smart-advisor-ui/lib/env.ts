@@ -1,6 +1,14 @@
 
 import { NextRequest } from "next/server";
 
+export function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) {
+        throw new Error(`Missing required environment variable: ${name}`);
+    }
+    return value;
+}
+
 export function getBaseUrl(req?: Request | NextRequest) {
     if (req) {
         try {

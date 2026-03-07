@@ -8,6 +8,39 @@ import {
     Quote, Code, Minus, Terminal
 } from "lucide-react";
 
+interface ChainableEditor {
+    chain: () => {
+        focus: () => {
+            deleteRange: (range: unknown) => {
+                setNode: (name: string, attrs: { level: number }) => { run: () => void };
+                toggleBulletList: () => { run: () => void };
+                toggleOrderedList: () => { run: () => void };
+                toggleTaskList: () => { run: () => void };
+                toggleBlockquote: () => { run: () => void };
+                toggleCode: () => { run: () => void };
+                toggleCodeBlock: () => { run: () => void };
+                setHorizontalRule: () => { run: () => void };
+            };
+        };
+    };
+}
+
+interface CommandArgs {
+    editor: ChainableEditor;
+    range: unknown;
+}
+
+interface SlashCommandItem {
+    title: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+    command: (args: CommandArgs) => void;
+}
+
+interface CommandListRef {
+    onKeyDown: (props: { event: KeyboardEvent }) => boolean;
+}
+
 export const suggestion = {
     items: ({ query }: { query: string }) => {
         return [
@@ -15,7 +48,7 @@ export const suggestion = {
                 title: 'Heading 1',
                 description: 'Big section heading',
                 icon: Heading1,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run();
                 },
             },
@@ -23,7 +56,7 @@ export const suggestion = {
                 title: 'Heading 2',
                 description: 'Medium section heading',
                 icon: Heading2,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
                 },
             },
@@ -31,7 +64,7 @@ export const suggestion = {
                 title: 'Bullet List',
                 description: 'Simple bulleted list',
                 icon: List,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).toggleBulletList().run();
                 },
             },
@@ -39,7 +72,7 @@ export const suggestion = {
                 title: 'Numbered List',
                 description: 'List with numbers',
                 icon: ListOrdered,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).toggleOrderedList().run();
                 },
             },
@@ -47,7 +80,7 @@ export const suggestion = {
                 title: 'Todo List',
                 description: 'Checkable list',
                 icon: CheckSquare,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).toggleTaskList().run();
                 },
             },
@@ -55,7 +88,7 @@ export const suggestion = {
                 title: 'Quote',
                 description: 'Capture a quote',
                 icon: Quote,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).toggleBlockquote().run();
                 },
             },
@@ -63,7 +96,7 @@ export const suggestion = {
                 title: 'Heading 3',
                 description: 'Small section heading',
                 icon: Heading3,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
                 },
             },
@@ -71,7 +104,7 @@ export const suggestion = {
                 title: 'Heading 4',
                 description: 'Sub-section heading',
                 icon: Heading4,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run();
                 },
             },
@@ -79,7 +112,7 @@ export const suggestion = {
                 title: 'Inline Code',
                 description: 'Monospace font',
                 icon: Code,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).toggleCode().run();
                 },
             },
@@ -87,7 +120,7 @@ export const suggestion = {
                 title: 'Code Block',
                 description: 'Code with highlighting',
                 icon: Terminal,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
                 },
             },
@@ -95,7 +128,7 @@ export const suggestion = {
                 title: 'Divider',
                 description: 'Section separator',
                 icon: Minus,
-                command: ({ editor, range }: { editor: any, range: any }) => {
+                command: ({ editor, range }: CommandArgs) => {
                     editor.chain().focus().deleteRange(range).setHorizontalRule().run();
                 },
             },
@@ -103,18 +136,18 @@ export const suggestion = {
     },
 
     render: () => {
-        let component: ReactRenderer<any>;
+        let component: ReactRenderer<CommandListRef>;
         let popup: Instance[];
 
         return {
             onStart: (props: Record<string, unknown>) => {
                 component = new ReactRenderer(CommandList, {
                     props,
-                    editor: props.editor as any,
+                    editor: props.editor as never,
                 });
 
                 popup = tippy('body', {
-                    getReferenceClientRect: props.clientRect as any,
+                    getReferenceClientRect: props.clientRect as never,
                     appendTo: () => document.body,
                     content: component.element,
                     showOnCreate: true,
@@ -129,7 +162,7 @@ export const suggestion = {
 
                 if (popup?.[0]) {
                     popup[0].setProps({
-                        getReferenceClientRect: props.clientRect as any,
+                        getReferenceClientRect: props.clientRect as never,
                     });
                 }
             },
@@ -153,7 +186,7 @@ export const suggestion = {
     },
 };
 
-const CommandList = React.forwardRef(({ items, command }: { items: any[], command: (item: any) => void }, ref) => {
+const CommandList = React.forwardRef<CommandListRef, { items: SlashCommandItem[]; command: (item: SlashCommandItem) => void }>(({ items, command }, ref) => {
     const [selectedIndex, setSelectedIndex] = React.useState(0);
 
     React.useEffect(() => {
@@ -188,7 +221,7 @@ const CommandList = React.forwardRef(({ items, command }: { items: any[], comman
     return (
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-2 shadow-2xl w-64 overflow-hidden animate-in fade-in zoom-in duration-200">
             {items.length > 0 ? (
-                items.map((item: any, index: number) => (
+                items.map((item: SlashCommandItem, index: number) => (
                     <button
                         key={index}
                         onClick={() => selectItem(index)}
@@ -213,3 +246,4 @@ const CommandList = React.forwardRef(({ items, command }: { items: any[], comman
 });
 
 CommandList.displayName = 'CommandList';
+

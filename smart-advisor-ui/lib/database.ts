@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import fs from 'node:fs';
+import { requireEnv } from '@/lib/env';
 
 /**
  * Drop all tables and recreate them. (Nuclear Reset)
@@ -35,7 +36,6 @@ export interface VisitorLog {
 export async function initDB() {
     try {
         await prisma.$connect();
-        console.log("[DB] Connection initialized and healthy.");
     } catch (e) {
         console.error("[DB] Initialization failed:", e);
         throw e;
@@ -305,7 +305,7 @@ export interface SaveIntegrationTokenOptions {
     providerAccountId?: string;
     accountEmail?: string;
     studentName?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export async function saveIntegrationToken({
@@ -318,10 +318,10 @@ export async function saveIntegrationToken({
     }
     
     try {
-        const finalMetadata = metadata ? { ...metadata } : {};
-        if (studentName) (finalMetadata as any).student_name = studentName;
+        const finalMetadata: Record<string, unknown> = metadata ? { ...metadata } : {};
+        if (studentName) finalMetadata.student_name = studentName;
         // Always store email in metadata as a fallback for the "Unknown argument" error
-        if (accountEmail) (finalMetadata as any).account_email = accountEmail;
+        if (accountEmail) finalMetadata.account_email = accountEmail;
 
         const dataPayload = {
             student_id: user.student_id || studentId,
@@ -329,7 +329,7 @@ export async function saveIntegrationToken({
             refresh_token: refreshToken || null,
             expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
             provider_account_id: providerAccountId || null,
-            metadata: finalMetadata as any,
+            metadata: finalMetadata,
             updated_at: new Date()
         };
 
@@ -355,8 +355,8 @@ export async function saveIntegrationToken({
                 });
             }
         });
-    } catch (error: any) {
-        console.error(`[DB] saveIntegrationToken failure: ${error.message}`);
+    } catch (error: unknown) {
+        console.error("[DB] saveIntegrationToken failure:", error);
         throw error;
     }
 }
@@ -382,8 +382,8 @@ export async function getIntegrationToken(studentId: string, provider: string) {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({
-                    client_id: process.env.GOOGLE_CLIENT_ID!,
-                    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+                    client_id: requireEnv("GOOGLE_CLIENT_ID"),
+                    client_secret: requireEnv("GOOGLE_CLIENT_SECRET"),
                     refresh_token: token.refresh_token,
                     grant_type: "refresh_token",
                 }),
@@ -414,7 +414,7 @@ export async function getIntegrationToken(studentId: string, provider: string) {
         return null;
     }
 
-    const metadata = token.metadata ? (token.metadata as any) : {};
+    const metadata = (token.metadata ?? {}) as Record<string, unknown>;
     return {
         accessToken: accessToken,
         refreshToken: token.refresh_token,

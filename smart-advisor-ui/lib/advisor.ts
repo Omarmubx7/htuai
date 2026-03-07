@@ -1,4 +1,4 @@
-import { Course } from '@/types';
+import { Course, PrerequisiteLogicRules } from '@/types';
 
 interface PrereqResult {
     isLocked: boolean;
@@ -38,7 +38,12 @@ function checkCreditHours(prereqStr: string, completedCredits: number): PrereqRe
 /**
  * Improved prerequisite parser that handles basic logical groups.
  */
-function evaluateLogic(str: string, completed: Set<string> | Map<string, any>, rules: any, allCodes: Set<string>): { isLocked: boolean; missing: string[] } {
+function evaluateLogic(
+    str: string,
+    completed: Set<string> | Map<string, string>,
+    rules: PrerequisiteLogicRules,
+    allCodes: Set<string>
+): { isLocked: boolean; missing: string[] } {
     const s = str.trim();
     if (!s) return { isLocked: false, missing: [] };
 
@@ -76,12 +81,12 @@ function evaluateLogic(str: string, completed: Set<string> | Map<string, any>, r
 
 export function checkPrerequisites(
     course: Course,
-    completedCourses: Map<string, any> | Set<string>,
+    completedCourses: Map<string, string> | Set<string>,
     completedCredits: number = 0,
     allCourseCodes: Set<string> = new Set(),
-    logicRules?: any
+    logicRules?: PrerequisiteLogicRules
 ): PrereqResult {
-    const rules = logicRules || {
+    const rules: PrerequisiteLogicRules = logicRules || {
         code_regex: String.raw`\b\d{6,10}\b`,
         separators: { and: ["AND", "&"], or: ["OR"] }
     };
@@ -112,7 +117,7 @@ export function checkPrerequisites(
     return { isLocked: result.isLocked, missing: result.missing };
 }
 
-function extractCode(str: string, rules: any): string | null {
+function extractCode(str: string, rules: PrerequisiteLogicRules): string | null {
     const regexStr = rules.code_regex;
     const match = new RegExp(regexStr).exec(str);
     if (match) {

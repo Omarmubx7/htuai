@@ -2,25 +2,26 @@
 
 import { useMemo, useState, memo } from "react";
 import { motion } from "framer-motion";
-import { Course, CourseData } from "@/types";
+import { Course, CourseData, CurriculumRules } from "@/types";
 import {
     GraduationCap, Target, BookOpen, TrendingUp as GpaIcon,
     Sparkles, Calendar, Award, Star, Clock, CheckCircle, ArrowRight, Settings
 } from "lucide-react";
 import Link from "next/link";
 import { getClassification, GRADE_MAP } from "@/lib/grading";
+import { fetchWithRetry } from "@/lib/fetch-retry";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Props
    ═══════════════════════════════════════════════════════════════════ */
 
 interface StudentDashboardProps {
-    completedCourses: Map<string, any> | Set<string>;
+    completedCourses: Map<string, string> | Set<string>;
     completedCredits: number;
     totalCredits: number;
     data: CourseData;
     allCourses: Course[];
-    rules: any;
+    rules: CurriculumRules;
     previousGpaHistory?: { gpa: number | null, credits: number | null };
     setPreviousGpaHistory?: (val: { gpa: number | null, credits: number | null }) => void;
 }
@@ -64,7 +65,8 @@ function StudentDashboard({
     const trackedStats = useMemo(() => {
         let qualityPoints = 0;
         let credits = 0;
-        for (const [code, grade] of completedCourses.entries()) {
+        for (const [code, entryValue] of completedCourses.entries()) {
+            const grade = completedCourses instanceof Map ? entryValue : "M";
             const course = allCourses.find(c => c.code === code);
             if (course && course.ch > 0 && GRADE_MAP[grade]?.points !== undefined) {
                 qualityPoints += GRADE_MAP[grade].points * course.ch;
@@ -106,13 +108,14 @@ function StudentDashboard({
         const finalCr = totalCr > 0 ? totalCr : null;
 
         try {
-            const res = await fetch('/api/student/profile', {
+            const res = await fetchWithRetry('/api/student/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     previous_gpa: finalGpa,
                     previous_credits: finalCr
-                })
+                }),
+                retries: 2
             });
             if (res.ok) {
                 if (setPreviousGpaHistory) {
@@ -120,8 +123,8 @@ function StudentDashboard({
                 }
                 setIsEditingGpa(false);
             }
-        } catch (e) {
-            console.error("Failed to save previous GPA", e);
+        } catch (error) {
+            console.error("Failed to save previous GPA", error);
         } finally {
             setSavingGpa(false);
         }
@@ -167,7 +170,12 @@ function StudentDashboard({
             return doneCH;
         };
 
-        const actualRuleSet = Object.values(rules.degree_types).find((rs: any) => rs.total_credits === totalCredits) as any || rules.degree_types.computing_bsc;
+        const degreeTypeValues = Object.values(rules.degree_types);
+        const defaultRuleSet = rules.degree_types.computing_bsc ?? degreeTypeValues[0];
+        if (!defaultRuleSet) {
+            throw new Error("No degree rules configured");
+        }
+        const actualRuleSet = degreeTypeValues.find((rs) => rs.total_credits === totalCredits) ?? defaultRuleSet;
 
         const maxUniElec = actualRuleSet.max_uni_electives;
         const maxDeptElec = actualRuleSet.max_dept_electives;

@@ -17,6 +17,31 @@ export interface CourseData {
     work_market_requirements?: Course[];
 }
 
+export interface PrerequisiteLogicRules {
+    code_regex: string;
+    separators?: {
+        and: string[];
+        or: string[];
+    };
+    stripping?: {
+        leading_zeros_if_length?: number;
+    };
+}
+
+export interface DegreeTypeRule {
+    total_credits: number;
+    major_keys: string[];
+    max_dept_electives?: number;
+    max_uni_electives?: number;
+}
+
+export interface CurriculumRules {
+    degree_types: Record<string, DegreeTypeRule>;
+    logic_rules?: {
+        prerequisites?: PrerequisiteLogicRules;
+    };
+}
+
 export type SemesterType = "Regular" | "Summer";
 
 export interface CompletedCourse {

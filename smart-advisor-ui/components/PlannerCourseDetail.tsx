@@ -8,6 +8,45 @@ import Link from "next/link";
 import CourseNotesEditor from "./CourseNotesEditor";
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+
+type NotesContent = Record<string, unknown> | string | null;
+
+interface StudySession {
+    id: number;
+    type: string;
+    duration_minutes: number;
+}
+
+interface SemesterMeta {
+    start_date?: string | null;
+    end_date?: string | null;
+}
+
+interface PlannerCourse {
+    id: number;
+    semester_id: number;
+    code: string;
+    name: string;
+    credits: number;
+    midterm_date?: string | null;
+    final_date?: string | null;
+    instructor_name?: string | null;
+    location?: string | null;
+    final_mark?: number | null;
+    status?: string | null;
+    class_schedule?: string | null;
+    course_notes?: Array<{ content: NotesContent }>;
+    semester?: SemesterMeta;
+}
+
+interface SemesterWithCourses extends SemesterMeta {
+    courses: PlannerCourse[];
+}
+
+interface SemesterResponse {
+    semesters: SemesterWithCourses[];
+}
 
 export default function PlannerCourseDetail({ courseId }: { readonly courseId: string }) {
     const { status } = useSession();
@@ -15,8 +54,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     const { toast } = useToast();
 
     const [loading, setLoading] = useState(true);
-    const [course, setCourse] = useState<any>(null);
-    const [sessions, setSessions] = useState<any[]>([]);
+    const [course, setCourse] = useState<PlannerCourse | null>(null);
+    const [sessions, setSessions] = useState<StudySession[]>([]);
 
     // New Session State
     const [duration, setDuration] = useState<number>(30);
@@ -25,7 +64,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     const [logging, setLogging] = useState(false);
 
     // Notes State
-    const [courseContent, setCourseContent] = useState<any>(null);
+    const [courseContent, setCourseContent] = useState<NotesContent>(null);
 
     // Exam Dates State
     const [midtermDate, setMidtermDate] = useState<string>("");
@@ -53,7 +92,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         }
     }, [status, router, courseId]);
 
-    const parseAndSetSchedule = (scheduleData: any) => {
+    const parseAndSetSchedule = (scheduleData: unknown) => {
         try {
             const parsed = typeof scheduleData === 'string'
                 ? JSON.parse(scheduleData)
@@ -80,26 +119,27 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
     const fetchSessions = async () => {
         try {
-            const sessRes = await fetch(`/api/planner/study-sessions?courseId=${courseId}`);
-            if (sessRes.ok) {
-                const sessData = await sessRes.json();
-                setSessions(sessData.sessions || []);
-            }
-        } catch (e) {
-            console.error("Failed to load sessions", e);
+            const sessData = await fetchJSON<{ sessions: StudySession[] }>(`/api/planner/study-sessions?courseId=${courseId}`, { retries: 2 });
+            setSessions(sessData.sessions || []);
+        } catch (error) {
+            console.error("Failed to load sessions", error);
+            toast("Could not load study sessions", "error");
         }
     };
 
     const fetchCourseData = async () => {
         try {
             setLoading(true);
-            const res = await fetch("/api/planner/semesters");
-            if (!res.ok) return;
+            const res = await fetchWithRetry("/api/planner/semesters", { retries: 2 });
+            if (!res.ok) {
+                toast("Failed to load course data", "error");
+                return;
+            }
 
-            const data = await res.json();
-            let foundCourse = null;
+            const data = await res.json() as SemesterResponse;
+            let foundCourse: PlannerCourse | null = null;
             for (const sem of data.semesters) {
-                const match = sem.courses.find((c: { id: number }) => c.id.toString() === courseId);
+                const match = sem.courses.find((c: PlannerCourse) => c.id.toString() === courseId);
                 if (match) {
                     foundCourse = { ...match, semester: sem };
                     break;
@@ -135,37 +175,38 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
             // Fetch dedicated course notes content if available
             try {
-                const notesRes = await fetch(`/api/courses/${courseId}/notes`);
-                if (notesRes.ok) {
-                    const notesData = await notesRes.json();
-                    setCourseContent(notesData.notes);
-                }
-            } catch (e) { console.error(e); }
+                const notesData = await fetchJSON<{ notes: NotesContent }>(`/api/courses/${courseId}/notes`, { retries: 2 });
+                setCourseContent(notesData.notes);
+            } catch (error) { 
+                console.error("Failed to load notes", error); 
+            }
 
             await fetchSessions();
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error(error);
+            toast(`Failed to load course: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAutoSaveNotes = async (content: any) => {
+    const handleAutoSaveNotes = async (content: NotesContent) => {
         try {
-            await fetch(`/api/courses/${courseId}/notes`, {
+            await fetchWithRetry(`/api/courses/${courseId}/notes`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ notes: content }),
+                retries: 2
             });
-        } catch (e) {
-            console.error("Failed to autosave notes:", e);
+        } catch (error) {
+            console.error("Failed to autosave notes:", error);
         }
     };
 
     const handleLogSession = async () => {
         setLogging(true);
         try {
-            const res = await fetch("/api/planner/study-sessions", {
+            const res = await fetchWithRetry("/api/planner/study-sessions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -173,7 +214,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                     duration_minutes: duration,
                     type: sessionType,
                     notes: sessionNotes || null
-                })
+                }),
+                retries: 2
             });
 
             if (res.ok) {
@@ -182,10 +224,12 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                 setSessions([data.session, ...sessions]);
                 setDuration(30);
                 setSessionNotes("");
+            } else {
+                throw new Error("Failed to log session");
             }
         } catch (error) {
             console.error(error);
-            toast("Could not log session.", "error");
+            toast(`Failed to log session: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setLogging(false);
         }
@@ -193,14 +237,17 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
     const triggerBackgroundSync = async () => {
         try {
-            const res = await fetch("/api/connect/google/sync", { method: "POST" });
+            const res = await fetchWithRetry("/api/connect/google/sync", { 
+                method: "POST",
+                retries: 1
+            });
             if (res.status === 401) {
                 toast("Google connection expired. Please reconnect in Settings to sync your calendar.", "error");
             } else if (!res.ok) {
                 console.warn("Background sync failed");
             }
-        } catch (e) {
-            console.error("Auto-sync trigger failed", e);
+        } catch (error) {
+            console.error("Auto-sync trigger failed", error);
         }
     };
 
@@ -266,13 +313,14 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
         setSavingDates(true);
         try {
-            const res = await fetch(`/api/planner/courses/${course.id}`, {
+            const res = await fetchWithRetry(`/api/planner/courses/${course.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     midterm_date: midtermDate ? new Date(midtermDate).toISOString() : null,
                     final_date: finalDate ? new Date(finalDate).toISOString() : null
-                })
+                }),
+                retries: 2
             });
 
             if (res.ok) {
@@ -284,7 +332,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             }
         } catch (error) {
             console.error(error);
-            toast("An error occurred while saving dates.", "error");
+            toast(`Failed to save dates: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setSavingDates(false);
         }
@@ -297,7 +345,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                 ? `${scheduleDays.join("/")} ${scheduleTime}-${scheduleEndTime}`
                 : "";
 
-            const res = await fetch(`/api/planner/courses/${course.id}`, {
+            const res = await fetchWithRetry(`/api/planner/courses/${course.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -306,7 +354,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                     class_schedule: compiledSchedule || "",
                     final_mark: finalMark === "" ? null : finalMark,
                     status: courseStatus
-                })
+                }),
+                retries: 2
             });
 
             if (res.ok) {
@@ -317,7 +366,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             }
         } catch (error) {
             console.error(error);
-            toast("An error occurred while saving course info.", "error");
+            toast(`Failed to save course info: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setSavingInfo(false);
         }
@@ -562,7 +611,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-black/20">
                             <CourseNotesEditor
-                                courseTitle={course.name}
+                                courseTitle={course.name === course.code ? `Course ${course.code}` : course.name}
                                 value={courseContent || course.course_notes?.[0]?.content}
                                 onAutoSave={handleAutoSaveNotes}
                             />

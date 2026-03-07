@@ -39,7 +39,7 @@ const SlashCommand = Extension.create({
     return {
       suggestion: {
         char: '/',
-        command: ({ editor, range, props }: any) => {
+        command: ({ editor, range, props }: { editor: unknown; range: unknown; props: { command: (args: { editor: unknown; range: unknown }) => void } }) => {
           props.command({ editor, range });
         },
       },
@@ -55,10 +55,12 @@ const SlashCommand = Extension.create({
   },
 });
 
+type NotesContent = Record<string, unknown> | string | null;
+
 interface CourseNotesEditorProps {
-  value?: any; // JSON or HTML
-  onChange?: (val: any) => void;
-  onAutoSave?: (val: any) => void;
+  value?: NotesContent; // JSON or HTML
+  onChange?: (val: NotesContent) => void;
+  onAutoSave?: (val: NotesContent) => void;
   courseTitle?: string;
   updatedAt?: string;
 }

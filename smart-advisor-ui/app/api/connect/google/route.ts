@@ -2,20 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getIntegrationToken } from "@/lib/database";
-import { getBaseUrl } from "@/lib/env";
+import { getBaseUrl, requireEnv } from "@/lib/env";
+
+interface GoogleExamEventPayload {
+    summary: string;
+    description: string;
+    start: { date: string; timeZone: string };
+    end: { date: string; timeZone: string };
+    reminders: { useDefault: boolean; overrides: Array<{ method: string; minutes: number }> };
+}
+
+interface SyncableCourse {
+    name: string;
+    credits: number;
+    midtermDate?: string | null;
+    finalDate?: string | null;
+    midtermEventId?: string | null;
+    finalEventId?: string | null;
+    [key: string]: unknown;
+}
+
+interface UpsertResult {
+    success: boolean;
+    eventId?: string;
+    error?: string;
+}
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
 export async function GET(req: NextRequest): Promise<Response> {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
 
-    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientId = requireEnv("GOOGLE_CLIENT_ID");
     const redirectUri = `${getBaseUrl(req)}/api/connect/google/callback`;
     const returnTo = req.nextUrl.searchParams.get("returnTo") || "/planner/settings";
-
-    if (!clientId) {
-        return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
-    }
 
     // Append scopes
 
@@ -31,7 +51,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     return NextResponse.redirect(url.toString());
 }
 
-async function upsertExamEvent(token: string, event: any, existingEventId?: string) {
+async function upsertExamEvent(token: string, event: GoogleExamEventPayload, existingEventId?: string): Promise<UpsertResult> {
     let url = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
     let method = "POST";
 
@@ -65,11 +85,11 @@ async function upsertExamEvent(token: string, event: any, existingEventId?: stri
     return { success: true, eventId: data.id };
 }
 
-async function processCourseExam(course: any, type: "Midterm" | "Final", token: string) {
+async function processCourseExam(course: SyncableCourse, type: "Midterm" | "Final", token: string): Promise<UpsertResult | null> {
     const date = type === "Midterm" ? course.midtermDate : course.finalDate;
     if (!date) return null;
 
-    const event = {
+    const event: GoogleExamEventPayload = {
         summary: `${course.name} — ${type}`,
         description: `${type} exam for ${course.name} (${course.credits} CH)`,
         start: { date, timeZone: "Asia/Amman" },
@@ -101,14 +121,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized: missing integration token" }, { status: 401 });
     }
 
-    const { courses } = await req.json();
+    const payload = await req.json() as { courses?: SyncableCourse[] };
+    const courses = payload.courses;
     if (!Array.isArray(courses)) return NextResponse.json({ error: "Invalid data" }, { status: 400 });
 
-    const results: any[] = [];
-    const updatedCourses: any[] = [];
+    const results: Array<{ course: string; type: "Midterm" | "Final"; success: boolean; eventId?: string; error?: string }> = [];
+    const updatedCourses: SyncableCourse[] = [];
 
     for (const course of courses) {
-        const updatedCourse = { ...course };
+        const updatedCourse: SyncableCourse = { ...course };
         for (const type of ["Midterm", "Final"] as const) {
             const res = await processCourseExam(course, type, token.accessToken);
             if (!res) continue;
@@ -127,7 +148,7 @@ export async function POST(req: NextRequest) {
         results,
         updatedCourses,
         eventsProcessed: results.length,
-        successCount: results.filter(r => r.success).length,
+        successCount: results.filter((r) => r.success).length,
         totalCount: results.length
     });
 }

@@ -5,11 +5,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { getUserByStudentId, createUser, getUserByEmail, linkAccount } from "./lib/database";
+import { requireEnv } from "@/lib/env";
 
 declare module "next-auth" {
     interface Session {
         user: {
             id: string;
+            db_id?: number;
             student_id?: string | null;
             provider?: string;
         } & DefaultSession["user"];
@@ -29,8 +31,8 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: requireEnv("GOOGLE_CLIENT_ID"),
+            clientSecret: requireEnv("GOOGLE_CLIENT_SECRET"),
         }),
         CredentialsProvider({
             name: "University ID",
@@ -40,9 +42,7 @@ export const authOptions: NextAuthOptions = {
                 is_claiming: { label: "Claiming Account", type: "text" }
             },
             async authorize(credentials) {
-                console.log("Authorize called with:", { ...credentials, password: "[REDACTED]" });
                 if (!credentials?.student_id || !credentials?.password) {
-                    console.log("Missing ID or Password");
                     return null;
                 }
 
@@ -52,37 +52,30 @@ export const authOptions: NextAuthOptions = {
 
                 try {
                     const user = await getUserByStudentId(studentId);
-                    console.log("Existing user found:", !!user);
 
                     if (isClaiming) {
                         if (user) {
-                            console.log("Claim rejected: account already exists for", studentId);
                             return null;
                         }
 
-                        console.log("Creating new user for claim:", studentId);
                         const passwordHash = await bcrypt.hash(password, 10);
                         const finalUser = await createUser({
                             student_id: studentId,
                             password_hash: passwordHash
                         });
 
-                        console.log("User successfully claimed with id:", finalUser.id);
                         return { id: finalUser.id.toString(), name: studentId, student_id: studentId };
                     }
 
                     if (!user || !user.password_hash) {
-                        console.log("Login failed: User not found or no password hash for ID:", studentId);
                         return null;
                     }
 
                     const isValid = await bcrypt.compare(password, user.password_hash);
                     if (!isValid) {
-                        console.log("Login failed: Invalid password for student_id:", studentId);
                         return null;
                     }
 
-                    console.log("Login successful for student_id:", studentId);
                     return { id: user.id.toString(), name: user.student_id, student_id: user.student_id };
                 } catch (error) {
                     console.error("Auth Error in authorize callback:", error);
@@ -118,7 +111,7 @@ export const authOptions: NextAuthOptions = {
                 if (dbUser) {
                     session.user.student_id = dbUser.student_id;
                     // Force the session ID to be the stable database ID string
-                    (session.user as any).db_id = dbUser.id;
+                    session.user.db_id = dbUser.id;
                 }
             }
             return session;
@@ -136,5 +129,5 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/login",
     },
-    secret: process.env.AUTH_SECRET,
+    secret: requireEnv("AUTH_SECRET"),
 };

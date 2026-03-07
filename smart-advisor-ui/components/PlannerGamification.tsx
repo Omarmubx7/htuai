@@ -5,13 +5,42 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Star, Target, Crown, Flame } from "lucide-react";
 import Link from "next/link";
+import { fetchWithRetry } from "@/lib/fetch-retry";
+
+interface GamificationProfile {
+    level: number;
+    xp: number;
+    current_streak_days: number;
+    longest_streak_days: number;
+}
+
+interface QuestItem {
+    id: number;
+    type: string;
+    current_value: number;
+    target_value: number;
+    scope: string;
+    status: string;
+    expires_at?: string | null;
+}
+
+interface BadgeItem {
+    name: string;
+    description?: string | null;
+}
+
+interface GamificationStats {
+    profile: GamificationProfile;
+    badges: BadgeItem[];
+    quests: QuestItem[];
+}
 
 export default function PlannerGamification() {
     const { status } = useSession();
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<GamificationStats | null>(null);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -25,16 +54,19 @@ export default function PlannerGamification() {
         try {
             setLoading(true);
             const [profRes, questRes] = await Promise.all([
-                fetch("/api/gamification/profile"),
-                fetch("/api/gamification/quests")
+                fetchWithRetry("/api/gamification/profile", { retries: 2 }),
+                fetchWithRetry("/api/gamification/quests", { retries: 2 })
             ]);
 
             if (profRes.ok && questRes.ok) {
-                const profileData = await profRes.json();
-                const questsData = await questRes.json();
+                const profileData = await profRes.json() as { profile: GamificationProfile; badges: BadgeItem[] };
+                const questsData = await questRes.json() as { quests: QuestItem[] };
                 setStats({ ...profileData, quests: questsData.quests });
+            } else {
+                throw new Error('Failed to fetch gamification data');
             }
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to load gamification data', error);
             alert("Failed to load gamification data.");
         } finally {
             setLoading(false);
@@ -105,7 +137,7 @@ export default function PlannerGamification() {
                         <Target className="w-5 h-5 text-emerald-400" /> Active Quests
                     </h3>
 
-                    {quests.map((quest: any) => {
+                    {quests.map((quest: QuestItem) => {
                         const progressPercent = Math.min((quest.current_value / quest.target_value) * 100, 100);
                         return (
                             <div key={quest.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all">
@@ -138,7 +170,7 @@ export default function PlannerGamification() {
 
                     {badges?.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {badges.map((badge: any, i: number) => (
+                            {badges.map((badge: BadgeItem, i: number) => (
                                 <div key={i} className="flex flex-col items-center justify-center p-6 bg-white/5 rounded-[2rem] border border-white/10 text-center group">
                                     <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                         <Trophy className="w-6 h-6" />

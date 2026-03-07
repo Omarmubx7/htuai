@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ notion: false, google_calendar: false, error: "no_session" }, { status: 401 });
     }
 
-    const studentId = ((session.user as any).db_id?.toString()) || (session.user as any).student_id || session.user.email || session.user.name;
+    const studentId = session.user.db_id?.toString() || session.user.student_id || session.user.email || session.user.name;
     if (!studentId) {
         return NextResponse.json({ notion: false, google_calendar: false, error: "no_student_id" }, { status: 400 });
     }
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
             user_session: {
                 email: session.user.email,
                 name: session.user.name,
-                id: (session.user as any).id
+                id: session.user.id
             }
         }
     });

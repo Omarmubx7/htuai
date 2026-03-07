@@ -9,7 +9,7 @@ async function verifyAccess(req: NextRequest) {
     if (!session?.user) return { error: 'Unauthorized', status: 401 };
 
     const email = session.user.email;
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.name;
 
     const user = await prisma.user.findFirst({
         where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
@@ -37,31 +37,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: 'Course not found' }, { status: 404 });
         }
 
-        const body = await req.json();
+        const body = await req.json() as Record<string, unknown>;
 
         // Allow updates of attributes
-        const updatedInfo: any = { updated_at: new Date() };
+        const updatedInfo: Parameters<typeof prisma.course.update>[0]["data"] = { updated_at: new Date() };
 
         // Core course fields
-        if (body.code !== undefined) updatedInfo.code = body.code.toUpperCase();
-        if (body.name !== undefined) updatedInfo.name = body.name;
+        if (body.code !== undefined) updatedInfo.code = String(body.code).toUpperCase();
+        if (body.name !== undefined) updatedInfo.name = String(body.name);
         if (body.credits !== undefined) updatedInfo.credits = Number(body.credits);
         
         // Status and grade fields
-        if (body.status !== undefined) updatedInfo.status = body.status;
-        if (body.grade_letter !== undefined) updatedInfo.grade_letter = body.grade_letter;
-        if (body.grade_point !== undefined) updatedInfo.grade_point = body.grade_point;
-        if (body.final_mark !== undefined) updatedInfo.final_mark = body.final_mark;
-        if (body.is_completed !== undefined) updatedInfo.is_completed = body.is_completed;
+        if (body.status !== undefined) updatedInfo.status = String(body.status);
+        if (body.grade_letter !== undefined) updatedInfo.grade_letter = String(body.grade_letter);
+        if (body.grade_point !== undefined) updatedInfo.grade_point = Number(body.grade_point);
+        if (body.final_mark !== undefined) updatedInfo.final_mark = Number(body.final_mark);
+        if (body.is_completed !== undefined) updatedInfo.is_completed = Boolean(body.is_completed);
         
         // Metadata fields
-        if (body.instructor_name !== undefined) updatedInfo.instructor_name = body.instructor_name;
-        if (body.location !== undefined) updatedInfo.location = body.location;
+        if (body.instructor_name !== undefined) updatedInfo.instructor_name = body.instructor_name as string | null;
+        if (body.location !== undefined) updatedInfo.location = body.location as string | null;
         if (body.class_schedule !== undefined) {
-            updatedInfo.class_schedule = body.class_schedule;
+            updatedInfo.class_schedule = body.class_schedule as object;
         }
-        if (body.midterm_date !== undefined) updatedInfo.midterm_date = body.midterm_date ? new Date(body.midterm_date) : null;
-        if (body.final_date !== undefined) updatedInfo.final_date = body.final_date ? new Date(body.final_date) : null;
+        if (body.midterm_date !== undefined) updatedInfo.midterm_date = body.midterm_date ? new Date(String(body.midterm_date)) : null;
+        if (body.final_date !== undefined) updatedInfo.final_date = body.final_date ? new Date(String(body.final_date)) : null;
 
         const updated = await prisma.course.update({
             where: { id: courseId },
@@ -73,7 +73,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             await prisma.gamificationProfile.upsert({
                 where: { user_id: auth.user!.id },
                 update: { xp: { increment: 150 } },
-                create: { user_id: auth.user!.id, xp: 150, level: 1 }
+                create: { user_id: auth.user!.id, xp: 160, level: 1 } // 10 base + 150 bonus if creating new
             });
             await evaluateAchievements(auth.user!.id);
         }

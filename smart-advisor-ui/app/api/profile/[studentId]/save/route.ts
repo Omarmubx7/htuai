@@ -14,7 +14,7 @@ export async function POST(
 
     if (!targetId) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
-    const authedSid = (session?.user as any)?.student_id || session?.user?.name;
+    const authedSid = session?.user?.student_id || session?.user?.name;
 
     if (!session || authedSid !== targetId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

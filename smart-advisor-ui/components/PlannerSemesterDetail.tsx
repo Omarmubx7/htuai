@@ -10,18 +10,46 @@ import { GRADE_MAP } from "@/lib/grading";
 import { useToast } from "./ui/Toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import ThemeToggle from "@/components/ThemeToggle";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 
 interface PlannerSemesterDetailProps {
     semesterId: string;
 }
 
+interface PlannerCourseItem {
+    id: number;
+    code: string;
+    name: string;
+    credits: number;
+    grade_letter?: string | null;
+    [key: string]: unknown;
+}
+
+interface SemesterNoteItem {
+    id: number;
+    title: string;
+    notes?: string | null;
+    content?: Record<string, unknown>;
+    created_at?: string;
+    updated_at?: string;
+}
+
+interface SemesterDetail {
+    id: number;
+    name: string;
+    start_date?: string | null;
+    end_date?: string | null;
+    courses: PlannerCourseItem[];
+}
+
 function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailProps>) {
+    const { status } = useSession();
     const router = useRouter();
     const { toast } = useToast();
 
     const [loading, setLoading] = useState(true);
-    const [semester, setSemester] = useState<any>(null);
-    const [courses, setCourses] = useState<any[]>([]);
+    const [semester, setSemester] = useState<SemesterDetail | null>(null);
+    const [courses, setCourses] = useState<PlannerCourseItem[]>([]);
 
     // Add manual course modal
     const [showAddModal, setShowAddModal] = useState(false);
@@ -29,10 +57,10 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
     // Edit course modal
     const [showEditModal, setShowEditModal] = useState(false);
-    const [editingCourse, setEditingCourse] = useState<any>(null);
+    const [editingCourse, setEditingCourse] = useState<PlannerCourseItem | null>(null);
 
     // Autocomplete state
-    const [availableCourses, setAvailableCourses] = useState<any[]>([]);
+    const [availableCourses, setAvailableCourses] = useState<Array<{ code: string; name: string; credits: number }>>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -42,9 +70,9 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const [savingDates, setSavingDates] = useState(false);
 
     // Semester Notes State
-    const [notes, setNotes] = useState<any[]>([]);
+    const [notes, setNotes] = useState<SemesterNoteItem[]>([]);
     const [showNoteModal, setShowNoteModal] = useState(false);
-    const [editingNote, setEditingNote] = useState<any>(null);
+    const [editingNote, setEditingNote] = useState<SemesterNoteItem | null>(null);
     const [noteDraft, setNoteDraft] = useState({ title: "", notes: "" });
 
     // Confirm Dialog States
@@ -55,30 +83,33 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
     const fetchNotes = useCallback(async () => {
         try {
-            const res = await fetch(`/api/planner/semesters/${semesterId}/notes`);
-            if (res.ok) {
-                const data = await res.json();
-                setNotes(data.notes || []);
-            }
-        } catch (e) { console.error("Failed to fetch notes"); }
-    }, [semesterId]);
+            const data = await fetchJSON<{ notes: SemesterNoteItem[] }>(`/api/planner/semesters/${semesterId}/notes`, { retries: 2 });
+            setNotes(data.notes || []);
+        } catch (error) {
+            console.error("Failed to fetch notes", error);
+            toast("Could not load notes", "error");
+        }
+    }, [semesterId, toast]);
 
     const fetchSemester = useCallback(async () => {
         try {
             setLoading(true);
             const [res, currRes] = await Promise.all([
-                fetch("/api/planner/semesters"),
-                fetch("/data/curriculum.json")
+                fetchWithRetry("/api/planner/semesters", { retries: 2 }),
+                fetchWithRetry("/data/curriculum.json", { retries: 2 })
             ]);
 
             if (!res.ok) throw new Error("Failed fetching semesters");
 
             // Handle curriculum logic for autocomplete
             if (currRes.ok) {
-                const curriculum = await currRes.json();
-                const uniqueCourses = new Map<string, any>();
+                const curriculum = await currRes.json() as {
+                    shared?: Record<string, Array<{ code?: string; name?: string; ch?: number }>>;
+                    majors?: Record<string, Record<string, Array<{ code?: string; name?: string; ch?: number }>>>;
+                };
+                const uniqueCourses = new Map<string, { code: string; name: string; credits: number }>();
 
-                const processList = (list: any[]) => {
+                const processList = (list?: Array<{ code?: string; name?: string; ch?: number }>) => {
                     if (!list) return;
                     list.forEach(c => {
                         if (c.code && c.name) {
@@ -94,7 +125,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 }
 
                 if (curriculum.majors) {
-                    Object.values(curriculum.majors).forEach((m: any) => {
+                    Object.values(curriculum.majors).forEach((m) => {
                         processList(m.university_requirements);
                         processList(m.college_requirements);
                         processList(m.department_requirements);
@@ -106,8 +137,8 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 setAvailableCourses(Array.from(uniqueCourses.values()));
             }
 
-            const data = await res.json();
-            const found = data.semesters.find((s: any) => s.id.toString() === semesterId);
+            const data = await res.json() as { semesters: SemesterDetail[] };
+            const found = data.semesters.find((s) => s.id.toString() === semesterId);
 
             if (found) {
                 setSemester(found);
@@ -118,8 +149,9 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 toast("Semester not found.", "error");
                 router.push("/planner/semesters");
             }
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error(error);
+            toast(`Failed to load semester: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setLoading(false);
         }
@@ -148,13 +180,14 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         }
         
         try {
-            const res = await fetch("/api/planner/courses", {
+            const res = await fetchWithRetry("/api/planner/courses", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     semester_id: semesterId,
                     ...newCourse
-                })
+                }),
+                retries: 2
             });
             if (res.ok) {
                 const data = await res.json();
@@ -167,8 +200,8 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 const errorData = await res.json();
                 toast(errorData.error || "Failed to add course.", "error");
             }
-        } catch (e) {
-            toast("Failed to add course.", "error");
+        } catch (error) {
+            toast(`Failed to add course: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         }
     };
 
@@ -177,10 +210,11 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         try {
             const method = editingNote ? "PATCH" : "POST";
             const body = editingNote ? { ...noteDraft, id: editingNote.id } : noteDraft;
-            const res = await fetch(`/api/planner/semesters/${semesterId}/notes`, {
+            const res = await fetchWithRetry(`/api/planner/semesters/${semesterId}/notes`, {
                 method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
+                body: JSON.stringify(body),
+                retries: 2
             });
 
             if (res.ok) {
@@ -195,7 +229,9 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 setNoteDraft({ title: "", notes: "" });
                 toast("Note saved!", "success");
             }
-        } catch (e) { toast("Failed to save note", "error"); }
+        } catch (error) {
+            toast(`Failed to save note: ${error instanceof Error ? error.message : 'Network error'}`, "error");
+        }
     };
 
     const confirmDeleteNote = (id: number) => {
@@ -206,12 +242,17 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const handleDeleteNote = async () => {
         if (!noteToDelete) return;
         try {
-            const res = await fetch(`/api/planner/semesters/${semesterId}/notes?id=${noteToDelete}`, { method: "DELETE" });
+            const res = await fetchWithRetry(`/api/planner/semesters/${semesterId}/notes?id=${noteToDelete}`, { 
+                method: "DELETE",
+                retries: 1
+            });
             if (res.ok) {
                 setNotes(notes.filter(n => n.id !== noteToDelete));
                 toast("Note deleted.", "success");
             }
-        } catch (e) { toast("Failed to delete note", "error"); }
+        } catch (error) {
+            toast(`Failed to delete note: ${error instanceof Error ? error.message : 'Network error'}`, "error");
+        }
         setShowDeleteNoteConfirm(false);
         setNoteToDelete(null);
     };
@@ -219,36 +260,38 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const handleUpdateGrade = async (courseId: number, grade: string) => {
         try {
             const gradeInfo = GRADE_MAP[grade];
-            const res = await fetch(`/api/planner/courses/${courseId}`, {
+            const res = await fetchWithRetry(`/api/planner/courses/${courseId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     grade_letter: grade,
                     grade_point: gradeInfo ? gradeInfo.points : null,
                     is_completed: !!gradeInfo
-                })
+                }),
+                retries: 2
             });
 
             if (res.ok) {
                 const data = await res.json();
                 setCourses(courses.map(c => c.id === courseId ? data.course : c));
             }
-        } catch (e) {
-            toast("Failed to update grade.", "error");
+        } catch (error) {
+            toast(`Failed to update grade: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         }
     };
 
     const handleEditCourse = async () => {
         if (!editingCourse) return;
         try {
-            const res = await fetch(`/api/planner/courses/${editingCourse.id}`, {
+            const res = await fetchWithRetry(`/api/planner/courses/${editingCourse.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     code: editingCourse.code,
                     name: editingCourse.name,
                     credits: editingCourse.credits
-                })
+                }),
+                retries: 2
             });
             if (res.ok) {
                 const data = await res.json();
@@ -256,8 +299,8 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 setShowEditModal(false);
                 toast("Course updated!", "success");
             }
-        } catch (e) {
-            toast("Failed to update course.", "error");
+        } catch (error) {
+            toast(`Failed to update course: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         }
     };
 
@@ -269,13 +312,16 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const handleDeleteCourse = async () => {
         if (!courseToDelete) return;
         try {
-            const res = await fetch(`/api/planner/courses/${courseToDelete}`, { method: "DELETE" });
+            const res = await fetchWithRetry(`/api/planner/courses/${courseToDelete}`, { 
+                method: "DELETE",
+                retries: 1
+            });
             if (res.ok) {
                 setCourses(courses.filter(c => c.id !== courseToDelete));
                 toast("Course deleted.", "success");
             }
-        } catch (e) {
-            toast("Failed to delete course.", "error");
+        } catch (error) {
+            toast(`Failed to delete course: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         }
         setShowDeleteCourseConfirm(false);
         setCourseToDelete(null);
@@ -284,24 +330,25 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const handleSaveSemesterDates = async () => {
         setSavingDates(true);
         try {
-            const res = await fetch(`/api/planner/semesters/${semesterId}`, {
+            const res = await fetchWithRetry(`/api/planner/semesters/${semesterId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     start_date: startDate || null,
                     end_date: endDate || null
-                })
+                }),
+                retries: 2
             });
 
             if (res.ok) {
                 toast("Semester dates saved successfully!", "success");
                 // Trigger background sync to update recurring schedules
-                fetch("/api/connect/google/sync", { method: "POST" }).catch(e => console.error(e));
+                fetchWithRetry("/api/connect/google/sync", { method: "POST", retries: 1 }).catch(e => console.error(e));
             } else {
                 toast("Failed to save dates.", "error");
             }
-        } catch (e) {
-            toast("An error occurred while saving dates.", "error");
+        } catch (error) {
+            toast(`Failed to save dates: ${error instanceof Error ? error.message : 'Network error'}`, "error");
         } finally {
             setSavingDates(false);
         }

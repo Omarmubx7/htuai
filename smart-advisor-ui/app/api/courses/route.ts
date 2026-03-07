@@ -12,9 +12,10 @@ export async function GET() {
 
         const courseMap: Map<string, { name: string, code: string, ch: number }> = new Map();
 
-        const processList = (list: any[]) => {
+        const processList = (list: unknown[]) => {
             if (!list) return;
-            list.forEach(c => {
+            list.forEach((entry) => {
+                const c = entry as { code?: string; name?: string; ch?: number };
                 if (c.code && c.name) {
                     let code = c.code.trim();
                     if (code.startsWith('00') && code.length === 10) code = code.substring(2);
@@ -52,7 +53,7 @@ export async function GET() {
         });
 
         return NextResponse.json(sortedCourses);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Failed to load courses for autocomplete:", error);
         return NextResponse.json({ error: "Failed to load courses" }, { status: 500 });
     }

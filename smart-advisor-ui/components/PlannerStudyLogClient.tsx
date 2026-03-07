@@ -7,13 +7,41 @@ import { BookOpen, Clock, TrendingUp, Calendar as CalendarIcon, PlayCircle, Sett
 import Link from "next/link";
 import { motion } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
+import { fetchJSON } from "@/lib/fetch-retry";
+
+interface StudySessionItem {
+    id: number;
+    created_at: string;
+    duration_minutes: number;
+    notes: string | null;
+    course: {
+        name: string;
+    };
+}
+
+interface NeglectedCourseInfo {
+    last_studied: string | null;
+    course: {
+        name: string;
+    };
+}
+
+interface StudyLogStats {
+    total_study_minutes: number;
+    study_sessions: StudySessionItem[];
+    neglected_course: NeglectedCourseInfo | null;
+}
+
+interface PlannerSummaryResponse {
+    studyLogStats?: StudyLogStats;
+}
 
 export default function PlannerStudyLogClient() {
     const { status } = useSession();
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<PlannerSummaryResponse | null>(null);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -26,13 +54,15 @@ export default function PlannerStudyLogClient() {
     const fetchStudyLogInfo = async () => {
         try {
             setLoading(true);
-            const res = await fetch("/api/planner/summary");
-            if (res.ok) {
-                const data = await res.json();
-                setStats(data);
-            }
-        } catch (e) {
-            console.error(e);
+            const data = await fetchJSON<PlannerSummaryResponse>("/api/planner/summary", { retries: 2 });
+            console.log("[StudyLog] API response:", { 
+                hasStudyLogStats: !!data.studyLogStats, 
+                totalMinutes: data.studyLogStats?.total_study_minutes,
+                sessionCount: data.studyLogStats?.study_sessions?.length
+            });
+            setStats(data);
+        } catch (error) {
+            console.error("Failed to load study log", error);
         } finally {
             setLoading(false);
         }
@@ -124,7 +154,7 @@ export default function PlannerStudyLogClient() {
 
                     <div className="space-y-3">
                         {study_sessions.length > 0 ? (
-                            study_sessions.map((session: any, index: number) => (
+                            study_sessions.map((session: StudySessionItem, index: number) => (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}

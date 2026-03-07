@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = (session.user as any).student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.name;
     const email = session.user.email;
 
     try {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
             { status: 200 }
         );
 
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("Failed to update student profile", e);
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }

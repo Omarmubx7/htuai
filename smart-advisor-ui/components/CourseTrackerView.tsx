@@ -2,7 +2,7 @@
 
 import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Course, CourseData } from '@/types';
+import { Course, CourseData, CurriculumRules } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
 import { calculateGPA } from '@/lib/grading';
@@ -20,7 +20,7 @@ interface CourseTrackerViewProps {
     data: CourseData;
     studentId: string;
     majorKey: string;
-    rules: any;
+    rules: CurriculumRules;
     completedCourses: Map<string, string>;
     toggleCourse: (code: string) => void;
     updateCourseGrade: (code: string, grade: string) => void;
@@ -71,9 +71,12 @@ function CourseTrackerView({
     const allCourseCodes = new Set(allCourses.map(c => c.code));
 
     // Determine rule set from majorKey
-    const ruleSet = Object.values(rules.degree_types).find((rs: any) =>
-        rs.major_keys.includes(majorKey)
-    ) as any || rules.degree_types.computing_bsc;
+    const degreeTypeValues = Object.values(rules.degree_types);
+    const defaultRuleSet = rules.degree_types.computing_bsc ?? degreeTypeValues[0];
+    if (!defaultRuleSet) {
+        throw new Error("No degree rules configured");
+    }
+    const ruleSet = degreeTypeValues.find((rs) => rs.major_keys.includes(majorKey)) ?? defaultRuleSet;
 
     const totalCredits = ruleSet.total_credits;
     const MAX_DEPT_ELECTIVES = ruleSet.max_dept_electives || 3;
@@ -150,7 +153,13 @@ function CourseTrackerView({
             capMax = MAX_DEPT_ELECTIVES;
         }
 
-        const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules.prerequisites);
+        const { isLocked: prereqLocked, missing, lockReason: prereqReason } = checkPrerequisites(
+            course,
+            completedCourses,
+            completedCredits,
+            allCourseCodes,
+            rules.logic_rules?.prerequisites
+        );
         const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
         const isLocked = isElectiveLocked || (!isUniversitySubject && prereqLocked);
         const hasPrereqWarning = isUniversitySubject && prereqLocked;
@@ -343,8 +352,8 @@ function CourseTrackerView({
                     const style = catStyle[title];
 
                     const gpaCourses = courses
-                        .filter((c: any) => completedCourses.has(c.code))
-                        .map((c: any) => ({ credits: c.ch, grade: completedCourses.get(c.code)! }));
+                        .filter((c) => completedCourses.has(c.code))
+                        .map((c) => ({ credits: c.ch, grade: completedCourses.get(c.code) ?? "M" }));
                     const groupGpa = calculateGPA(gpaCourses);
 
                     const isExpanded = expandedCategories[title];

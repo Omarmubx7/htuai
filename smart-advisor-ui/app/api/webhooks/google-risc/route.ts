@@ -9,9 +9,7 @@ export async function POST(req: NextRequest) {
 
         // Decode the JWT to inspect the event (basic verification for now)
         // In full production, you'd verify the signature against Google's JWKS
-        const claims = decodeJwt(bodyText);
-
-        console.log("Received Google RISC Event:", claims);
+        decodeJwt(bodyText);
 
         // Acknowledge receipt
         return new NextResponse("Accepted", { status: 202 });

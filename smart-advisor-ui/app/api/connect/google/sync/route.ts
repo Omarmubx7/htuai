@@ -22,17 +22,26 @@ interface SyncCourse {
     midterm_date?: Date | string | null;
     final_date?: Date | string | null;
     location?: string | null;
-    class_schedule?: any;
+    class_schedule?: unknown;
     semester_object?: Record<string, unknown>;
 }
 
-function getExamReminders(token: any): { method: string; minutes: number }[] {
+interface TokenLike {
+    accessToken: string;
+    metadata?: Record<string, unknown>;
+}
+
+interface UserLike {
+    id: number;
+}
+
+function getExamReminders(token: TokenLike): { method: string; minutes: number }[] {
     const metadata = token.metadata as Record<string, unknown> | null;
     const prefDays = (metadata?.exam_reminders_days as number) ?? (metadata?.exam_reminders === false ? 0 : 7);
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function updateTokenMetadata(studentId: string, metadata: any) {
+async function updateTokenMetadata(studentId: string, metadata: Record<string, unknown>) {
     const user = await prisma.user.findFirst({
         where: { OR: [{ student_id: studentId }, { email: studentId }, { name: studentId }] }
     });
@@ -44,7 +53,7 @@ async function updateTokenMetadata(studentId: string, metadata: any) {
     });
 }
 
-async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<string> {
+async function getOrCreateHtuCalendar(token: TokenLike, studentId: string): Promise<string> {
     try {
         if (token.metadata?.htu_calendar_id) return token.metadata.htu_calendar_id;
 
@@ -53,8 +62,8 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
         });
         
         if (listRes.ok) {
-            const listData = await listRes.json();
-            const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
+            const listData = await listRes.json() as { items?: Array<{ summary?: string; id?: string }> };
+            const existing = listData.items?.find((c) => c.summary === "HTU Smart Advisor");
             if (existing) {
                 await updateTokenMetadata(studentId, { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
@@ -86,7 +95,13 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
     return "primary";
 }
 
-async function upsertGoogleEvent(calendarId: string, url: string, method: string, token: any, eventData: any): Promise<Response> {
+async function upsertGoogleEvent(
+    calendarId: string,
+    url: string,
+    method: string,
+    token: TokenLike,
+    eventData: Record<string, unknown>
+): Promise<Response> {
     const finalUrl = url.replace("primary", encodeURIComponent(calendarId));
     let res = await fetch(finalUrl, {
         method,
@@ -122,7 +137,7 @@ function formatAmmanTime(date: Date) {
     return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}+03:00`;
 }
 
-async function syncCourseExams(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+async function syncCourseExams(calendarId: string, course: SyncCourse, token: TokenLike, user: UserLike, results: SyncResult[]) {
     const examTypes = [
         { field: "midterm_date" as const, type: "Midterm" },
         { field: "final_date" as const, type: "Final" }
@@ -182,7 +197,7 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: an
     }
 }
 
-function parseSchedule(schedule: any): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
+function parseSchedule(schedule: unknown): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
     if (!schedule) return null;
     try {
         const parsed = typeof schedule === 'string' ? JSON.parse(schedule) : schedule;
@@ -240,7 +255,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     return { start, end, untilStr };
 }
 
-async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: TokenLike, user: UserLike, results: SyncResult[]) {
     const scheduleInfo = parseSchedule(course.class_schedule);
     if (!scheduleInfo) {
         results.push({ course: course.code, type: "Schedule", success: false, status: "skipped", error: "No valid class time set" });
