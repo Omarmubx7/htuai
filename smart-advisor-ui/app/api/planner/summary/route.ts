@@ -225,8 +225,9 @@ export async function GET(req: NextRequest) {
         }
 
         // 7. Calculate Study Trends (Last 7 days - Local Time Aware)
+        // Query from 6 days ago to include today as the 7th day
         const sevenDaysAgoQuery = new Date(todayStart);
-        sevenDaysAgoQuery.setDate(sevenDaysAgoQuery.getDate() - 7);
+        sevenDaysAgoQuery.setDate(sevenDaysAgoQuery.getDate() - 6);
         
         const recentSessions = await prisma.studySession.findMany({
             where: { user_id: user.id, date: { gte: sevenDaysAgoQuery } },

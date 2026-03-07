@@ -94,12 +94,22 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
     const parseAndSetSchedule = (scheduleData: unknown) => {
         try {
-            const parsed = typeof scheduleData === 'string'
-                ? JSON.parse(scheduleData)
-                : scheduleData;
+            let parsed: unknown = scheduleData;
+            if (typeof scheduleData === 'string') {
+                const trimmed = scheduleData.trim();
+                if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+                    try {
+                        parsed = JSON.parse(trimmed);
+                    } catch {
+                        parsed = trimmed;
+                    }
+                } else {
+                    parsed = trimmed;
+                }
+            }
 
             let strValue = "";
-            if (Array.isArray(parsed) && parsed.length > 0) strValue = parsed[0];
+            if (Array.isArray(parsed) && parsed.length > 0) strValue = String(parsed[0] || "");
             else if (typeof parsed === 'string') strValue = parsed;
 
             // Try to parse "Mon/Wed 10:30-11:45"
@@ -244,7 +254,12 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             if (res.status === 401) {
                 toast("Google connection expired. Please reconnect in Settings to sync your calendar.", "error");
             } else if (!res.ok) {
-                console.warn("Background sync failed");
+                toast("Calendar sync failed. Please try again from Planner dashboard.", "error");
+            } else {
+                const data = await res.json() as { syncedItems?: number; message?: string };
+                if ((data.syncedItems || 0) === 0) {
+                    toast(data.message || "No items were synced. Check semester dates and class schedule.", "error");
+                }
             }
         } catch (error) {
             console.error("Auto-sync trigger failed", error);
@@ -339,6 +354,11 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     };
 
     const handleSaveInfo = async () => {
+        if (!course.semester?.start_date || !course.semester?.end_date) {
+            toast("Set semester start and end dates first, then edit course metadata.", "error");
+            return;
+        }
+
         setSavingInfo(true);
         try {
             const compiledSchedule = (scheduleDays.length > 0 && scheduleTime && scheduleEndTime)
@@ -379,6 +399,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             </div>
         );
     }
+
+    const hasSemesterDateRange = Boolean(course.semester?.start_date) && Boolean(course.semester?.end_date);
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans pb-24">
@@ -454,11 +476,17 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                 </h2>
                             </div>
 
+                            {!hasSemesterDateRange && (
+                                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                                    Set semester start and end dates first to unlock course metadata and calendar schedule sync.
+                                </div>
+                            )}
+
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="instructorName" className="text-xs font-bold text-white/70">Instructor Name</label>
                                     <input
-                                        id="instructorName" type="text" value={instructorName} onChange={e => setInstructorName(e.target.value)} placeholder="e.g. Dr. Smith"
+                                        id="instructorName" type="text" value={instructorName} onChange={e => setInstructorName(e.target.value)} placeholder="e.g. Dr. Smith" disabled={!hasSemesterDateRange}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors"
                                     />
                                 </div>
@@ -466,14 +494,14 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                     <div>
                                         <label htmlFor="location" className="text-xs font-bold text-white/70">Location</label>
                                         <input
-                                            id="location" type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Room 302"
+                                            id="location" type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Room 302" disabled={!hasSemesterDateRange}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors"
                                         />
                                     </div>
                                     <div>
                                         <label htmlFor="courseStatus" className="text-xs font-bold text-white/70">Course Status</label>
                                         <select
-                                            id="courseStatus" value={courseStatus} onChange={e => setCourseStatus(e.target.value)}
+                                            id="courseStatus" value={courseStatus} onChange={e => setCourseStatus(e.target.value)} disabled={!hasSemesterDateRange}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors appearance-none"
                                         >
                                             <option value="planned" className="bg-black text-white">Planned</option>
@@ -493,6 +521,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                             return (
                                                 <button
                                                     key={day}
+                                                    type="button"
+                                                    disabled={!hasSemesterDateRange}
                                                     onClick={() => {
                                                         if (isActive) setScheduleDays(scheduleDays.filter(d => d !== day));
                                                         else setScheduleDays([...scheduleDays, day]);
@@ -511,6 +541,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                         <input
                                             id="scheduleTime" type="time" title="Schedule Start Time"
                                             value={scheduleTime}
+                                            disabled={!hasSemesterDateRange}
                                             onChange={e => setScheduleTime(e.target.value)}
                                             className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors"
                                         />
@@ -518,6 +549,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                         <input
                                             id="scheduleEndTime" type="time" title="Schedule End Time"
                                             value={scheduleEndTime}
+                                            disabled={!hasSemesterDateRange}
                                             onChange={e => setScheduleEndTime(e.target.value)}
                                             className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors"
                                         />
@@ -526,12 +558,12 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                 <div>
                                     <label htmlFor="finalMark" className="text-xs font-bold text-white/70">Final Expected Mark (0-100)</label>
                                     <input
-                                        id="finalMark" type="number" value={finalMark} onChange={e => setFinalMark(e.target.value ? Number(e.target.value) : "")} placeholder="e.g. 95"
+                                        id="finalMark" type="number" value={finalMark} onChange={e => setFinalMark(e.target.value ? Number(e.target.value) : "")} placeholder="e.g. 95" disabled={!hasSemesterDateRange}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors"
                                     />
                                 </div>
                                 <button
-                                    onClick={handleSaveInfo} disabled={savingInfo}
+                                    onClick={handleSaveInfo} disabled={savingInfo || !hasSemesterDateRange}
                                     className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                                 >
                                     {savingInfo ? 'Saving...' : 'Save Meta Data'}

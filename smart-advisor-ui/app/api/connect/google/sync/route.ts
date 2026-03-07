@@ -200,10 +200,24 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: To
 function parseSchedule(schedule: unknown): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
     if (!schedule) return null;
     try {
-        const parsed = typeof schedule === 'string' ? JSON.parse(schedule) : schedule;
+        let parsed: unknown = schedule;
+        if (typeof schedule === 'string') {
+            const trimmed = schedule.trim();
+            // Support both raw string format ("Mon/Wed 09:00-10:30") and JSON-encoded values.
+            if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+                try {
+                    parsed = JSON.parse(trimmed);
+                } catch {
+                    parsed = trimmed;
+                }
+            } else {
+                parsed = trimmed;
+            }
+        }
+
         let strValue = "";
         if (Array.isArray(parsed) && parsed.length > 0) {
-            strValue = parsed[0];
+            strValue = String(parsed[0] || "");
         } else if (typeof parsed === 'string') {
             strValue = parsed;
         }
@@ -264,6 +278,17 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
 
     try {
         const semesterObj = course.semester_object;
+        if (!semesterObj?.start_date || !semesterObj?.end_date) {
+            results.push({
+                course: course.code,
+                type: "Schedule",
+                success: false,
+                status: "skipped",
+                error: "Set semester start and end dates first"
+            });
+            return;
+        }
+
         const { start, end, untilStr } = calculateScheduleDates(scheduleInfo, semesterObj);
 
         const dayMap: Record<string, string> = { "Sun": "SU", "Mon": "MO", "Tue": "TU", "Wed": "WE", "Thu": "TH", "Fri": "FR", "Sat": "SA" };

@@ -39,6 +39,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const body = await req.json() as Record<string, unknown>;
 
+        const metadataFields: Array<keyof typeof body> = [
+            'instructor_name',
+            'location',
+            'class_schedule',
+            'final_mark',
+            'status'
+        ];
+        const isMetadataUpdate = metadataFields.some((field) => body[field] !== undefined);
+        const semesterHasDateRange = Boolean(existing.semester?.start_date) && Boolean(existing.semester?.end_date);
+
+        if (isMetadataUpdate && !semesterHasDateRange) {
+            return NextResponse.json(
+                { error: 'Set semester start and end dates first before editing course metadata.' },
+                { status: 400 }
+            );
+        }
+
         // Allow updates of attributes
         const updatedInfo: Parameters<typeof prisma.course.update>[0]["data"] = { updated_at: new Date() };
 
