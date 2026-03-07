@@ -11,7 +11,6 @@ import { useSession, signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import WalkthroughOverlay, { useWalkthrough, getWalkthroughSteps, WalkthroughHelpButton } from "@/components/WalkthroughOverlay";
 import { safeStorage } from "@/lib/safe-storage";
 
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
@@ -39,9 +38,6 @@ export default function HomeClient() {
     const [isLoaded, setIsLoaded] = useState(false);
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
-    
-    // Only initialize walkthrough if we're authenticated and in tracker
-    const walkthrough = useWalkthrough();
 
     // ─── 1. Core Logic & Data Fetching (Defined first to avoid ReferenceErrors) ────────────────
 
@@ -65,7 +61,7 @@ export default function HomeClient() {
     const debouncedSave = useCallback((nextState: Map<string, string>) => {
         setSaveStatus("saving");
         if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-        syncTimeoutRef.current = setTimeout(() => saveProgressRemote(nextState), 1200);
+        saveProgressRemote(nextState);
     }, [saveProgressRemote]);
 
     const loadCourses = useCallback(async (key: MajorKey) => {
@@ -303,7 +299,6 @@ export default function HomeClient() {
                                 </div>
                                 <button onClick={() => signOut()} className="p-2 rounded-2xl bg-white/5 text-white/40 hover:text-red-400 transition-all"><LogOut className="w-4.5 h-4.5" /></button>
                                 <ThemeToggle />
-                                <WalkthroughHelpButton onClick={walkthrough.open} />
                             </div>
                         </div>
                     </header>
@@ -326,12 +321,6 @@ export default function HomeClient() {
                             }}
                         />
                     </main>
-
-                    <WalkthroughOverlay
-                        steps={getWalkthroughSteps(walkthrough.isMobileDevice)}
-                        isOpen={walkthrough.isOpen}
-                        onClose={walkthrough.close}
-                    />
                 </motion.div>
             )}
         </AnimatePresence>
