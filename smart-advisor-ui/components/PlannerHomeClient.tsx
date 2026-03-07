@@ -41,6 +41,7 @@ interface StudyTrendPoint {
 interface PlannerSummary {
     google_calendar_connected?: boolean;
     upcomingEvents?: NotificationEvent[];
+    upcomingEventsLabel?: string;
     gamification?: {
         level: number;
         xp: number;
@@ -598,7 +599,7 @@ function PlannerHomeClient() {
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-lg font-bold flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-indigo-400" /> Upcoming 7 Days
+                                <Calendar className="w-5 h-5 text-indigo-400" /> {summary?.upcomingEventsLabel || "Upcoming 7 Days"}
                             </h2>
                             <button
                                 onClick={handleSync}
@@ -645,7 +646,7 @@ function PlannerHomeClient() {
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
                                     <Calendar className="w-8 h-8 text-white/20 mb-3" />
-                                    <p className="text-white/40 text-xs font-medium">No deadlines this week.</p>
+                                    <p className="text-white/40 text-xs font-medium">No upcoming deadlines found.</p>
                                 </div>
                             )}
                         </div>

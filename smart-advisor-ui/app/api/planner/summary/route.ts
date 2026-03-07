@@ -40,6 +40,10 @@ interface SessionAggregateEntry {
     created_at: Date | null;
 }
 
+function getJordanDayKey(date: Date): string {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Amman' }).format(date);
+}
+
 async function handleDailyGamificationXP(user: PlannerSummaryUser, today: Date) {
     let gamification = user.gamification_profile;
     if (!gamification) {
@@ -198,6 +202,63 @@ export async function GET(req: NextRequest) {
         }
 
         upcomingEvents = upcomingEvents.toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()).slice(0, 5);
+        let upcomingEventsLabel = "Upcoming 7 Days";
+
+        // Fallback: if no deadlines in the next 7 days, show the nearest future deadlines (real data only).
+        if (upcomingEvents.length === 0) {
+            const futureEventsDb = await prisma.calendarEvent.findMany({
+                where: {
+                    user_id: user.id,
+                    start_datetime: { gte: todayStart }
+                },
+                orderBy: { start_datetime: 'asc' },
+                take: 5
+            });
+
+            const futureCourseExams = await prisma.course.findMany({
+                where: {
+                    semester: { user_id: user.id },
+                    OR: [
+                        { midterm_date: { gte: todayStart } },
+                        { final_date: { gte: todayStart } }
+                    ]
+                },
+                include: { semester: true }
+            });
+
+            const fallbackEvents: UpcomingEventLike[] = [...futureEventsDb];
+            for (const course of futureCourseExams) {
+                if (course.midterm_date && course.midterm_date >= todayStart) {
+                    if (!fallbackEvents.some(e => e.course_id === course.id && e.type === "Midterm")) {
+                        fallbackEvents.push({
+                            id: `future-m-${course.id}`,
+                            type: "Midterm",
+                            title: `${course.name} - Midterm`,
+                            start_datetime: course.midterm_date
+                        });
+                    }
+                }
+
+                if (course.final_date && course.final_date >= todayStart) {
+                    if (!fallbackEvents.some(e => e.course_id === course.id && e.type === "Final")) {
+                        fallbackEvents.push({
+                            id: `future-f-${course.id}`,
+                            type: "Final",
+                            title: `${course.name} - Final`,
+                            start_datetime: course.final_date
+                        });
+                    }
+                }
+            }
+
+            upcomingEvents = fallbackEvents
+                .toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime())
+                .slice(0, 5);
+
+            if (upcomingEvents.length > 0) {
+                upcomingEventsLabel = "Next Deadlines";
+            }
+        }
 
         // 6. Fetch Major and Progress
         const profile = await prisma.studentProfile.findUnique({
@@ -234,10 +295,10 @@ export async function GET(req: NextRequest) {
             select: { duration_minutes: true, date: true, created_at: true }
         });
 
-        const studyTrends = Array.from({ length: 7 }, (_, i) => {
+        let studyTrends = Array.from({ length: 7 }, (_, i) => {
             const d = new Date(todayStart);
             d.setDate(d.getDate() - i);
-            const dateStr = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }); 
+            const dateStr = getJordanDayKey(d);
             
             const mins = recentSessions
                 .filter(s => {
@@ -246,12 +307,45 @@ export async function GET(req: NextRequest) {
                     if (!sessionDate) return false;
                     
                     // Normalize to date string for comparison
-                    const sDateStr = sessionDate.toISOString().slice(0, 10); // YYYY-MM-DD format
+                    const sDateStr = getJordanDayKey(sessionDate);
                     return sDateStr === dateStr;
                 })
                 .reduce((acc, s) => acc + s.duration_minutes, 0);
             return { date: dateStr, minutes: mins };
         }).reverse();
+
+        // Fallback: if this week has no logs, anchor chart to latest real activity so the widget still reflects real data.
+        if (studyTrends.every(point => point.minutes === 0)) {
+            const latestSessions = await prisma.studySession.findMany({
+                where: { user_id: user.id },
+                orderBy: { created_at: 'desc' },
+                take: 50,
+                select: { duration_minutes: true, date: true, created_at: true }
+            });
+
+            const latestSessionDate = latestSessions
+                .map(s => (s.date ? new Date(s.date) : (s.created_at ? new Date(s.created_at) : null)))
+                .find((d): d is Date => Boolean(d));
+
+            if (latestSessionDate) {
+                const endAnchor = new Date(latestSessionDate);
+                studyTrends = Array.from({ length: 7 }, (_, i) => {
+                    const d = new Date(endAnchor);
+                    d.setDate(d.getDate() - i);
+                    const dateStr = getJordanDayKey(d);
+
+                    const mins = latestSessions
+                        .filter(s => {
+                            const sessionDate = s.date ? new Date(s.date) : (s.created_at ? new Date(s.created_at) : null);
+                            if (!sessionDate) return false;
+                            return getJordanDayKey(sessionDate) === dateStr;
+                        })
+                        .reduce((acc, s) => acc + s.duration_minutes, 0);
+
+                    return { date: dateStr, minutes: mins };
+                }).reverse();
+            }
+        }
 
         // 8. Identify Most Neglected Course
         const twoWeeks = new Date(todayStart);
@@ -378,6 +472,7 @@ export async function GET(req: NextRequest) {
             classification,
             currentSemester,
             upcomingEvents,
+            upcomingEventsLabel,
             gamification,
             studyTrends,
             activeQuests,
