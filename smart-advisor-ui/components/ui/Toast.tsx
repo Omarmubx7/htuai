@@ -35,7 +35,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     return (
         <ToastContext.Provider value={{ toast: addToast }}>
             {children}
-            <div className="fixed bottom-6 right-6 z-300 flex flex-col gap-2 pointer-events-none">
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-300 flex flex-col gap-3 pointer-events-none max-w-md">
                 <AnimatePresence>
                     {toasts.map(t => (
                         <ToastItem key={t.id} toast={t} onDismiss={() => removeToast(t.id)} />
@@ -53,29 +53,29 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     }, [onDismiss]);
 
     const icon = toast.type === "success"
-        ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
         : toast.type === "error"
-            ? <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-            : <Info className="w-4 h-4 text-blue-400 shrink-0" />;
+            ? <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+            : <Info className="w-5 h-5 text-blue-400 shrink-0" />;
 
-    const borderColor = toast.type === "success"
-        ? "border-emerald-500/20"
+    const bgColor = toast.type === "success"
+        ? "bg-emerald-500/15 border-emerald-500/40"
         : toast.type === "error"
-            ? "border-red-500/20"
-            : "border-blue-500/20";
+            ? "bg-red-500/15 border-red-500/40"
+            : "bg-blue-500/15 border-blue-500/40";
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 60, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl premium-card border ${borderColor} shadow-xl max-w-xs`}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className={`pointer-events-auto flex items-center gap-3 px-6 py-4 rounded-2xl border ${bgColor} shadow-2xl backdrop-blur-sm`}
         >
             {icon}
-            <span className="text-xs font-medium text-white/80 flex-1">{toast.message}</span>
-            <button onClick={onDismiss} className="text-white/30 hover:text-white/60 transition-colors shrink-0">
-                <X className="w-3.5 h-3.5" />
+            <span className="text-sm font-semibold text-white flex-1">{toast.message}</span>
+            <button onClick={onDismiss} className="text-white/40 hover:text-white/80 transition-colors shrink-0">
+                <X className="w-4 h-4" />
             </button>
         </motion.div>
     );

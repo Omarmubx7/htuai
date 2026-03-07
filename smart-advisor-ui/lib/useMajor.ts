@@ -88,14 +88,11 @@ export function useMajor() {
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            const saved = safeStorage.get(STORAGE_KEY) as MajorKey | null;
-            if (saved && MAJORS.find((m) => m.key === saved)) {
-                setMajorState(saved);
-            }
-            setLoaded(true);
-        }, 0);
-        return () => clearTimeout(timer);
+        const saved = safeStorage.get(STORAGE_KEY) as MajorKey | null;
+        if (saved && MAJORS.find((m) => m.key === saved)) {
+            setMajorState(saved);
+        }
+        setLoaded(true);
     }, []);
 
     const setMajor = (key: MajorKey) => {

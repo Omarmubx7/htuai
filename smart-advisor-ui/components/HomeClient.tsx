@@ -59,8 +59,6 @@ export default function HomeClient() {
                 body: JSON.stringify({ major, completed: completedObjects }),
             });
             setSaveStatus("saved");
-            router.refresh();
-            setTimeout(() => setSaveStatus(null), 1500);
         } catch (e) { setSaveStatus(null); }
     }, [studentId, major, courseNameMap, router]);
 
