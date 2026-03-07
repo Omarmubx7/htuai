@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import { motion } from "framer-motion";
 import { Course, CourseData } from "@/types";
 import {
@@ -33,7 +33,7 @@ interface StudentDashboardProps {
    Main Component
    ═══════════════════════════════════════════════════════════════════ */
 
-export default function StudentDashboard({
+function StudentDashboard({
     completedCourses,
     completedCredits,
     totalCredits,
@@ -477,6 +477,9 @@ export default function StudentDashboard({
         </motion.div>
     );
 }
+
+const StudentDashboardMemoized = memo(StudentDashboard);
+export default StudentDashboardMemoized;
 
 /* ═══════════════════════════════════════════════════════════════════
    Stat Card Sub-component

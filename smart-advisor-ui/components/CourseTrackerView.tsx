@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData } from '@/types';
 import CourseCard from './ui/CourseCard';
@@ -30,7 +30,7 @@ interface CourseTrackerViewProps {
     resetProgress: () => void;
 }
 
-export default function CourseTrackerView({
+function CourseTrackerView({
     data,
     studentId,
     majorKey,
@@ -412,3 +412,6 @@ export default function CourseTrackerView({
         </div>
     );
 }
+
+const CourseTrackerViewMemoized = memo(CourseTrackerView);
+export default CourseTrackerViewMemoized;

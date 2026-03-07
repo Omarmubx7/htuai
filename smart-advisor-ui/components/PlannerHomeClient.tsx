@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
 
-export default function PlannerHomeClient() {
+function PlannerHomeClient() {
     const { status } = useSession();
     const router = useRouter();
 
@@ -600,3 +600,6 @@ export default function PlannerHomeClient() {
         </div>
     );
 }
+
+const PlannerHomeClientMemoized = memo(PlannerHomeClient);
+export default PlannerHomeClientMemoized;

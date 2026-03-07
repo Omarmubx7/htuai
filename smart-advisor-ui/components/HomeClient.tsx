@@ -144,27 +144,23 @@ export default function HomeClient() {
     const toggleCourse = useCallback(async (code: string) => {
         if (!studentId || !major) return;
         
-        startTransition(() => {
-            setCompletedCourses(prev => {
-                const next = new Map(prev);
-                if (next.has(code)) next.delete(code);
-                else next.set(code, "M");
-                debouncedSave(next);
-                return next;
-            });
+        setCompletedCourses(prev => {
+            const next = new Map(prev);
+            if (next.has(code)) next.delete(code);
+            else next.set(code, "M");
+            debouncedSave(next);
+            return next;
         });
     }, [studentId, major, debouncedSave]);
 
     const updateCourseGrade = useCallback((code: string, grade: string) => {
         if (!studentId || !major) return;
         
-        startTransition(() => {
-            setCompletedCourses(prev => {
-                const next = new Map(prev);
-                next.set(code, grade);
-                debouncedSave(next);
-                return next;
-            });
+        setCompletedCourses(prev => {
+            const next = new Map(prev);
+            next.set(code, grade);
+            debouncedSave(next);
+            return next;
         });
     }, [studentId, major, debouncedSave]);
 
@@ -191,8 +187,8 @@ export default function HomeClient() {
     // Load initial major
     useEffect(() => {
         const storedMajor = safeStorage.get("htuai-major");
-        if (storedMajor) queueMicrotask(() => setMajor(storedMajor as MajorKey));
-        queueMicrotask(() => setIsLoaded(true));
+        if (storedMajor) setMajor(storedMajor as MajorKey);
+        setIsLoaded(true);
     }, []);
 
     // Build course name map
@@ -218,21 +214,19 @@ export default function HomeClient() {
             courseData.electives,
             courseData.work_market_requirements,
         ].forEach(processCategory);
-        queueMicrotask(() => setCourseNameMap(newMap));
+        setCourseNameMap(newMap);
     }, [courseData]);
 
     useEffect(() => {
         if (status === "loading") return;
         if (status === "unauthenticated") {
-            queueMicrotask(() => setAppState("landing"));
+            setAppState("landing");
         } else if (status === "authenticated" && session?.user) {
             const sid = (session.user as any).student_id || session.user.name;
             if (sid) {
-                queueMicrotask(() => {
-                    void loadProfile(sid);
-                });
+                void loadProfile(sid);
             } else {
-                queueMicrotask(() => setAppState("major-select"));
+                setAppState("major-select");
             }
         }
     }, [status, session, loadProfile]);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,8 +11,11 @@ import { useToast } from "./ui/Toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import ThemeToggle from "@/components/ThemeToggle";
 
-export default function PlannerSemesterDetail({ semesterId }: { semesterId: string }) {
-    const { status } = useSession();
+interface PlannerSemesterDetailProps {
+    semesterId: string;
+}
+
+function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailProps>) {
     const router = useRouter();
     const { toast } = useToast();
 
@@ -815,3 +818,6 @@ export default function PlannerSemesterDetail({ semesterId }: { semesterId: stri
         </div>
     );
 }
+
+const PlannerSemesterDetailMemoized = memo(PlannerSemesterDetail);
+export default PlannerSemesterDetailMemoized;
