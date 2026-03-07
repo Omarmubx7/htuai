@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Circle, Lock, AlertCircle, Sparkles, ChevronDown } from "lucide-react";
 import { Course } from "../../types";
@@ -151,7 +151,7 @@ function PrerequisiteSection({
     );
 }
 
-export default function CourseCard({
+function CourseCard({
     course,
     isCompleted,
     isLocked,
@@ -266,3 +266,22 @@ export default function CourseCard({
         </motion.div>
     );
 }
+
+// Memoize to prevent unnecessary re-renders when parent component updates
+// This is critical for performance when marking many courses
+const CourseCardMemoized = memo(CourseCard, (prevProps, nextProps) => {
+    // Custom comparison: only re-render if these props change
+    return (
+        prevProps.course.code === nextProps.course.code &&
+        prevProps.isCompleted === nextProps.isCompleted &&
+        prevProps.grade === nextProps.grade &&
+        prevProps.isLocked === nextProps.isLocked &&
+        prevProps.hasPrereqWarning === nextProps.hasPrereqWarning &&
+        prevProps.lockReason === nextProps.lockReason &&
+        JSON.stringify(prevProps.missingPrereqs) === JSON.stringify(nextProps.missingPrereqs) &&
+        prevProps.completedCredits === nextProps.completedCredits &&
+        prevProps.onToggle === nextProps.onToggle
+    );
+});
+
+export default CourseCardMemoized;

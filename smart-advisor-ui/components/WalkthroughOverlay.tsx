@@ -340,16 +340,27 @@ export function WalkthroughHelpButton({ onClick }: Readonly<{ onClick: () => voi
 
 export function useWalkthrough() {
     const [isOpen, setIsOpen] = useState(false);
+    const [isMobileDevice, setIsMobileDevice] = useState(false);
 
     useEffect(() => {
-        // Auto-show only for first-time users after a short delay
+        // Detect mobile device
+        const checkMobile = () => setIsMobileDevice(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        
+        // Auto-show ONLY for first-time users after a short delay
         const done = safeStorage.get(STORAGE_KEY);
         if (!done) {
             const timer = setTimeout(() => {
                 setIsOpen(true);
             }, 1500);
-            return () => clearTimeout(timer);
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener('resize', checkMobile);
+            };
         }
+        
+        return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
     const open = useCallback(() => setIsOpen(true), []);
@@ -358,14 +369,14 @@ export function useWalkthrough() {
         safeStorage.set(STORAGE_KEY, "true");
     }, []);
 
-    return { isOpen, open, close };
+    return { isOpen, open, close, isMobileDevice };
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   Default Steps for Course Tracker
+   Default Steps for Course Tracker - DESKTOP VERSION
    ═══════════════════════════════════════════════════════════════════ */
 
-export const TRACKER_WALKTHROUGH_STEPS: WalkthroughStep[] = [
+export const TRACKER_WALKTHROUGH_STEPS_DESKTOP: WalkthroughStep[] = [
     {
         targetId: "wt-header-brand",
         title: "Welcome to HTUAI 👋",
@@ -432,11 +443,52 @@ export const TRACKER_WALKTHROUGH_STEPS: WalkthroughStep[] = [
         description: "Need a fresh start? This button clears all your completed courses and grades. Don't worry — it asks for confirmation first!",
         position: "bottom",
     },
+];
+
+/* ═══════════════════════════════════════════════════════════════════
+   Default Steps for Course Tracker - MOBILE VERSION (Optimized)
+   ═══════════════════════════════════════════════════════════════════ */
+
+export const TRACKER_WALKTHROUGH_STEPS_MOBILE: WalkthroughStep[] = [
     {
-        targetId: "wt-mobile-nav",
-        title: "Navigation Bar",
-        description: "Use the bottom navigation to switch between Course Tracker, Semester Planner, and Settings. Available on mobile!",
+        targetId: "wt-header-brand",
+        title: "Welcome 👋",
+        description: "Your academic tracker. Let's learn the essentials in 5 quick steps!",
+        position: "bottom",
+    },
+    {
+        targetId: "wt-progress-card",
+        title: "Track Progress",
+        description: "Monitor your completed credits vs. total required. See your degree completion in real-time.",
+        position: "bottom",
+    },
+    {
+        targetId: "wt-first-course",
+        title: "Mark Courses",
+        description: "Tap any course card to mark complete, set your grade, or add notes. Easy!",
+        position: "bottom",
+    },
+    {
+        targetId: "wt-view-toggle",
+        title: "Switch Views",
+        description: "View courses by year or by category — whatever works best for you.",
         position: "top",
-        mobileOnly: true,
+    },
+    {
+        targetId: "wt-planner-btn",
+        title: "Semester Planner",
+        description: "Plan semesters, predict GPA, and earn XP for study sessions. Tap to explore!",
+        position: "top",
     },
 ];
+
+/* ═══════════════════════════════════════════════════════════════════
+   Helper to get correct walkthrough steps based on device type
+   ═══════════════════════════════════════════════════════════════════ */
+
+export function getWalkthroughSteps(isMobileDevice: boolean): WalkthroughStep[] {
+    return isMobileDevice ? TRACKER_WALKTHROUGH_STEPS_MOBILE : TRACKER_WALKTHROUGH_STEPS_DESKTOP;
+}
+
+/** Backwards compatibility export */
+export const TRACKER_WALKTHROUGH_STEPS: WalkthroughStep[] = TRACKER_WALKTHROUGH_STEPS_DESKTOP;

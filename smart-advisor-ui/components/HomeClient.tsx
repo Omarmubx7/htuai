@@ -11,7 +11,7 @@ import { useSession, signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import WalkthroughOverlay, { useWalkthrough, TRACKER_WALKTHROUGH_STEPS, WalkthroughHelpButton } from "@/components/WalkthroughOverlay";
+import WalkthroughOverlay, { useWalkthrough, getWalkthroughSteps, WalkthroughHelpButton } from "@/components/WalkthroughOverlay";
 import { safeStorage } from "@/lib/safe-storage";
 
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
@@ -324,7 +324,7 @@ export default function HomeClient() {
                     </main>
 
                     <WalkthroughOverlay
-                        steps={TRACKER_WALKTHROUGH_STEPS}
+                        steps={getWalkthroughSteps(walkthrough.isMobileDevice)}
                         isOpen={walkthrough.isOpen}
                         onClose={walkthrough.close}
                     />
