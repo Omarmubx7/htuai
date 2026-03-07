@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HTUAI — Smart Advisor UI
 
-## Getting Started
+The Next.js 16 frontend and API layer for the **HTUAI** academic management platform.
+See the [root README](../README.md) for the full project overview.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 20+
+- PostgreSQL database (Vercel Postgres, Neon, or local)
+- Google OAuth credentials
+
+## Development Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Create a `.env.local` file in this directory:
+
+```env
+# Database
+POSTGRES_PRISMA_URL=postgresql://...
+POSTGRES_URL_NON_POOLING=postgresql://...
+
+# Auth
+NEXTAUTH_SECRET=your-random-secret
+NEXTAUTH_URL=http://localhost:3000
+
+# Google OAuth & Calendar
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+
+# Admin
+ADMIN_SECRET=your-admin-secret
+```
+
+### 3. Run database migrations
+
+```bash
+npx prisma migrate deploy
+```
+
+### 4. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Database
 
-To learn more about Next.js, take a look at the following resources:
+The Prisma schema is the single source of truth for all data models:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# View schema
+cat prisma/schema.prisma
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Open Prisma Studio (DB browser)
+npx prisma studio
 
-## Deploy on Vercel
+# Create a new migration after schema changes
+npx prisma migrate dev --name <description>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Generate Prisma client after schema changes
+npx prisma generate
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture Notes
+
+- **`app/`** — Next.js App Router: pages and API Route Handlers
+- **`components/`** — Reusable React components; `components/ui/` for atomic components
+- **`lib/grading.ts`** — All GPA/CGPA logic lives here. **Never duplicate this logic elsewhere.**
+- **`lib/safe-storage.ts`** — Always use this wrapper for `localStorage`/`sessionStorage`. Never access them directly.
+- **`public/data/curriculum.json`** — Authoritative HTU course catalog. Only use course codes from this file.
+
+## Key Conventions
+
+- Server Components by default — add `"use client"` only when absolutely needed
+- All API routes must call `getServerSession()` before processing
+- All user inputs must be validated with Zod before touching the database
+- Multi-table writes must use Prisma `$transaction`
+- All date/time ops must use `Asia/Amman` timezone (UTC+3)
+
+## Deploying
+
+The app is deployed on [Vercel](https://vercel.com). Push to `main` triggers an automatic deployment.
+
+For infrastructure changes, see the [`terraform/`](../terraform/) directory.
