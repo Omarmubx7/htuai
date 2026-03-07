@@ -154,8 +154,10 @@ export default function PlannerSettings() {
                 retries: 1
             });
             if (res.ok) {
-                toast("Planner reset successfully. Redirecting...", "success");
-                router.push("/planner");
+                toast("Planner reset successfully. Refreshing dashboard...", "success");
+                // Force a fresh route state so all widgets reflect reset data.
+                router.replace(`/planner?reset=${Date.now()}`);
+                router.refresh();
             } else {
                 throw new Error(`Reset failed with status ${res.status}`);
             }

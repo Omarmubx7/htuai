@@ -87,14 +87,14 @@ function PlannerHomeClient() {
 
     const fetchSummary = async () => {
         try {
-            const res = await fetch("/api/planner/summary");
+            const res = await fetch("/api/planner/summary", { cache: "no-store" });
             if (!res.ok) throw new Error("Failed to fetch summary");
             const data = await res.json() as PlannerSummary;
 
             setSummary(data);
 
             // Fetch semesters to check if onboarding is needed
-            const semRes = await fetch("/api/planner/semesters");
+            const semRes = await fetch("/api/planner/semesters", { cache: "no-store" });
             if (semRes.ok) {
                 const semData = await semRes.json();
                 if (semData.semesters.length === 0) {
