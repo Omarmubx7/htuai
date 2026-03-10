@@ -245,26 +245,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         }
     };
 
-    const triggerBackgroundSync = async () => {
-        try {
-            const res = await fetchWithRetry("/api/connect/google/sync", { 
-                method: "POST",
-                retries: 1
-            });
-            if (res.status === 401) {
-                toast("Google connection expired. Please reconnect in Settings to sync your calendar.", "error");
-            } else if (!res.ok) {
-                toast("Calendar sync failed. Please try again from Planner dashboard.", "error");
-            } else {
-                const data = await res.json() as { syncedItems?: number; message?: string };
-                if ((data.syncedItems || 0) === 0) {
-                    toast(data.message || "No items were synced. Check semester dates and class schedule.", "error");
-                }
-            }
-        } catch (error) {
-            console.error("Auto-sync trigger failed", error);
-        }
-    };
+
 
     const handleSaveDates = async () => {
         // Validate dates individually and against each other
@@ -340,7 +321,6 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
             if (res.ok) {
                 toast("Exam dates saved successfully!", "success");
-                triggerBackgroundSync();
             } else {
                 const data = await res.json();
                 toast(data.error || "Failed to save exam dates.", "error");
@@ -380,7 +360,6 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
             if (res.ok) {
                 toast("Course info saved successfully!", "success");
-                triggerBackgroundSync();
             } else {
                 toast("Failed to save course info.", "error");
             }

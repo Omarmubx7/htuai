@@ -342,8 +342,6 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
             if (res.ok) {
                 toast("Semester dates saved successfully!", "success");
-                // Trigger background sync to update recurring schedules
-                fetchWithRetry("/api/connect/google/sync", { method: "POST", retries: 1 }).catch(e => console.error(e));
             } else {
                 toast("Failed to save dates.", "error");
             }

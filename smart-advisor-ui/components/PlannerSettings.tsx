@@ -112,18 +112,19 @@ export default function PlannerSettings() {
         if (!calendarConnected) return;
         setSyncing(true);
         try {
-            const res = await fetchWithRetry("/api/connect/google/sync", { 
-                method: "POST",
-                retries: 2
-            });
+            const res = await fetch("/api/connect/google/sync", { method: "POST" });
             if (res.ok) {
-                toast("Your schedule has been synced to Google Calendar.", "success");
+                const data = await res.json();
+                toast(data.message || "Your schedule has been synced to Google Calendar.", "success");
+            } else if (res.status === 401) {
+                toast("Google Calendar disconnected. Please reconnect.", "error");
             } else {
-                throw new Error(`Sync failed with status ${res.status}`);
+                const data = await res.json().catch(() => ({}));
+                toast(data.error || "Sync failed. Please try again.", "error");
             }
         } catch (error) {
             console.error(error);
-            toast(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`, "error");
+            toast("Connection failed. Check your network and try again.", "error");
         } finally {
             setSyncing(false);
         }

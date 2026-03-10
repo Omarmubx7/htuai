@@ -10,7 +10,6 @@ import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
-import { fetchJSON, POLLING_INTERVALS } from "@/lib/fetch-retry";
 
 interface NotificationEvent {
     id: number;
@@ -106,24 +105,6 @@ function PlannerHomeClient() {
             console.error("Error fetching planner data", e);
         }
     };
-
-    // Background Auto-Sync for Google Calendar
-    useEffect(() => {
-        if (!summary?.google_calendar_connected) return;
-
-        const intervalId = setInterval(async () => {
-            try {
-                await fetchJSON("/api/connect/google/sync", { 
-                    method: "POST",
-                    retries: 1
-                });
-            } catch (error) {
-                console.error("Background sync error:", error);
-            }
-        }, POLLING_INTERVALS.GOOGLE_SYNC); // 3 minutes - optimized from 2m
-
-        return () => clearInterval(intervalId);
-    }, [summary?.google_calendar_connected]);
 
     const handleSync = async () => {
         if (!summary?.google_calendar_connected) {
