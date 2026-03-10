@@ -24,15 +24,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
         notion: !!notionToken,
         google_calendar: !!googleToken,
-        google_account_email: googleToken?.accountEmail || null,
-        debug: {
-            resolved_id: studentId,
-            has_google_token: !!googleToken,
-            user_session: {
-                email: session.user.email,
-                name: session.user.name,
-                id: session.user.id
-            }
-        }
+        google_account_email: googleToken?.accountEmail || null
     });
 }

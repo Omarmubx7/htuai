@@ -30,8 +30,8 @@ export async function POST() {
     });
 
     return NextResponse.json({ message: "Test user created", id: userId });
-  } catch (e: unknown) {
+  } catch (e: any) {
     console.error("Create test user error:", e);
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

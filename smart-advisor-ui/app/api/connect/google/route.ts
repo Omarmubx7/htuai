@@ -2,40 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getIntegrationToken } from "@/lib/database";
-import { getBaseUrl, requireEnv } from "@/lib/env";
-
-interface GoogleExamEventPayload {
-    summary: string;
-    description: string;
-    start: { date: string; timeZone: string };
-    end: { date: string; timeZone: string };
-    reminders: { useDefault: boolean; overrides: Array<{ method: string; minutes: number }> };
-}
-
-interface SyncableCourse {
-    name: string;
-    credits: number;
-    midtermDate?: string | null;
-    finalDate?: string | null;
-    midtermEventId?: string | null;
-    finalEventId?: string | null;
-    [key: string]: unknown;
-}
-
-interface UpsertResult {
-    success: boolean;
-    eventId?: string;
-    error?: string;
-}
+import { getBaseUrl } from "@/lib/env";
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
 export async function GET(req: NextRequest): Promise<Response> {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
 
-    const clientId = requireEnv("GOOGLE_CLIENT_ID");
+    const clientId = process.env.GOOGLE_CLIENT_ID;
     const redirectUri = `${getBaseUrl(req)}/api/connect/google/callback`;
     const returnTo = req.nextUrl.searchParams.get("returnTo") || "/planner/settings";
+
+    if (!clientId) {
+        return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
+    }
 
     // Append scopes
 
@@ -51,7 +31,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     return NextResponse.redirect(url.toString());
 }
 
-async function upsertExamEvent(token: string, event: GoogleExamEventPayload, existingEventId?: string): Promise<UpsertResult> {
+async function upsertExamEvent(token: string, event: any, existingEventId?: string) {
     let url = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
     let method = "POST";
 
@@ -85,11 +65,11 @@ async function upsertExamEvent(token: string, event: GoogleExamEventPayload, exi
     return { success: true, eventId: data.id };
 }
 
-async function processCourseExam(course: SyncableCourse, type: "Midterm" | "Final", token: string): Promise<UpsertResult | null> {
+async function processCourseExam(course: any, type: "Midterm" | "Final", token: string) {
     const date = type === "Midterm" ? course.midtermDate : course.finalDate;
     if (!date) return null;
 
-    const event: GoogleExamEventPayload = {
+    const event = {
         summary: `${course.name} — ${type}`,
         description: `${type} exam for ${course.name} (${course.credits} CH)`,
         start: { date, timeZone: "Asia/Amman" },
@@ -113,7 +93,11 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = (session.user as Record<string, unknown>).student_id as string || session.user.email || session.user.name;
+    const studentId =
+        session.user.db_id?.toString()
+        || (session.user as Record<string, unknown>).student_id as string
+        || session.user.email
+        || session.user.name;
     if (!studentId) return NextResponse.json({ error: "No student ID" }, { status: 400 });
 
     const token = await getIntegrationToken(studentId, "google_calendar");
@@ -121,15 +105,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized: missing integration token" }, { status: 401 });
     }
 
-    const payload = await req.json() as { courses?: SyncableCourse[] };
-    const courses = payload.courses;
+    const { courses } = await req.json();
     if (!Array.isArray(courses)) return NextResponse.json({ error: "Invalid data" }, { status: 400 });
 
-    const results: Array<{ course: string; type: "Midterm" | "Final"; success: boolean; eventId?: string; error?: string }> = [];
-    const updatedCourses: SyncableCourse[] = [];
+    const results: any[] = [];
+    const updatedCourses: any[] = [];
 
     for (const course of courses) {
-        const updatedCourse: SyncableCourse = { ...course };
+        const updatedCourse = { ...course };
         for (const type of ["Midterm", "Final"] as const) {
             const res = await processCourseExam(course, type, token.accessToken);
             if (!res) continue;
@@ -148,7 +131,7 @@ export async function POST(req: NextRequest) {
         results,
         updatedCourses,
         eventsProcessed: results.length,
-        successCount: results.filter((r) => r.success).length,
+        successCount: results.filter(r => r.success).length,
         totalCount: results.length
     });
 }

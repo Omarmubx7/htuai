@@ -13,8 +13,6 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import ThemeToggle from "@/components/ThemeToggle";
-import { fetchWithRetry, POLLING_INTERVALS } from '@/lib/fetch-retry';
-import { useToast } from '@/components/ui/Toast';
 
 /* ═══════════════════════════════════════════════════════════════════
    Types
@@ -107,6 +105,7 @@ const PROGRESS_COLORS = [
     { bg: 'rgba(16,185,129,0.15)', bar: 'linear-gradient(180deg, #34d399, #10b981)', text: '#6ee7b7' },
 ];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const AUTO_REFRESH_INTERVAL = 30_000;
 
 /* ═══════════════════════════════════════════════════════════════════
    Helpers
@@ -161,7 +160,6 @@ export default function Dashboard() {
 
 function DashboardInner() {
     const adminSecret = useAdminSecret();
-    const { toast } = useToast();
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<TabKey>('overview');
@@ -173,37 +171,23 @@ function DashboardInner() {
     const [majorFilter, setMajorFilter] = useState<string>('all');
 
     const fetchData = useCallback(async (silent = false) => {
-        if (!adminSecret) return;
         if (!silent) setLoading(true);
         else setRefreshing(true);
         try {
-            const res = await fetchWithRetry('/api/admin/stats', {
-                headers: { 'x-admin-secret': adminSecret },
-                retries: 2,
-                onRetry: (attempt) => {
-                    if (!silent) {
-                        toast(`Retrying admin stats (attempt ${attempt})...`, 'info');
-                    }
-                }
+            const res = await fetch('/api/admin/stats', {
+                headers: { 'x-admin-secret': adminSecret }
             });
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}`);
-            }
             const data = await res.json();
             setStats(data);
             setLastFetched(new Date());
-        } catch (error) {
-            if (!silent) {
-                toast(`Failed to load admin stats: ${error instanceof Error ? error.message : 'Network error'}`, 'error');
-            }
-        }
+        } catch { /* ignore */ }
         setLoading(false);
         setRefreshing(false);
-    }, [adminSecret, toast]);
+    }, [adminSecret]);
 
     useEffect(() => {
         const timer = setTimeout(() => fetchData(), 0);
-        const interval = setInterval(() => fetchData(true), POLLING_INTERVALS.ADMIN_REFRESH);
+        const interval = setInterval(() => fetchData(true), AUTO_REFRESH_INTERVAL);
         return () => { clearTimeout(timer); clearInterval(interval); };
     }, [fetchData]);
 
@@ -595,16 +579,7 @@ function LogsTab({ logs }: { logs: Record<string, unknown>[] }) {
             </div>
             <div className="space-y-1 mt-2">
                 {logs.map((rawLog: Record<string, unknown>, i: number) => {
-                    const log = rawLog as {
-                        id: number;
-                        type: string;
-                        created_at: string | Date;
-                        message: string;
-                        event_kind?: string;
-                        course_id?: string;
-                        target_id?: string;
-                        details?: Record<string, unknown>;
-                    };
+                    const log = rawLog as { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string; details?: any };
                     return (
                         <div key={log.id} className="group hover:bg-white/[0.015] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/[0.04]">
                             <div className="flex items-center justify-between mb-1">

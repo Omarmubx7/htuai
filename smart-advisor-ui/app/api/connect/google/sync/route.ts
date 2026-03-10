@@ -22,26 +22,17 @@ interface SyncCourse {
     midterm_date?: Date | string | null;
     final_date?: Date | string | null;
     location?: string | null;
-    class_schedule?: unknown;
+    class_schedule?: any;
     semester_object?: Record<string, unknown>;
 }
 
-interface TokenLike {
-    accessToken: string;
-    metadata?: Record<string, unknown>;
-}
-
-interface UserLike {
-    id: number;
-}
-
-function getExamReminders(token: TokenLike): { method: string; minutes: number }[] {
+function getExamReminders(token: any): { method: string; minutes: number }[] {
     const metadata = token.metadata as Record<string, unknown> | null;
     const prefDays = (metadata?.exam_reminders_days as number) ?? (metadata?.exam_reminders === false ? 0 : 7);
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function updateTokenMetadata(studentId: string, metadata: Record<string, unknown>) {
+async function updateTokenMetadata(studentId: string, metadata: any) {
     const user = await prisma.user.findFirst({
         where: { OR: [{ student_id: studentId }, { email: studentId }, { name: studentId }] }
     });
@@ -53,7 +44,7 @@ async function updateTokenMetadata(studentId: string, metadata: Record<string, u
     });
 }
 
-async function getOrCreateHtuCalendar(token: TokenLike, studentId: string): Promise<string> {
+async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<string> {
     try {
         if (token.metadata?.htu_calendar_id) return token.metadata.htu_calendar_id;
 
@@ -62,8 +53,8 @@ async function getOrCreateHtuCalendar(token: TokenLike, studentId: string): Prom
         });
         
         if (listRes.ok) {
-            const listData = await listRes.json() as { items?: Array<{ summary?: string; id?: string }> };
-            const existing = listData.items?.find((c) => c.summary === "HTU Smart Advisor");
+            const listData = await listRes.json();
+            const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
             if (existing) {
                 await updateTokenMetadata(studentId, { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
@@ -95,13 +86,7 @@ async function getOrCreateHtuCalendar(token: TokenLike, studentId: string): Prom
     return "primary";
 }
 
-async function upsertGoogleEvent(
-    calendarId: string,
-    url: string,
-    method: string,
-    token: TokenLike,
-    eventData: Record<string, unknown>
-): Promise<Response> {
+async function upsertGoogleEvent(calendarId: string, url: string, method: string, token: any, eventData: any): Promise<Response> {
     const finalUrl = url.replace("primary", encodeURIComponent(calendarId));
     let res = await fetch(finalUrl, {
         method,
@@ -137,7 +122,7 @@ function formatAmmanTime(date: Date) {
     return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}+03:00`;
 }
 
-async function syncCourseExams(calendarId: string, course: SyncCourse, token: TokenLike, user: UserLike, results: SyncResult[]) {
+async function syncCourseExams(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
     const examTypes = [
         { field: "midterm_date" as const, type: "Midterm" },
         { field: "final_date" as const, type: "Final" }
@@ -197,27 +182,13 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: To
     }
 }
 
-function parseSchedule(schedule: unknown): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
+function parseSchedule(schedule: any): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
     if (!schedule) return null;
     try {
-        let parsed: unknown = schedule;
-        if (typeof schedule === 'string') {
-            const trimmed = schedule.trim();
-            // Support both raw string format ("Mon/Wed 09:00-10:30") and JSON-encoded values.
-            if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
-                try {
-                    parsed = JSON.parse(trimmed);
-                } catch {
-                    parsed = trimmed;
-                }
-            } else {
-                parsed = trimmed;
-            }
-        }
-
+        const parsed = typeof schedule === 'string' ? JSON.parse(schedule) : schedule;
         let strValue = "";
         if (Array.isArray(parsed) && parsed.length > 0) {
-            strValue = String(parsed[0] || "");
+            strValue = parsed[0];
         } else if (typeof parsed === 'string') {
             strValue = parsed;
         }
@@ -269,7 +240,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     return { start, end, untilStr };
 }
 
-async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: TokenLike, user: UserLike, results: SyncResult[]) {
+async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
     const scheduleInfo = parseSchedule(course.class_schedule);
     if (!scheduleInfo) {
         results.push({ course: course.code, type: "Schedule", success: false, status: "skipped", error: "No valid class time set" });
@@ -278,17 +249,6 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
 
     try {
         const semesterObj = course.semester_object;
-        if (!semesterObj?.start_date || !semesterObj?.end_date) {
-            results.push({
-                course: course.code,
-                type: "Schedule",
-                success: false,
-                status: "skipped",
-                error: "Set semester start and end dates first"
-            });
-            return;
-        }
-
         const { start, end, untilStr } = calculateScheduleDates(scheduleInfo, semesterObj);
 
         const dayMap: Record<string, string> = { "Sun": "SU", "Mon": "MO", "Tue": "TU", "Wed": "WE", "Thu": "TH", "Fri": "FR", "Sat": "SA" };
@@ -336,7 +296,11 @@ export async function POST() {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = (session.user as Record<string, unknown>).student_id as string || session.user.email || session.user.name;
+    const studentId =
+        session.user.db_id?.toString()
+        || (session.user as Record<string, unknown>).student_id as string
+        || session.user.email
+        || session.user.name;
     if (!studentId) return NextResponse.json({ error: "No student ID" }, { status: 400 });
 
     const token = await getIntegrationToken(studentId, "google_calendar");
