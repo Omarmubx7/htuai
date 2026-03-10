@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getIntegrationToken } from "@/lib/database";
@@ -106,7 +106,7 @@ async function upsertGoogleEvent(calendarId: string, url: string, method: string
 }
 
 function formatAmmanTime(date: Date) {
-    // We want YYYY-MM-DDTHH:mm:ss+03:00
+    // Build YYYY-MM-DDTHH:mm:ss with the real Asia/Amman offset for this date.
     const options: Intl.DateTimeFormatOptions = {
         timeZone: "Asia/Amman",
         year: "numeric", month: "2-digit", day: "2-digit",
@@ -116,10 +116,27 @@ function formatAmmanTime(date: Date) {
     const formatter = new Intl.DateTimeFormat("en-US", options);
     const parts = formatter.formatToParts(date);
     const get = (type: string) => parts.find(p => p.type === type)?.value;
-    
-    // Amman is UTC+3. Note: If Jordan ever returns to DST, this would need to be dynamic.
-    // For now, fixed offset is standard for the region.
-    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}+03:00`;
+
+    const tzParts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Amman",
+        timeZoneName: "longOffset"
+    }).formatToParts(date);
+    const tzName = tzParts.find(p => p.type === "timeZoneName")?.value || "GMT+03:00";
+
+    let offset = "+03:00";
+    const hhmm = /^GMT([+-]\d{2}:\d{2})$/.exec(tzName);
+    if (hhmm?.[1]) {
+        offset = hhmm[1];
+    } else {
+        const hourOnly = /^GMT([+-]\d{1,2})$/.exec(tzName);
+        if (hourOnly?.[1]) {
+            const sign = hourOnly[1][0];
+            const hours = hourOnly[1].slice(1).padStart(2, "0");
+            offset = `${sign}${hours}:00`;
+        }
+    }
+
+    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}${offset}`;
 }
 
 async function syncCourseExams(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
@@ -137,7 +154,7 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: an
 
         try {
             const dateObj = new Date(dateVal as string | number | Date);
-            if (isNaN(dateObj.getTime())) {
+            if (Number.isNaN(dateObj.getTime())) {
                 results.push({ course: course.code, type, success: false, status: "failed", error: "Invalid date format" });
                 continue;
             }
@@ -157,7 +174,9 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: an
             };
 
             const method = existingEvent?.google_event_id ? "PATCH" : "POST";
-            const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events${existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : ""}`;
+            const baseEventsUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+            const eventPath = existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "";
+            const url = `${baseEventsUrl}${eventPath}`;
 
             const googleRes = await upsertGoogleEvent(calendarId, url, method, token, eventData);
             if (!googleRes.ok) {
@@ -212,7 +231,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     let baseDate = new Date();
     if (semesterObj?.start_date) {
         const d = new Date(semesterObj.start_date as CourseDate);
-        if (!isNaN(d.getTime())) baseDate = d;
+        if (!Number.isNaN(d.getTime())) baseDate = d;
     }
 
     const firstDate = new Date(baseDate);
@@ -231,7 +250,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     let untilDate = new Date(baseDate.getTime() + 120 * 24 * 60 * 60 * 1000);
     if (semesterObj?.end_date) {
         const d = new Date(semesterObj.end_date as CourseDate);
-        if (!isNaN(d.getTime())) untilDate = d;
+        if (!Number.isNaN(d.getTime())) untilDate = d;
     }
     
     untilDate.setHours(23, 59, 59, 0);
@@ -270,7 +289,9 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
         });
         
         const method = existingEvent?.google_event_id ? "PATCH" : "POST";
-        const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events${existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : ""}`;
+        const baseEventsUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+        const eventPath = existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "";
+        const url = `${baseEventsUrl}${eventPath}`;
 
         const googleRes = await upsertGoogleEvent(calendarId, url, method, token, eventData);
         if (!googleRes.ok) {
@@ -292,6 +313,25 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
     }
 }
 
+function buildSyncStatusMessage(
+    successCount: number,
+    failCount: number,
+    skipCount: number,
+    calendarId: string,
+    googleAccountEmail: string
+) {
+    if (successCount > 0) {
+        const calendarName = calendarId === "primary" ? "Primary" : "HTU Smart Advisor";
+        return `Successfully synced ${successCount} items to your '${calendarName}' calendar on ${googleAccountEmail}.`;
+    }
+
+    if (failCount > 0) {
+        return `Failed to sync. Google API returned errors for ${failCount} items.`;
+    }
+
+    return `Nothing synced. Found ${skipCount} courses with missing dates or class times.`;
+}
+
 export async function POST() {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -308,7 +348,7 @@ export async function POST() {
         return NextResponse.json({ error: "Unauthorized: Google Calendar disconnected" }, { status: 401 });
     }
 
-    let googleAccountEmail = "unknown";
+    let googleAccountEmail: string;
     try {
         const checkRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
             headers: { Authorization: `Bearer ${token.accessToken}` }
@@ -319,7 +359,7 @@ export async function POST() {
         } else {
             return NextResponse.json({ error: "Unauthorized: Google connection expired. Please reconnect in settings." }, { status: 401 });
         }
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: "Connection to Google failed." }, { status: 503 });
     }
 
@@ -348,15 +388,13 @@ export async function POST() {
         const successCount = results.filter(r => r.success).length;
         const skipCount = results.filter(r => r.status === "skipped").length;
         const failCount = results.filter(r => r.status === "failed").length;
-
-        let statusMessage = "";
-        if (successCount > 0) {
-            statusMessage = `Successfully synced ${successCount} items to your '${htuCalendarId === 'primary' ? 'Primary' : 'HTU Smart Advisor'}' calendar on ${googleAccountEmail}.`;
-        } else if (failCount > 0) {
-            statusMessage = `Failed to sync. Google API returned errors for ${failCount} items.`;
-        } else {
-            statusMessage = `Nothing synced. Found ${skipCount} courses with missing dates or class times.`;
-        }
+        const statusMessage = buildSyncStatusMessage(
+            successCount,
+            failCount,
+            skipCount,
+            htuCalendarId,
+            googleAccountEmail
+        );
 
         return NextResponse.json({ 
             success: true, 
