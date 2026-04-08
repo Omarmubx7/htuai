@@ -2968,7 +2968,13 @@
                 "name": "STEM Lab I",
                 "ch": 1,
                 "framework": "HTU",
-                "level": 1
+                "level": 1,
+                "major_keys": [
+                    "computer_science",
+                    "cybersecurity",
+                    "data_science",
+                    "game_design"
+                ]
             }
         ]
     }

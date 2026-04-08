@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useTransition } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
@@ -28,15 +28,11 @@ export default function HomeClient() {
     const [courseData, setCourseData] = useState<CourseData | null>(null);
     const [rules, setRules] = useState<CurriculumRules | null>(null);
     
-    // Performance optimization: transitions for heavy UI changes
-    const [isPending, startTransition] = useTransition();
-
     // Progress State (Lifted for Insights)
     const [completedCourses, setCompletedCourses] = useState<Map<string, string>>(new Map());
     const [previousGpaHistory, setPreviousGpaHistory] = useState<{ gpa: number | null, credits: number | null }>({ gpa: null, credits: null });
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map());
-    const [isLoaded, setIsLoaded] = useState(false);
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const router = useRouter();
 
@@ -69,7 +65,7 @@ export default function HomeClient() {
         saveProgressRemote(nextState);
     }, [saveProgressRemote]);
 
-    const loadCourses = useCallback(async (key: MajorKey) => {
+    const loadCourses = useCallback(async (key: MajorKey): Promise<boolean> => {
         try {
             const rulesPath = "/data/curriculum_rules.json";
             const curriculumPath = "/data/curriculum.json";
@@ -78,44 +74,53 @@ export default function HomeClient() {
                 fetchWithRetry(curriculumPath, { retries: 2 })
             ]);
 
-            if (rulesRes.ok && currRes.ok) {
-                const rulesData = await rulesRes.json();
-                const currData = await currRes.json();
-                setRules(rulesData);
-
-                if (currData.majors?.[key]) {
-                    const majorData = currData.majors[key];
-                    const shared = currData.shared;
-                    const seenGlobal = new Set<string>();
-
-                    const isCourseApplicableToMajor = (course: Course): boolean => {
-                        if (!course.major_keys || course.major_keys.length === 0) return true;
-                        return course.major_keys.includes(key);
-                    };
-                    
-                    const mergeAndDeduplicateGlobal = (sharedArr: Course[] = [], majorArr: Course[] = []): Course[] => {
-                        const scopedShared = sharedArr.filter(isCourseApplicableToMajor);
-                        const combined = [...scopedShared, ...majorArr];
-                        return combined.filter((item) => {
-                            if (!item.code) return true;
-                            if (seenGlobal.has(item.code)) return false;
-                            seenGlobal.add(item.code);
-                            return true;
-                        });
-                    };
-
-                    setCourseData({
-                        university_requirements: mergeAndDeduplicateGlobal(shared.university_requirements, majorData.university_requirements),
-                        college_requirements: mergeAndDeduplicateGlobal(shared.college_requirements, majorData.college_requirements),
-                        university_electives: mergeAndDeduplicateGlobal(shared.university_electives, majorData.university_electives),
-                        department_requirements: mergeAndDeduplicateGlobal(shared.department_requirements, majorData.department_requirements),
-                        electives: mergeAndDeduplicateGlobal(shared.electives, majorData.electives),
-                        work_market_requirements: mergeAndDeduplicateGlobal(shared.work_market_requirements, majorData.work_market_requirements),
-                    });
-                }
+            if (!rulesRes.ok || !currRes.ok) {
+                throw new Error("Failed to load curriculum resources");
             }
+
+            const rulesData = await rulesRes.json();
+            const currData = await currRes.json();
+            setRules(rulesData);
+
+            if (!currData.majors?.[key]) {
+                return false;
+            }
+
+            const majorData = currData.majors[key];
+            const shared = currData.shared;
+            const seenGlobal = new Set<string>();
+
+            const isCourseApplicableToMajor = (course: Course): boolean => {
+                if (!course.major_keys || course.major_keys.length === 0) return true;
+                return course.major_keys.includes(key);
+            };
+            
+            const mergeAndDeduplicateGlobal = (sharedArr: Course[] = [], majorArr: Course[] = []): Course[] => {
+                const scopedShared = sharedArr.filter(isCourseApplicableToMajor);
+                const combined = [...scopedShared, ...majorArr];
+                return combined.filter((item) => {
+                    if (!item.code) return true;
+                    if (seenGlobal.has(item.code)) return false;
+                    seenGlobal.add(item.code);
+                    return true;
+                });
+            };
+
+            setCourseData({
+                university_requirements: mergeAndDeduplicateGlobal(shared.university_requirements, majorData.university_requirements),
+                college_requirements: mergeAndDeduplicateGlobal(shared.college_requirements, majorData.college_requirements),
+                university_electives: mergeAndDeduplicateGlobal(shared.university_electives, majorData.university_electives),
+                department_requirements: mergeAndDeduplicateGlobal(shared.department_requirements, majorData.department_requirements),
+                electives: mergeAndDeduplicateGlobal(shared.electives, majorData.electives),
+                work_market_requirements: mergeAndDeduplicateGlobal(shared.work_market_requirements, majorData.work_market_requirements),
+            });
+
+            return true;
         } catch (error) {
             console.error("Failed to load courses", error);
+            setRules(null);
+            setCourseData(null);
+            return false;
         }
     }, []);
 
@@ -154,11 +159,9 @@ export default function HomeClient() {
             if (savedMajor) {
                 setMajor(savedMajor as MajorKey);
                 setPreviousGpaHistory({ gpa: previous_gpa ?? null, credits: previous_credits ?? null });
-                startTransition(() => {
-                    setAppState("course-tracker");
-                    loadCourses(savedMajor as MajorKey);
-                    loadProgress(id, savedMajor as MajorKey);
-                });
+                const loaded = await loadCourses(savedMajor as MajorKey);
+                await loadProgress(id, savedMajor as MajorKey);
+                setAppState(loaded ? "course-tracker" : "major-select");
             } else { setAppState("major-select"); }
         } catch (error) {
             console.error("Failed to load profile", error);
@@ -193,25 +196,23 @@ export default function HomeClient() {
 
     const handleMajorSelect = async (key: MajorKey) => {
         setAppState("changing-major");
-        startTransition(async () => {
-            setMajor(key);
-            safeStorage.set("htuai-major", key);
-            const sid = studentId || session?.user?.student_id || session?.user?.name;
-            if (sid) {
-                try {
-                    await fetchWithRetry(`/api/profile/${encodeURIComponent(sid)}/save`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ major: key }),
-                        retries: 2
-                    });
-                } catch (error) {
-                    console.error("Failed to save major choice", error);
-                }
+        setMajor(key);
+        safeStorage.set("htuai-major", key);
+        const sid = studentId || session?.user?.student_id || session?.user?.name;
+        if (sid) {
+            try {
+                await fetchWithRetry(`/api/profile/${encodeURIComponent(sid)}/save`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ major: key }),
+                    retries: 2
+                });
+            } catch (error) {
+                console.error("Failed to save major choice", error);
             }
-            await loadCourses(key);
-            setAppState("course-tracker");
-        });
+        }
+        const loaded = await loadCourses(key);
+        setAppState(loaded ? "course-tracker" : "major-select");
     };
 
     // ─── 3. Life Cycle Effects ──────────────────────────────────────────────
@@ -220,7 +221,6 @@ export default function HomeClient() {
     useEffect(() => {
         const storedMajor = safeStorage.get("htuai-major");
         if (storedMajor) setMajor(storedMajor as MajorKey);
-        setIsLoaded(true);
     }, []);
 
     // Build course name map
@@ -262,7 +262,7 @@ export default function HomeClient() {
 
     return (
         <AnimatePresence mode="wait">
-            {(appState === "checking" || appState === "changing-major" || isPending) && (
+            {(appState === "checking" || appState === "changing-major") && (
                 <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                     <Spinner message={appState === "changing-major" ? "Updating Curriculum" : "Initializing Workspace"} />
                 </motion.div>
@@ -294,7 +294,7 @@ export default function HomeClient() {
                     exit={{ opacity: 0 }}
                     className="min-h-screen flex flex-col pt-20"
                 >
-                    <header className="fixed top-0 left-0 right-0 z-60 h-20 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06]">
+                    <header className="fixed top-0 left-0 right-0 z-60 h-20 bg-white/2 backdrop-blur-2xl border-b border-white/6">
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             <div id="wt-header-brand" className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
@@ -344,11 +344,17 @@ export default function HomeClient() {
                     </main>
                 </motion.div>
             )}
+
+            {appState === "course-tracker" && (!courseData || !rules) && (
+                <motion.div key="tracker-fallback" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <Spinner message="Loading your curriculum..." />
+                </motion.div>
+            )}
         </AnimatePresence>
     );
 }
 
-function Spinner({ message = "Syncing data..." }: { message?: string }) {
+function Spinner({ message = "Syncing data..." }: Readonly<{ message?: string }>) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-black">
             <div className="absolute inset-0 opacity-20 pointer-events-none mesh-gradient" />
