@@ -119,7 +119,13 @@
       "ch": 3,
       "framework": "HNC",
       "level": 1,
-      "prereq": "30303111"
+      "prereq": "30303111",
+      "major_keys": [
+        "computer_science",
+        "cybersecurity",
+        "data_science",
+        "game_design"
+      ]
     },
     {
       "code": "40303130",
@@ -134,7 +140,13 @@
       "ch": 3,
       "framework": "HNC",
       "level": 1,
-      "prereq": "40303130"
+      "prereq": "40303130",
+      "major_keys": [
+        "computer_science",
+        "cybersecurity",
+        "data_science",
+        "game_design"
+      ]
     },
     {
       "code": "40303221",
@@ -142,7 +154,13 @@
       "ch": 3,
       "framework": "HND",
       "level": 2,
-      "prereq": "40303121"
+      "prereq": "40303121",
+      "major_keys": [
+        "computer_science",
+        "cybersecurity",
+        "data_science",
+        "game_design"
+      ]
     },
     {
       "code": "40201290",
@@ -150,7 +168,13 @@
       "ch": 4,
       "framework": "HNC",
       "level": 2,
-      "prereq": "40302211"
+      "prereq": "40302211",
+      "major_keys": [
+        "computer_science",
+        "cybersecurity",
+        "data_science",
+        "game_design"
+      ]
     },
     {
       "code": "30303121",

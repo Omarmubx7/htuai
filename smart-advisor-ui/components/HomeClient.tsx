@@ -87,9 +87,15 @@ export default function HomeClient() {
                     const majorData = currData.majors[key];
                     const shared = currData.shared;
                     const seenGlobal = new Set<string>();
+
+                    const isCourseApplicableToMajor = (course: Course): boolean => {
+                        if (!course.major_keys || course.major_keys.length === 0) return true;
+                        return course.major_keys.includes(key);
+                    };
                     
                     const mergeAndDeduplicateGlobal = (sharedArr: Course[] = [], majorArr: Course[] = []): Course[] => {
-                        const combined = [...sharedArr, ...majorArr];
+                        const scopedShared = sharedArr.filter(isCourseApplicableToMajor);
+                        const combined = [...scopedShared, ...majorArr];
                         return combined.filter((item) => {
                             if (!item.code) return true;
                             if (seenGlobal.has(item.code)) return false;

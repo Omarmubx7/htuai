@@ -6,6 +6,7 @@ export interface Course {
     level: 1 | 2 | 3 | 4;
     prereq?: string;
     description?: string;
+    major_keys?: string[];
 }
 
 export interface CourseData {
