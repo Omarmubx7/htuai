@@ -113,6 +113,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <meta
+          name="google-site-verification"
+          content="AwC38xmOqbq4byFRJWpR_VackCRoayOpOIJe_cQV6GM"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
