@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Home, CalendarDays, Settings2, LogOut, Moon, Sun } from "lucide-react";
+import { Home, CalendarDays, Settings2, LogOut, Moon, Sun, Bot } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -57,6 +57,16 @@ export default function MobileNav() {
 
                 {/* Quick Actions */}
                 <div className="flex items-center gap-1">
+                    <a
+                        href="https://bot.mubx.dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 rounded-2xl text-white/40 hover:text-cyan-300 transition-all active:scale-90"
+                        title="Open AI Bot"
+                        aria-label="Open AI Bot"
+                    >
+                        <Bot className="w-5 h-5" />
+                    </a>
                     <button
                         onClick={toggleTheme}
                         className="p-3 rounded-2xl text-white/40 hover:text-amber-400 transition-all active:scale-90"
