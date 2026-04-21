@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
 import { Course, CourseData, CurriculumRules } from "@/types";
-import { Settings2, LogOut, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Settings2, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -34,7 +33,6 @@ export default function HomeClient() {
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map());
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const router = useRouter();
 
     // ─── 1. Core Logic & Data Fetching (Defined first to avoid ReferenceErrors) ────────────────
 
@@ -57,12 +55,14 @@ export default function HomeClient() {
             console.error("Failed to save progress", error);
             setSaveStatus(null);
         }
-    }, [studentId, major, courseNameMap, router]);
+    }, [studentId, major, courseNameMap]);
 
     const debouncedSave = useCallback((nextState: Map<string, string>) => {
         setSaveStatus("saving");
         if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-        saveProgressRemote(nextState);
+        syncTimeoutRef.current = setTimeout(() => {
+            void saveProgressRemote(nextState);
+        }, 500);
     }, [saveProgressRemote]);
 
     const loadCourses = useCallback(async (key: MajorKey): Promise<boolean> => {
@@ -258,6 +258,12 @@ export default function HomeClient() {
         }
     }, [status, session, loadProfile]);
 
+    useEffect(() => {
+        return () => {
+            if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+        };
+    }, []);
+
     const majorInfo = major ? MAJORS.find(m => m.key === major) : null;
 
     return (
@@ -356,21 +362,39 @@ export default function HomeClient() {
 
 function Spinner({ message = "Syncing data..." }: Readonly<{ message?: string }>) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-black">
+        <div className="min-h-screen bg-black px-5 py-8 sm:px-8 sm:py-10">
             <div className="absolute inset-0 opacity-20 pointer-events-none mesh-gradient" />
-            <div className="relative z-10 flex flex-col items-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden animate-pulse">
-                    <Image src="/htuai-dark-logo.svg" alt="HTUAI" width={32} height={32} className="dark-logo" />
-                    <Image src="/htuai-light-logo.svg" alt="HTUAI" width={32} height={32} className="light-logo" />
+            <output className="relative z-10 mx-auto block w-full max-w-6xl space-y-6 animate-pulse" aria-label={message} aria-live="polite">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8">
+                    <div className="h-4 w-28 rounded-full bg-white/10 mb-4" />
+                    <div className="h-10 w-2/3 rounded-xl bg-white/10 mb-3" />
+                    <div className="h-4 w-1/2 rounded-lg bg-white/10" />
                 </div>
-                <div className="text-center">
-                    <h2 className="text-white font-bold text-lg">HTU Smart Advisor</h2>
-                    <div className="flex items-center justify-center gap-2 text-white/40 text-sm mt-1">
-                        <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-                        <span>{message}</span>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 animate-shimmer">
+                        <div className="h-4 w-20 rounded-full bg-white/10 mb-4" />
+                        <div className="h-7 w-16 rounded-lg bg-white/10 mb-4" />
+                        <div className="h-3 w-full rounded-lg bg-white/10 mb-2" />
+                        <div className="h-3 w-4/5 rounded-lg bg-white/10" />
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 animate-shimmer">
+                        <div className="h-4 w-20 rounded-full bg-white/10 mb-4" />
+                        <div className="h-7 w-16 rounded-lg bg-white/10 mb-4" />
+                        <div className="h-3 w-full rounded-lg bg-white/10 mb-2" />
+                        <div className="h-3 w-4/5 rounded-lg bg-white/10" />
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 animate-shimmer">
+                        <div className="h-4 w-20 rounded-full bg-white/10 mb-4" />
+                        <div className="h-7 w-16 rounded-lg bg-white/10 mb-4" />
+                        <div className="h-3 w-full rounded-lg bg-white/10 mb-2" />
+                        <div className="h-3 w-4/5 rounded-lg bg-white/10" />
                     </div>
                 </div>
-            </div>
+
+                <div className="text-center text-white/35 text-sm font-semibold tracking-wide">{message}</div>
+                <span className="sr-only">{message}</span>
+            </output>
         </div>
     );
 }
