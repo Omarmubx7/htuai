@@ -326,10 +326,10 @@ export default function HomeClient() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-200 hover:text-cyan-100 hover:border-cyan-300/40 transition-all"
-                                    title="Open AI Bot"
+                                    title="Open mubxbot"
                                 >
                                     <Bot className="w-4 h-4" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">AI Bot</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">mubxbot</span>
                                 </a>
                                 <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
                                     {studentId?.substring(0, 2).toUpperCase()}

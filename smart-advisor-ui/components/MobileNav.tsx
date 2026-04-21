@@ -62,8 +62,8 @@ export default function MobileNav() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-3 rounded-2xl text-white/40 hover:text-cyan-300 transition-all active:scale-90"
-                        title="Open AI Bot"
-                        aria-label="Open AI Bot"
+                        title="Open mubxbot"
+                        aria-label="Open mubxbot"
                     >
                         <Bot className="w-5 h-5" />
                     </a>
