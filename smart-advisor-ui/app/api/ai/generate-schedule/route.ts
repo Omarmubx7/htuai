@@ -9,6 +9,71 @@ type ScheduleCourse = {
     credits: number;
 };
 
+type ScheduleSession = {
+    course: string;
+    hours: number;
+    focus: string;
+};
+
+type ScheduleDay = {
+    day: string;
+    sessions: ScheduleSession[];
+};
+
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const FOCUS_TEMPLATES = [
+    "Review lecture notes and summarize key ideas",
+    "Work through practice problems",
+    "Revise quizzes, labs, and past assignments",
+    "Memorize formulas and definitions",
+    "Prepare exam questions and flashcards",
+    "Do a short active-recall session",
+];
+
+function buildFallbackStudySchedule(courses: ScheduleCourse[], weeklyHours: number) {
+    if (courses.length === 0) {
+        return { weeklyPlan: [], examTips: ["Add at least one course to generate a study plan."] };
+    }
+
+    const weightedCourses = courses.flatMap((course) =>
+        Array.from({ length: Math.max(1, course.credits) }, () => course)
+    );
+    const hoursPerDay = Math.max(0.5, Number((weeklyHours / 7).toFixed(1)));
+
+    const weeklyPlan: ScheduleDay[] = DAY_NAMES.map((day, index) => {
+        const course = weightedCourses[index % weightedCourses.length] ?? courses[index % courses.length];
+        const focus = FOCUS_TEMPLATES[index % FOCUS_TEMPLATES.length];
+
+        return {
+            day,
+            sessions: [
+                {
+                    course: course.code,
+                    hours: hoursPerDay,
+                    focus,
+                },
+            ],
+        };
+    });
+
+    return {
+        weeklyPlan,
+        examTips: [
+            "Start with the course that has the highest credit load.",
+            "Keep one day light for revision and catch-up.",
+            `Focus extra review on ${courses[0].name} before exams.`,
+        ],
+    };
+}
+
+function parseScheduleResponse(raw: string) {
+    try {
+        return JSON.parse(raw) as unknown;
+    } catch {
+        return { weeklyPlan: [], examTips: [], raw };
+    }
+}
+
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -37,12 +102,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        const raw = await getStudySchedule({ major, courses, weeklyHours });
-        let parsed: unknown = {};
+        let parsed: unknown;
         try {
-            parsed = JSON.parse(raw);
-        } catch {
-            parsed = { weeklyPlan: [], examTips: [], raw };
+            const raw = await getStudySchedule({ major, courses, weeklyHours });
+            parsed = parseScheduleResponse(raw);
+        } catch (error) {
+            console.error("generate-schedule provider error", error);
+            parsed = buildFallbackStudySchedule(courses, weeklyHours);
         }
 
         return NextResponse.json({ result: parsed });
