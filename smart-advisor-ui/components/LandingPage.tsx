@@ -61,7 +61,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         className="text-6xl sm:text-7xl md:text-9xl font-black text-white tracking-[-0.04em] leading-[0.9] px-4 uppercase italic"
                     >
-                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-400 to-blue-500 drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">HTUAI</span>
+                        <span className="text-transparent bg-clip-text bg-linear-to-br from-white via-violet-400 to-blue-500 drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">HTUAI</span>
                     </motion.h1>
                 </div>
 
@@ -78,7 +78,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    className="flex items-center gap-2 mb-14 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] select-none"
+                    className="flex items-center gap-2 mb-14 px-4 py-1.5 rounded-full bg-white/3 border border-white/5 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] select-none"
                 >
                     <div className="w-1 h-1 rounded-full bg-violet-500 animate-pulse" />
                     Powered by Google Gemini
@@ -100,7 +100,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                             }}
                             className="premium-card p-10 text-left group cursor-default"
                         >
-                            <div className="mb-8 p-4 rounded-[22px] bg-white/[0.03] w-fit border border-white/5 group-hover:bg-white/[0.06] transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-xl">
+                            <div className="mb-8 p-4 rounded-[22px] bg-white/3 w-fit border border-white/5 group-hover:bg-white/6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-xl">
                                 {feature.icon}
                             </div>
                             <h3 className="text-2xl font-bold text-white mb-3 tracking-tight group-hover:text-violet-300 transition-colors">
@@ -121,7 +121,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     className="flex flex-col items-center gap-8"
                 >
                     <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="absolute -inset-1 bg-linear-to-r from-violet-600 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
                         <motion.button
                             onClick={onGetStarted}
                             whileHover={{ scale: 1.05 }}

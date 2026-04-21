@@ -68,10 +68,10 @@ describe('CUMULATIVE_CLASSIFICATIONS', () => {
 
   it('should cover full GPA range from 0 to 4.0', () => {
     const highest = CUMULATIVE_CLASSIFICATIONS[0];
-    const lowest = CUMULATIVE_CLASSIFICATIONS[CUMULATIVE_CLASSIFICATIONS.length - 1];
+    const lowest = CUMULATIVE_CLASSIFICATIONS.at(-1);
     
     expect(highest.max).toBe(4);
-    expect(lowest.min).toBe(0);
+    expect(lowest?.min).toBe(0);
   });
 
   it('should have correct Excellent (EX) classification', () => {
@@ -106,7 +106,7 @@ describe('gradeToPoints', () => {
 describe('calculateSemesterGpa', () => {
   it('should calculate GPA correctly for single course', () => {
     const courses = [{ grade: 'D', credits: 3 }];
-    expect(calculateSemesterGpa(courses)).toBe(4.0);
+    expect(calculateSemesterGpa(courses)).toBe(4);
   });
 
   it('should calculate weighted GPA for multiple courses', () => {
@@ -158,7 +158,7 @@ describe('calculateSemesterGpa', () => {
       { grade: 'U', credits: 3 },  // 0.0 * 3 = 0.0
     ];
     // Total: 12.0 / 6 = 2.0
-    expect(calculateSemesterGpa(courses)).toBe(2.0);
+    expect(calculateSemesterGpa(courses)).toBe(2);
   });
 
   it('should round to 2 decimal places', () => {
@@ -248,7 +248,7 @@ describe('calculateGPA (compatibility wrapper)', () => {
 
 describe('getClassification', () => {
   it('should return Excellent (EX) for GPA 3.6-4.0', () => {
-    expect(getClassification(4.0).short).toBe('EX');
+    expect(getClassification(4).short).toBe('EX');
     expect(getClassification(3.6).short).toBe('EX');
     expect(getClassification(3.8).short).toBe('EX');
   });
@@ -262,7 +262,7 @@ describe('getClassification', () => {
   it('should return Good for GPA 2.8-3.19', () => {
     expect(getClassification(3.19).short).toBe('Good');
     expect(getClassification(2.8).short).toBe('Good');
-    expect(getClassification(3.0).short).toBe('Good');
+    expect(getClassification(3).short).toBe('Good');
   });
 
   it('should return Satisfactory (SAT) for GPA 2.4-2.79', () => {
@@ -273,17 +273,17 @@ describe('getClassification', () => {
 
   it('should return Below Minimum (LOW) for GPA < 2.4', () => {
     expect(getClassification(2.39).short).toBe('LOW');
-    expect(getClassification(2.0).short).toBe('LOW');
+    expect(getClassification(2).short).toBe('LOW');
     expect(getClassification(1.5).short).toBe('LOW');
-    expect(getClassification(0.0).short).toBe('LOW');
+    expect(getClassification(0).short).toBe('LOW');
   });
 
   it('should include correct color keys', () => {
-    expect(getClassification(4.0).colorKey).toBe('emerald');
+    expect(getClassification(4).colorKey).toBe('emerald');
     expect(getClassification(3.5).colorKey).toBe('blue');
-    expect(getClassification(3.0).colorKey).toBe('violet');
+    expect(getClassification(3).colorKey).toBe('violet');
     expect(getClassification(2.5).colorKey).toBe('amber');
-    expect(getClassification(2.0).colorKey).toBe('red');
+    expect(getClassification(2).colorKey).toBe('red');
   });
 
   it('should include motivational messages', () => {

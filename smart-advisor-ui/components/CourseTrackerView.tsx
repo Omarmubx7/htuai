@@ -6,7 +6,7 @@ import { Course, CourseData, CurriculumRules } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
 import { calculateGPA } from '@/lib/grading';
-import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star } from 'lucide-react';
+import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star, Sparkles, CalendarDays } from 'lucide-react';
 import StudentDashboard from './StudentDashboard';
 import ConfirmDialog from './ui/ConfirmDialog';
 import { useToast } from './ui/Toast';
@@ -50,6 +50,12 @@ function CourseTrackerView({
 
     const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
     const [isMobile, setIsMobile] = useState(false);
+    const [aiLoading, setAiLoading] = useState<"suggestions" | "schedule" | null>(null);
+    const [aiError, setAiError] = useState<string | null>(null);
+    const [aiRecommendations, setAiRecommendations] = useState<Array<{ code: string; reason: string }>>([]);
+    const [aiTips, setAiTips] = useState<string[]>([]);
+    const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
+    const [examTips, setExamTips] = useState<string[]>([]);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -66,6 +72,15 @@ function CourseTrackerView({
         ...data.electives,
         ...(data.work_market_requirements ?? [])
     ];
+    const completedCodes = new Set(completedCourses.keys());
+    const candidateCourses = allCourses
+        .filter((course) => !completedCodes.has(course.code))
+        .map((course) => ({
+            code: course.code,
+            name: course.name,
+            credits: course.ch,
+            prereq: course.prereq
+        }));
 
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
     const allCourseCodes = new Set(allCourses.map(c => c.code));
@@ -140,6 +155,130 @@ function CourseTrackerView({
     };
 
     const groups = getGroups();
+
+    const generateAiSuggestions = async () => {
+        setAiLoading("suggestions");
+        setAiError(null);
+
+        try {
+            const response = await fetch("/api/ai/suggest-courses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    major: majorKey,
+                    completedCourses: Array.from(completedCourses.keys()),
+                    candidateCourses,
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch AI suggestions");
+            }
+
+            const payload = await response.json() as {
+                result?: {
+                    recommendations?: Array<{ code?: string; reason?: string }>;
+                    tips?: string[];
+                }
+            };
+
+            const recommendations = Array.isArray(payload.result?.recommendations)
+                ? payload.result.recommendations
+                    .filter((item): item is { code: string; reason: string } => !!item?.code && !!item?.reason)
+                    .slice(0, 5)
+                : [];
+
+            const tips = Array.isArray(payload.result?.tips)
+                ? payload.result.tips.filter((tip): tip is string => typeof tip === "string").slice(0, 3)
+                : [];
+
+            setAiRecommendations(recommendations);
+            setAiTips(tips);
+            if (recommendations.length === 0) {
+                setAiError("No recommendations found yet. Try again after marking more courses.");
+            }
+        } catch (error) {
+            console.error("AI recommendations error", error);
+            setAiError("Could not generate recommendations right now.");
+        } finally {
+            setAiLoading(null);
+        }
+    };
+
+    const generateWeeklySchedule = async () => {
+        setAiLoading("schedule");
+        setAiError(null);
+
+        try {
+            const targetCourses = candidateCourses.slice(0, 5).map((course) => ({
+                code: course.code,
+                name: course.name,
+                credits: course.credits,
+            }));
+
+            if (targetCourses.length === 0) {
+                setAiError("You completed all available courses. No schedule needed.");
+                setAiLoading(null);
+                return;
+            }
+
+            const response = await fetch("/api/ai/generate-schedule", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    major: majorKey,
+                    weeklyHours: 14,
+                    courses: targetCourses,
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch AI schedule");
+            }
+
+            const payload = await response.json() as {
+                result?: {
+                    weeklyPlan?: Array<{ day?: string; sessions?: Array<{ course?: string; hours?: number; focus?: string }> }>;
+                    examTips?: string[];
+                }
+            };
+
+            const normalizedPlan = Array.isArray(payload.result?.weeklyPlan)
+                ? payload.result.weeklyPlan
+                    .filter((entry): entry is { day: string; sessions: Array<{ course: string; hours: number; focus: string }> } => {
+                        if (!entry || typeof entry.day !== "string" || !Array.isArray(entry.sessions)) return false;
+                        return true;
+                    })
+                    .map((entry) => ({
+                        day: entry.day,
+                        sessions: entry.sessions
+                            .filter((session): session is { course: string; hours: number; focus: string } =>
+                                typeof session?.course === "string" &&
+                                typeof session?.hours === "number" &&
+                                typeof session?.focus === "string")
+                            .slice(0, 3)
+                    }))
+                    .filter((entry) => entry.sessions.length > 0)
+                    .slice(0, 7)
+                : [];
+
+            const normalizedExamTips = Array.isArray(payload.result?.examTips)
+                ? payload.result.examTips.filter((tip): tip is string => typeof tip === "string").slice(0, 3)
+                : [];
+
+            setWeeklyPlan(normalizedPlan);
+            setExamTips(normalizedExamTips);
+
+            if (normalizedPlan.length === 0) {
+                setAiError("No schedule generated yet. Please retry.");
+            }
+        } catch (error) {
+            console.error("AI schedule error", error);
+            setAiError("Could not generate a schedule right now.");
+        } finally {
+            setAiLoading(null);
+        }
+    };
 
     const renderCourseCard = (course: Course) => {
         let isElectiveLocked = false;
@@ -312,6 +451,87 @@ function CourseTrackerView({
                 setPreviousGpaHistory={setPreviousGpaHistory}
             />
 
+            <section className="rounded-4xl border border-cyan-400/20 bg-cyan-500/4 p-5 sm:p-6 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 className="text-lg sm:text-xl font-black text-cyan-100 tracking-tight">mubxbot AI Advisor</h2>
+                        <p className="text-xs sm:text-sm text-cyan-100/60">Free AI-powered next-semester recommendations and study planning.</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            onClick={() => void generateAiSuggestions()}
+                            disabled={aiLoading !== null}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-xs font-black uppercase tracking-wider disabled:opacity-60"
+                        >
+                            {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            Suggest Courses
+                        </button>
+                        <button
+                            onClick={() => void generateWeeklySchedule()}
+                            disabled={aiLoading !== null}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-cyan-300/40 text-cyan-100 text-xs font-black uppercase tracking-wider disabled:opacity-60"
+                        >
+                            {aiLoading === "schedule" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
+                            Build Schedule
+                        </button>
+                    </div>
+                </div>
+
+                {aiError && (
+                    <p className="text-xs text-rose-300 font-semibold">{aiError}</p>
+                )}
+
+                {aiRecommendations.length > 0 && (
+                    <div className="space-y-2">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Recommended Next Courses</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            {aiRecommendations.map((item) => (
+                                <div key={item.code} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                    <div className="text-xs font-black text-cyan-200">{item.code}</div>
+                                    <p className="text-xs text-white/70 mt-1">{item.reason}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {aiTips.length > 0 && (
+                    <div className="space-y-1">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Registration Tips</h3>
+                        {aiTips.map((tip) => (
+                            <p key={tip} className="text-xs text-white/70">- {tip}</p>
+                        ))}
+                    </div>
+                )}
+
+                {weeklyPlan.length > 0 && (
+                    <div className="space-y-2">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Weekly Study Schedule</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {weeklyPlan.map((dayPlan) => (
+                                <div key={dayPlan.day} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                    <div className="text-xs font-black text-cyan-200 mb-2">{dayPlan.day}</div>
+                                    {dayPlan.sessions.map((session) => (
+                                        <p key={`${dayPlan.day}-${session.course}-${session.focus}`} className="text-xs text-white/70 leading-relaxed">
+                                            {session.course}: {session.hours}h - {session.focus}
+                                        </p>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {examTips.length > 0 && (
+                    <div className="space-y-1">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Exam Tips</h3>
+                        {examTips.map((tip) => (
+                            <p key={tip} className="text-xs text-white/70">- {tip}</p>
+                        ))}
+                    </div>
+                )}
+            </section>
+
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-white/40">
@@ -331,7 +551,7 @@ function CourseTrackerView({
                             className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 relative group
                                 ${viewMode === mode
                                     ? "text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                                    : "text-white/40 bg-white/[0.03] hover:text-white hover:bg-white/[0.08]"
+                                    : "text-white/40 bg-white/3 hover:text-white hover:bg-white/8"
                                 }`}
                         >
                             {mode === "level" ? "Roadmap" : "Categories"}
@@ -365,7 +585,7 @@ function CourseTrackerView({
                     const displayTitle = title === "University Requirements" && isMobile ? "Uni. Requirements" : title;
 
                     return (
-                        <section key={title} className="bg-white/[0.02] border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-[2rem] sm:rounded-none">
+                        <section key={title} className="bg-white/2 border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-4xl sm:rounded-none">
                             <div className="flex items-center gap-3 mb-5 sm:mb-6">
                                 {viewMode === 'level'
                                     ? <Trophy className="w-4 h-4 text-violet-400/60 shrink-0" />
@@ -402,7 +622,7 @@ function CourseTrackerView({
                                     className="w-full mt-4 py-3 rounded-2xl border border-white/10 bg-white/2 hover:bg-white/5 active:scale-[0.98] transition-all text-xs font-bold text-white/60 tracking-widest uppercase flex flex-col items-center gap-1"
                                 >
                                     <span>Load All {courses.length} Courses</span>
-                                    <span className="text-[9px] text-white/30 lowercase normal-case tracking-normal">+{hiddenCount} hidden</span>
+                                    <span className="text-[9px] text-white/30 normal-case tracking-normal">+{hiddenCount} hidden</span>
                                 </motion.button>
                             )}
                         </section>
