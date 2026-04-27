@@ -25,31 +25,21 @@ export async function getSuggestedCourses(params: {
     const client = getGroqClient();
 
     const prompt = [
-        `You are an HTU academic advisor. Major: ${major}.`,
-        "Recommend exactly 5 courses for the next semester from the provided UNLOCKED candidates.",
-        "Output strict TOON format exactly like this:",
+        `Major:${major}. Pick 5 courses.`,
+        "TOON format:",
         "R:",
-        "code1|reason1",
-        "code2|reason2",
+        "code|reason",
         "T:",
-        "tip1",
-        "tip2",
-        "No extra text.",
-        `Candidates: ${candidateCourses.map(c => `${c.code}:${c.name}`).join(" ")}`,
+        "tip",
+        `Candidates:${candidateCourses.map(c => `${c.code}:${c.name}`).join(",")}`
     ].join("\n");
 
     const completion = await client.chat.completions.create({
         model: "llama-3.1-8b-instant",
-        temperature: 0.2,
+        temperature: 0.1,
         messages: [
-            {
-                role: "system",
-                content: "You output TOON format only.",
-            },
-            {
-                role: "user",
-                content: prompt,
-            },
+            { role: "system", content: "Advisor. Output TOON only." },
+            { role: "user", content: prompt }
         ],
     });
 
@@ -82,33 +72,21 @@ export async function getStudySchedule(params: {
     const client = getGroqClient();
 
     const prompt = [
-        `Create a practical weekly study schedule for an HTU ${major} student.`,
-        "Output strict TOON format exactly like this:",
+        `Schedule for ${major} student. 7 days. ~${weeklyHours}hrs.`,
+        "TOON format:",
         "W:",
-        "Sunday|40201100|1.5|Review arrays",
-        "Sunday|10203180|2|Lab practice",
-        "Monday|...|...|...",
+        "Day|code|hrs|focus",
         "E:",
-        "tip1",
-        "tip2",
-        "Use 7 days, distribute workload by credits.",
-        "No extra text.",
-        `Target hrs: ${weeklyHours}`,
-        `Courses: ${courses.map(c => c.code).join(", ")}`,
+        "tip",
+        `Courses:${courses.map(c => c.code).join(",")}`
     ].join("\n");
 
     const completion = await client.chat.completions.create({
         model: "llama-3.1-8b-instant",
-        temperature: 0.3,
+        temperature: 0.1,
         messages: [
-            {
-                role: "system",
-                content: "You output TOON format only.",
-            },
-            {
-                role: "user",
-                content: prompt,
-            },
+            { role: "system", content: "Advisor. Output TOON only." },
+            { role: "user", content: prompt }
         ],
     });
 
