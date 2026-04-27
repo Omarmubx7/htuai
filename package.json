@@ -1,0 +1,12 @@
+{
+  "name": "htuai-root",
+  "version": "1.0.0",
+  "description": "Root workspace router for HTUAI",
+  "scripts": {
+    "dev": "cd smart-advisor-ui && npm run dev",
+    "build": "cd smart-advisor-ui && npm run build",
+    "start": "cd smart-advisor-ui && npm run start",
+    "lint": "cd smart-advisor-ui && npm run lint",
+    "install-all": "cd smart-advisor-ui && npm install"
+  }
+}

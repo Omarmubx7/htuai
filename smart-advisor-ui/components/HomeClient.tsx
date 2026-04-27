@@ -13,9 +13,10 @@ import dynamic from "next/dynamic";
 import { safeStorage } from "@/lib/safe-storage";
 import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 
+import type { CourseTrackerViewProps } from "@/components/CourseTrackerView";
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
 const MajorSelector = dynamic(() => import("@/components/MajorSelector"), { ssr: false });
-const CourseTrackerView = dynamic(() => import("@/components/CourseTrackerView"));
+const CourseTrackerView = dynamic<CourseTrackerViewProps>(() => import("@/components/CourseTrackerView") as any);
 
 type AppState = "checking" | "landing" | "login" | "major-select" | "course-tracker" | "changing-major";
 

@@ -677,7 +677,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                                     className="px-4 py-2 hover:bg-white/10 cursor-pointer text-sm flex justify-between items-center"
                                                     onClick={() => {
                                                         setNewCourse({ code: c.code, name: c.name, credits: c.credits });
-                                                        setSearchQuery(`${c.code} - ${c.name}`);
+                                                        setSearchQuery(c.name);
                                                         setShowSuggestions(false);
                                                     }}
                                                 >

@@ -16,7 +16,7 @@ const CourseNotesModal = dynamic(() => import('./CourseNotesModal'), {
     ssr: false,
 });
 
-interface CourseTrackerViewProps {
+export interface CourseTrackerViewProps {
     data: CourseData;
     studentId: string;
     majorKey: string;
@@ -167,7 +167,17 @@ function CourseTrackerView({
                 body: JSON.stringify({
                     major: majorKey,
                     completedCourses: Array.from(completedCourses.keys()),
-                    candidateCourses,
+                    candidateCourses: allCourses.filter(course => {
+                        if (completedCodes.has(course.code)) return false;
+                        let isElectiveLocked = false;
+                        if (uniElectiveCodes.has(course.code)) isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES;
+                        else if (deptElectiveCodes.has(course.code)) isElectiveLocked = deptElecCapReached;
+                        if (isElectiveLocked) return false;
+                        
+                        const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
+                        const { isLocked: prereqLocked } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules?.prerequisites);
+                        return isUniversitySubject ? false : !prereqLocked;
+                    }).map(c => ({ code: c.code, name: c.name, credits: c.ch })),
                 })
             });
 
@@ -487,7 +497,8 @@ function CourseTrackerView({
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {aiRecommendations.map((item) => (
                                 <div key={item.code} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                                    <div className="text-xs font-black text-cyan-200">{item.code}</div>
+                                    <div className="text-xs font-black text-cyan-200">{courseMap[item.code] || item.code}</div>
+                                    <p className="text-[10px] text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
                                     <p className="text-xs text-white/70 mt-1">{item.reason}</p>
                                 </div>
                             ))}
@@ -513,7 +524,7 @@ function CourseTrackerView({
                                     <div className="text-xs font-black text-cyan-200 mb-2">{dayPlan.day}</div>
                                     {dayPlan.sessions.map((session) => (
                                         <p key={`${dayPlan.day}-${session.course}-${session.focus}`} className="text-xs text-white/70 leading-relaxed">
-                                            {session.course}: {session.hours}h - {session.focus}
+                                            <span className="font-bold text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
                                         </p>
                                     ))}
                                 </div>
