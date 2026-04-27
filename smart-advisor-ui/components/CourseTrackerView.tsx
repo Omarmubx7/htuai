@@ -213,9 +213,9 @@ function CourseTrackerView({
             if (recommendations.length === 0) {
                 setAiError("No recommendations found yet. Try again after marking more courses.");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI recommendations error", error);
-            setAiError("Could not generate recommendations right now.");
+            setAiError(error?.message || "Could not generate recommendations right now.");
         } finally {
             setAiLoading(null);
         }
@@ -288,9 +288,9 @@ function CourseTrackerView({
             if (normalizedPlan.length === 0) {
                 setAiError("No schedule generated yet. Please retry.");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI schedule error", error);
-            setAiError("Could not generate a schedule right now.");
+            setAiError(error?.message || "Could not generate a schedule right now.");
         } finally {
             setAiLoading(null);
         }
