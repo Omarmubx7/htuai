@@ -182,7 +182,13 @@ function CourseTrackerView({
             });
 
             if (!response.ok) {
-                throw new Error("Failed to fetch AI suggestions");
+                const errText = await response.text();
+                try {
+                    const errJson = JSON.parse(errText);
+                    throw new Error(errJson.details || errJson.error || 'Failed to generate suggestions');
+                } catch {
+                    throw new Error('Failed to generate suggestions: ' + response.statusText);
+                }
             }
 
             const payload = await response.json() as {

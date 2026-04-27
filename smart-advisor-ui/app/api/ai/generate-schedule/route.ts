@@ -112,8 +112,11 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ result: parsed });
-    } catch (error) {
+    } catch (error: any) {
         console.error("generate-schedule error", error);
-        return NextResponse.json({ error: "Failed to generate schedule" }, { status: 500 });
+        return NextResponse.json({ 
+            error: "Failed to generate schedule",
+            details: error?.message || String(error)
+        }, { status: 500 });
     }
 }
