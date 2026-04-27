@@ -25,20 +25,23 @@ export async function getSuggestedCourses(params: {
     const client = getGroqClient();
 
     const prompt = [
-        `Major:${major}. Pick 5 courses.`,
-        "TOON format:",
+        `You are an advisor for an HTU ${major} student. Recommend 5 courses.`,
+        "Output strict TOON format exactly like this:",
         "R:",
-        "code|reason",
+        "code1 | reason1",
+        "code2 | reason2",
         "T:",
-        "tip",
-        `Candidates:${candidateCourses.map(c => `${c.code}:${c.name}`).join(",")}`
+        "Registration tip 1",
+        "Registration tip 2",
+        "No extra text.",
+        `Candidates: ${candidateCourses.map(c => `${c.code}: ${c.name}`).join(" | ")}`
     ].join("\n");
 
     const completion = await client.chat.completions.create({
         model: "llama-3.1-8b-instant",
-        temperature: 0.1,
+        temperature: 0.2,
         messages: [
-            { role: "system", content: "Advisor. Output TOON only." },
+            { role: "system", content: "You output TOON format only." },
             { role: "user", content: prompt }
         ],
     });
@@ -72,20 +75,22 @@ export async function getStudySchedule(params: {
     const client = getGroqClient();
 
     const prompt = [
-        `Schedule for ${major} student. 7 days. ~${weeklyHours}hrs.`,
-        "TOON format:",
+        `Create a weekly study schedule for an HTU ${major} student. 7 days. Total ~${weeklyHours} hrs.`,
+        "Output strict TOON format exactly like this:",
         "W:",
-        "Day|code|hrs|focus",
+        "Sunday | 40201100 | 1.5 | Review arrays",
+        "Sunday | 10203180 | 2.0 | Lab practice",
         "E:",
-        "tip",
-        `Courses:${courses.map(c => c.code).join(",")}`
+        "Start early",
+        "No extra text.",
+        `Courses: ${courses.map(c => c.code).join(", ")}`
     ].join("\n");
 
     const completion = await client.chat.completions.create({
         model: "llama-3.1-8b-instant",
-        temperature: 0.1,
+        temperature: 0.2,
         messages: [
-            { role: "system", content: "Advisor. Output TOON only." },
+            { role: "system", content: "You output TOON format only." },
             { role: "user", content: prompt }
         ],
     });
