@@ -1,6 +1,0 @@
-
-C:\Users\omara\htuai\smart-advisor-ui\app\api\integrations\google-calendar\sync\route.ts
-  1:10  warning  'NextRequest' is defined but never used  @typescript-eslint/no-unused-vars
-
-Γ£û 1 problem (0 errors, 1 warning)
-
