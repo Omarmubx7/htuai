@@ -24,6 +24,7 @@ interface StudentDashboardProps {
     rules: CurriculumRules;
     previousGpaHistory?: { gpa: number | null, credits: number | null };
     setPreviousGpaHistory?: (val: { gpa: number | null, credits: number | null }) => void;
+    onCategoryClick?: (category: string) => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -43,6 +44,7 @@ function StudentDashboard({
     rules,
     previousGpaHistory,
     setPreviousGpaHistory,
+    onCategoryClick,
 }: Readonly<StudentDashboardProps>) {
     const [isEditingGpa, setIsEditingGpa] = useState(false);
     const [terms, setTerms] = useState<{ gpa: string, credits: string }[]>([
@@ -375,12 +377,13 @@ function StudentDashboard({
                         const pct = cat.totalCH > 0 ? Math.round((cat.doneCH / cat.totalCH) * 100) : 0;
                         const isDone = cat.remaining === 0 && cat.totalCH > 0;
                         return (
-                            <motion.div
+                            <motion.button
                                 key={cat.label}
+                                onClick={() => onCategoryClick?.(cat.label)}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.4 + i * 0.08 }}
-                                className={`group/cat ${isDone ? "opacity-30 grayscale" : "hover:scale-[1.01] transition-transform"}`}
+                                className={`text-left w-full group/cat ${isDone ? "opacity-30 grayscale" : "hover:scale-[1.01] transition-transform"}`}
                             >
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: `${cat.color}15`, color: cat.color }}>
@@ -406,7 +409,7 @@ function StudentDashboard({
                                         <div className="absolute inset-x-0 bottom-0 h-[20%] bg-white/20" />
                                     </motion.div>
                                 </div>
-                            </motion.div>
+                            </motion.button>
                         );
                     })}
                 </div>

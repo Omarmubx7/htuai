@@ -198,7 +198,7 @@ function CourseCard({
             whileHover={isLocked ? {} : { y: -6, scale: 1.02, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
             whileTap={isLocked ? {} : { scale: 0.98 }}
             className={`
-                relative p-5 rounded-[28px] border transition-all duration-500 select-none overflow-hidden group/card animate-shimmer
+                relative p-4 sm:p-5 rounded-[20px] sm:rounded-[28px] border transition-all duration-500 select-none overflow-hidden group/card animate-shimmer
                 ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                 ${cardBorder}
             `}
@@ -223,12 +223,12 @@ function CourseCard({
             </div>
 
             {/* Course Name */}
-            <h3 data-testid="course-name" className={`font-bold text-base leading-tight mb-2 tracking-tight relative z-10 transition-colors ${isCompleted ? "text-white" : "text-white/80 group-hover/card:text-white"}`}>
+            <h3 data-testid="course-name" className={`font-bold text-sm sm:text-base leading-tight mb-1.5 sm:mb-2 tracking-tight relative z-10 transition-colors ${isCompleted ? "text-white" : "text-white/80 group-hover/card:text-white"}`}>
                 {course.name}
             </h3>
 
             {/* Code + Credits + Notes */}
-            <div className="flex flex-wrap items-center justify-between gap-y-3 mt-5 relative z-10">
+            <div className="flex flex-wrap items-center justify-between gap-y-3 mt-3 sm:mt-5 relative z-10">
                 <div className="flex flex-wrap items-center gap-3">
                     <span data-testid="course-code" className="text-[10px] text-white/20 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors mt-0.5">{course.code}</span>
                     <button

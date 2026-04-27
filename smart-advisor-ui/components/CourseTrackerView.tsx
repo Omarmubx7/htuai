@@ -339,7 +339,7 @@ function CourseTrackerView({
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-36 space-y-8 sm:space-y-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-24 sm:pb-36 space-y-6 sm:space-y-12">
             <ConfirmDialog
                 isOpen={showResetConfirm}
                 title="Reset All Progress"
@@ -459,6 +459,17 @@ function CourseTrackerView({
                 rules={rules}
                 previousGpaHistory={previousGpaHistory}
                 setPreviousGpaHistory={setPreviousGpaHistory}
+                onCategoryClick={(category) => {
+                    setViewMode('category');
+                    setTimeout(() => {
+                        const id = `section-${category.replace(/\s+/g, '-')}`;
+                        const el = document.getElementById(id);
+                        if (el) {
+                            const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                            window.scrollTo({ top: y, behavior: 'smooth' });
+                        }
+                    }, 150);
+                }}
             />
 
             <section className="rounded-4xl border border-cyan-400/20 bg-cyan-500/4 p-5 sm:p-6 space-y-4">
@@ -596,7 +607,7 @@ function CourseTrackerView({
                     const displayTitle = title === "University Requirements" && isMobile ? "Uni. Requirements" : title;
 
                     return (
-                        <section key={title} className="bg-white/2 border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-4xl sm:rounded-none">
+                        <section id={`section-${title.replace(/\s+/g, '-')}`} key={title} className="bg-white/2 border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-3xl sm:rounded-none">
                             <div className="flex items-center gap-3 mb-5 sm:mb-6">
                                 {viewMode === 'level'
                                     ? <Trophy className="w-4 h-4 text-violet-400/60 shrink-0" />
