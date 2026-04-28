@@ -4,8 +4,8 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
 import { calculateCumulativeGpaFromHistory, getClassification } from "@/lib/grading";
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 
 interface PlannerSummaryUser {
     id: number;
@@ -42,6 +42,48 @@ interface SessionAggregateEntry {
 
 function getJordanDayKey(date: Date): string {
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Amman' }).format(date);
+}
+
+function buildCourseCreditMap(curriculum: unknown): Map<string, number> {
+    const map = new Map<string, number>();
+    const addCourseList = (courses: unknown) => {
+        if (!Array.isArray(courses)) return;
+        for (const course of courses as Array<Record<string, unknown>>) {
+            const code = typeof course.code === 'string' ? course.code : null;
+            if (!code) continue;
+            let credits = 3;
+            if (typeof course.ch === 'number') credits = course.ch;
+            else if (typeof course.credits === 'number') credits = course.credits;
+            map.set(code, credits);
+        }
+    };
+
+    if (!curriculum || typeof curriculum !== 'object') return map;
+
+    const root = curriculum as Record<string, unknown>;
+    const shared = root.shared as Record<string, unknown> | undefined;
+    const majors = root.majors as Record<string, unknown> | undefined;
+
+    if (shared && typeof shared === 'object') {
+        for (const list of Object.values(shared)) addCourseList(list);
+    }
+
+    if (majors && typeof majors === 'object') {
+        for (const majorValue of Object.values(majors)) {
+            if (!majorValue || typeof majorValue !== 'object') continue;
+            for (const list of Object.values(majorValue as Record<string, unknown>)) addCourseList(list);
+        }
+    }
+
+    return map;
+}
+
+function getCompletedEntryCode(entry: unknown): string | null {
+    if (typeof entry === 'string') return entry;
+    if (!entry || typeof entry !== 'object') return null;
+    const e = entry as Record<string, unknown>;
+    if (typeof e.code === 'string') return e.code;
+    return null;
 }
 
 async function handleDailyGamificationXP(user: PlannerSummaryUser, today: Date) {
@@ -276,13 +318,43 @@ export async function GET(req: NextRequest) {
 
         let completedCreditsFromTracker = 0;
         if (progress?.completed) {
-            let completedList: CompletedProgressEntry[] = [];
+            let completedList: unknown[] = [];
             try {
                 completedList = typeof progress.completed === 'string'
-                    ? (JSON.parse(progress.completed) as CompletedProgressEntry[])
-                    : (progress.completed as unknown as CompletedProgressEntry[]);
+                    ? (JSON.parse(progress.completed) as unknown[])
+                    : (progress.completed as unknown as unknown[]);
             } catch { /* ok */ }
-            completedCreditsFromTracker = Array.isArray(completedList) ? completedList.length * 3 : 0;
+
+            try {
+                const curriculumRaw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum.json'), 'utf-8');
+                const curriculum = JSON.parse(curriculumRaw);
+                const creditMap = buildCourseCreditMap(curriculum);
+                completedCreditsFromTracker = Array.isArray(completedList)
+                    ? completedList.reduce((total, entry) => {
+                        const code = getCompletedEntryCode(entry);
+                        if (!code) return total;
+                        return total + (creditMap.get(code) ?? 3);
+                    }, 0)
+                    : 0;
+            } catch {
+                completedCreditsFromTracker = Array.isArray(completedList) ? completedList.length * 3 : 0;
+            }
+        }
+
+        // --- Data cleanup migration: detect absurd previous_credits values (e.g. string concatenation bug)
+        try {
+            if (profile?.previous_credits && Number(profile.previous_credits) > 200) {
+                // Reset to actual computed completed CH from tracker to avoid inflated numbers
+                await prisma.studentProfile.update({
+                    where: { student_id: user.student_id || "" },
+                    data: { previous_credits: completedCreditsFromTracker }
+                });
+                // reflect change locally for the rest of this response
+                // eslint-disable-next-line no-param-reassign
+                (profile as any).previous_credits = completedCreditsFromTracker;
+            }
+        } catch (e) {
+            console.warn("Failed to auto-correct previous_credits", e);
         }
 
         // 7. Calculate Study Trends (Last 7 days - Local Time Aware)
@@ -424,12 +496,13 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        const currentCompletedCH = (profile?.previous_credits || 0) + completedCreditsFromTracker;
+        const previousCreditsNumeric = Number(profile?.previous_credits || 0);
+        const currentCompletedCH = previousCreditsNumeric + completedCreditsFromTracker;
         const remainingCH = Math.max(0, TOTAL_DEGREE_CH - currentCompletedCH);
         const currentTotalPoints = (cgpa * currentCompletedCH);
         
         const projectedDistinction = remainingCH > 0 
-            ? (currentTotalPoints + (4.0 * remainingCH)) / TOTAL_DEGREE_CH 
+            ? (currentTotalPoints + (4 * remainingCH)) / TOTAL_DEGREE_CH 
             : cgpa;
             
         const projectedMerit = remainingCH > 0 

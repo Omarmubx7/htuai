@@ -17,7 +17,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
             color: "violet"
         },
         {
-            title: "HTU Curriculums",
+            title: "HTU Curricula",
             description: "Built-in support for all engineering and computer science majors at HTU.",
             icon: <GraduationCap className="w-6 h-6 text-blue-400" />,
             color: "blue"
@@ -40,6 +40,10 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
 
                 {/* Mesh noise overlay */}
             </div>
+
+            <header className="w-full max-w-6xl flex justify-end p-4">
+                <a href="/planner" className="text-sm text-white/60 hover:text-white">Back to Dashboard</a>
+            </header>
 
             <main className="relative z-10 w-full max-w-6xl flex flex-col items-center text-center">
                 {/* Badge */}
@@ -87,8 +91,9 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                 {/* Feature Grid with Staggered Entrance & Shimmer */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20 w-full px-4">
                     {features.map((feature, i) => (
-                        <motion.div
+                        <motion.button
                             key={feature.title}
+                            onClick={() => onGetStarted()}
                             layout
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -98,7 +103,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                                 duration: 0.6,
                                 ease: [0.16, 1, 0.3, 1]
                             }}
-                            className="premium-card p-10 text-left group cursor-default"
+                            className="premium-card p-10 text-left group cursor-pointer rounded-xl"
                         >
                             <div className="mb-8 p-4 rounded-[22px] bg-white/3 w-fit border border-white/5 group-hover:bg-white/6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-xl">
                                 {feature.icon}
@@ -109,7 +114,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                             <p className="text-sm text-white/30 leading-relaxed font-medium group-hover:text-white/50 transition-colors">
                                 {feature.description}
                             </p>
-                        </motion.div>
+                        </motion.button>
                     ))}
                 </div>
 
@@ -141,7 +146,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                         <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                         <div className="flex items-center gap-2 group cursor-default">
                             <GraduationCap className="w-5 h-5 text-violet-500/30 group-hover:text-violet-500 transition-colors" />
-                            <span className="group-hover:text-white/40 transition-colors">HTU Curriculums</span>
+                            <span className="group-hover:text-white/40 transition-colors">HTU Curricula</span>
                         </div>
                     </div>
                 </motion.div>

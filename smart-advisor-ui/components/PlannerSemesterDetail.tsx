@@ -22,6 +22,9 @@ interface PlannerCourseItem {
     name: string;
     credits: number;
     grade_letter?: string | null;
+    grade_point?: number | null;
+    instructor_name?: string | null;
+    location?: string | null;
     [key: string]: unknown;
 }
 
@@ -37,6 +40,9 @@ interface SemesterNoteItem {
 interface SemesterDetail {
     id: number;
     name: string;
+    type: string;
+    year: number;
+    semester_gpa?: number | null;
     start_date?: string | null;
     end_date?: string | null;
     courses: PlannerCourseItem[];
@@ -357,7 +363,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         let totalPoints = 0;
         let totalCredits = 0;
         courses.forEach(c => {
-            if (c.grade_point !== null && c.grade_letter) {
+            if (typeof c.grade_point === 'number' && c.grade_letter) {
                 totalPoints += (c.grade_point * c.credits);
                 totalCredits += c.credits;
             }
@@ -423,7 +429,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
             <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] group">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 group">
                         <p className="text-white/50 text-xs font-bold uppercase tracking-widest font-display flex items-center justify-between">
                             <span>Term GPA</span>
                             {semester.semester_gpa !== null && (
@@ -437,13 +443,13 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             <p className="text-[10px] text-white/20 mt-2 font-medium italic">Calculated: {liveGPA}</p>
                         )}
                     </div>
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2">
                         <p className="text-white/50 text-xs font-bold uppercase tracking-widest font-display">Hours Registered</p>
                         <h2 className="text-4xl font-black mt-2 text-white/90">
                             {courses.reduce((acc, c) => acc + c.credits, 0)} <span className="text-lg text-white/30">CH</span>
                         </h2>
                     </div>
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex items-center justify-center">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 flex items-center justify-center">
                         <button
                             onClick={() => setShowAddModal(true)}
                             className="w-full h-full min-h-[100px] border-2 sm:border-dashed border-violet-500/30 sm:border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 bg-violet-600/10 sm:bg-transparent rounded-3xl transition-all flex flex-col items-center justify-center text-violet-400 sm:text-white/50 hover:text-white group"
@@ -458,7 +464,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                     <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4">Enrolled Courses</h3>
 
                     {courses.map(course => (
-                        <div key={course.id} className="group bg-white/[0.02] border border-white/5 rounded-2xl p-4 sm:p-5 hover:border-white/10 transition-all flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center relative overflow-hidden">
+                        <div key={course.id} className="group bg-white/2 border border-white/5 rounded-2xl p-4 sm:p-5 hover:border-white/10 transition-all flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center relative overflow-hidden">
                             <div className="flex items-start gap-4 z-10">
                                 <div className="w-12 h-12 shrink-0 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-black text-sm">
                                     {course.code.substring(0, 2)}
@@ -482,9 +488,10 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
                             <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4 z-10 pt-4 sm:pt-0 border-t border-white/5 sm:border-0 mt-2 sm:mt-0">
                                 <div className="flex flex-col items-start sm:items-end">
-                                    <label className="text-[10px] uppercase font-bold text-white/30 tracking-widest pl-1 mb-1">Grade</label>
+                                    <label htmlFor={`grade-${course.id}`} className="text-[10px] uppercase font-bold text-white/30 tracking-widest pl-1 mb-1">Grade</label>
                                     <div className="relative group/select">
                                         <select
+                                            id={`grade-${course.id}`}
                                             value={course.grade_letter || ""}
                                             onChange={(e) => handleUpdateGrade(course.id, e.target.value)}
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -551,7 +558,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {notes.map(note => (
-                            <div key={note.id} className="glass-panel p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-white/10 transition-all flex flex-col justify-between group">
+                            <div key={note.id} className="glass-panel p-5 rounded-2xl border border-white/5 bg-white/2 hover:border-white/10 transition-all flex flex-col justify-between group">
                                 <div>
                                     <div className="flex items-start justify-between gap-2">
                                         <h4 className="font-bold text-white/90 group-hover:text-emerald-400 transition-colors">{note.title}</h4>
@@ -580,7 +587,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
                                     <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
-                                        Last edited: {new Date(note.updated_at).toLocaleDateString()}
+                                        Last edited: {note.updated_at ? new Date(note.updated_at).toLocaleDateString() : 'N/A'}
                                     </span>
                                     <ChevronRight className="w-4 h-4 text-white/10" />
                                 </div>
@@ -603,7 +610,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 </div>
 
                 {/* Edit Semester Metadata */}
-                <div className="mt-8 glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] max-w-2xl mx-auto">
+                <div className="mt-8 glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 max-w-2xl mx-auto">
                     <h2 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
                         <CalendarIcon className="w-4 h-4" /> Term Dates
                     </h2>
@@ -637,7 +644,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
             {/* Add Course Modal */}
             <AnimatePresence>
                 {showAddModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -652,10 +659,11 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             <h3 className="text-xl font-bold mb-4">Add Course</h3>
                             <div className="space-y-4">
                                 <div className="relative">
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Search Course (Database)</label>
+                                    <label htmlFor="search-db" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Search Course (Database)</label>
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                         <input
+                                            id="search-db"
                                             type="text"
                                             placeholder="Search by code or name..."
                                             value={searchQuery}
@@ -694,16 +702,18 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
                                 <div className="flex gap-3">
                                     <div className="flex-1">
-                                        <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Code</label>
+                                        <label htmlFor="new-code" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Code</label>
                                         <input
+                                            id="new-code"
                                             type="text" placeholder="e.g. CS101"
                                             value={newCourse.code} onChange={e => setNewCourse({ ...newCourse, code: e.target.value })}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors uppercase"
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Credits</label>
+                                        <label htmlFor="new-credits" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Credits</label>
                                         <select
+                                            id="new-credits"
                                             value={newCourse.credits} onChange={e => setNewCourse({ ...newCourse, credits: Number(e.target.value) })}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors appearance-none"
                                         >
@@ -715,8 +725,9 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Name</label>
+                                    <label htmlFor="new-name" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Name</label>
                                     <input
+                                        id="new-name"
                                         type="text" placeholder="e.g. Intro to Computer Science"
                                         value={newCourse.name} onChange={e => setNewCourse({ ...newCourse, name: e.target.value })}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
@@ -735,7 +746,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
             {/* Edit Course Modal */}
             <AnimatePresence>
                 {showEditModal && editingCourse && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -751,16 +762,18 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             <div className="space-y-4">
                                 <div className="flex gap-3">
                                     <div className="flex-1">
-                                        <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Code</label>
+                                        <label htmlFor="edit-code" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Code</label>
                                         <input
+                                            id="edit-code"
                                             type="text"
                                             value={editingCourse.code} onChange={e => setEditingCourse({ ...editingCourse, code: e.target.value })}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors uppercase"
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Credits</label>
+                                        <label htmlFor="edit-credits" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Credits</label>
                                         <select
+                                            id="edit-credits"
                                             value={editingCourse.credits} onChange={e => setEditingCourse({ ...editingCourse, credits: Number(e.target.value) })}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors appearance-none"
                                         >
@@ -772,8 +785,9 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Name</label>
+                                    <label htmlFor="edit-name" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Name</label>
                                     <input
+                                        id="edit-name"
                                         type="text"
                                         value={editingCourse.name} onChange={e => setEditingCourse({ ...editingCourse, name: e.target.value })}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
@@ -792,7 +806,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
             {/* Semester Note Modal */}
             <AnimatePresence>
                 {showNoteModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -810,16 +824,18 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Page Title</label>
+                                    <label htmlFor="note-title" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Page Title</label>
                                     <input
+                                        id="note-title"
                                         type="text" placeholder="e.g. Internship Ideas, Degree Plan..."
                                         value={noteDraft.title} onChange={e => setNoteDraft({ ...noteDraft, title: e.target.value })}
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Content / Thoughts</label>
+                                    <label htmlFor="note-content" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Content / Thoughts</label>
                                     <textarea
+                                        id="note-content"
                                         placeholder="Write anything you want to keep track of this semester..."
                                         rows={8}
                                         value={noteDraft.notes} onChange={e => setNoteDraft({ ...noteDraft, notes: e.target.value })}

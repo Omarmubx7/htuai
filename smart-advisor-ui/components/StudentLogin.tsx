@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Lock, User, Chrome, Sparkles } from "lucide-react";
+import { ArrowRight, Lock, User, Globe } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 
@@ -13,40 +13,47 @@ export default function StudentLogin() {
     const [isClaiming, setIsClaiming] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        const cleanId = id.trim();
-        if (!cleanId || cleanId.length < 5) {
-            setError("Please enter a valid university ID.");
-            return;
-        }
-        if (!password || password.length < 6) {
-            setError("Password must be at least 6 characters.");
-            return;
-        }
-
-        setError("");
-        setLoading(true);
-
-        try {
-            const result = await signIn("credentials", {
-                student_id: cleanId,
-                password,
-                is_claiming: isClaiming ? "true" : "false",
-                redirect: false,
-            });
-
-            if (result?.error) {
-                setError(isClaiming ? "Account already exists or invalid data." : "Invalid ID or password.");
-            } else {
-                window.location.reload();
+        void (async () => {
+            const cleanId = id.trim();
+            if (!cleanId || cleanId.length < 5) {
+                setError("Please enter a valid university ID.");
+                return;
             }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+            if (!password || password.length < 6) {
+                setError("Password must be at least 6 characters.");
+                return;
+            }
+
+            setError("");
+            setLoading(true);
+
+            try {
+                const result = await signIn("credentials", {
+                    student_id: cleanId,
+                    password,
+                    is_claiming: isClaiming ? "true" : "false",
+                    redirect: false,
+                });
+
+                if (result?.error) {
+                    setError(isClaiming ? "Account already exists or invalid data." : "Invalid ID or password.");
+                } else {
+                    globalThis.location.reload();
+                }
+            } catch (err) {
+                console.error("Login failed", err);
+                setError("Something went wrong. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        })();
     };
+
+    let submitLabel = "Enter Dashboard";
+    if (loading) submitLabel = "Initializing...";
+    else if (isClaiming) submitLabel = "Verify & Claim";
 
     return (
         <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
@@ -155,7 +162,7 @@ export default function StudentLogin() {
                             aria-label={isClaiming ? "Verify and Claim Account" : "Sign into Dashboard"}
                             className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white/10 text-white/90 font-bold text-sm transition-all hover:bg-white/15 hover:shadow-[0_0_30px_rgba(139,92,246,0.15)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2 border border-white/10"
                         >
-                            {loading ? "Initializing..." : isClaiming ? "Verify & Claim" : "Enter Dashboard"}
+                            {submitLabel}
                             {!loading && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />}
                         </motion.button>
                     </form>
@@ -171,12 +178,19 @@ export default function StudentLogin() {
                         <motion.button
                             whileHover={{ scale: 1.01, border: "rgba(255,255,255,0.2)" }}
                             whileTap={{ scale: 0.99 }}
-                            onClick={() => signIn("google")}
+                            onClick={() => {
+                                // Open popup synchronously to avoid popup blockers
+                                const popup = globalThis.open('/api/auth/signin/google', 'htuai_google', 'width=500,height=700');
+                                if (!popup) {
+                                    // popup blocked — fallback to full redirect
+                                    globalThis.location.href = '/api/auth/signin/google';
+                                }
+                            }}
                             aria-label="Continue with Google"
                             className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/3 border border-white/5 text-white text-sm font-semibold transition-all hover:bg-white/5"
                         >
                             <div className="w-6 h-6 flex items-center justify-center bg-white/5 rounded-full" aria-hidden="true">
-                                <Chrome className="w-3.5 h-3.5 text-white/60" />
+                                <Globe className="w-3.5 h-3.5 text-white/60" />
                             </div>
                             Continue with Google
                         </motion.button>

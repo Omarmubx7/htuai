@@ -3,42 +3,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, CalendarDays, Target, ArrowRight, ShieldCheck } from "lucide-react";
-import { fetchWithRetry } from "@/lib/fetch-retry";
+import SemesterSetupWizard from "./SemesterSetupWizard";
 
 export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete: () => void }>) {
     const [step, setStep] = useState(1);
-    const [loading, setLoading] = useState(false);
-
-    const handleCreateFirstSemester = async () => {
-        setLoading(true);
-        try {
-            const today = new Date();
-            let term = "fall";
-            if (today.getMonth() < 5) term = "spring";
-            else if (today.getMonth() < 8) term = "summer";
-
-            const res = await fetchWithRetry("/api/planner/semesters", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: term,
-                    year: today.getFullYear(),
-                    name: `${term.charAt(0).toUpperCase() + term.slice(1)} ${today.getFullYear()}`
-                }),
-                retries: 2
-            });
-            if (res.ok) {
-                onComplete();
-            } else {
-                throw new Error("Failed to create semester");
-            }
-        } catch (error) {
-            console.error("Failed to setup planner", error);
-            alert("Something went wrong setting up your planner.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [showWizard, setShowWizard] = useState(false);
 
     const steps = [
         {
@@ -59,7 +28,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
     ];
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 selection:bg-violet-500/30">
+        <div className="fixed inset-0 z-100 bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 selection:bg-violet-500/30">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -83,7 +52,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                             exit={{ opacity: 0, x: -20 }}
                             className="flex flex-col items-center w-full"
                         >
-                            <div className="w-24 h-24 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden">
+                            <div className="w-24 h-24 rounded-full bg-white/3 border border-white/5 flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden">
                                 <div className="absolute inset-0 bg-violet-500/10 blur-xl" />
                                 <div className="relative z-10">{steps[step - 1].icon}</div>
                             </div>
@@ -117,17 +86,16 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                             </button>
                         ) : (
                             <button
-                                onClick={handleCreateFirstSemester}
-                                disabled={loading}
-                                className="w-full py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] disabled:opacity-50"
+                                onClick={() => setShowWizard(true)}
+                                className="w-full py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]"
                             >
-                                {loading ? 'Initializing...' : "Let's Get Started!"}
-                                {!loading && <CalendarDays className="w-4 h-4" />}
+                                Set Up My First Semester
+                                <CalendarDays className="w-4 h-4" />
                             </button>
                         )}
 
                         <button
-                            onClick={handleCreateFirstSemester}
+                            onClick={() => setShowWizard(true)}
                             className={`text-xs text-white/30 hover:text-white/60 font-bold uppercase tracking-widest transition-colors ${step === steps.length ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
                             Skip Tutorial
@@ -135,6 +103,15 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                     </div>
                 </div>
             </motion.div>
+
+            <AnimatePresence>
+                {showWizard && (
+                    <SemesterSetupWizard
+                        onClose={() => setShowWizard(false)}
+                        onComplete={() => { setShowWizard(false); onComplete(); }}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

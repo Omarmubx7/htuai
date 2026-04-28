@@ -81,27 +81,33 @@ export const MAJORS: Major[] = [
     },
 ];
 
-const STORAGE_KEY = "htu_selected_major";
+const STORAGE_KEYS = ["htu_selected_major", "htuai-major"];
+
+function readStoredMajor(): MajorKey | null {
+    for (const k of STORAGE_KEYS) {
+        const v = safeStorage.get(k);
+        if (v && MAJORS.find(m => m.key === v)) return v as MajorKey;
+    }
+    return null;
+}
 
 export function useMajor() {
     const [major, setMajorState] = useState<MajorKey | null>(null);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        const saved = safeStorage.get(STORAGE_KEY) as MajorKey | null;
-        if (saved && MAJORS.find((m) => m.key === saved)) {
-            setMajorState(saved);
-        }
+        const saved = readStoredMajor();
+        if (saved) setMajorState(saved);
         setLoaded(true);
     }, []);
 
     const setMajor = (key: MajorKey) => {
-        safeStorage.set(STORAGE_KEY, key);
+        for (const k of STORAGE_KEYS) safeStorage.set(k, key);
         setMajorState(key);
     };
 
     const clearMajor = () => {
-        safeStorage.remove(STORAGE_KEY);
+        for (const k of STORAGE_KEYS) safeStorage.remove(k);
         setMajorState(null);
     };
 

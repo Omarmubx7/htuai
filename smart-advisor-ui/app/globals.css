@@ -236,7 +236,7 @@ input[type="range"]::-webkit-slider-runnable-track {
 .light-theme .text-neutral-500,
 .light-theme .text-gray-500,
 .light-theme .text-slate-500 {
-  color: rgba(17, 24, 39, 0.6) !important;
+  color: rgba(17, 24, 39, 0.72) !important;
 }
 
 .light-theme .bg-clip-text.from-white,

@@ -195,11 +195,27 @@ function StudentDashboard({
             .map(cat => {
                 const totalCH = sumCH(cat.courses, cat.cap);
                 const doneCH = countDoneCH(cat.courses, cat.cap);
+                const isElectiveCategory = cat.label.includes("Elective");
+                const totalCount = cat.cap ?? cat.courses.length;
+                const doneCount = cat.courses.reduce((count, course) => {
+                    if (!completedCourses.has(course.code)) {
+                        return count;
+                    }
+
+                    if (cat.cap !== undefined && count >= cat.cap) {
+                        return count;
+                    }
+
+                    return count + 1;
+                }, 0);
+
                 return {
                     label: cat.label,
                     totalCH,
                     doneCH: Math.min(doneCH, totalCH),
                     remaining: Math.max(0, totalCH - doneCH),
+                    displayDone: isElectiveCategory ? Math.min(doneCount, totalCount) : Math.min(doneCH, totalCH),
+                    displayTotal: isElectiveCategory ? totalCount : totalCH,
                     color: cat.color,
                     icon: cat.icon
                 };
@@ -374,11 +390,11 @@ function StudentDashboard({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {categories.map((cat, i) => {
-                        const pct = cat.totalCH > 0 ? Math.round((cat.doneCH / cat.totalCH) * 100) : 0;
+                        const pct = cat.displayTotal > 0 ? Math.round((cat.displayDone / cat.displayTotal) * 100) : 0;
                         const isDone = cat.remaining === 0 && cat.totalCH > 0;
                         return (
                             <motion.button
-                                key={cat.label}
+                                key={`cat-${i}`}
                                 onClick={() => onCategoryClick?.(cat.label)}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -391,11 +407,11 @@ function StudentDashboard({
                                     </div>
                                     <span className="text-[11px] text-white/60 font-bold flex-1 truncate uppercase tracking-widest">{cat.label}</span>
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-xs font-black text-white">{cat.doneCH}</span>
-                                        <span className="text-[10px] text-white/20">/ {cat.totalCH}</span>
+                                        <span className="text-xs font-black text-white">{cat.displayDone}</span>
+                                        <span className="text-[10px] text-white/20">/ {cat.displayTotal}</span>
                                     </div>
                                 </div>
-                                <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-[1px]">
+                                <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-px">
                                     <motion.div
                                         className="h-full rounded-full relative"
                                         initial={{ width: 0 }}
@@ -428,10 +444,11 @@ function StudentDashboard({
 
                         <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-1">
                             {terms.map((term, i) => (
-                                <div key={i} className="flex items-center gap-3">
+                                <div key={`term-${i}`} className="flex items-center gap-3">
                                     <div className="flex-1">
-                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
+                                        <label htmlFor={`gpa-${i}`} className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
                                         <input
+                                            id={`gpa-${i}`}
                                             type="number" step="0.01" min="0" max="4.0"
                                             value={term.gpa} onChange={e => {
                                                 const newTerms = [...terms];
@@ -443,8 +460,9 @@ function StudentDashboard({
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
+                                        <label htmlFor={`credits-${i}`} className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
                                         <input
+                                            id={`credits-${i}`}
                                             type="number" step="1" min="0"
                                             value={term.credits} onChange={e => {
                                                 const newTerms = [...terms];

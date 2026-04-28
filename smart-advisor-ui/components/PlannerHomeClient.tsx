@@ -5,11 +5,13 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Loader2, Plus, Flame, Clock } from "lucide-react";
+import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock } from "lucide-react";
 import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import { safeStorage } from "@/lib/safe-storage";
+import SemesterSetupWizard from "@/components/SemesterSetupWizard";
 
 interface NotificationEvent {
     id: number;
@@ -65,6 +67,9 @@ interface PlannerSummary {
     };
     studyTips?: StudyTip[];
     studyTrends?: StudyTrendPoint[];
+    user?: {
+        major?: string;
+    };
 }
 
 function PlannerHomeClient() {
@@ -75,6 +80,17 @@ function PlannerHomeClient() {
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [activeSemester, setActiveSemester] = useState<{
+        id: number;
+        name: string;
+        type?: string | null;
+        start_date?: string | null;
+        end_date?: string | null;
+        courses: Array<{ code: string; name: string; credits: number; midterm_date?: string | null; final_date?: string | null }>;
+    } | null>(null);
+    const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
+    const [showSetupWizard, setShowSetupWizard] = useState(false);
+    const [generatingSchedule, setGeneratingSchedule] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -99,6 +115,25 @@ function PlannerHomeClient() {
                 const semData = await semRes.json();
                 if (semData.semesters.length === 0) {
                     setShowOnboarding(true);
+                } else {
+                    // Set active semester and load cached schedule
+                    const sem = semData.semesters.find((s: any) => (s.courses?.length ?? 0) > 0) ?? semData.semesters[0];
+                    setActiveSemester({
+                        id: sem.id,
+                        name: sem.name,
+                        type: sem.type ?? null,
+                        start_date: sem.start_date ?? null,
+                        end_date: sem.end_date ?? null,
+                        courses: sem.courses ?? [],
+                    });
+                    
+                    const cached = safeStorage.get(`schedule-sem-${sem.id}`);
+                    if (cached) {
+                        try {
+                            const parsed = JSON.parse(cached);
+                            if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
+                        } catch (e) { console.error("Error parsing cached schedule", e); }
+                    }
                 }
             }
         } catch (e) {
@@ -140,30 +175,62 @@ function PlannerHomeClient() {
         }
     };
 
+    const handleGenerateSchedule = async () => {
+        if (!activeSemester || activeSemester.courses.length === 0) {
+            toast("Set up a semester and add at least one course first.", "error");
+            return;
+        }
+        
+        setGeneratingSchedule(true);
+        try {
+            const res = await fetch("/api/ai/generate-schedule", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    major: summary?.user?.major || "Computer Science",
+                    semesterType: activeSemester.type,
+                    semesterName: activeSemester.name,
+                    semesterStartDate: activeSemester.start_date,
+                    semesterEndDate: activeSemester.end_date,
+                    courses: activeSemester.courses,
+                    weeklyHours: 14,
+                })
+            });
+            
+            if (!res.ok) throw new Error("Failed to generate schedule");
+            
+            const data = await res.json();
+            if (data.result?.weeklyPlan) {
+                setWeeklyPlan(data.result.weeklyPlan);
+                safeStorage.set(`schedule-sem-${activeSemester.id}`, JSON.stringify(data.result));
+                toast("AI Schedule generated successfully!", "success");
+            }
+        } catch (e) {
+            console.error("Schedule error:", e);
+            toast("Failed to generate AI schedule. Try again later.", "error");
+        } finally {
+            setGeneratingSchedule(false);
+        }
+    };
+
     if (status === "loading" || !summary) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[var(--background)]">
-                <div className="absolute inset-0 z-0 opacity-20 pointer-events-none mesh-gradient" />
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 flex flex-col items-center gap-6"
-                >
-                    <div className="relative">
-                        <div className="absolute -inset-4 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
-                        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative z-10 shadow-[0_0_30px_rgba(139,92,246,0.15)]">
-                            <Image src="/htuai-dark-logo.svg" alt="HTUAI" width={32} height={32} className="dark-logo animate-pulse" />
-                            <Image src="/htuai-light-logo.svg" alt="HTUAI" width={32} height={32} className="light-logo animate-pulse" />
+            <div className="min-h-screen max-w-7xl mx-auto px-6 pt-24 space-y-8">
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-white/5 animate-pulse" />
+                        <div className="space-y-2">
+                            <div className="h-6 w-24 bg-white/5 rounded-lg animate-pulse" />
+                            <div className="h-4 w-32 bg-white/5 rounded-lg animate-pulse opacity-50" />
                         </div>
                     </div>
-                    <div className="flex flex-col items-center gap-2">
-                        <h2 className="text-[var(--foreground)] font-bold tracking-tight text-lg">Loading Planner Data</h2>
-                        <div className="flex items-center gap-2 text-[var(--foreground)]/40 text-sm font-medium">
-                            <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-                            <span>Crunching analytics...</span>
-                        </div>
-                    </div>
-                </motion.div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={`skel-summary-${i}`} className="premium-card h-32 animate-pulse bg-white/5" />
+                    ))}
+                </div>
+                <div className="premium-card h-64 animate-pulse bg-white/5" />
             </div>
         );
     }
@@ -178,9 +245,9 @@ function PlannerHomeClient() {
     return (
         <div className="min-h-screen pb-24 selection:bg-violet-500/30">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] px-6 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 bg-white/2 backdrop-blur-2xl border-b border-white/6 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-violet-600/10 border border-white/[0.06] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-2xl bg-violet-600/10 border border-white/6 flex items-center justify-center">
                         <LayoutDashboard className="w-5 h-5 text-violet-400" />
                     </div>
                     <div>
@@ -199,7 +266,7 @@ function PlannerHomeClient() {
                             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors relative"
                         >
                             <Bell className="w-5 h-5 text-white/60" />
-                            {summary?.upcomingEvents?.length > 0 && (
+                            {summary?.upcomingEvents && summary.upcomingEvents.length > 0 && (
                                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-black" />
                             )}
                         </button>
@@ -223,7 +290,7 @@ function PlannerHomeClient() {
                                             <Bell className="w-3 h-3" /> Academic Alerts
                                         </h3>
                                         <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                                            {summary?.upcomingEvents?.length > 0 ? (
+                                            {summary?.upcomingEvents && summary.upcomingEvents.length > 0 ? (
                                                 summary.upcomingEvents.map((ev: NotificationEvent, i: number) => (
                                                     <div key={`notification-${i}-${ev.title}`} className="p-3 bg-white/5 rounded-2xl border border-white/5 hover:border-violet-500/30 transition-colors">
                                                         <div className="flex items-start gap-3">
@@ -274,7 +341,7 @@ function PlannerHomeClient() {
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-violet-600/5 border border-violet-500/20 rounded-[2rem] p-6 backdrop-blur-sm"
+                        className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-violet-600/5 border border-violet-500/20 rounded-4xl p-6 backdrop-blur-sm"
                     >
                         <div className="flex items-center gap-4">
                             <div className="w-14 h-14 rounded-full bg-linear-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-[0_0_30px_rgba(251,191,36,0.2)]">
@@ -313,7 +380,7 @@ function PlannerHomeClient() {
                             </h2>
                         </div>
                         <div className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white to-white/60">
-                            {summary?.cgpa > 0 ? summary.cgpa.toFixed(2) : '-.--'}
+                            {summary?.cgpa && summary.cgpa > 0 ? summary.cgpa.toFixed(2) : '-.--'}
                         </div>
                         <p className="text-sm text-white/40 mt-2 max-w-[200px]">
                             Calculated dynamically combining your imported academic history and HTU Planner tracked modules.
@@ -357,16 +424,113 @@ function PlannerHomeClient() {
                                 <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
                             </Link>
                         ) : (
-                            <Link
-                                href="/planner/semesters"
+                            <button
+                                onClick={() => setShowSetupWizard(true)}
                                 className="mt-4 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl bg-violet-600 hover:bg-violet-500 shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all group w-full relative z-10"
                             >
-                                <span className="font-black text-sm text-white">Start an Active Semester</span>
+                                <span className="font-black text-sm text-white">Set up your semester</span>
                                 <Plus className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
-                            </Link>
+                            </button>
                         )}
                     </motion.div>
                 </div>
+
+                {/* Study Schedule Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="premium-card p-6"
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-xl font-black flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-emerald-400" /> Weekly Study Plan
+                            </h2>
+                            <p className="text-xs text-white/40 mt-1">AI-generated schedule based on your current workload</p>
+                        </div>
+                        {weeklyPlan.length > 0 && activeSemester && activeSemester.courses.length > 0 && (
+                            <button
+                                onClick={handleGenerateSchedule}
+                                disabled={generatingSchedule}
+                                className="text-xs font-bold text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 group disabled:opacity-50"
+                            >
+                                {generatingSchedule ? "Syncing..." : "Rebuild"}
+                                <RefreshCcw className={`w-3 h-3 ${generatingSchedule ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`} />
+                            </button>
+                        )}
+                    </div>
+
+                    {weeklyPlan.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {generatingSchedule && weeklyPlan.length === 0 ? (
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={`skel-weekly-plan-${i}`} className="bg-white/3 border border-white/5 rounded-2xl p-4 animate-pulse space-y-3">
+                                        <div className="h-2 w-12 bg-white/10 rounded" />
+                                        <div className="space-y-2">
+                                            <div className="h-3 w-full bg-white/5 rounded" />
+                                            <div className="h-2 w-2/3 bg-white/5 rounded" />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                weeklyPlan.slice(0, 4).map((dayPlan, i) => (
+                                    <div key={dayPlan.day} className="bg-white/3 border border-white/5 rounded-2xl p-4 hover:bg-white/5 transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{dayPlan.day}</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        </div>
+                                        <div className="space-y-3">
+                                            {dayPlan.sessions.map((session, j) => (
+                                                <div key={`session-${dayPlan.day}-${j}`} className="space-y-1">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-bold truncate text-white/90">{session.course}</span>
+                                                        <span className="text-[10px] font-bold text-emerald-400/80 shrink-0">{session.hours}h</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-white/40 line-clamp-1 italic">"{session.focus}"</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        <div className="py-12 flex flex-col items-center justify-center text-center bg-white/2 border border-dashed border-white/10 rounded-3xl">
+                            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                                <Sparkles className="w-8 h-8 text-violet-400 opacity-20" />
+                            </div>
+                            <h3 className="text-base font-bold text-white/60">No Study Plan Yet</h3>
+                            <p className="text-xs text-white/40 max-w-[240px] mt-2 mb-6">
+                                Generate a personalized study schedule using AI to optimize your learning.
+                            </p>
+                            {activeSemester && activeSemester.courses.length > 0 ? (
+                                <button
+                                    onClick={handleGenerateSchedule}
+                                    disabled={generatingSchedule}
+                                    className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-xs font-bold text-white transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(124,58,237,0.3)]"
+                                >
+                                    {generatingSchedule ? (
+                                        <div className="w-3 h-3 rounded-full bg-white/50 animate-ping mr-1" />
+                                    ) : (
+                                        <Sparkles className="w-4 h-4" />
+                                    )}
+                                    {generatingSchedule ? "Thinking..." : "Build your schedule"}
+                                    {!generatingSchedule && <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setShowSetupWizard(true)}
+                                    className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-bold text-white transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                                >
+                                    <Calendar className="w-4 h-4" />
+                                    Set up your semester
+                                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </motion.div>
 
                 {/* Quests & Challenges */}
                 {summary?.gamification && (
@@ -391,7 +555,7 @@ function PlannerHomeClient() {
                                     const isStudy = quest.type === 'study_minutes' || quest.type === 'study_sessions';
                                     
                                     return (
-                                        <div key={quest.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex items-start gap-4 hover:bg-white/[0.06] transition-colors group">
+                                        <div key={quest.id} className="bg-white/3 border border-white/5 p-4 rounded-2xl flex items-start gap-4 hover:bg-white/6 transition-colors group">
                                             <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 border ${isStudy ? 'bg-blue-500/20 border-blue-500/30' : 'bg-orange-500/20 border-orange-500/30 relative overflow-hidden'}`}>
                                                 {isStudy ? (
                                                     <BookOpen className="w-5 h-5 text-blue-400" />
@@ -412,9 +576,17 @@ function PlannerHomeClient() {
                                                             style={{ width: `${progressPercent}%` }}
                                                         />
                                                     </div>
-                                                    <span className={progressPercent >= 100 ? "text-emerald-400" : (isStudy ? "text-blue-400" : "text-orange-400")}>
-                                                        {quest.current_value}/{quest.target_value}
-                                                    </span>
+                                                    {(() => {
+                                                        let textColor = "text-orange-400";
+                                                        if (progressPercent >= 100) textColor = "text-emerald-400";
+                                                        else if (isStudy) textColor = "text-blue-400";
+                                                        
+                                                        return (
+                                                            <span className={textColor}>
+                                                                {quest.current_value}/{quest.target_value}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </div>
                                         </div>
@@ -434,7 +606,7 @@ function PlannerHomeClient() {
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="glass-panel p-6 rounded-[2rem] border border-amber-500/20 bg-amber-500/5 flex flex-col sm:flex-row items-center gap-6"
+                        className="glass-panel p-6 rounded-4xl border border-amber-500/20 bg-amber-500/5 flex flex-col sm:flex-row items-center gap-6"
                     >
                         <div className="w-16 h-16 rounded-3xl bg-amber-500/20 flex items-center justify-center shrink-0 animate-pulse">
                             <AlertTriangle className="w-8 h-8 text-amber-500" />
@@ -509,23 +681,27 @@ function PlannerHomeClient() {
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {summary?.studyTips?.map((tip: StudyTip, i: number) => (
-                                <div key={`tip-${i}`} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                        tip.color === 'orange' ? 'bg-orange-500/20' : 
-                                        tip.color === 'emerald' ? 'bg-emerald-500/20' : 
-                                        'bg-indigo-500/20'
-                                    }`}>
-                                        {tip.icon === 'clock' && <Clock className="w-4 h-4 text-orange-400" />}
-                                        {tip.icon === 'target' && <Target className="w-4 h-4 text-emerald-400" />}
-                                        {tip.icon === 'flame' && <Flame className="w-4 h-4 text-indigo-400" />}
+                            {summary?.studyTips?.map((tip: StudyTip) => {
+                                const tipBgColor = tip.color === 'orange' 
+                                    ? 'bg-orange-500/20' 
+                                    : tip.color === 'emerald' 
+                                        ? 'bg-emerald-500/20' 
+                                        : 'bg-indigo-500/20';
+                                
+                                return (
+                                    <div key={tip.title} className="p-4 rounded-2xl bg-white/3 border border-white/5 flex gap-3">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${tipBgColor}`}>
+                                            {tip.icon === 'clock' && <Clock className="w-4 h-4 text-orange-400" />}
+                                            {tip.icon === 'target' && <Target className="w-4 h-4 text-emerald-400" />}
+                                            {tip.icon === 'flame' && <Flame className="w-4 h-4 text-indigo-400" />}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-bold text-white/90">{tip.title}</h4>
+                                            <p className="text-[10px] text-white/40 mt-1 leading-relaxed">{tip.text}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-white/90">{tip.title}</h4>
-                                        <p className="text-[10px] text-white/40 mt-1 leading-relaxed">{tip.text}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </motion.div>
                 </div>
@@ -546,8 +722,8 @@ function PlannerHomeClient() {
                         </div>
 
                         <div className="flex items-end justify-between h-48 gap-2 px-2">
-                            {summary?.studyTrends?.map((day: StudyTrendPoint, i: number) => {
-                                const maxMins = Math.max(...summary.studyTrends.map((d: StudyTrendPoint) => d.minutes), 60);
+                            {summary?.studyTrends && summary.studyTrends.length > 0 && summary.studyTrends.map((day: StudyTrendPoint, i: number) => {
+                                const maxMins = summary.studyTrends ? Math.max(...summary.studyTrends.map((d: StudyTrendPoint) => d.minutes), 60) : 60;
                                 const height = (day.minutes / maxMins) * 100;
                                 return (
                                     <div key={`trend-${day.date}-${i}`} className="flex-1 flex flex-col items-center gap-2 group">
@@ -599,7 +775,7 @@ function PlannerHomeClient() {
                         </div>
 
                         <div className="space-y-3 h-[240px] overflow-y-auto pr-2 custom-scrollbar">
-                            {summary?.upcomingEvents?.length > 0 ? (
+                            {summary?.upcomingEvents && summary.upcomingEvents.length > 0 ? (
                                 summary.upcomingEvents.map((event: NotificationEvent) => (
                                     <div key={event.id} className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">
                                         <div className="flex items-center justify-between gap-4">
@@ -625,7 +801,7 @@ function PlannerHomeClient() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
+                                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-2xl bg-white/1">
                                     <Calendar className="w-8 h-8 text-white/20 mb-3" />
                                     <p className="text-white/40 text-xs font-medium">No upcoming deadlines found.</p>
                                 </div>
@@ -635,6 +811,18 @@ function PlannerHomeClient() {
                 </div>
 
             </main>
+
+            <AnimatePresence>
+                {showSetupWizard && (
+                    <SemesterSetupWizard
+                        onClose={() => setShowSetupWizard(false)}
+                        onComplete={() => {
+                            setShowSetupWizard(false);
+                            fetchSummary();
+                        }}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

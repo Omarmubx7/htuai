@@ -9,10 +9,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cour
 
   const studentId = session.user.student_id || session.user.email || session.user.name;
   const { courseId } = await params;
+  const normalizedCourseId = String(courseId).trim().toUpperCase();
 
   try {
     await initDB();
-    const notesStr = await getCourseNotes(studentId, courseId);
+    const notesStr = await getCourseNotes(studentId, normalizedCourseId);
 
     // Check if notes are already JSON
     let notes = notesStr;
@@ -40,12 +41,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
 
   const studentId = session.user.student_id || session.user.email || session.user.name;
   const { courseId } = await params;
+  const normalizedCourseId = String(courseId).trim().toUpperCase();
   const { notes } = await req.json();
 
   try {
     const notesStr = typeof notes === 'string' ? notes : JSON.stringify(notes);
     await initDB();
-    await saveCourseNotes(studentId, courseId, notesStr);
+    await saveCourseNotes(studentId, normalizedCourseId, notesStr);
     return NextResponse.json({ success: true, updatedAt: new Date().toISOString() });
   } catch (e) {
     console.error("Notes POST Error:", e);

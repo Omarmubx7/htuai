@@ -98,7 +98,7 @@ export default function CourseNotesModal({
                             {loading ? (
                                 <div className="h-full flex flex-col items-center justify-center gap-4 text-white/20">
                                     <div className="w-12 h-12 rounded-2xl border-2 border-white/5 border-t-violet-500 animate-spin" />
-                                    <span className="text-xs font-black uppercase tracking-widest">Loading Records...</span>
+                                    <span className="text-xs font-black uppercase tracking-widest">Loading your notes...</span>
                                 </div>
                             ) : (
                                 <CourseNotesEditor

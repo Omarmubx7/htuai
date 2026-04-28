@@ -5,7 +5,28 @@ type ScheduleCourse = {
     code: string;
     name: string;
     credits: number;
+    midterm_date?: string;
+    final_date?: string;
 };
+
+function formatSemesterLabel(semesterType?: string, semesterName?: string) {
+    if (!semesterType) {
+        return "";
+    }
+
+    return semesterName
+        ? `Semester type: ${semesterType} (${semesterName}).`
+        : `Semester type: ${semesterType}.`;
+}
+
+function formatCourseSummary(courses: ScheduleCourse[]) {
+    return courses.map((course) => {
+        const parts = [course.code, `${course.credits} credits`];
+        if (course.midterm_date) parts.push(`midterm ${course.midterm_date}`);
+        if (course.final_date) parts.push(`final ${course.final_date}`);
+        return parts.join(" | ");
+    }).join("; ");
+}
 
 function getGroqClient() {
     const apiKey = process.env.GROQ_API_TOKEN || process.env.groqapi_token;
@@ -21,7 +42,7 @@ export async function getSuggestedCourses(params: {
     completedCourses: string[];
     candidateCourses: Array<{ code: string; name: string; credits: number; prereq?: string }>;
 }) {
-    const { major, completedCourses, candidateCourses } = params;
+    const { major, candidateCourses } = params;
     const client = getGroqClient();
 
     const prompt = [
@@ -34,7 +55,7 @@ export async function getSuggestedCourses(params: {
         "Registration tip 1",
         "Registration tip 2",
         "No extra text.",
-        `Candidates: ${candidateCourses.map(c => `${c.code}: ${c.name}`).join(" | ")}`
+        `Candidates: ${candidateCourses.map(c => c.code + ": " + c.name).join(" | ")}`
     ].join("\n");
 
     const completion = await client.chat.completions.create({
@@ -68,22 +89,31 @@ export async function getSuggestedCourses(params: {
 
 export async function getStudySchedule(params: {
     major: string;
+    semesterType?: string;
+    semesterName?: string;
+    semesterStartDate?: string | null;
+    semesterEndDate?: string | null;
     courses: ScheduleCourse[];
     weeklyHours: number;
 }) {
-    const { major, courses, weeklyHours } = params;
+    const { major, semesterType, semesterName, semesterStartDate, semesterEndDate, courses, weeklyHours } = params;
     const client = getGroqClient();
+    const semesterLabel = formatSemesterLabel(semesterType, semesterName);
+    const courseSummary = formatCourseSummary(courses);
 
     const prompt = [
-        `Create a weekly study schedule for an HTU ${major} student. 7 days. Total ~${weeklyHours} hrs.`,
-        "Output strict TOON format exactly like this:",
+        `Create a weekly study schedule for an HTU ${major} student.`,
+        semesterLabel,
+        semesterStartDate || semesterEndDate ? `Semester window: ${semesterStartDate || "?"} to ${semesterEndDate || "?"}.` : "",
+        `Target weekly hours: ${weeklyHours}.`,
+        "IMPORTANT: Only use the courses provided below. Do NOT invent new courses, exams, or dates. Use the provided dates for exams if they exist.",
+        "Output strict TOON format only:",
         "W:",
         "Sunday | 40201100 | 1.5 | Review arrays",
-        "Sunday | 10203180 | 2.0 | Lab practice",
         "E:",
-        "Start early",
+        "Midterm on Oct 12 - Focus on Ch 1-3",
         "No extra text.",
-        `Courses: ${courses.map(c => c.code).join(", ")}`
+        `Courses: ${courseSummary}`
     ].join("\n");
 
     const completion = await client.chat.completions.create({
@@ -108,7 +138,7 @@ export async function getStudySchedule(params: {
             const parts = line.split('|');
             if (parts.length >= 4) {
                 const [day, course, hoursStr, ...focusParts] = parts;
-                const hours = parseFloat(hoursStr) || 1;
+                const hours = Number.parseFloat(hoursStr) || 1;
                 if (!weeklyPlanMap.has(day)) weeklyPlanMap.set(day, []);
                 weeklyPlanMap.get(day)!.push({ course: course.trim(), hours, focus: focusParts.join('|').trim() });
             }

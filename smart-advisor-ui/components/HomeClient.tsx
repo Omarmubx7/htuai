@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
 import { Course, CourseData, CurriculumRules } from "@/types";
-import { Settings2, LogOut, Bot } from "lucide-react";
+import { Settings2, Bot } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
@@ -32,6 +32,7 @@ export default function HomeClient() {
     const [completedCourses, setCompletedCourses] = useState<Map<string, string>>(new Map());
     const [previousGpaHistory, setPreviousGpaHistory] = useState<{ gpa: number | null, credits: number | null }>({ gpa: null, credits: null });
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | null>(null);
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [courseNameMap, setCourseNameMap] = useState<Map<string, string>>(new Map());
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -198,6 +199,7 @@ export default function HomeClient() {
     const handleMajorSelect = async (key: MajorKey) => {
         setAppState("changing-major");
         setMajor(key);
+        safeStorage.set("htu_selected_major", key);
         safeStorage.set("htuai-major", key);
         const sid = studentId || session?.user?.student_id || session?.user?.name;
         if (sid) {
@@ -218,10 +220,26 @@ export default function HomeClient() {
 
     // ─── 3. Life Cycle Effects ──────────────────────────────────────────────
 
+    // Ensure we scroll to top after switching to the login view (scroll after render)
+    useEffect(() => {
+        if (appState === 'login') {
+            const t = setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 60);
+            return () => clearTimeout(t);
+        }
+    }, [appState]);
+
     // Load initial major
     useEffect(() => {
-        const storedMajor = safeStorage.get("htuai-major");
-        if (storedMajor) setMajor(storedMajor as MajorKey);
+        const primaryMajor = safeStorage.get("htuai-major");
+        const legacyMajor = safeStorage.get("htu_selected_major");
+        const storedMajor = primaryMajor || legacyMajor;
+        if (storedMajor) {
+            setMajor(storedMajor as MajorKey);
+            safeStorage.set("htu_selected_major", storedMajor);
+            safeStorage.set("htuai-major", storedMajor);
+        }
     }, []);
 
     // Build course name map
@@ -312,31 +330,47 @@ export default function HomeClient() {
                             </div>
 
                             <div id="wt-profile" className="flex items-center gap-3">
-                                <div className="flex flex-col items-end">
-                                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">{studentId}</span>
-                                    {majorInfo && (
-                                        <button onClick={() => setAppState("major-select")} className="group flex items-center gap-2 px-2 py-1 rounded-xl bg-white/5 border border-white/5">
-                                            <Settings2 className="w-3 h-3 text-white/40" />
-                                            <span className="text-[10px] font-bold text-white/80">{majorInfo.label}</span>
-                                            <span>{majorInfo.icon}</span>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">{studentId}</span>
+                                        {majorInfo && (
+                                            <button onClick={() => setAppState("major-select")} className="group flex items-center gap-2 px-2 py-1 rounded-xl bg-white/5 border border-white/5">
+                                                <Settings2 className="w-3 h-3 text-white/40" />
+                                                <span className="text-[10px] font-bold text-white/80">{majorInfo.label}</span>
+                                                <span>{majorInfo.icon}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <a
+                                        href="https://bot.mubx.dev"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-200 hover:text-cyan-100 hover:border-cyan-300/40 transition-all"
+                                        title="Open mubxbot"
+                                    >
+                                        <Bot className="w-4 h-4" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">mubxbot</span>
+                                    </a>
+                                    <div className="relative">
+                                        <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} aria-haspopup="true" aria-expanded={profileMenuOpen}
+                                            className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                                            {(() => {
+                                                const name = session?.user?.name || studentId || '';
+                                                const parts = name.trim().split(/\s+/).filter(Boolean);
+                                                if (parts.length === 0) return 'HT';
+                                                if (parts.length === 1) return parts[0].substring(0,2).toUpperCase();
+                                                return (parts[0][0] + (parts.at(-1)?.[0] ?? '')).toUpperCase();
+                                            })()}
                                         </button>
-                                    )}
-                                </div>
-                                <a
-                                    href="https://bot.mubx.dev"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-200 hover:text-cyan-100 hover:border-cyan-300/40 transition-all"
-                                    title="Open mubxbot"
-                                >
-                                    <Bot className="w-4 h-4" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">mubxbot</span>
-                                </a>
-                                <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
-                                    {studentId?.substring(0, 2).toUpperCase()}
-                                </div>
-                                <button onClick={() => signOut()} className="p-2 rounded-2xl bg-white/5 text-white/40 hover:text-red-400 transition-all"><LogOut className="w-4.5 h-4.5" /></button>
-                                <ThemeToggle />
+
+                                        {profileMenuOpen && (
+                                            <div className="absolute right-0 mt-2 w-44 bg-black/90 border border-white/6 rounded-xl p-2 shadow-lg z-50">
+                                                <a href="/planner" className="block px-3 py-2 text-sm text-white/90 hover:bg-white/5 rounded">Semester Planner</a>
+                                                <a href="/planner/settings" className="block px-3 py-2 text-sm text-white/90 hover:bg-white/5 rounded">Profile & Settings</a>
+                                                <button onClick={() => void signOut()} className="w-full text-left px-3 py-2 text-sm text-white/90 hover:bg-white/5 rounded">Sign out</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <ThemeToggle />
                             </div>
                         </div>
                     </header>

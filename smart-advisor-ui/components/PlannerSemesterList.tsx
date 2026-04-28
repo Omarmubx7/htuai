@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, ArrowRight, BookOpen, Clock, Target, Settings2 } from "lucide-react";
 import Link from "next/link";
-import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+import { fetchJSON } from "@/lib/fetch-retry";
+import SemesterSetupWizard from "./SemesterSetupWizard";
 
 interface SemesterCourse {
     grade_point: number | null;
@@ -30,9 +31,7 @@ export default function PlannerSemesterList() {
 
     const [loading, setLoading] = useState(true);
     const [semesters, setSemesters] = useState<SemesterItem[]>([]);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newSem, setNewSem] = useState({ type: "Spring", year: new Date().getFullYear(), startDate: "", endDate: "" });
-    const [creating, setCreating] = useState(false);
+    const [showWizard, setShowWizard] = useState(false);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -51,34 +50,6 @@ export default function PlannerSemesterList() {
             console.error("Failed to load semesters:", error instanceof Error ? error.message : String(error));
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleAddSemester = async () => {
-        setCreating(true);
-        try {
-            const res = await fetchWithRetry("/api/planner/semesters", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: `${newSem.type} ${newSem.year}`,
-                    type: newSem.type,
-                    year: newSem.year,
-                    start_date: newSem.startDate || null,
-                    end_date: newSem.endDate || null
-                }),
-                retries: 2
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setSemesters([data.semester, ...semesters]);
-                setShowAddModal(false);
-                setNewSem({ type: "Spring", year: new Date().getFullYear(), startDate: "", endDate: "" });
-            }
-        } catch (error: unknown) {
-            console.error("Failed to add semester:", error instanceof Error ? error.message : String(error));
-        } finally {
-            setCreating(false);
         }
     };
 
@@ -106,7 +77,7 @@ export default function PlannerSemesterList() {
                     <Link href="/planner/settings" className="hidden sm:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors" title="Settings">
                         <Settings2 className="w-4 h-4" />
                     </Link>
-                    <Link href="/" className="hidden sm:flex px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] sm:text-xs font-semibold sm:text-sm text-white/70 transition-colors whitespace-nowrap">
+                    <Link href="/" className="hidden sm:flex px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] font-semibold text-white/70 transition-colors whitespace-nowrap">
                         Course Tracker
                     </Link>
                 </div>
@@ -120,7 +91,7 @@ export default function PlannerSemesterList() {
                         <p className="text-white/40 text-sm mt-1">Manage your active and completed semesters.</p>
                     </div>
                     <button
-                        onClick={() => setShowAddModal(true)}
+                        onClick={() => setShowWizard(true)}
                         className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all group"
                     >
                         <Plus className="w-4 h-4 text-white/60 group-hover:text-white" />
@@ -146,11 +117,11 @@ export default function PlannerSemesterList() {
 
                             // Calculate dynamic GPA if not officially set
                             let gpa = sem.semester_gpa ?? 0;
-                            if (sem.semester_gpa === null && sem.courses?.length > 0) {
+                            if (sem.semester_gpa === null && sem.courses && sem.courses.length > 0) {
                                 let totalPoints = 0;
                                 let totalCredits = 0;
                                 sem.courses.forEach((c: SemesterCourse) => {
-                                    if (c.grade_point !== null && c.grade_letter) {
+                                    if (typeof c.grade_point === 'number' && c.grade_letter) {
                                         totalPoints += (c.grade_point * c.credits);
                                         totalCredits += c.credits;
                                     }
@@ -164,7 +135,7 @@ export default function PlannerSemesterList() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="group relative bg-white/[0.02] border border-white/5 hover:border-violet-500/30 rounded-[2rem] p-6 transition-colors overflow-hidden flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center"
+                                    className="group relative bg-white/[0.02] border border-white/5 hover:border-violet-500/30 rounded-3xl p-6 transition-colors overflow-hidden flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center"
                                 >
                                     <div className="flex items-start gap-4 z-10">
                                         <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center border ${isPast ? 'bg-white/5 border-white/5 text-white/40' : 'bg-violet-600/20 border-violet-500/30 text-violet-400'}`}>
@@ -200,7 +171,7 @@ export default function PlannerSemesterList() {
                     </AnimatePresence>
 
                     {semesters.length === 0 && (
-                        <div className="py-20 text-center flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01]">
+                        <div className="py-20 text-center flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-white/1">
                             <Clock className="w-10 h-10 text-white/20 mb-4" />
                             <h3 className="text-lg font-bold mb-1">No Semesters Found</h3>
                             <p className="text-white/40 text-sm">Create your first term to begin tracking.</p>
@@ -211,77 +182,14 @@ export default function PlannerSemesterList() {
             </main>
 
             <AnimatePresence>
-                {showAddModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setShowAddModal(false)}
-                        />
-                        <motion.div
-                            initial={{ scale: 0.95, y: 20, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            exit={{ scale: 0.95, y: 20, opacity: 0 }}
-                            className="relative w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl"
-                        >
-                            <h3 className="text-xl font-bold mb-4">Add Semester</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label htmlFor="term-type" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Term Type</label>
-                                    <select
-                                        id="term-type"
-                                        value={newSem.type} onChange={e => setNewSem({ ...newSem, type: e.target.value })}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500 transition-colors appearance-none"
-                                    >
-                                        <option value="Spring" className="bg-black text-white">Spring</option>
-                                        <option value="Summer" className="bg-black text-white">Summer</option>
-                                        <option value="Fall" className="bg-black text-white">Fall</option>
-                                        <option value="Winter" className="bg-black text-white">Winter</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor="academic-year" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Academic Year</label>
-                                    <input
-                                        id="academic-year"
-                                        type="number"
-                                        value={newSem.year}
-                                        onChange={e => setNewSem({ ...newSem, year: Number.parseInt(e.target.value) })}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500 transition-colors"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label htmlFor="start-date" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Start Date</label>
-                                        <input
-                                            id="start-date"
-                                            type="date"
-                                            value={newSem.startDate}
-                                            onChange={e => setNewSem({ ...newSem, startDate: e.target.value })}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="end-date" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">End Date</label>
-                                        <input
-                                            id="end-date"
-                                            type="date"
-                                            value={newSem.endDate}
-                                            onChange={e => setNewSem({ ...newSem, endDate: e.target.value })}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-violet-500 transition-colors"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex gap-3 mt-8">
-                                <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">Cancel</button>
-                                <button onClick={handleAddSemester} disabled={creating} className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
-                                    {creating ? "Adding..." : "Add Term"}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
+                {showWizard && (
+                    <SemesterSetupWizard
+                        onClose={() => setShowWizard(false)}
+                        onComplete={() => { setShowWizard(false); fetchSemesters(); }}
+                    />
                 )}
             </AnimatePresence>
         </div>
     );
 }
+

@@ -7,6 +7,18 @@ type ScheduleCourse = {
     code: string;
     name: string;
     credits: number;
+    midterm_date?: string;
+    final_date?: string;
+};
+
+type ScheduleRequest = {
+    major?: string;
+    semesterType?: string;
+    semesterName?: string;
+    semesterStartDate?: string | null;
+    semesterEndDate?: string | null;
+    weeklyHours?: number;
+    courses?: ScheduleCourse[];
 };
 
 type ScheduleSession = {
@@ -81,8 +93,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const body = await request.json();
+        const body = await request.json() as ScheduleRequest;
         const major = typeof body.major === "string" ? body.major : "";
+        const semesterType = typeof body.semesterType === "string" ? body.semesterType : "";
+        const semesterName = typeof body.semesterName === "string" ? body.semesterName : "";
+        const semesterStartDate = typeof body.semesterStartDate === "string" ? body.semesterStartDate : null;
+        const semesterEndDate = typeof body.semesterEndDate === "string" ? body.semesterEndDate : null;
         const weeklyHours =
             typeof body.weeklyHours === "number" && Number.isFinite(body.weeklyHours)
                 ? Math.max(4, Math.min(35, body.weeklyHours))
@@ -104,7 +120,15 @@ export async function POST(request: NextRequest) {
 
         let parsed: unknown;
         try {
-            const raw = await getStudySchedule({ major, courses, weeklyHours });
+            const raw = await getStudySchedule({
+                major,
+                semesterType,
+                semesterName,
+                semesterStartDate,
+                semesterEndDate,
+                courses,
+                weeklyHours,
+            });
             parsed = parseScheduleResponse(raw);
         } catch (error) {
             console.error("generate-schedule provider error", error);

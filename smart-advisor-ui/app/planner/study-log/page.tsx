@@ -5,7 +5,7 @@ import { authOptions } from "@/auth";
 import PlannerStudyLogClient from "@/components/PlannerStudyLogClient";
 
 export const metadata: Metadata = {
-    title: "Planner Study Log — HTUAI",
+    title: "Semester Planner | HTUAI",
     description: "Track your study sessions and stay consistent with learning.",
 };
 export default async function PlannerStudyLogPage() {

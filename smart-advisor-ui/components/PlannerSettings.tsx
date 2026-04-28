@@ -173,6 +173,14 @@ export default function PlannerSettings() {
 
     const currentExamReminderDays = preferences.exam_reminders_days ?? (preferences.exam_reminders ? 7 : 0);
 
+    const getInitials = (name?: string | null) => {
+        if (!name) return "HT";
+        const parts = name.trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return "HT";
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return `${parts[0][0]}${parts.at(-1)?.[0] ?? "T"}`.toUpperCase();
+    };
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans pb-24">
             <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4">
@@ -214,7 +222,7 @@ export default function PlannerSettings() {
                                     <img src={userProfile.image} alt="Profile" width={80} height={80} className="w-full h-full rounded-full object-cover border-2 border-black" />
                                 ) : (
                                     <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-2xl font-black">
-                                        {userProfile.name?.[0]?.toUpperCase() || 'H'}
+                                        {getInitials(userProfile.name)}
                                     </div>
                                 )}
                             </div>

@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData, CurriculumRules } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
 import { calculateGPA } from '@/lib/grading';
-import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star, Sparkles, CalendarDays } from 'lucide-react';
+import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star, Sparkles, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 import StudentDashboard from './StudentDashboard';
 import ConfirmDialog from './ui/ConfirmDialog';
 import { useToast } from './ui/Toast';
 import dynamic from 'next/dynamic';
+import { safeStorage } from '@/lib/safe-storage';
+import SemesterSetupWizard from './SemesterSetupWizard';
 
 const CourseNotesModal = dynamic(() => import('./CourseNotesModal'), {
     ssr: false,
@@ -47,21 +50,58 @@ function CourseTrackerView({
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [selectedCourseForNotes, setSelectedCourseForNotes] = useState<{ id: string; title: string } | null>(null);
     const { toast } = useToast();
-
-    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
     const [isMobile, setIsMobile] = useState(false);
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+    const [activeSemester, setActiveSemester] = useState<{
+        id: number;
+        name: string;
+        type?: string | null;
+        start_date?: string | null;
+        end_date?: string | null;
+        courses: Array<{ code: string; name: string; credits: number; midterm_date?: string | null; final_date?: string | null }>;
+    } | null>(null);
     const [aiLoading, setAiLoading] = useState<"suggestions" | "schedule" | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
     const [aiRecommendations, setAiRecommendations] = useState<Array<{ code: string; reason: string }>>([]);
     const [aiTips, setAiTips] = useState<string[]>([]);
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [examTips, setExamTips] = useState<string[]>([]);
+    const [showSetupWizard, setShowSetupWizard] = useState(false);
+    const [loadingSemester, setLoadingSemester] = useState(true);
+
+    const checkMobile = useCallback(() => {
+        setIsMobile(window.innerWidth < 768);
+    }, []);
 
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
+    }, [checkMobile]);
+
+    // Fetch active semester from planner
+    useEffect(() => {
+        setLoadingSemester(true);
+        fetch('/api/planner/semesters')
+            .then(r => r.ok ? r.json() : null)
+            .then((data: { semesters?: Array<{ id: number; name: string; start_date?: string | null; end_date?: string | null; courses?: Array<{ code: string; name: string; credits: number }> }> } | null) => {
+                if (data?.semesters?.length) {
+                    // Find most recent semester with courses
+                    const sem = data.semesters.find(s => (s.courses?.length ?? 0) > 0) ?? data.semesters[0];
+                    setActiveSemester({ id: sem.id, name: sem.name, courses: sem.courses ?? [] });
+                    // Restore cached schedule for this semester
+                    const cached = safeStorage.get(`schedule-sem-${sem.id}`);
+                    if (cached) {
+                        try {
+                            const parsed = JSON.parse(cached);
+                            if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
+                            if (parsed.examTips) setExamTips(parsed.examTips);
+                        } catch { /* ignore parse errors */ }
+                    }
+                }
+            })
+            .catch(() => { /* non-fatal */ })
+            .finally(() => setLoadingSemester(false));
     }, []);
 
     const allCourses = [
@@ -73,14 +113,6 @@ function CourseTrackerView({
         ...(data.work_market_requirements ?? [])
     ];
     const completedCodes = new Set(completedCourses.keys());
-    const candidateCourses = allCourses
-        .filter((course) => !completedCodes.has(course.code))
-        .map((course) => ({
-            code: course.code,
-            name: course.name,
-            credits: course.ch,
-            prereq: course.prereq
-        }));
 
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
     const allCourseCodes = new Set(allCourses.map(c => c.code));
@@ -187,7 +219,7 @@ function CourseTrackerView({
                     const errJson = JSON.parse(errText);
                     throw new Error(errJson.details || errJson.error || 'Failed to generate suggestions');
                 } catch {
-                    throw new Error('Failed to generate suggestions: ' + response.statusText);
+                    throw new Error('Failed: ' + (errText.substring(0, 150) || response.statusText));
                 }
             }
 
@@ -226,14 +258,11 @@ function CourseTrackerView({
         setAiError(null);
 
         try {
-            const targetCourses = candidateCourses.slice(0, 5).map((course) => ({
-                code: course.code,
-                name: course.name,
-                credits: course.credits,
-            }));
+            const semCourses = activeSemester?.courses ?? [];
+            const targetCourses = semCourses.map(c => ({ code: c.code, name: c.name, credits: c.credits }));
 
             if (targetCourses.length === 0) {
-                setAiError("You completed all available courses. No schedule needed.");
+                setAiError("Add courses to your planner semester first.");
                 setAiLoading(null);
                 return;
             }
@@ -284,6 +313,11 @@ function CourseTrackerView({
 
             setWeeklyPlan(normalizedPlan);
             setExamTips(normalizedExamTips);
+
+            // Cache to safeStorage so PlannerHome can read it without re-fetching
+            if (activeSemester && normalizedPlan.length > 0) {
+                safeStorage.set(`schedule-sem-${activeSemester.id}`, JSON.stringify({ weeklyPlan: normalizedPlan, examTips: normalizedExamTips }));
+            }
 
             if (normalizedPlan.length === 0) {
                 setAiError("No schedule generated yet. Please retry.");
@@ -468,7 +502,7 @@ function CourseTrackerView({
                 onCategoryClick={(category) => {
                     setViewMode('category');
                     setTimeout(() => {
-                        const id = `section-${category.replace(/\s+/g, '-')}`;
+                        const id = `section-${category.replaceAll(/\s+/g, '-')}`;
                         const el = document.getElementById(id);
                         if (el) {
                             const y = el.getBoundingClientRect().top + window.scrollY - 100;
@@ -481,7 +515,7 @@ function CourseTrackerView({
             <section className="rounded-4xl border border-cyan-400/20 bg-cyan-500/4 p-5 sm:p-6 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h2 className="text-lg sm:text-xl font-black text-cyan-100 tracking-tight">mubxbot AI Advisor</h2>
+                        <h2 className="text-lg sm:text-xl font-black text-cyan-100 tracking-tight">MUBX AI Advisor</h2>
                         <p className="text-xs sm:text-sm text-cyan-100/60">Free AI-powered next-semester recommendations and study planning.</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -493,14 +527,40 @@ function CourseTrackerView({
                             {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                             Suggest Courses
                         </button>
-                        <button
-                            onClick={() => void generateWeeklySchedule()}
-                            disabled={aiLoading !== null}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-cyan-300/40 text-cyan-100 text-xs font-black uppercase tracking-wider disabled:opacity-60"
-                        >
-                            {aiLoading === "schedule" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
-                            Build Schedule
-                        </button>
+                        {loadingSemester && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 opacity-50">
+                                <div className="w-3 h-3 rounded-full bg-white/20 animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-wider text-white/40">Syncing...</span>
+                            </div>
+                        )}
+                        {!loadingSemester && activeSemester && activeSemester.courses.length > 0 && (
+                            <button
+                                onClick={() => void generateWeeklySchedule()}
+                                disabled={aiLoading !== null}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-cyan-300/40 text-cyan-100 text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-cyan-500/10 transition-colors"
+                            >
+                                {aiLoading === "schedule" ? (
+                                    <>
+                                        <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping mr-1" />
+                                        <span>Generating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-4 h-4" />
+                                        Build your schedule
+                                    </>
+                                )}
+                            </button>
+                        )}
+                        {!loadingSemester && (!activeSemester || activeSemester.courses.length === 0) && (
+                            <button
+                                onClick={() => setShowSetupWizard(true)}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 text-amber-200 text-xs font-black uppercase tracking-wider hover:bg-amber-500/10 transition-colors shadow-[0_0_15px_rgba(251,191,36,0.1)]"
+                            >
+                                <AlertCircle className="w-4 h-4" />
+                                Set up your semester
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -508,16 +568,33 @@ function CourseTrackerView({
                     <p className="text-xs text-rose-300 font-semibold">{aiError}</p>
                 )}
 
+                {aiLoading === "suggestions" && aiRecommendations.length === 0 && (
+                    <div className="space-y-2">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Analyzing Degree Progress...</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            {new Array(2).fill(null).map((_, i) => (
+                                <div key={`sugg-skel-card-${i === 0 ? 'left' : 'right'}`} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3 animate-pulse">
+                                    <div className="h-3 w-24 bg-white/10 rounded" />
+                                    <div className="h-2 w-full bg-white/5 rounded" />
+                                    <div className="h-2 w-4/5 bg-white/5 rounded" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {aiRecommendations.length > 0 && (
                     <div className="space-y-2">
                         <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Recommended Next Courses</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {aiRecommendations.map((item) => (
-                                <div key={item.code} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                                    <div className="text-xs font-black text-cyan-200">{courseMap[item.code] || item.code}</div>
-                                    <p className="text-[10px] text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
-                                    <p className="text-xs text-white/70 mt-1">{item.reason}</p>
-                                </div>
+                                <Link key={item.code} href={`/course/${item.code}`} className="rounded-xl border border-white/10 bg-white/5 p-3 hover:scale-[1.01] transition-transform">
+                                    <div>
+                                        <div className="text-xs font-black text-cyan-200">{courseMap[item.code] || item.code}</div>
+                                        <p className="text-[10px] text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
+                                        <p className="text-xs text-white/70 mt-1">{item.reason}</p>
+                                    </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -534,16 +611,42 @@ function CourseTrackerView({
 
                 {weeklyPlan.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Weekly Study Schedule</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Weekly Schedule</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
-                            {weeklyPlan.map((dayPlan) => (
-                                <div key={dayPlan.day} className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                    <div className="text-xs font-black text-cyan-200 mb-2">{dayPlan.day}</div>
-                                    {dayPlan.sessions.map((session) => (
-                                        <p key={`${dayPlan.day}-${session.course}-${session.focus}`} className="text-xs text-white/70 leading-relaxed">
-                                            <span className="font-bold text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
-                                        </p>
-                                    ))}
+                            {weeklyPlan.map((dayPlan) => {
+                                // If day looks like ISO date, format it for display
+                                const isoLike = /^\d{4}-\d{2}-\d{2}$/;
+                                const dayLabel = isoLike.test(dayPlan.day) ? new Date(dayPlan.day).toLocaleDateString() : dayPlan.day;
+                                return (
+                                    <div key={dayPlan.day} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                                        <div className="text-xs font-black text-cyan-200 mb-2">{dayLabel}</div>
+                                        {dayPlan.sessions.map((session) => (
+                                            <p key={`${dayPlan.day}-${session.course}-${session.focus}`} className="text-xs text-white/70 leading-relaxed">
+                                                <span className="font-bold text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
+                                            </p>
+                                        ))}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {aiLoading === "schedule" && weeklyPlan.length === 0 && (
+                    <div className="space-y-2">
+                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Generating Schedule...</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {[
+                                'sched-skel-card-a',
+                                'sched-skel-card-b',
+                                'sched-skel-card-c',
+                            ].map((skeletonKey) => (
+                                <div key={skeletonKey} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3 animate-pulse">
+                                    <div className="h-3 w-16 bg-white/10 rounded" />
+                                    <div className="space-y-2">
+                                        <div className="h-2.5 w-full bg-white/5 rounded" />
+                                        <div className="h-2.5 w-2/3 bg-white/5 rounded" />
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -600,8 +703,8 @@ function CourseTrackerView({
                     const style = catStyle[title];
 
                     const gpaCourses = courses
-                        .filter((c) => completedCourses.has(c.code))
-                        .map((c) => ({ credits: c.ch, grade: completedCourses.get(c.code) ?? "M" }));
+                        .filter((c: Course) => completedCourses.has(c.code))
+                        .map((c: Course) => ({ credits: c.ch, grade: completedCourses.get(c.code) ?? "M" }));
                     const groupGpa = calculateGPA(gpaCourses);
 
                     const isExpanded = expandedCategories[title];
@@ -613,7 +716,7 @@ function CourseTrackerView({
                     const displayTitle = title === "University Requirements" && isMobile ? "Uni. Requirements" : title;
 
                     return (
-                        <section id={`section-${title.replace(/\s+/g, '-')}`} key={title} className="bg-white/2 border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-3xl sm:rounded-none">
+                        <section id={`section-${title.replaceAll(/\s+/g, '-')}`} key={title} className="bg-white/2 border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-3xl sm:rounded-none">
                             <div className="flex items-center gap-3 mb-5 sm:mb-6">
                                 {viewMode === 'level'
                                     ? <Trophy className="w-4 h-4 text-violet-400/60 shrink-0" />
@@ -666,6 +769,25 @@ function CourseTrackerView({
                 courseTitle={selectedCourseForNotes?.title || ""}
                 studentId={studentId}
             />
+
+            <AnimatePresence>
+                {showSetupWizard && (
+                    <SemesterSetupWizard
+                        onClose={() => setShowSetupWizard(false)}
+                        onComplete={(sid) => {
+                            setShowSetupWizard(false);
+                            // Refresh active semester state after wizard completes
+                            fetch('/api/planner/semesters')
+                                .then(r => r.json())
+                                .then((data: { semesters?: Array<{ id: number; name: string; courses?: Array<{ code: string; name: string; credits: number }> }> }) => {
+                                    const sem = data.semesters?.find(s => s.id === sid);
+                                    if (sem) setActiveSemester({ id: sem.id, name: sem.name, courses: sem.courses ?? [] });
+                                })
+                                .catch(() => {});
+                        }}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
