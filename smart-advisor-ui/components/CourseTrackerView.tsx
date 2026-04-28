@@ -588,7 +588,7 @@ function CourseTrackerView({
                         <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Recommended Next Courses</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {aiRecommendations.map((item) => (
-                                <Link key={item.code} href={`/course/${item.code}`} className="rounded-xl border border-white/10 bg-white/5 p-3 hover:scale-[1.01] transition-transform">
+                                <Link key={item.code} href={`/courses/${item.code}`} className="rounded-xl border border-white/10 bg-white/5 p-3 hover:scale-[1.01] transition-transform">
                                     <div>
                                         <div className="text-xs font-black text-cyan-200">{courseMap[item.code] || item.code}</div>
                                         <p className="text-[10px] text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
