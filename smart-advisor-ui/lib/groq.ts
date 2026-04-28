@@ -21,10 +21,10 @@ function formatSemesterLabel(semesterType?: string, semesterName?: string) {
 
 function formatCourseSummary(courses: ScheduleCourse[]) {
     return courses.map((course) => {
-        const parts = [course.code, `${course.credits} credits`];
-        if (course.midterm_date) parts.push(`midterm ${course.midterm_date}`);
-        if (course.final_date) parts.push(`final ${course.final_date}`);
-        return parts.join(" | ");
+        const parts = [course.code, `${course.credits}CH`];
+        if (course.midterm_date) parts.push(`M:${course.midterm_date}`);
+        if (course.final_date) parts.push(`F:${course.final_date}`);
+        return parts.join("|");
     }).join("; ");
 }
 
@@ -61,8 +61,9 @@ export async function getSuggestedCourses(params: {
     const completion = await client.chat.completions.create({
         model: "llama-3.1-8b-instant",
         temperature: 0.2,
+        max_tokens: 500,
         messages: [
-            { role: "system", content: "You output TOON format only." },
+            { role: "system", content: "You output TOON format only. Be extremely concise." },
             { role: "user", content: prompt }
         ],
     });
@@ -119,8 +120,9 @@ export async function getStudySchedule(params: {
     const completion = await client.chat.completions.create({
         model: "llama-3.1-8b-instant",
         temperature: 0.2,
+        max_tokens: 800,
         messages: [
-            { role: "system", content: "You output TOON format only." },
+            { role: "system", content: "You output TOON format only. Be extremely concise." },
             { role: "user", content: prompt }
         ],
     });
