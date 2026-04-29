@@ -106,44 +106,49 @@ function PlannerHomeClient() {
     const fetchSummary = async () => {
         try {
             const res = await fetch("/api/planner/summary", { cache: "no-store" });
-            if (!res.ok) throw new Error("Failed to fetch summary");
-            const data = await res.json() as PlannerSummary & { allSemesters?: any[] };
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.details || data.error || "Failed to fetch summary");
+            }
 
-            setSummary(data);
+            setSummary(data as PlannerSummary);
 
-            const semData = data.allSemesters || [];
+            const semData = (data.allSemesters || []) as any[];
             if (semData.length === 0) {
                 setShowOnboarding(true);
             } else {
                 // Set active semester and load cached schedule
                 const sem = semData.find((s: any) => (s.courses?.length ?? 0) > 0) ?? semData[0];
-                setActiveSemester({
-                    id: sem.id,
-                    name: sem.name,
-                    type: sem.type ?? null,
-                    start_date: sem.start_date ?? null,
-                    end_date: sem.end_date ?? null,
-                    courses: sem.courses ?? [],
-                    study_schedule: sem.study_schedule,
-                    ai_exam_tips: sem.ai_exam_tips,
-                });
-                
-                // Prioritize DB schedule, fallback to safeStorage for legacy
-                if (sem.study_schedule && sem.study_schedule.length > 0) {
-                    setWeeklyPlan(sem.study_schedule);
-                } else {
-                    const cached = safeStorage.get(`schedule-sem-${sem.id}`);
-                    if (cached) {
-                        try {
-                            const parsed = JSON.parse(cached);
-                            if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
-                        } catch { /* ok */ }
+                if (sem) {
+                    setActiveSemester({
+                        id: sem.id,
+                        name: sem.name,
+                        type: sem.type ?? null,
+                        start_date: sem.start_date ?? null,
+                        end_date: sem.end_date ?? null,
+                        courses: sem.courses ?? [],
+                        study_schedule: sem.study_schedule,
+                        ai_exam_tips: sem.ai_exam_tips,
+                    });
+                    
+                    // Prioritize DB schedule, fallback to safeStorage for legacy
+                    if (sem.study_schedule && sem.study_schedule.length > 0) {
+                        setWeeklyPlan(sem.study_schedule);
+                    } else {
+                        const cached = safeStorage.get(`schedule-sem-${sem.id}`);
+                        if (cached) {
+                            try {
+                                const parsed = JSON.parse(cached);
+                                if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
+                            } catch { /* ok */ }
+                        }
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Fetch error:", e);
-            toast("Failed to load your dashboard. Please refresh.", "error");
+            toast(e.message || "Failed to load your dashboard. Please refresh.", "error");
         }
     };
 

@@ -72,25 +72,29 @@ async function handleDailyGamificationXP(user: any, today: Date) {
 }
 
 async function handleGpaImprovement(userId: number, cgpa: number, classification: string) {
-    const lastHistory = await prisma.gPAHistory.findFirst({
-        where: { user_id: userId },
-        orderBy: { created_at: 'desc' }
-    });
+    try {
+        const lastHistory = await prisma.gPAHistory.findFirst({
+            where: { user_id: userId },
+            orderBy: { created_at: 'desc' }
+        });
 
-    if (cgpa > 0 && (lastHistory === null || cgpa > lastHistory.cumulative_gpa)) {
-        const diff = lastHistory ? cgpa - lastHistory.cumulative_gpa : cgpa;
-        if (diff >= 0.1) {
-            const xpAward = Math.floor(diff / 0.1) * 50;
-            await prisma.gamificationProfile.update({
-                where: { user_id: userId },
-                data: { xp: { increment: xpAward } }
-            });
+        if (cgpa > 0 && (lastHistory === null || cgpa > lastHistory.cumulative_gpa)) {
+            const diff = lastHistory ? cgpa - lastHistory.cumulative_gpa : cgpa;
+            if (diff >= 0.1) {
+                const xpAward = Math.floor(diff / 0.1) * 50;
+                await prisma.gamificationProfile.update({
+                    where: { user_id: userId },
+                    data: { xp: { increment: 10 + xpAward } }
+                });
 
-            await prisma.gPAHistory.create({
-                data: { user_id: userId, cumulative_gpa: cgpa, classification }
-            });
-            await evaluateAchievements(userId);
+                await prisma.gPAHistory.create({
+                    data: { user_id: userId, cumulative_gpa: cgpa, classification }
+                });
+                await evaluateAchievements(userId);
+            }
         }
+    } catch (e) {
+        console.error("GPA Improvement handler error:", e);
     }
 }
 
@@ -145,7 +149,7 @@ export async function GET(req: NextRequest) {
         const jordanDateStr = today.toLocaleDateString('en-CA', { timeZone: JORDAN_TIMEZONE });
         const todayStart = new Date(`${jordanDateStr}T00:00:00.000Z`);
 
-        // 3. Parallel fetching for independent dashboard components
+        // 3. Parallel fetching
         const [
             semesters,
             googleToken,
@@ -196,13 +200,15 @@ export async function GET(req: NextRequest) {
 
         const gamification = await handleDailyGamificationXP(user, todayStart);
 
-        // 4. Determine Active Semester
-        const currentSemester = semesters.find(s => {
-            if (!s.start_date || !s.end_date) return false;
-            return todayStart >= s.start_date && todayStart <= s.end_date;
-        }) || semesters[0];
+        // 4. Active Semester
+        const currentSemester = (semesters && semesters.length > 0) 
+            ? (semesters.find(s => {
+                if (!s.start_date || !s.end_date) return false;
+                return todayStart >= s.start_date && todayStart <= s.end_date;
+              }) || semesters[0])
+            : null;
 
-        // 5. Calculate GPA from semesters
+        // 5. GPA
         const allCompletedCourses = semesters.flatMap(s => s.courses.map(c => ({
             grade: c.grade_letter || "",
             credits: c.credits
@@ -225,32 +231,34 @@ export async function GET(req: NextRequest) {
         const classificationObj = getClassification(cgpa);
         const classification = classificationObj.label;
 
-        handleGpaImprovement(user.id, cgpa, classification).catch(e => console.error("GPA logic error", e));
+        handleGpaImprovement(user.id, cgpa, classification);
 
-        // 6. Process Calendar Events & Course Exams (Memory derivation)
+        // 6. Exams
         const nextWeek = new Date(todayStart);
         nextWeek.setDate(nextWeek.getDate() + 7);
 
         const derivedExams: UpcomingEventLike[] = [];
         for (const sem of semesters) {
-            for (const course of sem.courses) {
-                if (course.midterm_date && course.midterm_date >= todayStart) {
-                    derivedExams.push({
-                        id: `exam-m-${course.id}`,
-                        course_id: course.id,
-                        type: "Midterm",
-                        title: `${course.name} - Midterm`,
-                        start_datetime: course.midterm_date
-                    });
-                }
-                if (course.final_date && course.final_date >= todayStart) {
-                    derivedExams.push({
-                        id: `exam-f-${course.id}`,
-                        course_id: course.id,
-                        type: "Final",
-                        title: `${course.name} - Final`,
-                        start_datetime: course.final_date
-                    });
+            if (sem.courses) {
+                for (const course of sem.courses) {
+                    if (course.midterm_date && course.midterm_date >= todayStart) {
+                        derivedExams.push({
+                            id: `exam-m-${course.id}`,
+                            course_id: course.id,
+                            type: "Midterm",
+                            title: `${course.name} - Midterm`,
+                            start_datetime: course.midterm_date
+                        });
+                    }
+                    if (course.final_date && course.final_date >= todayStart) {
+                        derivedExams.push({
+                            id: `exam-f-${course.id}`,
+                            course_id: course.id,
+                            type: "Final",
+                            title: `${course.name} - Final`,
+                            start_datetime: course.final_date
+                        });
+                    }
                 }
             }
         }
@@ -262,14 +270,14 @@ export async function GET(req: NextRequest) {
         let upcomingEvents = nextWeekEvents.length > 0 ? nextWeekEvents.slice(0, 5) : combinedEvents.slice(0, 5);
         let upcomingEventsLabel = nextWeekEvents.length > 0 ? "Upcoming 7 Days" : "Upcoming Deadlines";
 
-        // 7. Calculate Progress
+        // 7. Progress
         let completedCreditsFromTracker = 0;
         if (progress?.completed && curriculum) {
-            let completedList: string[] = [];
+            let completedList: any[] = [];
             try {
                 completedList = typeof progress.completed === 'string'
                     ? JSON.parse(progress.completed)
-                    : progress.completed as string[];
+                    : progress.completed as any[];
             } catch { /* ok */ }
 
             const creditMap = buildCourseCreditMap(curriculum);
@@ -280,7 +288,7 @@ export async function GET(req: NextRequest) {
             }, 0);
         }
 
-        // 8. Study Trends & Neglected Courses
+        // 8. Trends
         const dayTrend = new Map<string, number>();
         const courseMap = new Map<number, { name: string; id: number; total: number }>();
 
@@ -305,8 +313,8 @@ export async function GET(req: NextRequest) {
             .sort((a, b) => a.date.localeCompare(b.date))
             .slice(-7);
 
-        const neglectedCourse = currentSemester?.courses.length 
-            ? Array.from(courseMap.values()).sort((a, b) => a.total - b.total)[0]
+        const neglectedCourse = (currentSemester?.courses && currentSemester.courses.length > 0)
+            ? (Array.from(courseMap.values()).sort((a, b) => a.total - b.total)[0] || null)
             : null;
 
         const total_study_minutes = studySessions.reduce((acc, s) => acc + s.duration_minutes, 0);
@@ -334,7 +342,7 @@ export async function GET(req: NextRequest) {
             ? (currentTotalPoints + (3.2 * remainingCH)) / TOTAL_DEGREE_CH 
             : cgpa;
 
-        // 10. Dynamic Study Tips
+        // 10. Tips
         const dynamicTips = [];
         if (neglectedCourse) {
             dynamicTips.push({
@@ -397,11 +405,12 @@ export async function GET(req: NextRequest) {
                 major: profile?.major || "undecided"
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("GET Planner Summary Error:", error);
-        if (error instanceof Error) {
-            console.error("Stack:", error.stack);
-        }
-        return NextResponse.json({ error: "Server Error", details: error instanceof Error ? error.message : "Unknown" }, { status: 500 });
+        return NextResponse.json({ 
+            error: "Server Error", 
+            details: error?.message || "Unknown error",
+            stack: error?.stack 
+        }, { status: 500 });
     }
 }
