@@ -202,7 +202,7 @@ function CourseCard({
                 ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}
                 ${cardBorder}
             `}
-            style={{ backdropFilter: "blur(24px)" }}
+            style={{ backdropFilter: "blur(12px)" }}
             onClick={() => { if (!isLocked) onToggle(); }}
             title={lockReason}
         >
@@ -221,7 +221,7 @@ function CourseCard({
                     data-testid="status-icon"
                     onClick={(e) => {
                         e.stopPropagation();
-                        // Future: open details modal here
+                        setIsExpanded(!isExpanded);
                     }}
                     title="Course Prerequisites & Status"
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"

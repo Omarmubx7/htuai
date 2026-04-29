@@ -191,12 +191,13 @@ input[type="range"]::-webkit-slider-runnable-track {
   background-color: #f9fafb !important;
 }
 
-.light-theme .text-white {
+.light-theme .text-white:not(.bg-violet-600, .bg-blue-600, .bg-emerald-500, .bg-amber-600, .bg-red-600, .keep-white) {
   color: #111827 !important;
 }
 
-.light-theme .bg-white\/5 {
-  background-color: rgba(0, 0, 0, 0.04) !important;
+.light-theme .bg-white\/2,
+.light-theme .bg-white\/3 {
+  background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
 .light-theme .bg-white\/10,

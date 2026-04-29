@@ -62,7 +62,7 @@ function CourseTrackerView({
     } | null>(null);
     const [aiLoading, setAiLoading] = useState<"suggestions" | "schedule" | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
-    const [aiRecommendations, setAiRecommendations] = useState<Array<{ code: string; reason: string }>>([]);
+    const [aiRecommendations, setAiRecommendations] = useState<Array<{ code: string; reason: string; name: string }>>([]);
     const [aiTips, setAiTips] = useState<string[]>([]);
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [examTips, setExamTips] = useState<string[]>([]);
@@ -225,14 +225,19 @@ function CourseTrackerView({
 
             const payload = await response.json() as {
                 result?: {
-                    recommendations?: Array<{ code?: string; reason?: string }>;
+                    recommendations?: Array<{ code?: string; reason?: string; name?: string }>;
                     tips?: string[];
                 }
             };
 
             const recommendations = Array.isArray(payload.result?.recommendations)
                 ? payload.result.recommendations
-                    .filter((item): item is { code: string; reason: string } => !!item?.code && !!item?.reason)
+                    .filter((item): item is { code: string; reason: string; name?: string } => !!item?.code && !!item?.reason)
+                    .map(item => ({
+                        code: item.code,
+                        reason: item.reason,
+                        name: item.name || courseMap[item.code] || item.code
+                    }))
                     .slice(0, 5)
                 : [];
 

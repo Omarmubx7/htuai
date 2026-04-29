@@ -173,7 +173,7 @@ export default function HomeClient() {
                     safeStorage.set(`major-${id}`, savedMajor);
                     
                     const loaded = await loadCourses(savedMajor);
-                    await loadProgress(id); // Ensure progress is loaded too
+                    await loadProgress(id, savedMajor); // Pass savedMajor here
                     setAppState(loaded ? "course-tracker" : "major-select");
                 } else { 
                     setAppState("major-select"); 
@@ -303,7 +303,7 @@ export default function HomeClient() {
                 if (storageMajor && !courseData && (appState === "checking" || appState === "landing")) {
                     setMajor(storageMajor);
                     void loadCourses(storageMajor);
-                    void loadProgress(sid);
+                    void loadProgress(sid, storageMajor); // Pass storageMajor here
                     setAppState("course-tracker");
                 } 
                 // If not in storage, try database recovery

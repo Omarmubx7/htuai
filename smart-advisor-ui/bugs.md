@@ -25,11 +25,7 @@ I thoroughly tested all the features of HTUAI. Here's the complete bug report:
 
 ### HIGH BUGS
 
-**Bug #4 — MUBXBot Professor Selection Logic Loop** [bot.mubx](https://bot.mubx.dev/)
-- **Severity:** High
-- **Steps:** Ask "what is Omar email" → bot shows 4 professor results → click on a specific professor (e.g., Islam Al Omari) → bot says "Got it. I will answer your email question for Islam Al Omari" → then sends "Islam Al Omari" as a new query → bot responds with "I found 2 professors matching 'what Islam Al Omari'" → creates an infinite loop
-- **Expected:** Clicking a professor card should directly show email/contact info, not re-query
-- **Location:** bot.mubx.dev — chatbot response handler
+
 
 **Bug #5 — Student ID / Major Shows "Undecided" in Settings** [htuai.mubx](https://htuai.mubx.dev/planner/settings)
 - **Severity:** High

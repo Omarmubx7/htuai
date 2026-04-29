@@ -105,7 +105,8 @@ export async function POST(request: NextRequest) {
             userId = session.user.db_id;
         }
 
-        const body = await request.json() as ScheduleRequest;
+        const body = await request.json() as ScheduleRequest & { semesterId?: number };
+        const semesterId = body.semesterId;
         const major = typeof body.major === "string" ? body.major : "";
         const semesterType = typeof body.semesterType === "string" ? body.semesterType : "";
         const semesterName = typeof body.semesterName === "string" ? body.semesterName : "";
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        let parsed: unknown;
+        let parsed: any;
         try {
             const raw = await getStudySchedule({
                 major,
@@ -159,6 +160,22 @@ export async function POST(request: NextRequest) {
             parsed = buildFallbackStudySchedule(courses, weeklyHours);
         }
 
+        // PERSIST TO DATABASE if semesterId is provided
+        if (semesterId && parsed && status === 'success') {
+            try {
+                await prisma.semester.update({
+                    where: { id: semesterId, user_id: userId || -1 },
+                    data: {
+                        study_schedule: parsed.weeklyPlan || [],
+                        ai_exam_tips: parsed.examTips || []
+                    }
+                });
+                console.log(`[AI] Persisted schedule to semester ${semesterId}`);
+            } catch (dbError) {
+                console.error("[AI] Failed to persist schedule to DB", dbError);
+            }
+        }
+
         // Log the usage
         await logAIUsage({
             userId,
@@ -172,6 +189,7 @@ export async function POST(request: NextRequest) {
                 major,
                 coursesCount: courses.length,
                 weeklyHours,
+                semesterId
             },
         });
 

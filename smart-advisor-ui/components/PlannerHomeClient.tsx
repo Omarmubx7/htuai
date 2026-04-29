@@ -87,6 +87,8 @@ function PlannerHomeClient() {
         start_date?: string | null;
         end_date?: string | null;
         courses: Array<{ code: string; name: string; credits: number; midterm_date?: string | null; final_date?: string | null }>;
+        study_schedule?: any[] | null;
+        ai_exam_tips?: any[] | null;
     } | null>(null);
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [showSetupWizard, setShowSetupWizard] = useState(false);
@@ -125,14 +127,21 @@ function PlannerHomeClient() {
                         start_date: sem.start_date ?? null,
                         end_date: sem.end_date ?? null,
                         courses: sem.courses ?? [],
+                        study_schedule: sem.study_schedule,
+                        ai_exam_tips: sem.ai_exam_tips,
                     });
                     
-                    const cached = safeStorage.get(`schedule-sem-${sem.id}`);
-                    if (cached) {
-                        try {
-                            const parsed = JSON.parse(cached);
-                            if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
-                        } catch (e) { console.error("Error parsing cached schedule", e); }
+                    // Prioritize DB schedule, fallback to safeStorage for legacy
+                    if (sem.study_schedule && sem.study_schedule.length > 0) {
+                        setWeeklyPlan(sem.study_schedule);
+                    } else {
+                        const cached = safeStorage.get(`schedule-sem-${sem.id}`);
+                        if (cached) {
+                            try {
+                                const parsed = JSON.parse(cached);
+                                if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
+                            } catch (e) { console.error("Error parsing cached schedule", e); }
+                        }
                     }
                 }
             }
@@ -194,6 +203,7 @@ function PlannerHomeClient() {
                     semesterEndDate: activeSemester.end_date,
                     courses: activeSemester.courses,
                     weeklyHours: 14,
+                    semesterId: activeSemester.id
                 })
             });
             

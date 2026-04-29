@@ -204,9 +204,9 @@ function StudentDashboard({
             });
     }, [data, completedCourses, totalCredits, rules]);
 
-    const totalRemaining = categories.reduce((s, c) => s + c.remaining, 0);
-    const overallTotalCH = categories.reduce((s, c) => s + c.totalCH, 0);
-    const overallDoneCH = categories.reduce((s, c) => s + c.doneCH, 0);
+    const totalRemaining = Math.max(0, totalCredits - completedCredits);
+    const overallTotalCH = totalCredits;
+    const overallDoneCH = completedCredits;
     const overallRoadmapPct = overallTotalCH > 0 ? Math.round((overallDoneCH / overallTotalCH) * 100) : 0;
 
     return (

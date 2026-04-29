@@ -121,6 +121,8 @@ model Semester {
   semester_gpa   Float?
   created_at     DateTime?      @default(now())
   updated_at     DateTime?      @default(now())
+  study_schedule Json?          @default("[]")
+  ai_exam_tips   Json?          @default("[]")
   courses        Course[]
   gpa_history    GPAHistory[]
   quests         Quest[]

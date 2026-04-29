@@ -240,7 +240,7 @@ export default function PlannerSettings() {
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Student ID / Major</p>
                                         <p className="text-sm font-bold text-white/90">
-                                            {userProfile.student_id} • <span className="text-violet-400 capitalize">{userProfile.major.replaceAll('_', ' ')}</span>
+                                            {userProfile.student_id} • <span className="text-violet-400 capitalize">{(userProfile.major || "undecided").replaceAll('_', ' ')}</span>
                                         </p>
                                     </div>
                                     <div className="space-y-1">
