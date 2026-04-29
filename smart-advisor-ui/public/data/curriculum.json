@@ -819,8 +819,7 @@
                     "code": "30303111",
                     "name": "Functional Math",
                     "ch": 3,
-                    "level": 1,
-                    "prereq": "30303110 OR HTU_PLACEMENT"
+                    "level": 1
                 },
                 {
                     "code": "40201100",
@@ -1046,8 +1045,7 @@
                     "code": "30303111",
                     "name": "Functional Math",
                     "ch": 3,
-                    "level": 1,
-                    "prereq": "30303110 OR HTU_PLACEMENT"
+                    "level": 1
                 },
                 {
                     "code": "30303112",
@@ -1526,8 +1524,7 @@
                     "code": "30303111",
                     "name": "Functional Math",
                     "ch": 3,
-                    "level": 1,
-                    "prereq": "30303110 OR HTU_PLACEMENT"
+                    "level": 1
                 },
                 {
                     "code": "30303112",
@@ -1943,8 +1940,7 @@
                     "code": "30303111",
                     "name": "Functional Math",
                     "ch": 3,
-                    "level": 1,
-                    "prereq": "30303110 OR HTU_PLACEMENT"
+                    "level": 1
                 },
                 {
                     "code": "30303112",
@@ -2395,8 +2391,7 @@
                     "code": "30303111",
                     "name": "Functional Math",
                     "ch": 3,
-                    "level": 1,
-                    "prereq": "30303110 OR HTU_PLACEMENT"
+                    "level": 1
                 },
                 {
                     "code": "30303112",
@@ -2930,8 +2925,7 @@
                 "name": "Functional Math",
                 "ch": 3,
                 "framework": "HTU",
-                "level": 1,
-                "prereq": "30303110 OR HTU_PLACEMENT"
+                "level": 1
             },
             {
                 "code": "40303121",
