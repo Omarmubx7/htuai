@@ -8,7 +8,7 @@ import {
     Sparkles, Calendar, Award, Star, Clock, CheckCircle, ArrowRight, Settings
 } from "lucide-react";
 import Link from "next/link";
-import { getClassification, GRADE_MAP } from "@/lib/grading";
+import { getClassification, GRADE_MAP, calculateCGPA } from "@/lib/grading";
 import { fetchWithRetry } from "@/lib/fetch-retry";
 
 /* ═══════════════════════════════════════════════════════════════════

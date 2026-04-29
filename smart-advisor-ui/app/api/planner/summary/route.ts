@@ -152,7 +152,12 @@ export async function GET(req: NextRequest) {
         // 2. Summarize Gamification details & Handle Daily Open XP (+10 XP)
         const gamification = await handleDailyGamificationXP(user, todayStart);
 
-        // 3. Calculate live CGPA
+        // 3. Fetch Student Profile for Major & Previous History
+        const profile = await prisma.studentProfile.findUnique({
+            where: { student_id: user.student_id || "" }
+        });
+
+        // 4. Calculate live CGPA
         const semesters = await prisma.semester.findMany({
             where: { user_id: user.id },
             include: { courses: true }
@@ -174,8 +179,8 @@ export async function GET(req: NextRequest) {
 
         // Add history
         if (profile?.previous_gpa && profile?.previous_credits) {
-            totalQualityPoints += (profile.previous_gpa * profile.previous_credits);
-            totalCredits += profile.previous_credits;
+            totalQualityPoints += (Number(profile.previous_gpa) * Number(profile.previous_credits));
+            totalCredits += Number(profile.previous_credits);
         }
 
         const cgpa = totalCredits > 0 ? Math.round((totalQualityPoints / totalCredits) * 100) / 100 : 0;
@@ -318,9 +323,6 @@ export async function GET(req: NextRequest) {
         }
 
         // 6. Fetch Major and Progress
-        const profile = await prisma.studentProfile.findUnique({
-            where: { student_id: user.student_id || "" }
-        });
 
         const progress = await prisma.studentProgress.findUnique({
             where: { 

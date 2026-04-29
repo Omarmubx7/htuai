@@ -136,7 +136,7 @@ export default async function RootLayout({
                 Object.defineProperty(window, 'sessionStorage', { get: function(){ return m; } });
               } catch(e){}
               
-              var f=function(a){if(a&&typeof a==="string"&&(a.includes("Zustand")||a.includes("deprecated")||a.includes("extension")||a.includes("storage")||a.includes("Clock")||a.includes("Zap")||a.includes("Access")))return true;return false;};
+              var f=function(a){if(!a || typeof a!=="string")return false;var s=a.toLowerCase();return s.includes("zustand")||s.includes("deprecated")||s.includes("extension")||s.includes("storage")||s.includes("access")||s.includes("zap")||s.includes("clock")||s.includes("cactus");};
               var ow=console.warn;console.warn=function(){if(f(arguments[0]))return;ow.apply(console,arguments)};
               var oe=console.error;console.error=function(){if(f(arguments[0]))return;oe.apply(console,arguments)};
               var ol=console.log;console.log=function(){if(f(arguments[0]))return;ol.apply(console,arguments)};
