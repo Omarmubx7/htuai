@@ -26,7 +26,6 @@ I thoroughly tested all the features of HTUAI. Here's the complete bug report:
 ### HIGH BUGS
 
 
-
 **Bug #5 — Student ID / Major Shows "Undecided" in Settings** [htuai.mubx](https://htuai.mubx.dev/planner/settings)
 - **Severity:** High
 - **Steps:** Dashboard → User Avatar → Profile & Settings → "My Profile" section
