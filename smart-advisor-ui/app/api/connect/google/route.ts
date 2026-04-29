@@ -6,14 +6,28 @@ import { getBaseUrl } from "@/lib/env";
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
 export async function GET(req: NextRequest): Promise<Response> {
+    console.log("[OAuth-Init] Starting OAuth flow");
+    
     const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
+    console.log("[OAuth-Init] Session exists:", !!session?.user);
+    
+    if (!session?.user) {
+        console.error("[OAuth-Init] No session");
+        return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
+    }
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const redirectUri = `${getBaseUrl(req)}/api/connect/google/callback`;
     const returnTo = req.nextUrl.searchParams.get("returnTo") || "/planner/settings";
 
+    console.log("[OAuth-Init] Config check:", {
+        clientId: clientId ? clientId.substring(0, 10) + "..." : "MISSING",
+        redirectUri,
+        returnTo
+    });
+
     if (!clientId) {
+        console.error("[OAuth-Init] Missing GOOGLE_CLIENT_ID");
         return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
     }
 
@@ -28,6 +42,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     url.searchParams.append("prompt", "consent");
     url.searchParams.append("state", returnTo);
 
+    console.log("[OAuth-Init] Redirecting to Google OAuth URL");
     return NextResponse.redirect(url.toString());
 }
 
@@ -66,7 +81,9 @@ async function upsertExamEvent(token: string, event: any, existingEventId?: stri
 }
 
 async function processCourseExam(course: any, type: "Midterm" | "Final", token: string) {
-    const date = type === "Midterm" ? course.midtermDate : course.finalDate;
+    const date = type === "Midterm"
+        ? (course.midterm_date ?? course.midtermDate)
+        : (course.final_date ?? course.finalDate);
     if (!date) return null;
 
     const event = {
@@ -93,14 +110,11 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId =
-        session.user.db_id?.toString()
-        || (session.user as Record<string, unknown>).student_id as string
-        || session.user.email
-        || session.user.name;
-    if (!studentId) return NextResponse.json({ error: "No student ID" }, { status: 400 });
+    const userId = session.user.db_id;
+    if (!userId) return NextResponse.json({ error: "Unauthorized: No database user found" }, { status: 401 });
 
-    const token = await getIntegrationToken(studentId, "google_calendar");
+    const token = await getIntegrationToken(userId.toString(), "google_calendar");
+
     if (!token) {
         return NextResponse.json({ error: "Unauthorized: missing integration token" }, { status: 401 });
     }

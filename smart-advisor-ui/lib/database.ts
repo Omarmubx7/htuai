@@ -148,19 +148,41 @@ export async function saveProgress(studentId: string, major: string, completed: 
     const user = await resolveUserByString(studentId);
     if (!user) return;
     
-    await prisma.studentProgress.upsert({
-        where: { student_id_major: { student_id: studentId, major: major } },
-        update: { completed: jsonStr, updated_at: time },
-        create: {
-            student_id: studentId,
-            major: major,
-            completed: jsonStr,
-            updated_at: time,
-            user: {
-                connect: { id: user.id }
-            }
+    // Try to find existing progress for this user and major
+    const existing = await prisma.studentProgress.findFirst({
+        where: { 
+            user_id: user.id,
+            major: major
         }
     });
+
+    if (existing) {
+        await prisma.studentProgress.update({
+            where: { 
+                student_id_major: { 
+                    student_id: existing.student_id, 
+                    major: existing.major 
+                } 
+            },
+            data: { 
+                completed: jsonStr, 
+                updated_at: time,
+                student_id: studentId // Update ID if it changed
+            }
+        });
+    } else {
+        await prisma.studentProgress.create({
+            data: {
+                student_id: studentId,
+                major: major,
+                completed: jsonStr,
+                updated_at: time,
+                user: {
+                    connect: { id: user.id }
+                }
+            }
+        });
+    }
 }
 
 /** Get a summary of all students */
@@ -198,15 +220,17 @@ export async function saveMajor(studentId: string, major: string): Promise<void>
     const user = await resolveUserByString(studentId);
     if (!user) return;
     await prisma.studentProfile.upsert({
-        where: { student_id: studentId },
-        update: { major, updated_at: time },
-        create: { 
-            student_id: studentId, 
+        where: { user_id: user.id },
+        update: { 
             major, 
-            updated_at: time, 
-            user: {
-                connect: { id: user.id }
-            }
+            updated_at: time,
+            student_id: studentId // Update the string ID to match current context
+        },
+        create: {
+            student_id: studentId,
+            major: major,
+            updated_at: time,
+            user_id: user.id
         }
     });
 }

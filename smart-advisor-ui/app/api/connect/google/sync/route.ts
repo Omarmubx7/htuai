@@ -32,14 +32,9 @@ function getExamReminders(token: any): { method: string; minutes: number }[] {
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function updateTokenMetadata(studentId: string, metadata: any) {
-    const user = await prisma.user.findFirst({
-        where: { OR: [{ student_id: studentId }, { email: studentId }, { name: studentId }] }
-    });
-    if (!user) return;
-
+async function updateTokenMetadata(userId: number, metadata: any) {
     await prisma.integrationToken.update({
-        where: { user_id_provider: { user_id: user.id, provider: "google_calendar" } },
+        where: { user_id_provider: { user_id: userId, provider: "google_calendar" } },
         data: { metadata }
     });
 }
@@ -56,7 +51,7 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
             const listData = await listRes.json();
             const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
             if (existing) {
-                await updateTokenMetadata(studentId, { ...token.metadata, htu_calendar_id: existing.id });
+                await updateTokenMetadata(token.user_id || Number(studentId), { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
             }
         }
@@ -77,7 +72,7 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
                 body: JSON.stringify({ id: newId, selected: true, colorId: "14" })
             });
 
-            await updateTokenMetadata(studentId, { ...token.metadata, htu_calendar_id: newId });
+            await updateTokenMetadata(token.user_id || Number(studentId), { ...token.metadata, htu_calendar_id: newId });
             return newId;
         }
     } catch (e) {
@@ -336,12 +331,9 @@ export async function POST() {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId =
-        session.user.db_id?.toString()
-        || (session.user as Record<string, unknown>).student_id as string
-        || session.user.email
-        || session.user.name;
-    if (!studentId) return NextResponse.json({ error: "No student ID" }, { status: 400 });
+    const userId = session.user.db_id;
+    if (!userId) return NextResponse.json({ error: "Unauthorized: No database user found" }, { status: 401 });
+    const studentId = userId.toString();
 
     const token = await getIntegrationToken(studentId, "google_calendar");
     if (!token) {
@@ -366,8 +358,8 @@ export async function POST() {
     const htuCalendarId = await getOrCreateHtuCalendar(token, studentId);
 
     try {
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: session.user.email || undefined }, { student_id: studentId || undefined }] }
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
         });
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });

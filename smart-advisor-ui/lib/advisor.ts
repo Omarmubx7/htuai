@@ -71,8 +71,15 @@ function evaluateLogic(
 
     // 3. Leaf node: extract code
     const code = extractCode(s, rules);
-    if (code && (allCodes.size === 0 || allCodes.has(code))) {
-        if (completed.has(code)) return { isLocked: false, missing: [] };
+    if (code) {
+        // If it's a real course code (in our curriculum), check if completed
+        if (allCodes.size === 0 || allCodes.has(code)) {
+            if (completed.has(code)) return { isLocked: false, missing: [] };
+            return { isLocked: true, missing: [code] };
+        }
+        // If it's NOT in the curriculum (e.g. "Department Approval"), we can't satisfy it here
+        // But checkPrerequisites handles "APPROVAL" strings separately.
+        // For other unknown strings, we should probably assume they are NOT satisfied.
         return { isLocked: true, missing: [code] };
     }
 
@@ -110,7 +117,15 @@ export function checkPrerequisites(
 
     const codeRegex = new RegExp(rules.code_regex);
     if (!codeRegex.exec(logicOnlyStr)) {
+        // No codes found in logic string, but logicOnlyStr might still have text like "DEPT APPROVAL"
+        // which was already handled by checkDepartmentApproval.
+        // If we reach here and there are no codes, it might be a malformed string or a non-course rule.
         return { isLocked: false, missing: [] };
+    }
+
+    // CRITICAL: Ensure allCourseCodes is not empty if we want strict checking
+    if (allCourseCodes.size === 0) {
+        console.warn("[Advisor] allCourseCodes is empty, prerequisite check may be unreliable.");
     }
 
     const result = evaluateLogic(logicOnlyStr, completedCourses, rules, allCourseCodes);

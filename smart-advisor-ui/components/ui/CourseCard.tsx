@@ -23,7 +23,7 @@ function parsePrereqCodes(prereq: string): string[] {
     const matches = prereq.matchAll(/\b\d{8,10}\b/g);
     return [...new Set([...matches].map((m) => {
         let code = m[0];
-        if (code.startsWith("00") && code.length === 10) code = code.slice(2);
+        if (code.length === 10 && code.startsWith("00")) code = code.slice(2);
         return code;
     }))];
 }

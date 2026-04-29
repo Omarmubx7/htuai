@@ -9,10 +9,17 @@ export function requireEnv(name: string): string {
     return value;
 }
 
+
 export function getBaseUrl(req?: Request | NextRequest) {
+    // 1. If on the client, always use window.location.origin
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+
+    // 2. If we have a request, extract origin from it (handles localhost ports correctly)
     if (req) {
         try {
-            // First check for proxy headers which take precedence in production
+            // Check for proxy headers first (Vercel/Nginx)
             const forwardedHost = req.headers.get("x-forwarded-host");
             const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
 
@@ -20,20 +27,16 @@ export function getBaseUrl(req?: Request | NextRequest) {
                 return `${forwardedProto}://${forwardedHost}`;
             }
 
-            // Fallback to regular url parsing
+            // Fallback to the actual URL origin of the request
             const url = new URL(req.url);
             return url.origin;
         } catch (e) {
-            // Fallback if URL is invalid
+            // Fallback
         }
     }
 
-    if (typeof window !== 'undefined') {
-        return window.location.origin;
-    }
-
-    // Handle server-side
-    if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes('localhost')) {
+    // 3. Fallback to env variables (for background tasks/server-only logic)
+    if (process.env.NEXTAUTH_URL) {
         return process.env.NEXTAUTH_URL;
     }
 
@@ -41,5 +44,7 @@ export function getBaseUrl(req?: Request | NextRequest) {
         return `https://${process.env.VERCEL_URL}`;
     }
 
-    return process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    // Ultimate fallback (unlikely to be hit if req is passed)
+    return 'http://localhost:3000';
 }
+

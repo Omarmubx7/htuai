@@ -7,20 +7,16 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.name;
+    const userId = session.user.db_id;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized: No database user found' }, { status: 401 });
 
     try {
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email: email || undefined },
-                    { student_id: studentId || undefined }
-                ]
-            }
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
         });
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
 
         const semesters = await prisma.semester.findMany({
             where: { user_id: user.id },
@@ -44,20 +40,16 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.name;
+    const userId = session.user.db_id;
+    if (!userId) return NextResponse.json({ error: 'Unauthorized: No database user found' }, { status: 401 });
 
     try {
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email: email || undefined },
-                    { student_id: studentId || undefined }
-                ]
-            }
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
         });
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
 
         const body = await req.json();
         const { type, year, name, start_date, end_date } = body;

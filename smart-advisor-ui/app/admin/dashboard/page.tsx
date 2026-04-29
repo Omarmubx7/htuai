@@ -133,7 +133,7 @@ const AUTO_REFRESH_INTERVAL = 30_000;
    ═══════════════════════════════════════════════════════════════════ */
 
 function formatMajor(key: string) {
-    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return key.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function timeAgo(dateStr: string) {
@@ -390,8 +390,6 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
     const animStudents = useCountUp(stats.totalStudents);
     const animVisitors = useCountUp(stats.totalVisitors);
     const animCourses = useCountUp(stats.totalCompletedCourses);
-    const animAvg = useCountUp(stats.avgCoursesCompleted);
-    const animCH = useCountUp(stats.avgCreditHours);
 
     return (
         <>
@@ -595,21 +593,30 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
    ═══════════════════════════════════════════════════════════════════ */
 
 function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
-    if (!aiUsage) {
-        return <Empty text="No AI usage data available" />;
-    }
+    const usage = aiUsage ?? {
+        totalCalls: 0,
+        callsByEndpoint: [],
+        callsByModel: [],
+        callsByStatus: [],
+        totalTokens: { input: 0, output: 0, total: 0 },
+        avgResponseTimeMs: 0,
+        recentLogs: [],
+    };
 
-    const totalTokens = aiUsage.totalTokens.total;
-    const inputTokens = aiUsage.totalTokens.input;
-    const outputTokens = aiUsage.totalTokens.output;
-    const successRate = aiUsage.callsByStatus.find(s => s.status === 'success')?.count || 0;
-    const errorCount = aiUsage.callsByStatus.find(s => s.status === 'error')?.count || 0;
-    const totalCalls = aiUsage.totalCalls;
+    const totalTokens = usage.totalTokens.total;
+    const inputTokens = usage.totalTokens.input;
+    const outputTokens = usage.totalTokens.output;
+    const successRate = usage.callsByStatus.find(s => s.status === 'success')?.count || 0;
+    const totalCalls = usage.totalCalls;
     const successPercentage = totalCalls > 0 ? Math.round((successRate / totalCalls) * 100) : 0;
 
     const animTotalCalls = useCountUp(totalCalls);
     const animTokens = useCountUp(totalTokens);
-    const animAvgResponseTime = useCountUp(Math.round(aiUsage.avgResponseTimeMs));
+    const animAvgResponseTime = useCountUp(Math.round(usage.avgResponseTimeMs));
+
+    if (!aiUsage) {
+        return <Empty text="No AI usage data available" />;
+    }
 
     return (
         <>
@@ -630,7 +637,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                         <CardHeader icon={<BarChart3 className="w-4 h-4" />} title="Calls by Endpoint" iconColor="#fbbf24" />
                     </div>
                     <div className="space-y-2">
-                        {aiUsage.callsByEndpoint.map((item, i) => (
+                        {usage.callsByEndpoint.map((item, i) => (
                             <motion.div key={item.endpoint}
                                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 + i * 0.05 }}
@@ -639,7 +646,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                                 <span className="text-sm font-bold text-white/70 tabular-nums ml-2">{item.count}</span>
                             </motion.div>
                         ))}
-                        {aiUsage.callsByEndpoint.length === 0 && <Empty text="No endpoint data" />}
+                        {usage.callsByEndpoint.length === 0 && <Empty text="No endpoint data" />}
                     </div>
                 </GlassCard>
 
@@ -647,7 +654,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                 <GlassCard delay={0.1}>
                     <CardHeader icon={<Activity className="w-4 h-4" />} title="Status Distribution" iconColor="#34d399" />
                     <div className="mt-6 space-y-3">
-                        {aiUsage.callsByStatus.map((item, i) => {
+                        {usage.callsByStatus.map((item, i) => {
                             const pct = totalCalls > 0 ? Math.round((item.count / totalCalls) * 100) : 0;
                             const statusColor = item.status === 'success' ? '#10b981' : item.status === 'error' ? '#ef4444' : '#f59e0b';
                             return (
@@ -675,7 +682,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                 <GlassCard delay={0.15}>
                     <CardHeader icon={<Zap className="w-4 h-4" />} title="AI Models Used" iconColor="#8b5cf6" />
                     <div className="mt-6 space-y-2">
-                        {aiUsage.callsByModel.map((item, i) => {
+                        {usage.callsByModel.map((item, i) => {
                             const pct = totalCalls > 0 ? Math.round((item.count / totalCalls) * 100) : 0;
                             return (
                                 <motion.div key={item.model}
@@ -719,10 +726,10 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                 <div className="sticky top-0 z-10 pb-4 -mt-1"
                     style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
                     <CardHeader icon={<Terminal className="w-4 h-4" />} title="Recent AI Calls" iconColor="#a78bfa"
-                        right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{aiUsage.recentLogs.length} logs</span>} />
+                        right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{usage.recentLogs.length} logs</span>} />
                 </div>
                 <div className="space-y-1">
-                    {aiUsage.recentLogs.map((log, i) => (
+                    {usage.recentLogs.map((log, i) => (
                         <motion.div key={log.id}
                             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 + i * 0.01 }}
@@ -743,7 +750,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                             </div>
                         </motion.div>
                     ))}
-                    {aiUsage.recentLogs.length === 0 && <Empty text="No AI usage logs" />}
+                    {usage.recentLogs.length === 0 && <Empty text="No AI usage logs" />}
                 </div>
             </GlassCard>
         </>
@@ -765,8 +772,8 @@ function LogsTab({ logs }: { logs: Record<string, unknown>[] }) {
                     right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{logs.length} entries</span>} />
             </div>
             <div className="space-y-1 mt-2">
-                {logs.map((rawLog: Record<string, unknown>, i: number) => {
-                    const log = rawLog as { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string; details?: any };
+                {logs.map((rawLog: Record<string, unknown>, _i: number) => {
+                    const log = rawLog as { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string; details?: Record<string, unknown> };
                     return (
                         <div key={log.id} className="group hover:bg-white/[0.015] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/[0.04]">
                             <div className="flex items-center justify-between mb-1">

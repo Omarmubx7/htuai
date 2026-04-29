@@ -126,8 +126,5 @@ export const authOptions: NextAuthOptions = {
             return token;
         }
     },
-    pages: {
-        signIn: "/login",
-    },
     secret: requireEnv("AUTH_SECRET"),
 };

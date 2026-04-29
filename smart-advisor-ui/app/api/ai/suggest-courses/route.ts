@@ -25,12 +25,8 @@ export async function POST(request: NextRequest) {
 
     try {
         // Get user ID for logging
-        if (session.user?.email) {
-            const user = await prisma.user.findUnique({
-                where: { email: session.user.email },
-                select: { id: true },
-            });
-            userId = user?.id ?? null;
+        if (session.user?.db_id) {
+            userId = session.user.db_id;
         }
 
         const body = await request.json();
