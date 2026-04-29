@@ -56,18 +56,34 @@ export function calculateSemesterGpa(courses: { grade: string; credits: number }
 }
 
 /**
- * Calculate CGPA from a list of courses with grades and credits.
+ * Calculate CGPA from current course map and optional historical baseline.
+ * This is the central source of truth for the dashboard.
  */
-export function calculateCumulativeGpaFromHistory(allCourses: { grade: string; credits: number }[]): number {
+export function calculateCGPA(
+    completedCourses: Map<string, string> | Set<string>,
+    allCourses: { code: string; ch: number }[],
+    history?: { gpa: number | null; credits: number | null }
+): number {
     let totalQualityPoints = 0;
     let totalCredits = 0;
 
-    const scored = allCourses.filter(c => SCORED_GRADES.includes(c.grade as HTUGrade));
+    // 1. Calculate from current tracking
+    const courseEntries = completedCourses instanceof Map 
+        ? Array.from(completedCourses.entries()) 
+        : Array.from(completedCourses).map(code => [code, "M"] as [string, string]);
 
-    for (const course of scored) {
-        const points = gradeToPoints(course.grade);
-        totalQualityPoints += points * course.credits;
-        totalCredits += course.credits;
+    for (const [code, grade] of courseEntries) {
+        const course = allCourses.find(c => c.code === code);
+        if (course && course.ch > 0 && SCORED_GRADES.includes(grade as HTUGrade)) {
+            totalQualityPoints += gradeToPoints(grade) * course.ch;
+            totalCredits += course.ch;
+        }
+    }
+
+    // 2. Add historical baseline
+    if (history?.gpa !== null && history?.gpa !== undefined && history?.credits) {
+        totalQualityPoints += (history.gpa * history.credits);
+        totalCredits += history.credits;
     }
 
     if (totalCredits === 0) return 0;

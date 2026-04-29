@@ -21,7 +21,8 @@ function checkDepartmentApproval(prereqStr: string): PrereqResult | null {
 }
 
 function checkCreditHours(prereqStr: string, completedCredits: number): PrereqResult | null {
-    const hoursMatch = /(?:>=\s*)(\d+)|(\d+)\s*(?:HRS|HOURS?|CH|CREDITS?)/i.exec(prereqStr);
+    // Matches patterns like "90 credit hours", "30 CH", "60 credits completed", ">= 45"
+    const hoursMatch = /(?:>=\s*(\d+))|(\d+)\s*(?:HRS|HOURS?|CH|CREDITS?)/i.exec(prereqStr);
     if (hoursMatch) {
         const required = Number.parseInt(hoursMatch[1] || hoursMatch[2], 10);
         if (completedCredits < required) {
@@ -31,6 +32,16 @@ function checkCreditHours(prereqStr: string, completedCredits: number): PrereqRe
                 lockReason: `Requires ${required} CH completed (you have ${completedCredits} CH)`,
             };
         }
+    }
+    return null;
+}
+
+function checkPlacement(prereqStr: string, completed: Map<string, string> | Set<string>): PrereqResult | null {
+    if (prereqStr.includes('PLACEMENT') || prereqStr.includes('PASSED TEST')) {
+        if (completed.has('HTU_PLACEMENT') || completed.has('PLACEMENT')) {
+            return { isLocked: false, missing: [] };
+        }
+        return { isLocked: true, missing: ['HTU_PLACEMENT'], lockReason: 'Requires HTU Placement Test' };
     }
     return null;
 }
@@ -109,6 +120,9 @@ export function checkPrerequisites(
 
     const hoursResult = checkCreditHours(prereqStr, completedCredits);
     if (hoursResult) return hoursResult;
+
+    const placementResult = checkPlacement(prereqStr, completedCourses);
+    if (placementResult && placementResult.isLocked) return placementResult;
 
     // Clean credit hour rules from string to focus on course codes
     const hourPattern = /(?:>=\s*\d+)|(?:\d+\s*(?:HRS|HOURS?|CH|CREDITS?))/gi;

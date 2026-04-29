@@ -64,32 +64,9 @@ function StudentDashboard({
     }, [progressPct]);
 
     // ── True CGPA Calculation ─────────────────────────────────────────────
-    const trackedStats = useMemo(() => {
-        let qualityPoints = 0;
-        let credits = 0;
-        for (const [code, entryValue] of completedCourses.entries()) {
-            const grade = completedCourses instanceof Map ? entryValue : "M";
-            const course = allCourses.find(c => c.code === code);
-            if (course && course.ch > 0 && GRADE_MAP[grade]?.points !== undefined) {
-                qualityPoints += GRADE_MAP[grade].points * course.ch;
-                credits += course.ch;
-            }
-        }
-        return { qualityPoints, credits };
-    }, [completedCourses, allCourses]);
-
     const trueCGPA = useMemo(() => {
-        let totalQualityPoints = trackedStats.qualityPoints;
-        let totalCredits = trackedStats.credits;
-
-        if (previousGpaHistory?.gpa !== null && previousGpaHistory?.credits !== null && previousGpaHistory?.credits !== undefined && previousGpaHistory?.gpa !== undefined) {
-            totalQualityPoints += (previousGpaHistory.gpa * previousGpaHistory.credits);
-            totalCredits += previousGpaHistory.credits;
-        }
-
-        if (totalCredits === 0) return 0;
-        return totalQualityPoints / totalCredits;
-    }, [trackedStats, previousGpaHistory]);
+        return calculateCGPA(completedCourses, allCourses, previousGpaHistory);
+    }, [completedCourses, allCourses, previousGpaHistory]);
 
     const classification = getClassification(trueCGPA);
 

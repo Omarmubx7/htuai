@@ -8,6 +8,7 @@ import { CalendarDays, Plus, ArrowRight, BookOpen, Clock, Target, Settings2 } fr
 import Link from "next/link";
 import { fetchJSON } from "@/lib/fetch-retry";
 import SemesterSetupWizard from "./SemesterSetupWizard";
+import { calculateSemesterGpa } from "@/lib/grading";
 
 interface SemesterCourse {
     grade_point: number | null;
@@ -103,8 +104,8 @@ export default function PlannerSemesterList() {
                     <AnimatePresence>
                         {semesters.map((sem, i) => {
                             const courseCount = sem.courses?.length || 0;
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
+                            const todayAmman = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Amman" }));
+                            todayAmman.setHours(0, 0, 0, 0);
 
                             // A semester is past/completed if its end date has passed (is before or equal to today)
                             // Normalize the end date to midnight for proper comparison
@@ -112,21 +113,16 @@ export default function PlannerSemesterList() {
                             if (sem.end_date) {
                                 const endDate = new Date(sem.end_date);
                                 endDate.setHours(0, 0, 0, 0);
-                                isPast = endDate < today;
+                                isPast = endDate < todayAmman;
                             }
 
                             // Calculate dynamic GPA if not officially set
                             let gpa = sem.semester_gpa ?? 0;
                             if (sem.semester_gpa === null && sem.courses && sem.courses.length > 0) {
-                                let totalPoints = 0;
-                                let totalCredits = 0;
-                                sem.courses.forEach((c: SemesterCourse) => {
-                                    if (typeof c.grade_point === 'number' && c.grade_letter) {
-                                        totalPoints += (c.grade_point * c.credits);
-                                        totalCredits += c.credits;
-                                    }
-                                });
-                                if (totalCredits > 0) gpa = totalPoints / totalCredits;
+                                gpa = calculateSemesterGpa(sem.courses.map(c => ({
+                                    grade: c.grade_letter || "",
+                                    credits: c.credits
+                                })));
                             }
 
                             return (
