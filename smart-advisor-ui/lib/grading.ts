@@ -104,3 +104,53 @@ export function getClassification(gpa: number) {
     }
     return CUMULATIVE_CLASSIFICATIONS.at(-1)!;
 }
+
+/**
+ * Builds a map of course codes to their credit hours (CH) from the curriculum JSON.
+ */
+export function buildCourseCreditMap(curriculum: unknown): Map<string, number> {
+    const map = new Map<string, number>();
+    const addCourseList = (courses: unknown) => {
+        if (!Array.isArray(courses)) return;
+        for (const course of courses as Array<Record<string, unknown>>) {
+            const code = typeof course.code === 'string' ? course.code : null;
+            if (!code) continue;
+            let credits = 3;
+            if (typeof course.ch === 'number') credits = course.ch;
+            else if (typeof course.credits === 'number') credits = course.credits;
+            map.set(code, credits);
+        }
+    };
+
+    if (!curriculum || typeof curriculum !== 'object') return map;
+
+    const root = curriculum as Record<string, unknown>;
+    const shared = root.shared as Record<string, unknown> | undefined;
+    const majors = root.majors as Record<string, unknown> | undefined;
+
+    if (shared && typeof shared === 'object') {
+        for (const list of Object.values(shared)) addCourseList(list);
+    }
+
+    if (majors && typeof majors === 'object') {
+        for (const majorValue of Object.values(majors)) {
+            if (!majorValue || typeof majorValue !== 'object') continue;
+            for (const list of Object.values(majorValue as Record<string, unknown>)) {
+                addCourseList(list);
+            }
+        }
+    }
+
+    return map;
+}
+
+/**
+ * Extracts a course code from a progress entry (which might be a string or an object).
+ */
+export function getCompletedEntryCode(entry: unknown): string | null {
+    if (typeof entry === 'string') return entry;
+    if (!entry || typeof entry !== 'object') return null;
+    const e = entry as Record<string, unknown>;
+    if (typeof e.code === 'string') return e.code;
+    return null;
+}

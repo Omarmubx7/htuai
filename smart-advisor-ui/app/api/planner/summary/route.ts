@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
-import { calculateSemesterGpa, getClassification, buildCourseCreditMap } from "@/lib/grading";
+import { calculateSemesterGpa, getClassification, buildCourseCreditMap, getCompletedEntryCode } from "@/lib/grading";
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -161,7 +161,7 @@ export async function GET(req: NextRequest) {
                 orderBy: { year: 'desc' }
             }),
             prisma.integrationToken.findFirst({
-                where: { user_id: user.id, provider: "google" }
+                where: { user_id: user.id, provider: "google_calendar" }
             }),
             prisma.studySession.findMany({
                 where: { user_id: user.id },
@@ -273,7 +273,9 @@ export async function GET(req: NextRequest) {
             } catch { /* ok */ }
 
             const creditMap = buildCourseCreditMap(curriculum);
-            completedCreditsFromTracker = completedList.reduce((total, code) => {
+            completedCreditsFromTracker = completedList.reduce((total, entry) => {
+                const code = getCompletedEntryCode(entry);
+                if (!code) return total;
                 return total + (creditMap.get(code) ?? 3);
             }, 0);
         }
@@ -309,7 +311,57 @@ export async function GET(req: NextRequest) {
 
         const total_study_minutes = studySessions.reduce((acc, s) => acc + s.duration_minutes, 0);
 
-        // 9. Response
+        // 9. Projections
+        let TOTAL_DEGREE_CH = 135;
+        if (rules?.degree_types) {
+            for (const type in rules.degree_types) {
+                if (rules.degree_types[type].major_keys.includes(profile?.major || "")) {
+                    TOTAL_DEGREE_CH = rules.degree_types[type].total_credits;
+                    break;
+                }
+            }
+        }
+
+        const currentCompletedCH = totalCredits;
+        const remainingCH = Math.max(0, TOTAL_DEGREE_CH - currentCompletedCH);
+        const currentTotalPoints = (cgpa * currentCompletedCH);
+        
+        const projectedDistinction = remainingCH > 0 
+            ? (currentTotalPoints + (4 * remainingCH)) / TOTAL_DEGREE_CH 
+            : cgpa;
+            
+        const projectedMerit = remainingCH > 0 
+            ? (currentTotalPoints + (3.2 * remainingCH)) / TOTAL_DEGREE_CH 
+            : cgpa;
+
+        // 10. Dynamic Study Tips
+        const dynamicTips = [];
+        if (neglectedCourse) {
+            dynamicTips.push({
+                title: "Spaced Repetition",
+                text: `You haven't studied ${neglectedCourse.name} much lately. Review it today!`,
+                icon: "clock",
+                color: "orange"
+            });
+        }
+        if (upcomingEvents.length > 0) {
+            dynamicTips.push({
+                title: "Active Recall",
+                text: `You have ${upcomingEvents.length} upcoming deadlines. Test yourself!`,
+                icon: "target",
+                color: "emerald"
+            });
+        }
+        if (dynamicTips.length < 2) {
+            dynamicTips.push({
+                title: "Pomodoro Technique",
+                text: "Try 25-minute study bursts with 5-minute breaks.",
+                icon: "flame",
+                color: "rose"
+            });
+        }
+
+        // 11. Response
         return NextResponse.json({
             cgpa,
             classification,
@@ -321,11 +373,11 @@ export async function GET(req: NextRequest) {
             studyTrends,
             activeQuests: quests,
             projections: {
-                distinction: (cgpa >= 4.0 ? cgpa : 4.0).toFixed(2),
-                merit: (cgpa >= 3.2 ? cgpa : 3.2).toFixed(2),
-                remainingCH: Math.max(0, 120 - (totalCredits || 0))
+                distinction: projectedDistinction.toFixed(2),
+                merit: projectedMerit.toFixed(2),
+                remainingCH
             },
-            studyTips: ["Stay focused on your weakest subjects.", "Regular study intervals are better than cramming."],
+            studyTips: dynamicTips,
             studyLogStats: {
                 total_study_minutes,
                 study_sessions: studySessions.slice(0, 10),
@@ -337,6 +389,7 @@ export async function GET(req: NextRequest) {
                 total_study_minutes: neglectedCourse.total
             } : null,
             google_calendar_connected: !!googleToken,
+            google_preferences: googleToken?.metadata || {},
             user: {
                 name: user.name,
                 email: user.email,
