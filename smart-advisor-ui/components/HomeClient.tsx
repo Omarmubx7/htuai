@@ -153,20 +153,33 @@ export default function HomeClient() {
         setStudentId(id);
         try {
             const res = await fetchWithRetry(`/api/profile/${encodeURIComponent(id)}`, { retries: 2 });
-            if (!res.ok) { 
+            if (res.ok) {
+                const profile = await res.json();
+                console.log("[HomeClient] Profile loaded successfully:", { 
+                    sid: id, 
+                    major: profile.savedMajor,
+                    completed: profile.completedCourses?.length 
+                });
+                setCompletedCourses(new Map(profile.completedCourses));
+                setPreviousGpaHistory({
+                    gpa: profile.historyGpa,
+                    credits: profile.historyCredits
+                });
+
+                if (profile.savedMajor) {
+                    const loaded = await loadCourses(profile.savedMajor);
+                    console.log("[HomeClient] Curriculum load result:", loaded);
+                    setAppState(loaded ? "course-tracker" : "major-select");
+                } else { 
+                    console.log("[HomeClient] No saved major found, showing selector");
+                    setAppState("major-select"); 
+                }
+            } else { 
+                console.warn("[HomeClient] Profile fetch failed with status:", res.status);
                 setAppState("major-select"); 
-                return; 
             }
-            const { major: savedMajor, previous_gpa, previous_credits } = await res.json();
-            if (savedMajor) {
-                setMajor(savedMajor as MajorKey);
-                setPreviousGpaHistory({ gpa: previous_gpa ?? null, credits: previous_credits ?? null });
-                const loaded = await loadCourses(savedMajor as MajorKey);
-                await loadProgress(id, savedMajor as MajorKey);
-                setAppState(loaded ? "course-tracker" : "major-select");
-            } else { setAppState("major-select"); }
         } catch (error) {
-            console.error("Failed to load profile", error);
+            console.error("[HomeClient] Failed to load profile", error);
             setAppState("major-select");
         }
     }, [loadCourses, loadProgress]);
@@ -204,18 +217,30 @@ export default function HomeClient() {
         const sid = studentId || session?.user?.student_id || session?.user?.name;
         if (sid) {
             try {
-                await fetchWithRetry(`/api/profile/${encodeURIComponent(sid)}/save`, {
+                setAppState("changing-major");
+                console.log("[HomeClient] Saving major:", key, "for", sid);
+                const res = await fetchWithRetry(`/api/profile/${encodeURIComponent(sid)}/save`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ major: key }),
                     retries: 2
                 });
+
+                if (!res.ok) {
+                    console.error("[HomeClient] Failed to save major:", res.status);
+                }
+
+                const loaded = await loadCourses(key);
+                console.log("[HomeClient] Curriculum load result after save:", loaded);
+                setAppState(loaded ? "course-tracker" : "major-select");
             } catch (error) {
-                console.error("Failed to save major choice", error);
+                console.error("[HomeClient] handleMajorSelect error:", error);
+                setAppState("major-select");
             }
+        } else {
+            const loaded = await loadCourses(key);
+            setAppState(loaded ? "course-tracker" : "major-select");
         }
-        const loaded = await loadCourses(key);
-        setAppState(loaded ? "course-tracker" : "major-select");
     };
 
     // ─── 3. Life Cycle Effects ──────────────────────────────────────────────

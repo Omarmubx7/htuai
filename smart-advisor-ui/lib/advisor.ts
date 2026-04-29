@@ -37,7 +37,10 @@ function checkCreditHours(prereqStr: string, completedCredits: number): PrereqRe
 }
 
 function checkPlacement(prereqStr: string, completed: Map<string, string> | Set<string>): PrereqResult | null {
-    if (prereqStr.includes('PLACEMENT') || prereqStr.includes('PASSED TEST')) {
+    // If it contains PLACEMENT but NOT as a standalone logic code handled by evaluateLogic
+    // (Actually, better to let evaluateLogic handle it if it matches code_regex)
+    // But we keep this for backwards compatibility with complex strings.
+    if ((prereqStr.includes('PLACEMENT') || prereqStr.includes('PASSED TEST')) && !prereqStr.includes(' OR ') && !prereqStr.includes(' AND ')) {
         if (completed.has('HTU_PLACEMENT') || completed.has('PLACEMENT')) {
             return { isLocked: false, missing: [] };
         }
@@ -57,6 +60,14 @@ function evaluateLogic(
 ): { isLocked: boolean; missing: string[] } {
     const s = str.trim();
     if (!s) return { isLocked: false, missing: [] };
+
+    // 0. Handle NOT
+    if (s.startsWith('NOT ')) {
+        const sub = s.substring(4).trim();
+        const res = evaluateLogic(sub, completed, rules, allCodes);
+        // If the sub-expression is UNLOCKED (satisfied), NOT makes it LOCKED.
+        return { isLocked: !res.isLocked, missing: [] };
+    }
 
     // 1. Handle "OR" first (lowest precedence)
     if (s.includes(' OR ')) {
@@ -83,14 +94,11 @@ function evaluateLogic(
     // 3. Leaf node: extract code
     const code = extractCode(s, rules);
     if (code) {
-        // If it's a real course code (in our curriculum), check if completed
-        if (allCodes.size === 0 || allCodes.has(code)) {
+        // If it's a real course code (in our curriculum) OR a special code like HTU_PLACEMENT
+        if (allCodes.size === 0 || allCodes.has(code) || code === 'HTU_PLACEMENT') {
             if (completed.has(code)) return { isLocked: false, missing: [] };
             return { isLocked: true, missing: [code] };
         }
-        // If it's NOT in the curriculum (e.g. "Department Approval"), we can't satisfy it here
-        // But checkPrerequisites handles "APPROVAL" strings separately.
-        // For other unknown strings, we should probably assume they are NOT satisfied.
         return { isLocked: true, missing: [code] };
     }
 

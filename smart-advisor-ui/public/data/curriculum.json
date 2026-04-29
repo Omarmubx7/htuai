@@ -821,9 +821,6 @@
                     "ch": 3,
                     "level": 1,
                     "prereq": "30303110 OR HTU_PLACEMENT"
-                    "ch": 3,
-                    "level": 1,
-                    "prereq": "30303110"
                 },
                 {
                     "code": "40201100",
@@ -2803,21 +2800,24 @@
                 "name": "Remedial Math",
                 "ch": 3,
                 "framework": "HTU",
-                "level": 0
+                "level": 0,
+                "prereq": "NOT HTU_PLACEMENT"
             },
             {
                 "code": "30301110",
                 "name": "Remedial Arabic",
                 "ch": 3,
                 "framework": "HTU",
-                "level": 0
+                "level": 0,
+                "prereq": "NOT HTU_PLACEMENT"
             },
             {
                 "code": "30301120",
                 "name": "Remedial English",
                 "ch": 3,
                 "framework": "HTU",
-                "level": 0
+                "level": 0,
+                "prereq": "NOT HTU_PLACEMENT"
             },
             {
                 "code": "30301121",

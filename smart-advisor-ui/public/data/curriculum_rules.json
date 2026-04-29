@@ -43,7 +43,7 @@
     },
     "logic_rules": {
         "prerequisites": {
-            "code_regex": "\\b\\d{6,10}\\b",
+            "code_regex": "\\b(?:\\d{6,10}|HTU_PLACEMENT)\\b",
             "separators": {
                 "and": [
                     "AND",
