@@ -76,6 +76,7 @@ model User {
   study_sessions       StudySession[]
   user_badges          UserBadge[]
   visitor_logs         VisitorLog[]
+  ai_usage_logs        AIUsageLog[]
 
   @@map("users")
 }
@@ -326,4 +327,27 @@ model Quest {
 
   @@index([user_id])
   @@map("quests")
+}
+
+model AIUsageLog {
+  id              Int       @id @default(autoincrement())
+  user_id         Int?
+  endpoint        String    // e.g., "generate-schedule", "suggest-courses"
+  feature_name    String?   // Human-readable feature name
+  input_tokens    Int?      @default(0)
+  output_tokens   Int?      @default(0)
+  total_tokens    Int?      @default(0)
+  model_used      String?   // e.g., "groq", "claude", "gpt4"
+  status          String?   @default("success") // "success", "error", "timeout"
+  error_message   String?
+  response_time_ms Int?     // Response time in milliseconds
+  metadata        Json?     @default("{}")
+  created_at      DateTime? @default(now())
+  user            User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@index([endpoint])
+  @@index([created_at(sort: Desc)])
+  @@index([model_used])
+  @@map("ai_usage_logs")
 }

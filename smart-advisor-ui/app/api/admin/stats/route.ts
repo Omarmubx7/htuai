@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { getAllStudents, initDB } from '@/lib/database';
+import { getAIUsageStats } from '@/lib/ai-logger';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
@@ -313,6 +314,12 @@ export async function GET(request: NextRequest) {
             });
         } catch { /* ok */ }
 
+        // ── 13. AI Usage Stats ──────────────────────────────────────
+        let aiUsage = null;
+        try {
+            aiUsage = await getAIUsageStats(7);
+        } catch { /* ok */ }
+
         // Sort unified recent activity
         recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         recentActivity = recentActivity.slice(0, 50);
@@ -338,6 +345,7 @@ export async function GET(request: NextRequest) {
             students: studentRealCH,
             studentData: studentRealCH, // Keep for legacy if any
             adminLogs,
+            aiUsage,
         });
 
     } catch (e) {

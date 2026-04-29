@@ -9,7 +9,7 @@ import {
     Eye, Clock, Database,
     Search, ChevronUp, ChevronDown, RefreshCw,
     Flame, BarChart3, ArrowUp, ArrowDown, Filter,
-    GraduationCap, Terminal
+    GraduationCap, Terminal, Zap
 } from 'lucide-react';
 import Image from 'next/image';
 import ThemeToggle from "@/components/ThemeToggle";
@@ -35,6 +35,26 @@ interface ActivityEntry {
 }
 interface StudentRow { student_id: string; major: string; count: number; ch?: number; goal?: number }
 interface HeatmapCell { day: number; hour: number; count: number }
+interface AIUsageLog {
+    id: number;
+    endpoint: string;
+    featureName?: string;
+    studentId?: string;
+    email?: string;
+    status: string;
+    totalTokens?: number;
+    responseTimeMs?: number;
+    createdAt: string | Date;
+}
+interface AIUsageStats {
+    totalCalls: number;
+    callsByEndpoint: { endpoint: string; count: number }[];
+    callsByModel: { model: string; count: number }[];
+    callsByStatus: { status: string | null; count: number }[];
+    totalTokens: { input: number; output: number; total: number };
+    avgResponseTimeMs: number;
+    recentLogs: AIUsageLog[];
+}
 
 interface Stats {
     totalStudents: number;
@@ -56,11 +76,12 @@ interface Stats {
     avgWeightedProgress?: number;
     avgCgpa?: number;
     avgStudyHours?: number;
+    aiUsage?: AIUsageStats;
 }
 
 type SortKey = 'student_id' | 'major' | 'count' | 'ch';
 type SortDir = 'asc' | 'desc';
-type TabKey = 'overview' | 'students' | 'visitors' | 'logs';
+type TabKey = 'overview' | 'students' | 'visitors' | 'logs' | 'ai-usage';
 
 /* ═══════════════════════════════════════════════════════════════════
    Design Tokens
@@ -228,6 +249,7 @@ function DashboardInner() {
         { key: 'overview', label: 'Overview', icon: <BarChart3 className="w-3.5 h-3.5" /> },
         { key: 'students', label: 'Students', icon: <GraduationCap className="w-3.5 h-3.5" /> },
         { key: 'visitors', label: 'Visitors', icon: <Eye className="w-3.5 h-3.5" /> },
+        { key: 'ai-usage', label: 'AI Usage', icon: <Zap className="w-3.5 h-3.5" /> },
         { key: 'logs', label: 'Logs', icon: <Terminal className="w-3.5 h-3.5" /> },
     ];
 
@@ -335,6 +357,11 @@ function DashboardInner() {
                     {tab === 'visitors' && (
                         <motion.div key="visitors" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
                             <VisitorsTab stats={stats} totalDeviceCount={totalDeviceCount} />
+                        </motion.div>
+                    )}
+                    {tab === 'ai-usage' && (
+                        <motion.div key="ai-usage" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
+                            <AIUsageTab aiUsage={stats.aiUsage} />
                         </motion.div>
                     )}
                     {tab === 'logs' && (
@@ -560,6 +587,166 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                 {students.length === 0 && <Empty text="No matching students" />}
             </div>
         </GlassCard>
+    );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   AI Usage Tab
+   ═══════════════════════════════════════════════════════════════════ */
+
+function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
+    if (!aiUsage) {
+        return <Empty text="No AI usage data available" />;
+    }
+
+    const totalTokens = aiUsage.totalTokens.total;
+    const inputTokens = aiUsage.totalTokens.input;
+    const outputTokens = aiUsage.totalTokens.output;
+    const successRate = aiUsage.callsByStatus.find(s => s.status === 'success')?.count || 0;
+    const errorCount = aiUsage.callsByStatus.find(s => s.status === 'error')?.count || 0;
+    const totalCalls = aiUsage.totalCalls;
+    const successPercentage = totalCalls > 0 ? Math.round((successRate / totalCalls) * 100) : 0;
+
+    const animTotalCalls = useCountUp(totalCalls);
+    const animTokens = useCountUp(totalTokens);
+    const animAvgResponseTime = useCountUp(Math.round(aiUsage.avgResponseTimeMs));
+
+    return (
+        <>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <StatCard icon={<Zap className="w-4 h-4" />} label="Total Calls" value={animTotalCalls} gradient="from-yellow-500/20 to-amber-500/5" iconBg="#fbbf24" delay={0} />
+                <StatCard icon={<Database className="w-4 h-4" />} label="Total Tokens" value={animTokens} gradient="from-blue-500/20 to-cyan-500/5" iconBg="#2563eb" delay={0.04} />
+                <StatCard icon={<Clock className="w-4 h-4" />} label="Avg Response" value={`${animAvgResponseTime}ms`} gradient="from-purple-500/20 to-pink-500/5" iconBg="#a855f7" delay={0.08} />
+                <StatCard icon={<Activity className="w-4 h-4" />} label="Success Rate" value={`${successPercentage}%`} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#10b981" delay={0.12} />
+            </div>
+
+            {/* Main Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Calls by Endpoint */}
+                <GlassCard delay={0.05} scrollable>
+                    <div className="sticky top-0 z-10 pb-4 -mt-1"
+                        style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
+                        <CardHeader icon={<BarChart3 className="w-4 h-4" />} title="Calls by Endpoint" iconColor="#fbbf24" />
+                    </div>
+                    <div className="space-y-2">
+                        {aiUsage.callsByEndpoint.map((item, i) => (
+                            <motion.div key={item.endpoint}
+                                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 + i * 0.05 }}
+                                className="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.015] group cursor-default">
+                                <span className="text-xs text-white/50 font-medium truncate">{item.endpoint}</span>
+                                <span className="text-sm font-bold text-white/70 tabular-nums ml-2">{item.count}</span>
+                            </motion.div>
+                        ))}
+                        {aiUsage.callsByEndpoint.length === 0 && <Empty text="No endpoint data" />}
+                    </div>
+                </GlassCard>
+
+                {/* Calls by Status */}
+                <GlassCard delay={0.1}>
+                    <CardHeader icon={<Activity className="w-4 h-4" />} title="Status Distribution" iconColor="#34d399" />
+                    <div className="mt-6 space-y-3">
+                        {aiUsage.callsByStatus.map((item, i) => {
+                            const pct = totalCalls > 0 ? Math.round((item.count / totalCalls) * 100) : 0;
+                            const statusColor = item.status === 'success' ? '#10b981' : item.status === 'error' ? '#ef4444' : '#f59e0b';
+                            return (
+                                <div key={item.status || 'unknown'} className="group">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-xs text-white/50 font-medium capitalize">{item.status || 'unknown'}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold text-white/70 tabular-nums">{item.count}</span>
+                                            <span className="text-xs text-white/25 tabular-nums">({pct}%)</span>
+                                        </div>
+                                    </div>
+                                    <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
+                                            transition={{ duration: 0.6, delay: i * 0.1 }}
+                                            className="h-full rounded-full"
+                                            style={{ background: statusColor, boxShadow: `0 0 8px ${statusColor}40` }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </GlassCard>
+
+                {/* Model Distribution */}
+                <GlassCard delay={0.15}>
+                    <CardHeader icon={<Zap className="w-4 h-4" />} title="AI Models Used" iconColor="#8b5cf6" />
+                    <div className="mt-6 space-y-2">
+                        {aiUsage.callsByModel.map((item, i) => {
+                            const pct = totalCalls > 0 ? Math.round((item.count / totalCalls) * 100) : 0;
+                            return (
+                                <motion.div key={item.model}
+                                    initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 + i * 0.05 }}
+                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.015]">
+                                    <span className="text-xs text-white/50 font-medium">{item.model}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-bold text-white/70">{item.count}</span>
+                                        <span className="text-[10px] text-white/25 w-8 text-right">{pct}%</span>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </GlassCard>
+            </div>
+
+            {/* Token Statistics */}
+            <GlassCard delay={0.2}>
+                <CardHeader icon={<Database className="w-4 h-4" />} title="Token Usage" iconColor="#60a5fa" />
+                <div className="mt-6 grid grid-cols-3 gap-4">
+                    {[
+                        { label: 'Input Tokens', value: inputTokens, color: '#3b82f6' },
+                        { label: 'Output Tokens', value: outputTokens, color: '#8b5cf6' },
+                        { label: 'Total Tokens', value: totalTokens, color: '#06b6d4' },
+                    ].map((item, i) => (
+                        <motion.div key={item.label}
+                            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 + i * 0.1 }}
+                            className="p-4 rounded-xl" style={{ background: `${item.color}08`, border: `1px solid ${item.color}15` }}>
+                            <div className="text-[10px] text-white/25 uppercase font-bold tracking-wider mb-2">{item.label}</div>
+                            <div className="text-2xl font-bold text-white/80 tabular-nums">{item.value.toLocaleString()}</div>
+                        </motion.div>
+                    ))}
+                </div>
+            </GlassCard>
+
+            {/* Recent AI Usage Logs */}
+            <GlassCard delay={0.25} scrollable>
+                <div className="sticky top-0 z-10 pb-4 -mt-1"
+                    style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
+                    <CardHeader icon={<Terminal className="w-4 h-4" />} title="Recent AI Calls" iconColor="#a78bfa"
+                        right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{aiUsage.recentLogs.length} logs</span>} />
+                </div>
+                <div className="space-y-1">
+                    {aiUsage.recentLogs.map((log, i) => (
+                        <motion.div key={log.id}
+                            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 + i * 0.01 }}
+                            className="group p-3 rounded-xl hover:bg-white/[0.015] border border-transparent hover:border-white/[0.04] transition-all">
+                            <div className="flex items-start justify-between mb-1.5">
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded ${log.status === 'success' ? 'text-emerald-400 bg-emerald-500/10' : log.status === 'error' ? 'text-rose-400 bg-rose-500/10' : 'text-amber-400 bg-amber-500/10'}`}>
+                                        {log.status}
+                                    </span>
+                                    <span className="text-[10px] text-white/35 font-mono">{log.endpoint}</span>
+                                </div>
+                                <span className="text-[10px] text-white/15 tabular-nums">{timeAgo(log.createdAt.toString())}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-[10px] text-white/40">
+                                {log.totalTokens && <span>Tokens: {log.totalTokens}</span>}
+                                {log.responseTimeMs && <span>Time: {log.responseTimeMs}ms</span>}
+                                {log.studentId && <span>Student: {log.studentId}</span>}
+                            </div>
+                        </motion.div>
+                    ))}
+                    {aiUsage.recentLogs.length === 0 && <Empty text="No AI usage logs" />}
+                </div>
+            </GlassCard>
+        </>
     );
 }
 

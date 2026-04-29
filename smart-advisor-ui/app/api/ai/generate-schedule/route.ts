@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { getStudySchedule } from "@/lib/groq";
+import { logAIUsage } from "@/lib/ai-logger";
+import { prisma } from "@/lib/prisma";
 
 type ScheduleCourse = {
     code: string;
@@ -92,7 +94,21 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const startTime = Date.now();
+    let userId: number | null = null;
+    let status: 'success' | 'error' | 'timeout' = 'success';
+    let errorMessage: string | undefined;
+
     try {
+        // Get user ID for logging
+        if (session.user?.email) {
+            const user = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { id: true },
+            });
+            userId = user?.id ?? null;
+        }
+
         const body = await request.json() as ScheduleRequest;
         const major = typeof body.major === "string" ? body.major : "";
         const semesterType = typeof body.semesterType === "string" ? body.semesterType : "";
@@ -115,6 +131,16 @@ export async function POST(request: NextRequest) {
             : [];
 
         if (!major || courses.length === 0) {
+            status = 'error';
+            errorMessage = 'Invalid payload';
+            await logAIUsage({
+                userId,
+                endpoint: 'generate-schedule',
+                featureName: 'Study Schedule Generation',
+                status,
+                errorMessage,
+                responseTimeMs: Date.now() - startTime,
+            });
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
@@ -132,15 +158,46 @@ export async function POST(request: NextRequest) {
             parsed = parseScheduleResponse(raw);
         } catch (error) {
             console.error("generate-schedule provider error", error);
+            status = 'error';
+            errorMessage = error instanceof Error ? error.message : 'Unknown error';
             parsed = buildFallbackStudySchedule(courses, weeklyHours);
         }
 
+        // Log the usage
+        await logAIUsage({
+            userId,
+            endpoint: 'generate-schedule',
+            featureName: 'Study Schedule Generation',
+            modelUsed: 'groq',
+            status,
+            errorMessage,
+            responseTimeMs: Date.now() - startTime,
+            metadata: {
+                major,
+                coursesCount: courses.length,
+                weeklyHours,
+            },
+        });
+
         return NextResponse.json({ result: parsed });
     } catch (error: any) {
+        status = 'error';
+        errorMessage = error?.message || String(error);
         console.error("generate-schedule error", error);
+
+        // Log the error
+        await logAIUsage({
+            userId,
+            endpoint: 'generate-schedule',
+            featureName: 'Study Schedule Generation',
+            status,
+            errorMessage,
+            responseTimeMs: Date.now() - startTime,
+        });
+
         return NextResponse.json({ 
             error: "Failed to generate schedule",
-            details: error?.message || String(error)
+            details: errorMessage
         }, { status: 500 });
     }
 }

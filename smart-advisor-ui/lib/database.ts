@@ -1,5 +1,4 @@
 import { prisma } from './prisma';
-import fs from 'node:fs';
 import { requireEnv } from '@/lib/env';
 
 /**
@@ -27,6 +26,17 @@ export interface VisitorLog {
     os_version: string | undefined;
     browser_name: string | undefined;
     student_id?: string;
+}
+
+function isMissingTableError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+
+    const prismaError = error as { code?: string; message?: string };
+    const message = prismaError.message || '';
+
+    return prismaError.code === 'P2021'
+        || message.includes('does not exist')
+        || message.includes('relation "');
 }
 
 /**
@@ -88,7 +98,11 @@ export async function logVisitor(data: VisitorLog): Promise<void> {
                 browser_name: data.browser_name || null,
             }
         });
-    } catch (e) { console.error('Failed to log visitor', e); }
+    } catch (e) {
+        if (!isMissingTableError(e)) {
+            console.error('Failed to log visitor', e);
+        }
+    }
 }
 
 /** Get recent visitor logs */
@@ -100,7 +114,9 @@ export async function getVisitorLogs(limit = 100) {
         });
         return logs;
     } catch (e) {
-        console.warn("Visitor log fetch error:", e);
+        if (!isMissingTableError(e)) {
+            console.warn("Visitor log fetch error:", e);
+        }
         return [];
     }
 }
@@ -150,13 +166,20 @@ export async function saveProgress(studentId: string, major: string, completed: 
 /** Get a summary of all students */
 export async function getAllStudents(): Promise<{ student_id: string; major: string; count: number }[]> {
     // using raw since JSON length isn't straightforward in prisma strictly
-    const res = await prisma.$queryRaw<{ student_id: string, major: string, count: number }[]>`
-        SELECT student_id, major, json_array_length(completed::json) as count
-        FROM student_progress
-        ORDER BY updated_at DESC
-    `;
-    // convert any BigInts safely if needed, but count is usually Int / BigInt -> Number
-    return res.map(r => ({ ...r, count: Number(r.count) }));
+    try {
+        const res = await prisma.$queryRaw<{ student_id: string, major: string, count: number }[]>`
+            SELECT student_id, major, json_array_length(completed::json) as count
+            FROM student_progress
+            ORDER BY updated_at DESC
+        `;
+        // convert any BigInts safely if needed, but count is usually Int / BigInt -> Number
+        return res.map(r => ({ ...r, count: Number(r.count) }));
+    } catch (e) {
+        if (!isMissingTableError(e)) {
+            console.error('Student summary query failed:', e);
+        }
+        return [];
+    }
 }
 
 /** Load the major a student previously chose (null = first-time user) */
@@ -201,21 +224,42 @@ export interface DBUser {
 }
 
 export async function getUserById(id: number): Promise<DBUser | null> {
-    const u = await prisma.user.findUnique({ where: { id } });
-    if (!u) return null;
-    return { ...u, role: u.role || 'student' };
+    try {
+        const u = await prisma.user.findUnique({ where: { id } });
+        if (!u) return null;
+        return { ...u, role: u.role || 'student' };
+    } catch (e) {
+        if (!isMissingTableError(e)) {
+            console.error('User lookup by id failed:', e);
+        }
+        return null;
+    }
 }
 
 export async function getUserByStudentId(studentId: string): Promise<DBUser | null> {
-    const u = await prisma.user.findUnique({ where: { student_id: studentId } });
-    if (!u) return null;
-    return { ...u, role: u.role || 'student' };
+    try {
+        const u = await prisma.user.findUnique({ where: { student_id: studentId } });
+        if (!u) return null;
+        return { ...u, role: u.role || 'student' };
+    } catch (e) {
+        if (!isMissingTableError(e)) {
+            console.error('User lookup by student id failed:', e);
+        }
+        return null;
+    }
 }
 
 export async function getUserByEmail(email: string): Promise<DBUser | null> {
-    const u = await prisma.user.findUnique({ where: { email } });
-    if (!u) return null;
-    return { ...u, role: u.role || 'student' };
+    try {
+        const u = await prisma.user.findUnique({ where: { email } });
+        if (!u) return null;
+        return { ...u, role: u.role || 'student' };
+    } catch (e) {
+        if (!isMissingTableError(e)) {
+            console.error('User lookup by email failed:', e);
+        }
+        return null;
+    }
 }
 
 export async function createUser(data: Partial<DBUser>): Promise<DBUser> {
