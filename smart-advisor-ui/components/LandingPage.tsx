@@ -42,7 +42,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
             </div>
 
             <header className="w-full max-w-6xl flex justify-end p-4">
-                <a href="/planner" className="text-sm text-white/60 hover:text-white">Back to Dashboard</a>
+                <button onClick={onGetStarted} className="text-sm text-white/60 hover:text-white transition-colors">Back to Dashboard</button>
             </header>
 
             <main className="relative z-10 w-full max-w-6xl flex flex-col items-center text-center">

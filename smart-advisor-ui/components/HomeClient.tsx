@@ -385,7 +385,7 @@ export default function HomeClient() {
                                         href="https://bot.mubx.dev"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-200 hover:text-cyan-100 hover:border-cyan-300/40 transition-all"
+                                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-600/10 dark:bg-cyan-500/10 border border-cyan-600/20 dark:border-cyan-400/20 text-cyan-700 dark:text-cyan-200 hover:text-cyan-800 dark:hover:text-cyan-100 hover:border-cyan-600/40 dark:hover:border-cyan-300/40 transition-all"
                                         title="Open mubxbot"
                                     >
                                         <Bot className="w-4 h-4" />
@@ -404,10 +404,12 @@ export default function HomeClient() {
                                         </button>
 
                                         {profileMenuOpen && (
-                                            <div className="absolute right-0 mt-2 w-44 bg-black/90 border border-white/6 rounded-xl p-2 shadow-lg z-50">
-                                                <a href="/planner" className="block px-3 py-2 text-sm text-white/90 hover:bg-white/5 rounded">Semester Planner</a>
-                                                <a href="/planner/settings" className="block px-3 py-2 text-sm text-white/90 hover:bg-white/5 rounded">Profile & Settings</a>
-                                                <button onClick={() => void signOut()} className="w-full text-left px-3 py-2 text-sm text-white/90 hover:bg-white/5 rounded">Sign out</button>
+                                            <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-black/90 border border-black/5 dark:border-white/6 rounded-xl p-2 shadow-xl z-50">
+                                                <a href="/" onClick={(e) => { e.preventDefault(); setAppState("course-tracker"); setProfileMenuOpen(false); }} className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Course Tracker</a>
+                                                <a href="/planner" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Semester Planner</a>
+                                                <a href="/planner/settings" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Profile & Settings</a>
+                                                <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
+                                                <button onClick={() => void signOut()} className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">Sign out</button>
                                             </div>
                                         )}
                                     </div>
