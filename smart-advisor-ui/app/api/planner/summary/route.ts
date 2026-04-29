@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
                 ]
             },
             include: {
-                studentProfile: true,
+                student_profile: true,
                 gamification_profile: true
             }
         });
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "User profile not found in database" }, { status: 404 });
         }
 
-        const profile = user.studentProfile || await prisma.studentProfile.findFirst({
+        const profile = user.student_profile || await prisma.studentProfile.findFirst({
             where: {
                 OR: [
                     { user_id: user.id },
