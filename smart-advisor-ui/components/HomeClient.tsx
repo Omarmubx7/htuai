@@ -155,27 +155,30 @@ export default function HomeClient() {
             const res = await fetchWithRetry(`/api/profile/${encodeURIComponent(id)}`, { retries: 2 });
             if (res.ok) {
                 const profile = await res.json();
+                const savedMajor = profile.major || profile.savedMajor; // Support both naming variants
+                
                 console.log("[HomeClient] Profile loaded successfully:", { 
                     sid: id, 
-                    major: profile.savedMajor,
-                    completed: profile.completedCourses?.length 
-                });
-                setCompletedCourses(new Map(profile.completedCourses));
-                setPreviousGpaHistory({
-                    gpa: profile.historyGpa,
-                    credits: profile.historyCredits
+                    major: savedMajor,
                 });
 
-                if (profile.savedMajor) {
-                    const loaded = await loadCourses(profile.savedMajor);
-                    console.log("[HomeClient] Curriculum load result:", loaded);
+                setPreviousGpaHistory({
+                    gpa: profile.previous_gpa || profile.historyGpa || null,
+                    credits: profile.previous_credits || profile.historyCredits || null
+                });
+
+                if (savedMajor) {
+                    setMajor(savedMajor);
+                    // Also sync to safeStorage for immediate subsequent checks
+                    safeStorage.set(`major-${id}`, savedMajor);
+                    
+                    const loaded = await loadCourses(savedMajor);
+                    await loadProgress(id); // Ensure progress is loaded too
                     setAppState(loaded ? "course-tracker" : "major-select");
                 } else { 
-                    console.log("[HomeClient] No saved major found, showing selector");
                     setAppState("major-select"); 
                 }
             } else { 
-                console.warn("[HomeClient] Profile fetch failed with status:", res.status);
                 setAppState("major-select"); 
             }
         } catch (error) {
@@ -212,10 +215,9 @@ export default function HomeClient() {
     const handleMajorSelect = async (key: MajorKey) => {
         setAppState("changing-major");
         setMajor(key);
-        safeStorage.set("htu_selected_major", key);
-        safeStorage.set("htuai-major", key);
         const sid = studentId || session?.user?.student_id || session?.user?.name;
         if (sid) {
+            safeStorage.set(`major-${sid}`, key);
             try {
                 setAppState("changing-major");
                 console.log("[HomeClient] Saving major:", key, "for", sid);
@@ -295,25 +297,22 @@ export default function HomeClient() {
         } else if (status === "authenticated" && session?.user && appState !== "changing-major") {
             const sid = session.user.student_id || session.user.name;
             if (sid) {
-                const savedMajor = safeStorage.get(`major-${sid}`);
-                if (savedMajor) {
-                    setMajor(savedMajor as MajorKey);
+                const storageMajor = safeStorage.get(`major-${sid}`) as MajorKey | null;
+                
+                // If we have it in storage and haven't loaded data yet, load it
+                if (storageMajor && !courseData && (appState === "checking" || appState === "landing")) {
+                    setMajor(storageMajor);
+                    void loadCourses(storageMajor);
+                    void loadProgress(sid);
                     setAppState("course-tracker");
-                } else if (appState === "landing" || appState === "login" || appState === "checking") {
-                    loadProfile(sid).then(profile => {
-                        if (profile?.major) {
-                            setMajor(profile.major);
-                            setAppState("course-tracker");
-                        } else {
-                            setAppState("major-select");
-                        }
-                    }).catch(() => {
-                        setAppState("major-select");
-                    });
+                } 
+                // If not in storage, try database recovery
+                else if (!storageMajor && (appState === "checking" || appState === "landing" || appState === "login")) {
+                    void loadProfile(sid);
                 }
             }
         }
-    }, [status, session, loadProfile]);
+    }, [status, session, loadProfile, loadCourses, loadProgress, courseData, appState]);
 
     useEffect(() => {
         return () => {
