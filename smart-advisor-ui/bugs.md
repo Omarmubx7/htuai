@@ -24,7 +24,7 @@ I thoroughly tested all the features of HTUAI. Here's the complete bug report:
 - **Impact:** Users/bookmarks using `/dashboard` will hit a dead end
 
 ### HIGH BUGS
-
+ab
 
 **Bug #5 — Student ID / Major Shows "Undecided" in Settings** [htuai.mubx](https://htuai.mubx.dev/planner/settings)
 - **Severity:** High
