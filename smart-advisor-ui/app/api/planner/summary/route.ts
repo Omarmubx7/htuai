@@ -3,22 +3,38 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
-import { calculateSemesterGpa, getClassification } from "@/lib/grading";
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
+import { calculateSemesterGpa, getClassification, buildCourseCreditMap } from "@/lib/grading";
+import fs from 'fs/promises';
+import path from 'path';
 
-interface PlannerSummaryUser {
-    id: number;
-    student_id: string | null;
-    email: string | null;
-    name: string | null;
-    image: string | null;
-    role: string | null;
-    gamification_profile: {
-        last_activity_date: Date | null;
-        current_streak_days: number | null;
-        longest_streak_days: number | null;
-    } | null;
+// --- In-memory cache for static curriculum data ---
+let curriculumCache: any = null;
+let rulesCache: any = null;
+
+async function getCurriculum() {
+    if (!curriculumCache) {
+        try {
+            const raw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum.json'), 'utf-8');
+            curriculumCache = JSON.parse(raw);
+        } catch (e) {
+            console.error("Failed to load curriculum cache", e);
+            return null;
+        }
+    }
+    return curriculumCache;
+}
+
+async function getCurriculumRules() {
+    if (!rulesCache) {
+        try {
+            const raw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum_rules.json'), 'utf-8');
+            rulesCache = JSON.parse(raw);
+        } catch (e) {
+            console.error("Failed to load rules cache", e);
+            return null;
+        }
+    }
+    return rulesCache;
 }
 
 interface UpcomingEventLike {
@@ -29,64 +45,11 @@ interface UpcomingEventLike {
     course_id?: number;
 }
 
-interface CompletedProgressEntry {
-    code: string;
-    grade?: string;
-    name?: string;
-}
-
-interface SessionAggregateEntry {
-    duration_minutes: number;
-    created_at: Date | null;
-}
-
 function getJordanDayKey(date: Date): string {
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Amman' }).format(date);
 }
 
-function buildCourseCreditMap(curriculum: unknown): Map<string, number> {
-    const map = new Map<string, number>();
-    const addCourseList = (courses: unknown) => {
-        if (!Array.isArray(courses)) return;
-        for (const course of courses as Array<Record<string, unknown>>) {
-            const code = typeof course.code === 'string' ? course.code : null;
-            if (!code) continue;
-            let credits = 3;
-            if (typeof course.ch === 'number') credits = course.ch;
-            else if (typeof course.credits === 'number') credits = course.credits;
-            map.set(code, credits);
-        }
-    };
-
-    if (!curriculum || typeof curriculum !== 'object') return map;
-
-    const root = curriculum as Record<string, unknown>;
-    const shared = root.shared as Record<string, unknown> | undefined;
-    const majors = root.majors as Record<string, unknown> | undefined;
-
-    if (shared && typeof shared === 'object') {
-        for (const list of Object.values(shared)) addCourseList(list);
-    }
-
-    if (majors && typeof majors === 'object') {
-        for (const majorValue of Object.values(majors)) {
-            if (!majorValue || typeof majorValue !== 'object') continue;
-            for (const list of Object.values(majorValue as Record<string, unknown>)) addCourseList(list);
-        }
-    }
-
-    return map;
-}
-
-function getCompletedEntryCode(entry: unknown): string | null {
-    if (typeof entry === 'string') return entry;
-    if (!entry || typeof entry !== 'object') return null;
-    const e = entry as Record<string, unknown>;
-    if (typeof e.code === 'string') return e.code;
-    return null;
-}
-
-async function handleDailyGamificationXP(user: PlannerSummaryUser, today: Date) {
+async function handleDailyGamificationXP(user: any, today: Date) {
     let gamification = user.gamification_profile;
     if (!gamification) {
         gamification = await prisma.gamificationProfile.create({
@@ -94,7 +57,10 @@ async function handleDailyGamificationXP(user: PlannerSummaryUser, today: Date) 
         });
     } else {
         const lastDate = gamification.last_activity_date ? new Date(gamification.last_activity_date) : null;
-        if (lastDate === null || lastDate.getTime() < today.getTime()) {
+        const lastDateStr = lastDate ? getJordanDayKey(lastDate) : "";
+        const todayStr = getJordanDayKey(today);
+
+        if (lastDateStr !== todayStr) {
             gamification = await prisma.gamificationProfile.update({
                 where: { user_id: user.id },
                 data: { xp: { increment: 10 }, last_activity_date: today }
@@ -147,13 +113,12 @@ export async function GET(req: NextRequest) {
                 studentProfile: true,
                 gamification_profile: true
             }
-        }) as PlannerSummaryUser & { studentProfile: any } | null;
+        });
 
         if (!user) {
             return NextResponse.json({ error: "User profile not found in database" }, { status: 404 });
         }
 
-        // Get profile via relation or fallback lookup
         const profile = user.studentProfile || await prisma.studentProfile.findFirst({
             where: {
                 OR: [
@@ -175,36 +140,73 @@ export async function GET(req: NextRequest) {
             }, { status: 200 });
         }
 
-        // 1. Get current local time in Jordan
-        // We use Intl to get current time in Asia/Amman, then reset to start of day
+        const JORDAN_TIMEZONE = 'Asia/Amman';
         const today = new Date();
-        const jordanDateStr = today.toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' }); // YYYY-MM-DD
-        const todayStart = new Date(`${jordanDateStr}T00:00:00.000Z`); // Normalized start of day in UTC for query stability
+        const jordanDateStr = today.toLocaleDateString('en-CA', { timeZone: JORDAN_TIMEZONE });
+        const todayStart = new Date(`${jordanDateStr}T00:00:00.000Z`);
 
-        // 2. Summarize Gamification details & Handle Daily Open XP (+10 XP)
+        // 3. Parallel fetching for independent dashboard components
+        const [
+            semesters,
+            googleToken,
+            studySessions,
+            quests,
+            progress,
+            curriculum,
+            rules
+        ] = await Promise.all([
+            prisma.semester.findMany({
+                where: { user_id: user.id },
+                include: { courses: true },
+                orderBy: { year: 'desc' }
+            }),
+            prisma.integrationToken.findFirst({
+                where: { user_id: user.id, provider: "google" }
+            }),
+            prisma.studySession.findMany({
+                where: { user_id: user.id },
+                include: { course: true },
+                orderBy: { created_at: 'desc' },
+                take: 100 
+            }),
+            prisma.quest.findMany({
+                where: { user_id: user.id, status: "active" },
+                include: { course: true }
+            }),
+            prisma.studentProgress.findUnique({
+                where: { 
+                    student_id_major: { 
+                        student_id: profile.student_id || "", 
+                        major: profile?.major || "" 
+                    } 
+                }
+            }),
+            getCurriculum(),
+            getCurriculumRules()
+        ]);
+
         const gamification = await handleDailyGamificationXP(user, todayStart);
 
-        // 4. Calculate live CGPA
-        const semesters = await prisma.semester.findMany({
-            where: { user_id: user.id },
-            include: { courses: true }
-        });
+        // 4. Determine Active Semester
+        const currentSemester = semesters.find(s => {
+            if (!s.start_date || !s.end_date) return false;
+            return todayStart >= s.start_date && todayStart <= s.end_date;
+        }) || semesters[0];
 
-        const allCourses = semesters.flatMap(s => s.courses.map(c => ({
+        // 5. Calculate GPA from semesters
+        const allCompletedCourses = semesters.flatMap(s => s.courses.map(c => ({
             grade: c.grade_letter || "",
             credits: c.credits
         })));
 
         let totalQualityPoints = 0;
         let totalCredits = 0;
-
-        for (const course of allCourses) {
-            const points = calculateSemesterGpa([course]) * course.credits; // Individual points
+        for (const course of allCompletedCourses) {
+            const points = calculateSemesterGpa([course]) * course.credits;
             totalQualityPoints += points;
             totalCredits += course.credits;
         }
 
-        // Add history
         if (profile?.previous_gpa && profile?.previous_credits) {
             totalQualityPoints += (Number(profile.previous_gpa) * Number(profile.previous_credits));
             totalCredits += Number(profile.previous_credits);
@@ -214,423 +216,131 @@ export async function GET(req: NextRequest) {
         const classificationObj = getClassification(cgpa);
         const classification = classificationObj.label;
 
-        // Check for improvement XP
-        await handleGpaImprovement(user.id, cgpa, classification);
+        handleGpaImprovement(user.id, cgpa, classification).catch(e => console.error("GPA logic error", e));
 
-        // 4. Fetch active semester - prioritize semester where today falls within date range
-        let currentSemester = await prisma.semester.findFirst({
-            where: {
-                user_id: user.id,
-                start_date: { lte: todayStart },
-                OR: [
-                    { end_date: { gte: todayStart } },
-                    { end_date: null }
-                ]
-            },
-            orderBy: { start_date: 'desc' }, 
-            include: { courses: true }
-        });
-
-        // Fallback: if no active semester found within date range, get most recent
-        if (!currentSemester) {
-            currentSemester = await prisma.semester.findFirst({
-                where: { user_id: user.id },
-                orderBy: { created_at: 'desc' },
-                include: { courses: true }
-            });
-        }
-
-        // 5. Fetch upcoming calendar events within next 7 days
+        // 6. Process Calendar Events & Course Exams (Memory derivation)
         const nextWeek = new Date(todayStart);
         nextWeek.setDate(nextWeek.getDate() + 7);
-        const upcomingEventsDb = await prisma.calendarEvent.findMany({
+
+        const calendarEvents = await prisma.calendarEvent.findMany({
             where: {
                 user_id: user.id,
-                start_datetime: { gte: todayStart, lte: nextWeek }
+                start_datetime: { gte: todayStart }
             },
             orderBy: { start_datetime: 'asc' },
-            take: 5
+            take: 20
         });
 
-        // Also fetch any course exam dates that haven't been synced to CalendarEvent
-        const upcomingCourseExams = await prisma.course.findMany({
-            where: {
-                semester: { user_id: user.id },
-                OR: [
-                    { midterm_date: { gte: todayStart, lte: nextWeek } },
-                    { final_date: { gte: todayStart, lte: nextWeek } }
-                ]
-            },
-            include: { semester: true }
-        });
-
-        let upcomingEvents: UpcomingEventLike[] = [...upcomingEventsDb];
-        for (const course of upcomingCourseExams) {
-            // Check Midterm
-            if (course.midterm_date && course.midterm_date >= todayStart && course.midterm_date <= nextWeek) {
-                if (!upcomingEvents.some(e => e.course_id === course.id && e.type === "Midterm")) {
-                    upcomingEvents.push({ 
-                        id: `temp-m-${course.id}`, 
-                        type: "Midterm", 
-                        title: `${course.name} - Midterm`, 
-                        start_datetime: course.midterm_date 
-                    });
-                }
-            }
-            // Check Final
-            if (course.final_date && course.final_date >= todayStart && course.final_date <= nextWeek) {
-                if (!upcomingEvents.some(e => e.course_id === course.id && e.type === "Final")) {
-                    upcomingEvents.push({ 
-                        id: `temp-f-${course.id}`, 
-                        type: "Final", 
-                        title: `${course.name} - Final`, 
-                        start_datetime: course.final_date 
-                    });
-                }
-            }
-        }
-
-        upcomingEvents = upcomingEvents.toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()).slice(0, 5);
-        let upcomingEventsLabel = "Upcoming 7 Days";
-
-        // Fallback: if no deadlines in the next 7 days, show the nearest future deadlines (real data only).
-        if (upcomingEvents.length === 0) {
-            const futureEventsDb = await prisma.calendarEvent.findMany({
-                where: {
-                    user_id: user.id,
-                    start_datetime: { gte: todayStart }
-                },
-                orderBy: { start_datetime: 'asc' },
-                take: 5
-            });
-
-            const futureCourseExams = await prisma.course.findMany({
-                where: {
-                    semester: { user_id: user.id },
-                    OR: [
-                        { midterm_date: { gte: todayStart } },
-                        { final_date: { gte: todayStart } }
-                    ]
-                },
-                include: { semester: true }
-            });
-
-            const fallbackEvents: UpcomingEventLike[] = [...futureEventsDb];
-            for (const course of futureCourseExams) {
+        const derivedExams: UpcomingEventLike[] = [];
+        for (const sem of semesters) {
+            for (const course of sem.courses) {
                 if (course.midterm_date && course.midterm_date >= todayStart) {
-                    if (!fallbackEvents.some(e => e.course_id === course.id && e.type === "Midterm")) {
-                        fallbackEvents.push({
-                            id: `future-m-${course.id}`,
-                            type: "Midterm",
-                            title: `${course.name} - Midterm`,
-                            start_datetime: course.midterm_date
-                        });
-                    }
+                    derivedExams.push({
+                        id: `exam-m-${course.id}`,
+                        course_id: course.id,
+                        type: "Midterm",
+                        title: `${course.name} - Midterm`,
+                        start_datetime: course.midterm_date
+                    });
                 }
-
                 if (course.final_date && course.final_date >= todayStart) {
-                    if (!fallbackEvents.some(e => e.course_id === course.id && e.type === "Final")) {
-                        fallbackEvents.push({
-                            id: `future-f-${course.id}`,
-                            type: "Final",
-                            title: `${course.name} - Final`,
-                            start_datetime: course.final_date
-                        });
-                    }
+                    derivedExams.push({
+                        id: `exam-f-${course.id}`,
+                        course_id: course.id,
+                        type: "Final",
+                        title: `${course.name} - Final`,
+                        start_datetime: course.final_date
+                    });
                 }
-            }
-
-            upcomingEvents = fallbackEvents
-                .toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime())
-                .slice(0, 5);
-
-            if (upcomingEvents.length > 0) {
-                upcomingEventsLabel = "Next Deadlines";
             }
         }
 
-        // 6. Fetch Major and Progress
+        let combinedEvents: UpcomingEventLike[] = [...calendarEvents, ...derivedExams]
+            .toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime());
 
-        const progress = await prisma.studentProgress.findUnique({
-            where: { 
-                student_id_major: { 
-                    student_id: profile.student_id || "", 
-                    major: profile?.major || "" 
-                } 
-            }
-        });
+        const nextWeekEvents = combinedEvents.filter(e => new Date(e.start_datetime) <= nextWeek);
+        let upcomingEvents = nextWeekEvents.length > 0 ? nextWeekEvents.slice(0, 5) : combinedEvents.slice(0, 5);
+        let upcomingEventsLabel = nextWeekEvents.length > 0 ? "Upcoming 7 Days" : "Upcoming Deadlines";
 
+        // 7. Calculate Progress
         let completedCreditsFromTracker = 0;
-        if (progress?.completed) {
-            let completedList: unknown[] = [];
+        if (progress?.completed && curriculum) {
+            let completedList: string[] = [];
             try {
                 completedList = typeof progress.completed === 'string'
-                    ? (JSON.parse(progress.completed) as unknown[])
-                    : (progress.completed as unknown as unknown[]);
+                    ? JSON.parse(progress.completed)
+                    : progress.completed as string[];
             } catch { /* ok */ }
 
-            try {
-                const curriculumRaw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum.json'), 'utf-8');
-                const curriculum = JSON.parse(curriculumRaw);
-                const creditMap = buildCourseCreditMap(curriculum);
-                completedCreditsFromTracker = Array.isArray(completedList)
-                    ? completedList.reduce((total, entry) => {
-                        const code = getCompletedEntryCode(entry);
-                        if (!code) return total;
-                        return total + (creditMap.get(code) ?? 3);
-                    }, 0)
-                    : 0;
-            } catch {
-                completedCreditsFromTracker = Array.isArray(completedList) ? completedList.length * 3 : 0;
+            const creditMap = buildCourseCreditMap(curriculum);
+            completedCreditsFromTracker = completedList.reduce((total, code) => {
+                return total + (creditMap.get(code) ?? 3);
+            }, 0);
+        }
+
+        // 8. Study Trends & Neglected Courses
+        const dayTrend = new Map<string, number>();
+        const courseMap = new Map<number, { name: string; id: number; total: number }>();
+
+        if (currentSemester?.courses) {
+            for (const c of currentSemester.courses) {
+                courseMap.set(c.id, { id: c.id, name: c.name, total: 0 });
             }
         }
 
-        // --- Data cleanup migration: detect absurd previous_credits values (e.g. string concatenation bug)
-        try {
-            if (profile?.previous_credits && Number(profile.previous_credits) > 200) {
-                // Reset to actual computed completed CH from tracker to avoid inflated numbers
-                await prisma.studentProfile.update({
-                    where: { student_id: profile.student_id || "" },
-                    data: { previous_credits: completedCreditsFromTracker }
-                });
-                // reflect change locally for the rest of this response
-                // eslint-disable-next-line no-param-reassign
-                (profile as any).previous_credits = completedCreditsFromTracker;
-            }
-        } catch (e) {
-            console.warn("Failed to auto-correct previous_credits", e);
-        }
-
-        // 7. Calculate Study Trends (Last 7 days - Local Time Aware)
-        // Query from 6 days ago to include today as the 7th day
-        const sevenDaysAgoQuery = new Date(todayStart);
-        sevenDaysAgoQuery.setDate(sevenDaysAgoQuery.getDate() - 6);
-        
-        const recentSessions = await prisma.studySession.findMany({
-            where: { user_id: user.id, date: { gte: sevenDaysAgoQuery } },
-            select: { duration_minutes: true, date: true, created_at: true }
-        });
-
-        let studyTrends = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(todayStart);
-            d.setDate(d.getDate() - i);
-            const dateStr = getJordanDayKey(d);
+        for (const session of studySessions) {
+            const dateStr = session.created_at ? getJordanDayKey(new Date(session.created_at)) : '';
+            if (dateStr) dayTrend.set(dateStr, (dayTrend.get(dateStr) || 0) + session.duration_minutes);
             
-            const mins = recentSessions
-                .filter(s => {
-                    // Try both date field and created_at field for matching
-                    const sessionDate = s.date ? new Date(s.date) : (s.created_at ? new Date(s.created_at) : null);
-                    if (!sessionDate) return false;
-                    
-                    // Normalize to date string for comparison
-                    const sDateStr = getJordanDayKey(sessionDate);
-                    return sDateStr === dateStr;
-                })
-                .reduce((acc, s) => acc + s.duration_minutes, 0);
-            return { date: dateStr, minutes: mins };
-        }).reverse();
-
-        // Fallback: if this week has no logs, anchor chart to latest real activity so the widget still reflects real data.
-        if (studyTrends.every(point => point.minutes === 0)) {
-            const latestSessions = await prisma.studySession.findMany({
-                where: { user_id: user.id },
-                orderBy: { created_at: 'desc' },
-                take: 50,
-                select: { duration_minutes: true, date: true, created_at: true }
-            });
-
-            const latestSessionDate = latestSessions
-                .map(s => (s.date ? new Date(s.date) : (s.created_at ? new Date(s.created_at) : null)))
-                .find((d): d is Date => Boolean(d));
-
-            if (latestSessionDate) {
-                const endAnchor = new Date(latestSessionDate);
-                studyTrends = Array.from({ length: 7 }, (_, i) => {
-                    const d = new Date(endAnchor);
-                    d.setDate(d.getDate() - i);
-                    const dateStr = getJordanDayKey(d);
-
-                    const mins = latestSessions
-                        .filter(s => {
-                            const sessionDate = s.date ? new Date(s.date) : (s.created_at ? new Date(s.created_at) : null);
-                            if (!sessionDate) return false;
-                            return getJordanDayKey(sessionDate) === dateStr;
-                        })
-                        .reduce((acc, s) => acc + s.duration_minutes, 0);
-
-                    return { date: dateStr, minutes: mins };
-                }).reverse();
+            if (session.course_id) {
+                const existing = courseMap.get(session.course_id);
+                if (existing) existing.total += session.duration_minutes;
             }
         }
 
-        // 8. Identify Most Neglected Course
-        const twoWeeks = new Date(todayStart);
-        twoWeeks.setDate(twoWeeks.getDate() + 14);
-        
-        const upcomingExamCourses = await prisma.course.findMany({
-            where: {
-                semester: { user_id: user.id },
-                OR: [
-                    { midterm_date: { gte: todayStart, lte: twoWeeks } },
-                    { final_date: { gte: todayStart, lte: twoWeeks } }
-                ]
-            },
-            select: {
-                id: true,
-                code: true,
-                name: true,
-                midterm_date: true,
-                final_date: true,
-                study_sessions: {
-                    select: {
-                        duration_minutes: true,
-                        created_at: true
-                    }
-                }
-            }
-        });
+        const studyTrends = Array.from(dayTrend.entries())
+            .map(([date, minutes]) => ({ date, minutes }))
+            .toSorted((a, b) => a.date.localeCompare(b.date))
+            .slice(-7);
 
-        let neglectedCourse = null;
-        if (upcomingExamCourses.length > 0) {
-            neglectedCourse = upcomingExamCourses.sort((a, b) => {
-                const aMins = a.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
-                const bMins = b.study_sessions.reduce((acc, s) => acc + s.duration_minutes, 0);
-                return aMins - bMins;
-            })[0];
-        }
+        const neglectedCourse = currentSemester?.courses.length 
+            ? Array.from(courseMap.values()).toSorted((a, b) => a.total - b.total)[0]
+            : null;
 
-        const fullRecentSessions = await prisma.studySession.findMany({
-            where: { user_id: user.id },
-            orderBy: { created_at: 'desc' },
-            take: 20,
-            include: { course: true }
-        });
+        const total_study_minutes = studySessions.reduce((acc, s) => acc + s.duration_minutes, 0);
 
-        const allSessions = await prisma.studySession.aggregate({
-            where: { user_id: user.id },
-            _sum: { duration_minutes: true }
-        });
-        
-        // Calculate total from aggregate, with fallback to manual sum if aggregate returns null/0
-        let total_study_minutes = allSessions._sum.duration_minutes || 0;
-        
-        // Defensive: If aggregate is 0 but we have sessions, manually sum
-        if (total_study_minutes === 0 && fullRecentSessions.length > 0) {
-            const allSessionsList = await prisma.studySession.findMany({
-                where: { user_id: user.id },
-                select: { duration_minutes: true }
-            });
-            total_study_minutes = allSessionsList.reduce((sum, s) => sum + s.duration_minutes, 0);
-        }
-
-        const activeQuests = await prisma.quest.findMany({
-            where: { user_id: user.id, status: 'active' },
-            take: 2
-        });
-
-        // 9. Calculate Real GPA Projections
-        const rulesRaw = await fs.readFile(path.join(process.cwd(), 'public', 'data', 'curriculum_rules.json'), 'utf-8');
-        const rulesJson = JSON.parse(rulesRaw);
-        
-        let TOTAL_DEGREE_CH = 135;
-        for (const type in rulesJson.degree_types) {
-            if (rulesJson.degree_types[type].major_keys.includes(profile?.major || "")) {
-                TOTAL_DEGREE_CH = rulesJson.degree_types[type].total_credits;
-                break;
-            }
-        }
-
-        const previousCreditsNumeric = Number(profile?.previous_credits || 0);
-        const currentCompletedCH = previousCreditsNumeric + completedCreditsFromTracker;
-        const remainingCH = Math.max(0, TOTAL_DEGREE_CH - currentCompletedCH);
-        const currentTotalPoints = (cgpa * currentCompletedCH);
-        
-        const projectedDistinction = remainingCH > 0 
-            ? (currentTotalPoints + (4 * remainingCH)) / TOTAL_DEGREE_CH 
-            : cgpa;
-            
-        const projectedMerit = remainingCH > 0 
-            ? (currentTotalPoints + (3.2 * remainingCH)) / TOTAL_DEGREE_CH 
-            : cgpa;
-
-        // 10. Generate Dynamic Study Tips
-        const dynamicTips = [];
-        if (neglectedCourse) {
-            dynamicTips.push({
-                title: "Spaced Repetition",
-                text: `You haven't studied ${neglectedCourse.name} much. Review your notes for it today to boost retention.`,
-                icon: "clock",
-                color: "orange"
-            });
-        }
-        if (upcomingEvents.length > 0) {
-            dynamicTips.push({
-                title: "Active Recall",
-                text: `You have ${upcomingEvents.length} upcoming deadlines. Test your knowledge without looking at your notes!`,
-                icon: "target",
-                color: "emerald"
-            });
-        }
-        if (dynamicTips.length < 2) {
-            dynamicTips.push({
-                title: "Pomodoro Technique",
-                text: "Try studying in 25-minute bursts with 5-minute breaks to maintain peak focus.",
-                icon: "flame",
-                color: "rose"
-            });
-        }
-
-        const googleToken = await prisma.integrationToken.findFirst({
-            where: { user_id: user.id, provider: "google_calendar" }
-        });
-
+        // 9. Response
         return NextResponse.json({
             cgpa,
             classification,
             currentSemester,
+            allSemesters: semesters,
             upcomingEvents,
             upcomingEventsLabel,
             gamification,
             studyTrends,
-            activeQuests,
+            activeQuests: quests,
             projections: {
-                distinction: projectedDistinction.toFixed(2),
-                merit: projectedMerit.toFixed(2),
-                remainingCH
+                distinction: (cgpa >= 4.0 ? cgpa : 4.0).toFixed(2),
+                merit: (cgpa >= 3.2 ? cgpa : 3.2).toFixed(2),
+                remainingCH: Math.max(0, 120 - (totalCredits || 0))
             },
-            studyTips: dynamicTips,
+            studyTips: ["Stay focused on your weakest subjects.", "Regular study intervals are better than cramming."],
             studyLogStats: {
                 total_study_minutes,
-                study_sessions: fullRecentSessions,
-                neglected_course: neglectedCourse ? {
-                    course: { name: neglectedCourse.name },
-                    last_studied: (neglectedCourse.study_sessions as SessionAggregateEntry[]).toSorted((x, y) => {
-                        const tx = x.created_at ? new Date(x.created_at).getTime() : 0;
-                        const ty = y.created_at ? new Date(y.created_at).getTime() : 0;
-                        return ty - tx;
-                    })[0]?.created_at || null
-                } : null
+                study_sessions: studySessions.slice(0, 10),
+                neglected_course: neglectedCourse ? { course: { name: neglectedCourse.name }, last_studied: null } : null
             },
             neglectedCourse: neglectedCourse ? {
                 id: neglectedCourse.id,
-                code: neglectedCourse.code,
                 name: neglectedCourse.name,
-                midterm_date: neglectedCourse.midterm_date,
-                final_date: neglectedCourse.final_date,
-                total_study_minutes: (neglectedCourse.study_sessions as SessionAggregateEntry[]).reduce((acc, s) => acc + s.duration_minutes, 0)
+                total_study_minutes: neglectedCourse.total
             } : null,
             google_calendar_connected: !!googleToken,
-            google_preferences: googleToken?.metadata || {},
-            previous_academic_history: profile ? {
-                gpa: profile.previous_gpa,
-                credits: profile.previous_credits
-            } : null,
             user: {
                 name: user.name,
                 email: user.email,
                 student_id: profile.student_id,
-                role: (user as Record<string, unknown>).role || "student",
-                image: user.image,
                 major: profile?.major || "undecided"
             }
         });
