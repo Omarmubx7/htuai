@@ -6,7 +6,6 @@ import {
   CUMULATIVE_CLASSIFICATIONS,
   gradeToPoints,
   calculateSemesterGpa,
-  calculateCumulativeGpaFromHistory,
   calculateGPA,
   getClassification,
 } from '../lib/grading';
@@ -187,7 +186,7 @@ describe('calculateSemesterGpa', () => {
   });
 });
 
-describe('calculateCumulativeGpaFromHistory', () => {
+describe('calculateSemesterGpa (Historical Analysis)', () => {
   it('should calculate cumulative GPA across multiple semesters', () => {
     const allCourses = [
       { grade: 'D', credits: 3 },
@@ -196,19 +195,7 @@ describe('calculateCumulativeGpaFromHistory', () => {
       { grade: 'D', credits: 3 },
     ];
     // Total: (4*3) + (3.2*3) + (2.4*3) + (4*3) = 40.8 / 12 = 3.4
-    expect(calculateCumulativeGpaFromHistory(allCourses)).toBe(3.4);
-  });
-
-  it('should be equivalent to calculateSemesterGpa', () => {
-    const courses = [
-      { grade: 'D', credits: 4 },
-      { grade: 'M', credits: 3 },
-    ];
-    
-    const semesterResult = calculateSemesterGpa(courses);
-    const cumulativeResult = calculateCumulativeGpaFromHistory(courses);
-    
-    expect(semesterResult).toBe(cumulativeResult);
+    expect(calculateSemesterGpa(allCourses)).toBe(3.4);
   });
 
   it('should handle large course histories', () => {
@@ -218,7 +205,7 @@ describe('calculateCumulativeGpaFromHistory', () => {
     }));
     
     // Half D (4.0), half M (3.2): average = 3.6
-    expect(calculateCumulativeGpaFromHistory(largeCourseList)).toBe(3.6);
+    expect(calculateSemesterGpa(largeCourseList)).toBe(3.6);
   });
 });
 

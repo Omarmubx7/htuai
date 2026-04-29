@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
-import { calculateCumulativeGpaFromHistory, getClassification } from "@/lib/grading";
+import { calculateSemesterGpa, getClassification } from "@/lib/grading";
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -163,7 +163,22 @@ export async function GET(req: NextRequest) {
             credits: c.credits
         })));
 
-        const cgpa = calculateCumulativeGpaFromHistory(allCourses);
+        let totalQualityPoints = 0;
+        let totalCredits = 0;
+
+        for (const course of allCourses) {
+            const points = calculateSemesterGpa([course]) * course.credits; // Individual points
+            totalQualityPoints += points;
+            totalCredits += course.credits;
+        }
+
+        // Add history
+        if (profile?.previous_gpa && profile?.previous_credits) {
+            totalQualityPoints += (profile.previous_gpa * profile.previous_credits);
+            totalCredits += profile.previous_credits;
+        }
+
+        const cgpa = totalCredits > 0 ? Math.round((totalQualityPoints / totalCredits) * 100) / 100 : 0;
         const classificationObj = getClassification(cgpa);
         const classification = classificationObj.label;
 
