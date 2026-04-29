@@ -153,7 +153,8 @@ export async function GET(req: NextRequest) {
             quests,
             progress,
             curriculum,
-            rules
+            rules,
+            calendarEvents
         ] = await Promise.all([
             prisma.semester.findMany({
                 where: { user_id: user.id },
@@ -182,7 +183,15 @@ export async function GET(req: NextRequest) {
                 }
             }),
             getCurriculum(),
-            getCurriculumRules()
+            getCurriculumRules(),
+            prisma.calendarEvent.findMany({
+                where: {
+                    user_id: user.id,
+                    start_datetime: { gte: todayStart }
+                },
+                orderBy: { start_datetime: 'asc' },
+                take: 20
+            })
         ]);
 
         const gamification = await handleDailyGamificationXP(user, todayStart);
@@ -222,15 +231,6 @@ export async function GET(req: NextRequest) {
         const nextWeek = new Date(todayStart);
         nextWeek.setDate(nextWeek.getDate() + 7);
 
-        const calendarEvents = await prisma.calendarEvent.findMany({
-            where: {
-                user_id: user.id,
-                start_datetime: { gte: todayStart }
-            },
-            orderBy: { start_datetime: 'asc' },
-            take: 20
-        });
-
         const derivedExams: UpcomingEventLike[] = [];
         for (const sem of semesters) {
             for (const course of sem.courses) {
@@ -255,8 +255,8 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        let combinedEvents: UpcomingEventLike[] = [...calendarEvents, ...derivedExams]
-            .toSorted((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime());
+        const combinedEvents: UpcomingEventLike[] = [...calendarEvents, ...derivedExams]
+            .sort((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime());
 
         const nextWeekEvents = combinedEvents.filter(e => new Date(e.start_datetime) <= nextWeek);
         let upcomingEvents = nextWeekEvents.length > 0 ? nextWeekEvents.slice(0, 5) : combinedEvents.slice(0, 5);
@@ -273,7 +273,7 @@ export async function GET(req: NextRequest) {
             } catch { /* ok */ }
 
             const creditMap = buildCourseCreditMap(curriculum);
-            completedCreditsFromTracker = completedList.reduce((total, entry) => {
+            completedCreditsFromTracker = (completedList || []).reduce((total, entry) => {
                 const code = getCompletedEntryCode(entry);
                 if (!code) return total;
                 return total + (creditMap.get(code) ?? 3);
@@ -302,11 +302,11 @@ export async function GET(req: NextRequest) {
 
         const studyTrends = Array.from(dayTrend.entries())
             .map(([date, minutes]) => ({ date, minutes }))
-            .toSorted((a, b) => a.date.localeCompare(b.date))
+            .sort((a, b) => a.date.localeCompare(b.date))
             .slice(-7);
 
         const neglectedCourse = currentSemester?.courses.length 
-            ? Array.from(courseMap.values()).toSorted((a, b) => a.total - b.total)[0]
+            ? Array.from(courseMap.values()).sort((a, b) => a.total - b.total)[0]
             : null;
 
         const total_study_minutes = studySessions.reduce((acc, s) => acc + s.duration_minutes, 0);
@@ -399,6 +399,9 @@ export async function GET(req: NextRequest) {
         });
     } catch (error) {
         console.error("GET Planner Summary Error:", error);
-        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+        if (error instanceof Error) {
+            console.error("Stack:", error.stack);
+        }
+        return NextResponse.json({ error: "Server Error", details: error instanceof Error ? error.message : "Unknown" }, { status: 500 });
     }
 }
