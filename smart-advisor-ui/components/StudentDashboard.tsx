@@ -131,9 +131,14 @@ function StudentDashboard({
 
     // ── Category CH breakdown for "What's Next" ──────────────────────
     const categories = useMemo(() => {
-        const sumCH = (courses: Course[], cap?: number) => {
-            if (!cap) return courses.reduce((s, c) => s + c.ch, 0);
-            return cap * (courses[0]?.ch || 3); // assumes constant CH per elective slot
+        const calculateTotalCH = (courses: Course[], cap?: number) => {
+            if (cap !== undefined) {
+                // For electives, the total CH is the cap * average CH (usually 3)
+                // But let's be more precise: use the CH of the first course in the list if available
+                const defaultCH = courses.length > 0 ? courses[0].ch : 3;
+                return cap * defaultCH;
+            }
+            return courses.reduce((s, c) => s + c.ch, 0);
         };
 
         const countDoneCH = (courses: Course[], cap?: number) => {
@@ -170,7 +175,7 @@ function StudentDashboard({
         return catData
             .filter(cat => cat.courses.length > 0 || (cat.cap && cat.cap > 0))
             .map(cat => {
-                const totalCH = sumCH(cat.courses, cat.cap);
+                const totalCH = calculateTotalCH(cat.courses, cat.cap);
                 const doneCH = countDoneCH(cat.courses, cat.cap);
                 const isElectiveCategory = cat.label.includes("Elective");
                 const totalCount = cat.cap ?? cat.courses.length;

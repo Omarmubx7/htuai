@@ -217,9 +217,17 @@ function CourseCard({
                     <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
                     {course.framework}
                 </span>
-                <div data-testid="status-icon" className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors">
+                <button
+                    data-testid="status-icon"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // Future: open details modal here
+                    }}
+                    title="Course Prerequisites & Status"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"
+                >
                     <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
-                </div>
+                </button>
             </div>
 
             {/* Course Name */}

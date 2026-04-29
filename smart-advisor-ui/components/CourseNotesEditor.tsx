@@ -308,7 +308,7 @@ export default function CourseNotesEditor({
       <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex flex-col">
-            <h1 className="text-sm sm:text-lg font-black tracking-tight text-white uppercase italic truncate max-w-[180px] sm:max-w-md">
+            <h1 className="text-sm sm:text-lg font-black tracking-tight text-white italic truncate max-w-[180px] sm:max-w-md">
               {courseTitle}
             </h1>
             <div className="flex items-center gap-2 mt-0.5">

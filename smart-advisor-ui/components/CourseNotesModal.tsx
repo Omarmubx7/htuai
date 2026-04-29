@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
@@ -87,12 +88,17 @@ export default function CourseNotesModal({
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         className="relative w-full h-[100dvh] sm:h-[90vh] sm:max-w-5xl bg-black sm:border sm:border-white/10 rounded-none sm:rounded-[2.5rem] overflow-hidden sm:shadow-2xl flex flex-col"
                     >
-                        <button
-                            onClick={onClose}
-                            className="absolute top-6 right-8 z-50 p-2 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+                        <div className="absolute top-6 right-8 z-50 flex items-center gap-2">
+                            <Link href="/" className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/40 hover:text-white" title="Back to Dashboard">
+                                <ArrowLeft className="w-4 h-4" />
+                            </Link>
+                            <button
+                                onClick={onClose}
+                                className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                             {loading ? (

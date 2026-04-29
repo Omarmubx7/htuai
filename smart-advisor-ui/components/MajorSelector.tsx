@@ -7,6 +7,7 @@ import Image from "next/image";
 
 interface MajorSelectorProps {
     onSelect: (key: MajorKey) => void;
+    onCancel?: () => void;
 }
 
 const container = {
@@ -110,7 +111,7 @@ function MajorCard({ major, onSelect }: { major: typeof MAJORS[number]; onSelect
     );
 }
 
-export default function MajorSelector({ onSelect }: MajorSelectorProps) {
+export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps) {
     return (
         <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
 
@@ -140,11 +141,23 @@ export default function MajorSelector({ onSelect }: MajorSelectorProps) {
                         </span>
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-none">
-                        Setup Your Academic Profile
+                        {onCancel ? "Switch Your Major" : "Setup Your Academic Profile"}
                     </h1>
                     <p className="text-white/50 text-sm sm:text-base max-w-md mx-auto">
-                        This is permanent — your courses and progress are tied to it.
+                        {onCancel 
+                            ? "Selecting a new major will update your curriculum roadmap immediately."
+                            : "This is permanent — your courses and progress are tied to it."
+                        }
                     </p>
+
+                    {onCancel && (
+                        <button 
+                            onClick={onCancel}
+                            className="mt-6 px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest"
+                        >
+                            Cancel & Go Back
+                        </button>
+                    )}
                 </motion.div>
 
                 {/* School of Computing Section */}

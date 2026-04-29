@@ -292,12 +292,25 @@ export default function HomeClient() {
         if (status === "loading") return;
         if (status === "unauthenticated") {
             setAppState("landing");
-        } else if (status === "authenticated" && session?.user) {
+        } else if (status === "authenticated" && session?.user && appState !== "changing-major") {
             const sid = session.user.student_id || session.user.name;
             if (sid) {
-                void loadProfile(sid);
-            } else {
-                setAppState("major-select");
+                const savedMajor = safeStorage.get(`major-${sid}`);
+                if (savedMajor) {
+                    setMajor(savedMajor as MajorKey);
+                    setAppState("course-tracker");
+                } else if (appState === "landing" || appState === "login" || appState === "checking") {
+                    loadProfile(sid).then(profile => {
+                        if (profile?.major) {
+                            setMajor(profile.major);
+                            setAppState("course-tracker");
+                        } else {
+                            setAppState("major-select");
+                        }
+                    }).catch(() => {
+                        setAppState("major-select");
+                    });
+                }
             }
         }
     }, [status, session, loadProfile]);
@@ -332,7 +345,10 @@ export default function HomeClient() {
 
             {appState === "major-select" && (
                 <motion.div key="major-select" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <MajorSelector onSelect={handleMajorSelect} />
+                    <MajorSelector 
+                        onSelect={handleMajorSelect} 
+                        onCancel={major ? () => setAppState("course-tracker") : undefined} 
+                    />
                 </motion.div>
             )}
 

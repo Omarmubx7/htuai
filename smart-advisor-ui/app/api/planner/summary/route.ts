@@ -137,11 +137,43 @@ export async function GET(req: NextRequest) {
 
     try {
         const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] },
-            include: { gamification_profile: true }
-        }) as PlannerSummaryUser | null;
+            where: {
+                OR: [
+                    { email: email || undefined },
+                    { student_id: studentId || undefined }
+                ]
+            },
+            include: {
+                studentProfile: true,
+                gamification_profile: true
+            }
+        }) as PlannerSummaryUser & { studentProfile: any } | null;
 
-        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        if (!user) {
+            return NextResponse.json({ error: "User profile not found in database" }, { status: 404 });
+        }
+
+        // Get profile via relation or fallback lookup
+        const profile = user.studentProfile || await prisma.studentProfile.findFirst({
+            where: {
+                OR: [
+                    { user_id: user.id },
+                    { student_id: user.student_id || studentId }
+                ]
+            }
+        });
+
+        if (!profile) {
+            return NextResponse.json({ 
+                error: "No student profile configured",
+                needs_onboarding: true,
+                user: {
+                    name: user.name,
+                    email: user.email,
+                    student_id: user.student_id || studentId
+                }
+            }, { status: 200 });
+        }
 
         // 1. Get current local time in Jordan
         // We use Intl to get current time in Asia/Amman, then reset to start of day
@@ -151,11 +183,6 @@ export async function GET(req: NextRequest) {
 
         // 2. Summarize Gamification details & Handle Daily Open XP (+10 XP)
         const gamification = await handleDailyGamificationXP(user, todayStart);
-
-        // 3. Fetch Student Profile for Major & Previous History
-        const profile = await prisma.studentProfile.findUnique({
-            where: { student_id: user.student_id || "" }
-        });
 
         // 4. Calculate live CGPA
         const semesters = await prisma.semester.findMany({
@@ -327,7 +354,7 @@ export async function GET(req: NextRequest) {
         const progress = await prisma.studentProgress.findUnique({
             where: { 
                 student_id_major: { 
-                    student_id: user.student_id || "", 
+                    student_id: profile.student_id || "", 
                     major: profile?.major || "" 
                 } 
             }
@@ -363,7 +390,7 @@ export async function GET(req: NextRequest) {
             if (profile?.previous_credits && Number(profile.previous_credits) > 200) {
                 // Reset to actual computed completed CH from tracker to avoid inflated numbers
                 await prisma.studentProfile.update({
-                    where: { student_id: user.student_id || "" },
+                    where: { student_id: profile.student_id || "" },
                     data: { previous_credits: completedCreditsFromTracker }
                 });
                 // reflect change locally for the rest of this response
@@ -601,7 +628,7 @@ export async function GET(req: NextRequest) {
             user: {
                 name: user.name,
                 email: user.email,
-                student_id: user.student_id,
+                student_id: profile.student_id,
                 role: (user as Record<string, unknown>).role || "student",
                 image: user.image,
                 major: profile?.major || "undecided"

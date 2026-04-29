@@ -85,7 +85,15 @@ export async function getSuggestedCourses(params: {
         else if (line === 'T:') mode = 'T';
         else if (mode === 'R') {
             const parts = line.split('|');
-            if (parts.length >= 2) recommendations.push({ code: parts[0].trim(), reason: parts.slice(1).join('|').trim() });
+            if (parts.length >= 2) {
+                const code = parts[0].trim();
+                const course = candidateCourses.find(c => c.code === code);
+                recommendations.push({ 
+                    code, 
+                    name: course ? course.name : code,
+                    reason: parts.slice(1).join('|').trim() 
+                });
+            }
         } else if (mode === 'T') {
             tips.push(line);
         }
