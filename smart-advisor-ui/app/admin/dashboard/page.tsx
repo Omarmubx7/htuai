@@ -126,7 +126,7 @@ const PROGRESS_COLORS = [
     { bg: 'rgba(16,185,129,0.15)', bar: 'linear-gradient(180deg, #34d399, #10b981)', text: '#6ee7b7' },
 ];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const AUTO_REFRESH_INTERVAL = 30_000;
+const AUTO_REFRESH_INTERVAL = 10_000;
 
 /* ═══════════════════════════════════════════════════════════════════
    Helpers
@@ -192,11 +192,13 @@ function DashboardInner() {
     const [majorFilter, setMajorFilter] = useState<string>('all');
 
     const fetchData = useCallback(async (silent = false) => {
+        if (!adminSecret) return;
         if (!silent) setLoading(true);
         else setRefreshing(true);
         try {
             const res = await fetch('/api/admin/stats', {
-                headers: { 'x-admin-secret': adminSecret }
+                headers: { 'x-admin-secret': adminSecret },
+                cache: 'no-store',
             });
             const data = await res.json();
             setStats(data);
@@ -209,7 +211,20 @@ function DashboardInner() {
     useEffect(() => {
         const timer = setTimeout(() => fetchData(), 0);
         const interval = setInterval(() => fetchData(true), AUTO_REFRESH_INTERVAL);
-        return () => { clearTimeout(timer); clearInterval(interval); };
+        const refreshOnFocus = () => fetchData(true);
+        const refreshOnVisible = () => {
+            if (document.visibilityState === 'visible') fetchData(true);
+        };
+
+        window.addEventListener('focus', refreshOnFocus);
+        document.addEventListener('visibilitychange', refreshOnVisible);
+
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+            window.removeEventListener('focus', refreshOnFocus);
+            document.removeEventListener('visibilitychange', refreshOnVisible);
+        };
     }, [fetchData]);
 
     const filteredStudents = useMemo(() => {

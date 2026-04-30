@@ -429,9 +429,9 @@ export async function GET(request: NextRequest) {
             studentData: academic.studentRealCH,
             adminLogs,
             aiUsage,
-        });
+        }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
     } catch (e) {
         console.error('Stats API Error:', e);
-        return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500, headers: { 'Cache-Control': 'no-store, max-age=0' } });
     }
 }

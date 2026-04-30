@@ -181,14 +181,23 @@ async function handleScheduleRequest(request: NextRequest, session: Awaited<Retu
         // PERSIST TO DATABASE if semesterId is provided
         if (semesterId && parsed && status === 'success') {
             try {
-                await prisma.semester.update({
+                const existingSemester = await prisma.semester.findFirst({
                     where: { id: semesterId, user_id: userId || -1 },
-                    data: {
-                        study_schedule: parsed.weeklyPlan || [],
-                        ai_exam_tips: parsed.examTips || []
-                    }
+                    select: { id: true },
                 });
-                console.log(`[AI] Persisted schedule to semester ${semesterId}`);
+
+                if (existingSemester) {
+                    await prisma.semester.update({
+                        where: { id: existingSemester.id },
+                        data: {
+                            study_schedule: parsed.weeklyPlan || [],
+                            ai_exam_tips: parsed.examTips || []
+                        }
+                    });
+                    console.log(`[AI] Persisted schedule to semester ${semesterId}`);
+                } else {
+                    console.warn(`[AI] Skipped schedule persistence for unauthorized or missing semester ${semesterId}`);
+                }
             } catch (dbError) {
                 console.error("[AI] Failed to persist schedule to DB", dbError);
             }

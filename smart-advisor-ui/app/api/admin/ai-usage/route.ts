@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     try {
         // Get days from query params, default to 7
         const url = new URL(request.url);
-        const days = parseInt(url.searchParams.get('days') || '7', 10);
+        const days = Number.parseInt(url.searchParams.get('days') || '7', 10);
 
         const stats = await getAIUsageStats(days);
 
@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
         }
 
-        return NextResponse.json(stats);
+        return NextResponse.json(stats, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
     } catch (error) {
         console.error('Error fetching AI usage stats:', error);
-        return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500, headers: { 'Cache-Control': 'no-store, max-age=0' } });
     }
 }
