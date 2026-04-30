@@ -1,8 +1,0 @@
-{
-  "buildCommand": "cd smart-advisor-ui && npm install && npx prisma generate && npm run build",
-  "outputDirectory": "smart-advisor-ui/.next",
-  "rootDirectory": "smart-advisor-ui",
-  "env": {
-    "NEXTAUTH_URL": "https://your-vercel-url.vercel.app"
-  }
-}
