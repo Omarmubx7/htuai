@@ -19,7 +19,14 @@ interface AIUsageLogData {
  */
 export async function logAIUsage(data: AIUsageLogData): Promise<void> {
   try {
-    await prisma.aIUsageLog.create({
+    console.log('[AI Logger] Logging usage:', {
+      endpoint: data.endpoint,
+      userId: data.userId,
+      tokens: { input: data.inputTokens, output: data.outputTokens, total: data.totalTokens },
+      status: data.status,
+    });
+
+    const result = await prisma.aIUsageLog.create({
       data: {
         user_id: data.userId,
         endpoint: data.endpoint,
@@ -34,9 +41,15 @@ export async function logAIUsage(data: AIUsageLogData): Promise<void> {
         metadata: data.metadata || {},
       },
     });
+
+    console.log('[AI Logger] Successfully logged entry with ID:', result.id);
   } catch (error) {
-    // Silently fail - don't break the main flow if logging fails
-    console.error('Failed to log AI usage:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[AI Logger] FAILED to log AI usage:', {
+      endpoint: data.endpoint,
+      error: errorMsg,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
   }
 }
 
