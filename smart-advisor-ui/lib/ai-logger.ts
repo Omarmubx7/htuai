@@ -11,7 +11,7 @@ interface AIUsageLogData {
   status?: 'success' | 'error' | 'timeout';
   errorMessage?: string;
   responseTimeMs?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -116,15 +116,15 @@ export async function getAIUsageStats(days: number = 7) {
       totalCalls,
       callsByEndpoint: callsByEndpoint.map(item => ({
         endpoint: item.endpoint,
-        count: item._count,
+        count: item._count._all,
       })),
       callsByModel: callsByModel.map(item => ({
         model: item.model_used || 'unknown',
-        count: item._count,
+        count: item._count._all,
       })),
       callsByStatus: callsByStatus.map(item => ({
         status: item.status,
-        count: item._count,
+        count: item._count._all,
       })),
       totalTokens: {
         input: totalTokens._sum.input_tokens || 0,

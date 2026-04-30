@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { getSuggestedCourses } from "@/lib/groq";
 import { logAIUsage } from "@/lib/ai-logger";
-import { prisma } from "@/lib/prisma";
 
 type CandidateCourse = {
     code: string;
@@ -61,32 +60,39 @@ export async function POST(request: NextRequest) {
 
         let parsed: unknown = {};
         try {
-            const raw = await getSuggestedCourses({ major, completedCourses, candidateCourses });
-            parsed = JSON.parse(raw);
+            const { content, usage } = await getSuggestedCourses({ major, completedCourses, candidateCourses });
+
+            try {
+                parsed = JSON.parse(content);
+            } catch {
+                parsed = { recommendations: [], tips: [], raw: content };
+            }
+
+            await logAIUsage({
+                userId,
+                endpoint: 'suggest-courses',
+                featureName: 'Course Suggestions',
+                modelUsed: usage.modelUsed,
+                inputTokens: usage.inputTokens,
+                outputTokens: usage.outputTokens,
+                totalTokens: usage.totalTokens,
+                status,
+                errorMessage,
+                responseTimeMs: Date.now() - startTime,
+                metadata: {
+                    major,
+                    completedCoursesCount: completedCourses.length,
+                    candidateCoursesCount: candidateCourses.length,
+                },
+            });
         } catch {
             parsed = { recommendations: [], tips: [], raw: undefined };
         }
 
-        // Log the usage
-        await logAIUsage({
-            userId,
-            endpoint: 'suggest-courses',
-            featureName: 'Course Suggestions',
-            modelUsed: 'groq',
-            status,
-            errorMessage,
-            responseTimeMs: Date.now() - startTime,
-            metadata: {
-                major,
-                completedCoursesCount: completedCourses.length,
-                candidateCoursesCount: candidateCourses.length,
-            },
-        });
-
         return NextResponse.json({ result: parsed });
-    } catch (error: any) {
+    } catch (error: unknown) {
         status = 'error';
-        errorMessage = error?.message || String(error);
+        errorMessage = error instanceof Error ? error.message : String(error);
         console.error("suggest-courses error", error);
 
         // Log the error

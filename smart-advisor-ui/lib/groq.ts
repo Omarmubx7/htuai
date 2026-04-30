@@ -1,6 +1,18 @@
 import Groq from "groq-sdk";
 import { requireEnv } from "@/lib/env";
 
+type GroqUsage = {
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    modelUsed: string;
+};
+
+type GroqResult = {
+    content: string;
+    usage: GroqUsage;
+};
+
 type ScheduleCourse = {
     code: string;
     name: string;
@@ -41,9 +53,10 @@ export async function getSuggestedCourses(params: {
     major: string;
     completedCourses: string[];
     candidateCourses: Array<{ code: string; name: string; credits: number; prereq?: string }>;
-}) {
+}): Promise<GroqResult> {
     const { major, candidateCourses } = params;
     const client = getGroqClient();
+    const modelUsed = "llama-3.1-8b-instant";
 
     const prompt = [
         `You are an advisor for an HTU ${major} student. Recommend 5 courses.`,
@@ -62,7 +75,7 @@ export async function getSuggestedCourses(params: {
     console.log("Prompt:", prompt);
 
     const completion = await client.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        model: modelUsed,
         temperature: 0.2,
         max_tokens: 500,
         messages: [
@@ -99,7 +112,15 @@ export async function getSuggestedCourses(params: {
         }
     }
 
-    return JSON.stringify({ recommendations, tips });
+    return {
+        content: JSON.stringify({ recommendations, tips }),
+        usage: {
+            inputTokens: completion.usage?.prompt_tokens ?? 0,
+            outputTokens: completion.usage?.completion_tokens ?? 0,
+            totalTokens: completion.usage?.total_tokens ?? 0,
+            modelUsed,
+        },
+    };
 }
 
 export async function getStudySchedule(params: {
@@ -110,9 +131,10 @@ export async function getStudySchedule(params: {
     semesterEndDate?: string | null;
     courses: ScheduleCourse[];
     weeklyHours: number;
-}) {
+}): Promise<GroqResult> {
     const { major, semesterType, semesterName, semesterStartDate, semesterEndDate, courses, weeklyHours } = params;
     const client = getGroqClient();
+    const modelUsed = "llama-3.1-8b-instant";
     const semesterLabel = formatSemesterLabel(semesterType, semesterName);
     const courseSummary = formatCourseSummary(courses);
 
@@ -135,7 +157,7 @@ export async function getStudySchedule(params: {
     console.log("Prompt:", prompt);
 
     const completion = await client.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        model: modelUsed,
         temperature: 0.2,
         max_tokens: 800,
         messages: [
@@ -170,5 +192,13 @@ export async function getStudySchedule(params: {
     }
 
     const weeklyPlan = Array.from(weeklyPlanMap.entries()).map(([day, sessions]) => ({ day, sessions }));
-    return JSON.stringify({ weeklyPlan, examTips });
+    return {
+        content: JSON.stringify({ weeklyPlan, examTips }),
+        usage: {
+            inputTokens: completion.usage?.prompt_tokens ?? 0,
+            outputTokens: completion.usage?.completion_tokens ?? 0,
+            totalTokens: completion.usage?.total_tokens ?? 0,
+            modelUsed,
+        },
+    };
 }

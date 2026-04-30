@@ -88,44 +88,43 @@ function parseScheduleResponse(raw: string) {
     }
 }
 
-export async function POST(request: NextRequest) {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+function parseScheduleInput(body: ScheduleRequest & { semesterId?: number }) {
+    const semesterId = body.semesterId;
+    const major = typeof body.major === "string" ? body.major : "";
+    const semesterType = typeof body.semesterType === "string" ? body.semesterType : "";
+    const semesterName = typeof body.semesterName === "string" ? body.semesterName : "";
+    const semesterStartDate = typeof body.semesterStartDate === "string" ? body.semesterStartDate : null;
+    const semesterEndDate = typeof body.semesterEndDate === "string" ? body.semesterEndDate : null;
+    const weeklyHours =
+        typeof body.weeklyHours === "number" && Number.isFinite(body.weeklyHours)
+            ? Math.max(4, Math.min(35, body.weeklyHours))
+            : 14;
+    const courses = Array.isArray(body.courses)
+        ? body.courses.filter(
+            (c: unknown): c is ScheduleCourse =>
+                typeof c === "object" &&
+                c !== null &&
+                typeof (c as ScheduleCourse).code === "string" &&
+                typeof (c as ScheduleCourse).name === "string" &&
+                typeof (c as ScheduleCourse).credits === "number"
+        )
+        : [];
 
-    const startTime = Date.now();
+    return { semesterId, major, semesterType, semesterName, semesterStartDate, semesterEndDate, weeklyHours, courses };
+}
+
+async function handleScheduleRequest(request: NextRequest, session: Awaited<ReturnType<typeof getServerSession>>, startTime: number) {
     let userId: number | null = null;
     let status: 'success' | 'error' | 'timeout' = 'success';
     let errorMessage: string | undefined;
 
     try {
-        // Get user ID for logging
         if (session.user?.db_id) {
             userId = session.user.db_id;
         }
 
         const body = await request.json() as ScheduleRequest & { semesterId?: number };
-        const semesterId = body.semesterId;
-        const major = typeof body.major === "string" ? body.major : "";
-        const semesterType = typeof body.semesterType === "string" ? body.semesterType : "";
-        const semesterName = typeof body.semesterName === "string" ? body.semesterName : "";
-        const semesterStartDate = typeof body.semesterStartDate === "string" ? body.semesterStartDate : null;
-        const semesterEndDate = typeof body.semesterEndDate === "string" ? body.semesterEndDate : null;
-        const weeklyHours =
-            typeof body.weeklyHours === "number" && Number.isFinite(body.weeklyHours)
-                ? Math.max(4, Math.min(35, body.weeklyHours))
-                : 14;
-        const courses = Array.isArray(body.courses)
-            ? body.courses.filter(
-                (c: unknown): c is ScheduleCourse =>
-                    typeof c === "object" &&
-                    c !== null &&
-                    typeof (c as ScheduleCourse).code === "string" &&
-                    typeof (c as ScheduleCourse).name === "string" &&
-                    typeof (c as ScheduleCourse).credits === "number"
-            )
-            : [];
+        const { semesterId, major, semesterType, semesterName, semesterStartDate, semesterEndDate, weeklyHours, courses } = parseScheduleInput(body);
 
         if (!major || courses.length === 0) {
             status = 'error';
@@ -141,9 +140,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        let parsed: any;
+        let parsed: { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown };
         try {
-            const raw = await getStudySchedule({
+            const { content, usage } = await getStudySchedule({
                 major,
                 semesterType,
                 semesterName,
@@ -152,7 +151,26 @@ export async function POST(request: NextRequest) {
                 courses,
                 weeklyHours,
             });
-            parsed = parseScheduleResponse(raw);
+            parsed = parseScheduleResponse(content);
+
+            await logAIUsage({
+                userId,
+                endpoint: 'generate-schedule',
+                featureName: 'Study Schedule Generation',
+                modelUsed: usage.modelUsed,
+                inputTokens: usage.inputTokens,
+                outputTokens: usage.outputTokens,
+                totalTokens: usage.totalTokens,
+                status,
+                errorMessage,
+                responseTimeMs: Date.now() - startTime,
+                metadata: {
+                    major,
+                    coursesCount: courses.length,
+                    weeklyHours,
+                    semesterId
+                },
+            });
         } catch (error) {
             console.error("generate-schedule provider error", error);
             status = 'error';
@@ -176,27 +194,10 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Log the usage
-        await logAIUsage({
-            userId,
-            endpoint: 'generate-schedule',
-            featureName: 'Study Schedule Generation',
-            modelUsed: 'groq',
-            status,
-            errorMessage,
-            responseTimeMs: Date.now() - startTime,
-            metadata: {
-                major,
-                coursesCount: courses.length,
-                weeklyHours,
-                semesterId
-            },
-        });
-
         return NextResponse.json({ result: parsed });
-    } catch (error: any) {
+    } catch (error: unknown) {
         status = 'error';
-        errorMessage = error?.message || String(error);
+        errorMessage = error instanceof Error ? error.message : String(error);
         console.error("generate-schedule error", error);
 
         // Log the error
@@ -214,4 +215,13 @@ export async function POST(request: NextRequest) {
             details: errorMessage
         }, { status: 500 });
     }
+}
+
+export async function POST(request: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return handleScheduleRequest(request, session, Date.now());
 }
