@@ -7,6 +7,7 @@ import LandingPage from "@/components/LandingPage";
 import { Course, CourseData, CurriculumRules } from "@/types";
 import { Settings2, Bot } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -404,11 +405,11 @@ export default function HomeClient() {
 
                                         {profileMenuOpen && (
                                             <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-black/90 border border-black/5 dark:border-white/6 rounded-xl p-2 shadow-xl z-50">
-                                                <a href="/" onClick={(e) => { e.preventDefault(); setAppState("course-tracker"); setProfileMenuOpen(false); }} className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Course Tracker</a>
-                                                <a href="/planner" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Semester Planner</a>
-                                                <a href="/planner/settings" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Profile & Settings</a>
+                                                <button type="button" onClick={() => { setAppState("course-tracker"); setProfileMenuOpen(false); }} className="block w-full text-left px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Course Tracker</button>
+                                                <Link href="/planner" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Semester Planner</Link>
+                                                <Link href="/planner/settings" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Profile & Settings</Link>
                                                 <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
-                                                <button onClick={() => void signOut()} className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">Sign out</button>
+                                                <button onClick={() => void signOut({ callbackUrl: '/' })} className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">Sign out</button>
                                             </div>
                                         )}
                                     </div>

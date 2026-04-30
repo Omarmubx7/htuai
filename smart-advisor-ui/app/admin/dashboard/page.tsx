@@ -133,7 +133,10 @@ const AUTO_REFRESH_INTERVAL = 10_000;
    ═══════════════════════════════════════════════════════════════════ */
 
 function formatMajor(key: string) {
-    return key.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return key
+        .split('_')
+        .map((part) => part ? part.charAt(0).toUpperCase() + part.slice(1) : part)
+        .join(' ');
 }
 
 function timeAgo(dateStr: string) {
@@ -149,6 +152,62 @@ function timeAgo(dateStr: string) {
 function pctChange(current: number, previous: number) {
     if (previous === 0) return current > 0 ? 100 : 0;
     return Math.round(((current - previous) / previous) * 100);
+}
+
+function getProgressBarColor(pct: number) {
+    if (pct >= 75) return '#10b981';
+    if (pct >= 50) return '#3b82f6';
+    if (pct >= 25) return '#f59e0b';
+    return '#ef4444';
+}
+
+function getStatusColor(status?: string) {
+    if (status === 'success') return '#10b981';
+    if (status === 'error') return '#ef4444';
+    return '#f59e0b';
+}
+
+function getStatusBadgeClass(status?: string) {
+    if (status === 'success') return 'text-emerald-400 bg-emerald-500/10';
+    if (status === 'error') return 'text-rose-400 bg-rose-500/10';
+    return 'text-amber-400 bg-amber-500/10';
+}
+
+function getLogTypeBadgeClass(type?: string) {
+    if (type === 'error') return 'text-rose-400 bg-rose-500/10';
+    if (type === 'warning') return 'text-amber-400 bg-amber-500/10';
+    return 'text-cyan-400 bg-cyan-500/10';
+}
+
+function getProgressBucketIndex(pct: number) {
+    if (pct <= 25) return 0;
+    if (pct <= 50) return 1;
+    if (pct <= 75) return 2;
+    return 3;
+}
+
+function calculateMajorStats(major: string, students: StudentRow[]) {
+    const ms = students.filter((student) => student.major === major);
+    const totalCourses = ms.reduce((sum, student) => sum + student.count, 0);
+    const totalCH = ms.reduce((sum, student) => sum + (student.ch ?? student.count * 3), 0);
+    const chValues = ms.map((student) => student.ch ?? student.count * 3);
+    const buckets: [number, number, number, number] = [0, 0, 0, 0];
+    const majorGoal = ms[0]?.goal || 135;
+
+    for (const ch of chValues) {
+        const pct = Math.min((ch / majorGoal) * 100, 100);
+        buckets[getProgressBucketIndex(pct)]++;
+    }
+
+    return {
+        count: ms.length,
+        avgCourses: ms.length > 0 ? Math.round(totalCourses / ms.length) : 0,
+        avgCH: ms.length > 0 ? Math.round(totalCH / ms.length) : 0,
+        avgProgress: ms.length > 0 ? Math.min(Math.round((totalCH / ms.length / majorGoal) * 100), 100) : 0,
+        maxCH: chValues.length > 0 ? Math.max(...chValues) : 0,
+        minCH: chValues.length > 0 ? Math.min(...chValues) : 0,
+        progressBuckets: buckets,
+    };
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -182,19 +241,19 @@ export default function Dashboard() {
 function DashboardInner() {
     const adminSecret = useAdminSecret();
     const [stats, setStats] = useState<Stats | null>(null);
-    const [loading, setLoading] = useState(true);
+        const [loading, setLoading] = useState(false);
     const [tab, setTab] = useState<TabKey>('overview');
     const [refreshing, setRefreshing] = useState(false);
     const [lastFetched, setLastFetched] = useState<Date | null>(null);
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('count');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-    const [majorFilter, setMajorFilter] = useState<string>('all');
+        const [majorFilter, setMajorFilter] = useState<string>('all');
 
     const fetchData = useCallback(async (silent = false) => {
         if (!adminSecret) return;
-        if (!silent) setLoading(true);
-        else setRefreshing(true);
+        if (silent) setRefreshing(true);
+        else setLoading(true);
         try {
             const res = await fetch('/api/admin/stats', {
                 headers: { 'x-admin-secret': adminSecret },
@@ -238,7 +297,9 @@ function DashboardInner() {
         list.sort((a, b) => {
             const getVal = (s: StudentRow) => sortKey === 'ch' ? (s.ch ?? s.count * 3) : s[sortKey];
             const av = getVal(a), bv = getVal(b);
-            const cmp = typeof av === 'string' ? av.localeCompare(bv as string) : (av as number) - (bv as number);
+            const cmp = typeof av === 'string' && typeof bv === 'string'
+                ? av.localeCompare(bv)
+                : Number(av) - Number(bv);
             return sortDir === 'asc' ? cmp : -cmp;
         });
         return list;
@@ -258,7 +319,7 @@ function DashboardInner() {
     const maxTraffic = Math.max(...stats.trafficByDay.map(d => d.count), 1);
     const totalDeviceCount = (Array.isArray(stats.deviceBreakdown) ? stats.deviceBreakdown : []).reduce((s, d: DeviceEntry) => s + d.count, 0) || 1;
     const weekChange = pctChange(stats.thisWeekVisits, stats.lastWeekVisits);
-    const allMajorKeys = Object.keys(stats.majorCounts).sort();
+    const allMajorKeys = Object.keys(stats.majorCounts).sort((a, b) => a.localeCompare(b));
 
     const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
         { key: 'overview', label: 'Overview', icon: <BarChart3 className="w-3.5 h-3.5" /> },
@@ -273,11 +334,11 @@ function DashboardInner() {
 
             {/* Ambient effects */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[1400px] h-[800px]"
+                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-350 h-200"
                     style={{ background: 'radial-gradient(ellipse 50% 35% at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 70%)' }} />
-                <div className="absolute -right-40 top-1/3 w-[600px] h-[600px]"
+                <div className="absolute -right-40 top-1/3 w-150 h-150"
                     style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%)' }} />
-                <div className="absolute -left-40 bottom-1/4 w-[500px] h-[500px]"
+                <div className="absolute -left-40 bottom-1/4 w-125 h-125"
                     style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.03) 0%, transparent 70%)' }} />
                 {/* Grid overlay */}
                 <div className="absolute inset-0 opacity-[0.015]"
@@ -307,7 +368,7 @@ function DashboardInner() {
                                 <span className="text-[10px] font-medium text-emerald-400/80">Live</span>
                             </div>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent">
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-linear-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent">
                             Platform Analytics
                         </h1>
                         <p className="text-white/25 text-xs mt-1.5 font-medium">
@@ -318,7 +379,7 @@ function DashboardInner() {
                         <ThemeToggle />
                         <button onClick={() => fetchData(true)} disabled={refreshing}
                             className="group flex items-center gap-2 text-[11px] font-medium text-white/30 hover:text-white/60 transition-all duration-300 px-4 py-2.5 rounded-xl
-                        border border-white/[0.06] hover:border-white/10 hover:shadow-lg hover:shadow-violet-500/5"
+                        border border-white/6 hover:border-white/10 hover:shadow-lg hover:shadow-violet-500/5"
                             style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
                             <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-500 ${refreshing ? 'animate-spin' : 'group-hover:rotate-90'}`} />
                             {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -330,13 +391,13 @@ function DashboardInner() {
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
                     className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     {/* Tabs */}
-                    <div className="flex gap-1 p-1 rounded-2xl border border-white/[0.06]"
+                    <div className="flex gap-1 p-1 rounded-2xl border border-white/6"
                         style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
                         {TABS.map(t => (
                             <button key={t.key} onClick={() => setTab(t.key)}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${tab === t.key
                                     ? 'bg-white text-black shadow-md shadow-white/10'
-                                    : 'text-white/30 hover:text-white/55 hover:bg-white/[0.03]'
+                                    : 'text-white/30 hover:text-white/55 hover:bg-white/3'
                                     }`}>
                                 {t.icon}{t.label}
                             </button>
@@ -344,7 +405,7 @@ function DashboardInner() {
                     </div>
 
                     {/* Major Filter */}
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.06]"
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/6"
                         style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
                         <Filter className="w-3.5 h-3.5 text-white/20" />
                         <select value={majorFilter} onChange={e => setMajorFilter(e.target.value)}
@@ -398,13 +459,14 @@ function DashboardInner() {
    Overview Tab
    ═══════════════════════════════════════════════════════════════════ */
 
-function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekChange }: {
+function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekChange }: Readonly<{
     stats: Stats; majors: [string, number][]; progress: [string, number][];
     maxProgress: number; maxTraffic: number; weekChange: number;
-}) {
+}>) {
     const animStudents = useCountUp(stats.totalStudents);
     const animVisitors = useCountUp(stats.totalVisitors);
     const animCourses = useCountUp(stats.totalCompletedCourses);
+    const weekBadge = weekChange === 0 ? undefined : { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 };
 
     return (
         <>
@@ -412,7 +474,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
                 <StatCard icon={<Users className="w-4 h-4" />} label="Total Students" value={animStudents} gradient="from-violet-500/20 to-purple-500/5" iconBg="#7c3aed" delay={0} />
                 <StatCard icon={<Eye className="w-4 h-4" />} label="Total Visits" value={animVisitors} gradient="from-blue-500/20 to-cyan-500/5" iconBg="#2563eb" delay={0.04}
-                    badge={weekChange !== 0 ? { value: `${weekChange > 0 ? '+' : ''}${weekChange}%`, positive: weekChange > 0 } : undefined} />
+                    badge={weekBadge} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.08} />
                 <StatCard icon={<BarChart3 className="w-4 h-4" />} label="Avg Progress" value={`${stats.avgWeightedProgress || 0}%`} gradient="from-rose-500/20 to-pink-500/5" iconBg="#e11d48" delay={0.12} />
                 <StatCard icon={<Flame className="w-4 h-4" />} label="Avg CGPA" value={(stats.avgCgpa || 0).toFixed(2)} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#10b981" delay={0.16} />
@@ -423,7 +485,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
             <GlassCard delay={0.1}>
                 <div className="flex items-center justify-between mb-6">
                     <CardHeader icon={<TrendingUp className="w-4 h-4" />} title="Visitor Traffic" iconColor="#60a5fa" />
-                    <span className="text-[10px] text-white/20 font-medium px-2.5 py-1 rounded-lg bg-white/[0.03]">Last 30 days</span>
+                    <span className="text-[10px] text-white/20 font-medium px-2.5 py-1 rounded-lg bg-white/3">Last 30 days</span>
                 </div>
                 {stats.trafficByDay.length === 0 ? <Empty text="No visitor data yet" /> : (
                     <AreaChart data={stats.trafficByDay} maxVal={maxTraffic} />
@@ -443,7 +505,8 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                     <CardHeader icon={<Activity className="w-4 h-4" />} title="Degree Progress" iconColor="#34d399" />
                     <div className="flex items-end gap-4 mt-4" style={{ height: 220 }}>
                         {progress.map(([range, count], i) => {
-                            const barH = maxProgress > 0 ? Math.max((count / maxProgress) * 170, count > 0 ? 10 : 0) : 0;
+                            const minBarH = count > 0 ? 10 : 0;
+                            const barH = maxProgress > 0 ? Math.max((count / maxProgress) * 170, minBarH) : 0;
                             const color = PROGRESS_COLORS[i];
                             return (
                                 <div key={range} className="flex-1 flex flex-col items-center justify-end h-full gap-2.5 group cursor-default">
@@ -491,7 +554,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                         {stats.topCourses.map((course, i) => (
                             <motion.div key={course.code} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 + i * 0.02 }}
-                                className="flex items-center gap-3 hover:bg-white/[0.025] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 group cursor-default">
+                                className="flex items-center gap-3 hover:bg-white/2.5 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 group cursor-default">
                                 <span className="text-[10px] font-mono text-white/15 w-5 shrink-0 tabular-nums">{i + 1}</span>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs text-white/55 truncate group-hover:text-white/70 transition-colors font-medium">{course.name}</p>
@@ -523,11 +586,11 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
    Students Tab
    ═══════════════════════════════════════════════════════════════════ */
 
-function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, toggleSort }: {
+function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, toggleSort }: Readonly<{
     students: StudentRow[]; total: number;
     search: string; setSearch: (s: string) => void;
     sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
-}) {
+}>) {
     const renderSortIcon = (col: SortKey) => {
         if (sortKey !== col) return <ChevronDown className="w-3 h-3 text-white/10" />;
         return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-violet-400/70" /> : <ChevronDown className="w-3 h-3 text-violet-400/70" />;
@@ -538,7 +601,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
                 <CardHeader icon={<Database className="w-4 h-4" />} title="All Students" iconColor="#a78bfa"
                     right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{students.length}/{total}</span>} />
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.06]"
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/6"
                     style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005))' }}>
                     <Search className="w-3.5 h-3.5 text-white/20" />
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)}
@@ -550,7 +613,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="border-b border-white/[0.04]">
+                        <tr className="border-b border-white/4">
                             <Th>#</Th>
                             <Th sortable onClick={() => toggleSort('student_id')}>Student ID {renderSortIcon('student_id')}</Th>
                             <Th sortable onClick={() => toggleSort('major')}>Major {renderSortIcon('major')}</Th>
@@ -564,11 +627,11 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                             const realCH = s.ch ?? s.count * 3;
                             const goal = s.goal || 135;
                             const pct = Math.min(Math.round((realCH / goal) * 100), 100);
-                            const barColor = pct >= 75 ? '#10b981' : pct >= 50 ? '#3b82f6' : pct >= 25 ? '#f59e0b' : '#ef4444';
+                            const barColor = getProgressBarColor(pct);
                             return (
                                 <motion.tr key={`${s.student_id}-${s.major}`}
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.008 }}
-                                    className="border-b border-white/[0.02] hover:bg-white/[0.015] transition-colors group">
+                                    className="border-b border-white/2 hover:bg-white/1.5 transition-colors group">
                                     <td className="py-3 pr-4 text-[10px] text-white/15 font-mono tabular-nums">{i + 1}</td>
                                     <td className="py-3 pr-4 text-xs font-mono text-white/50 group-hover:text-white/70 transition-colors">{s.student_id}</td>
                                     <td className="py-3 pr-4">
@@ -583,7 +646,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                                     <td className="py-3 pr-4 text-xs font-mono text-white/35 tabular-nums">{realCH}<span className="text-white/15">/{goal}</span></td>
                                     <td className="py-3">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-24 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                                            <div className="w-24 h-1.5 bg-white/4 rounded-full overflow-hidden">
                                                 <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                                                     transition={{ duration: 0.5, delay: i * 0.008 }}
                                                     className="h-full rounded-full shadow-sm"
@@ -607,7 +670,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
    AI Usage Tab
    ═══════════════════════════════════════════════════════════════════ */
 
-function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
+function AIUsageTab({ aiUsage }: Readonly<{ aiUsage?: AIUsageStats }>) {
     const usage = aiUsage ?? {
         totalCalls: 0,
         callsByEndpoint: [],
@@ -656,7 +719,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                             <motion.div key={item.endpoint}
                                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 + i * 0.05 }}
-                                className="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.015] group cursor-default">
+                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/1.5 group cursor-default">
                                 <span className="text-xs text-white/50 font-medium truncate">{item.endpoint}</span>
                                 <span className="text-sm font-bold text-white/70 tabular-nums ml-2">{item.count}</span>
                             </motion.div>
@@ -671,7 +734,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                     <div className="mt-6 space-y-3">
                         {usage.callsByStatus.map((item, i) => {
                             const pct = totalCalls > 0 ? Math.round((item.count / totalCalls) * 100) : 0;
-                            const statusColor = item.status === 'success' ? '#10b981' : item.status === 'error' ? '#ef4444' : '#f59e0b';
+                            const statusColor = getStatusColor(item.status ?? undefined);
                             return (
                                 <div key={item.status || 'unknown'} className="group">
                                     <div className="flex items-center justify-between mb-1.5">
@@ -681,7 +744,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                                             <span className="text-xs text-white/25 tabular-nums">({pct}%)</span>
                                         </div>
                                     </div>
-                                    <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                                    <div className="h-2 bg-white/4 rounded-full overflow-hidden">
                                         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                                             transition={{ duration: 0.6, delay: i * 0.1 }}
                                             className="h-full rounded-full"
@@ -703,7 +766,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                                 <motion.div key={item.model}
                                     initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: 0.3 + i * 0.05 }}
-                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.015]">
+                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/1.5">
                                     <span className="text-xs text-white/50 font-medium">{item.model}</span>
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-bold text-white/70">{item.count}</span>
@@ -748,10 +811,10 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
                         <motion.div key={log.id}
                             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 + i * 0.01 }}
-                            className="group p-3 rounded-xl hover:bg-white/[0.015] border border-transparent hover:border-white/[0.04] transition-all">
+                            className="group p-3 rounded-xl hover:bg-white/1.5 border border-transparent hover:border-white/4 transition-all">
                             <div className="flex items-start justify-between mb-1.5">
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded ${log.status === 'success' ? 'text-emerald-400 bg-emerald-500/10' : log.status === 'error' ? 'text-rose-400 bg-rose-500/10' : 'text-amber-400 bg-amber-500/10'}`}>
+                                    <span className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded ${getStatusBadgeClass(log.status)}`}>
                                         {log.status}
                                     </span>
                                     <span className="text-[10px] text-white/35 font-mono">{log.endpoint}</span>
@@ -776,7 +839,7 @@ function AIUsageTab({ aiUsage }: { aiUsage?: AIUsageStats }) {
    Visitors Tab
    ═══════════════════════════════════════════════════════════════════ */
 
-function LogsTab({ logs }: { logs: Record<string, unknown>[] }) {
+function LogsTab({ logs }: Readonly<{ logs: Record<string, unknown>[] }>) {
     if (!logs || logs.length === 0) return <Empty text="No system logs found" />;
 
     return (
@@ -790,9 +853,9 @@ function LogsTab({ logs }: { logs: Record<string, unknown>[] }) {
                 {logs.map((rawLog: Record<string, unknown>, _i: number) => {
                     const log = rawLog as { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string; details?: Record<string, unknown> };
                     return (
-                        <div key={log.id} className="group hover:bg-white/[0.015] rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/[0.04]">
+                        <div key={log.id} className="group hover:bg-white/1.5 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/4">
                             <div className="flex items-center justify-between mb-1">
-                                <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${log.type === 'error' ? 'text-rose-400 bg-rose-500/10' : log.type === 'warning' ? 'text-amber-400 bg-amber-500/10' : 'text-cyan-400 bg-cyan-500/10'}`}>
+                                <span className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${getLogTypeBadgeClass(log.type)}`}>
                                     {log.type}
                                 </span>
                                 <span className="text-[10px] text-white/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
@@ -823,7 +886,7 @@ function LogsTab({ logs }: { logs: Record<string, unknown>[] }) {
     );
 }
 
-function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCount: number }) {
+function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; totalDeviceCount: number }>) {
     return (
         <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -834,11 +897,11 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
                             right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{stats.deviceBreakdown.length}</span>} />
                     </div>
                     <div className="space-y-3.5">
-                        {stats.deviceBreakdown.map((d, i) => {
+                        {stats.deviceBreakdown.map((d) => {
                             const pct = Math.round((d.count / totalDeviceCount) * 100);
                             const isMobile = /ios|android/i.test(d.os);
                             return (
-                                <div key={i} className="group hover:bg-white/[0.015] rounded-xl px-2 py-1.5 -mx-1 transition-all duration-200 cursor-default">
+                                <div key={`${d.os}-${d.browser}`} className="group hover:bg-white/1.5 rounded-xl px-2 py-1.5 -mx-1 transition-all duration-200 cursor-default">
                                     <div className="flex items-center justify-between mb-1.5">
                                         <div className="flex items-center gap-2">
                                             {isMobile ? <Smartphone className="w-3.5 h-3.5 text-cyan-400/40" /> : <Globe className="w-3.5 h-3.5 text-cyan-400/40" />}
@@ -846,7 +909,7 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
                                         </div>
                                         <span className="text-[10px] font-mono text-white/25 tabular-nums">{d.count} ({pct}%)</span>
                                     </div>
-                                    <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
+                                    <div className="h-1.5 bg-white/3 rounded-full overflow-hidden">
                                         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                                             transition={{ duration: 0.7, delay: i * 0.04 }}
                                             className="h-full rounded-full"
@@ -872,8 +935,8 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
                             const borderColor = 'rgba(59,130,246,0.15)';
 
                             return (
-                                <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
-                                    className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-white/[0.015] border border-transparent hover:border-white/[0.05] transition-all duration-200 cursor-default">
+                                <motion.div key={`${act.student_id}-${act.time}`} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
+                                    className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-white/1.5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-default">
                                     <div className="flex items-start gap-3">
                                         <div className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                                             style={{ background: `linear-gradient(135deg, ${iconBg}, transparent)`, border: `1px solid ${borderColor}` }}>
@@ -893,11 +956,11 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap gap-2 ml-10">
-                                        <span className="px-1.5 py-0.5 rounded bg-white/[0.03] text-[9px] text-white/30 font-medium">
+                                        <span className="px-1.5 py-0.5 rounded bg-white/3 text-[9px] text-white/30 font-medium">
                                             {act.os} · {act.browser}
                                         </span>
                                         {act.vendor && (
-                                            <span className="px-1.5 py-0.5 rounded bg-white/[0.03] text-[9px] text-white/30 font-medium">
+                                            <span className="px-1.5 py-0.5 rounded bg-white/3 text-[9px] text-white/30 font-medium">
                                                 {act.vendor}
                                             </span>
                                         )}
@@ -925,17 +988,17 @@ function VisitorsTab({ stats, totalDeviceCount }: { stats: Stats; totalDeviceCou
    Shared Components
    ═══════════════════════════════════════════════════════════════════ */
 
-function GlassCard({ children, delay = 0, scrollable }: { children: React.ReactNode; delay?: number; scrollable?: boolean }) {
+function GlassCard({ children, delay = 0, scrollable }: Readonly<{ children: React.ReactNode; delay?: number; scrollable?: boolean }>) {
     return (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.4 }}
-            className={`premium-card p-5 sm:p-6 ${scrollable ? 'max-h-[480px] overflow-y-auto' : ''}`}
+            className={`premium-card p-5 sm:p-6 ${scrollable ? 'max-h-120 overflow-y-auto' : ''}`}
         >
             {children}
         </motion.div>
     );
 }
 
-function CardHeader({ icon, title, iconColor, right }: { icon: React.ReactNode; title: string; iconColor: string; right?: React.ReactNode }) {
+function CardHeader({ icon, title, iconColor, right }: Readonly<{ icon: React.ReactNode; title: string; iconColor: string; right?: React.ReactNode }>) {
     return (
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -950,17 +1013,17 @@ function CardHeader({ icon, title, iconColor, right }: { icon: React.ReactNode; 
     );
 }
 
-function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: {
+function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: Readonly<{
     icon: React.ReactNode; label: string; value: string | number;
     gradient: string; iconBg: string; delay: number;
     badge?: { value: string; positive: boolean };
-}) {
+}>) {
     return (
         <motion.div initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay, duration: 0.35 }}
             className={`relative premium-card p-4 flex items-center gap-3 group cursor-default overflow-hidden transition-all duration-300 hover:scale-[1.02]`}
         >
             {/* Color accent glow */}
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${gradient}`} />
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-linear-to-br ${gradient}`} />
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-white"
                 style={{ background: `${iconBg}25`, border: `1px solid ${iconBg}30` }}>
                 {icon}
@@ -980,7 +1043,7 @@ function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: {
     );
 }
 
-function Th({ children, sortable, onClick }: { children: React.ReactNode; sortable?: boolean; onClick?: () => void }) {
+function Th({ children, sortable, onClick }: Readonly<{ children: React.ReactNode; sortable?: boolean; onClick?: () => void }>) {
     return (
         <th onClick={onClick}
             className={`text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4 ${sortable ? 'cursor-pointer select-none hover:text-white/45 transition-colors' : ''}`}>
@@ -989,48 +1052,14 @@ function Th({ children, sortable, onClick }: { children: React.ReactNode; sortab
     );
 }
 
-function MajorDonutSection({ majors, total, students }: { majors: [string, number][]; total: number; students: StudentRow[] }) {
+function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [string, number][]; total: number; students: StudentRow[] }>) {
     const [hoveredMajor, setHoveredMajor] = useState<string | null>(null);
     const [selectedMajor, setSelectedMajor] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
     const animTotal = useCountUp(total);
 
     /* ── Per-major analytics ─────────────────────────────── */
-    const majorStats = useMemo(() => {
-        const stats: Record<string, {
-            count: number; avgCourses: number; avgCH: number;
-            avgProgress: number; maxCH: number; minCH: number;
-            progressBuckets: [number, number, number, number];
-        }> = {};
-        for (const [major] of majors) {
-            const ms = students.filter(s => s.major === major);
-            const totalCourses = ms.reduce((s, x) => s + x.count, 0);
-            const totalCH = ms.reduce((s, x) => s + (x.ch ?? x.count * 3), 0);
-            const chValues = ms.map(x => x.ch ?? x.count * 3);
-            const buckets: [number, number, number, number] = [0, 0, 0, 0];
-
-            // Get goal for this major from the first student in the major, or fallback to 135
-            const majorGoal = ms[0]?.goal || 135;
-
-            for (const ch of chValues) {
-                const pct = Math.min((ch / majorGoal) * 100, 100);
-                if (pct <= 25) buckets[0]++;
-                else if (pct <= 50) buckets[1]++;
-                else if (pct <= 75) buckets[2]++;
-                else buckets[3]++;
-            }
-            stats[major] = {
-                count: ms.length,
-                avgCourses: ms.length > 0 ? Math.round(totalCourses / ms.length) : 0,
-                avgCH: ms.length > 0 ? Math.round(totalCH / ms.length) : 0,
-                avgProgress: ms.length > 0 ? Math.min(Math.round((totalCH / ms.length / majorGoal) * 100), 100) : 0,
-                maxCH: chValues.length > 0 ? Math.max(...chValues) : 0,
-                minCH: chValues.length > 0 ? Math.min(...chValues) : 0,
-                progressBuckets: buckets,
-            };
-        }
-        return stats;
-    }, [majors, students]);
+    const majorStats = useMemo(() => Object.fromEntries(majors.map(([major]) => [major, calculateMajorStats(major, students)])), [majors, students]);
 
     /* ── Donut geometry (dual-ring) ──────────────────────── */
     const size = 200;
@@ -1083,7 +1112,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                             key={mode}
                             onClick={() => setViewMode(mode as 'chart' | 'table')}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${viewMode === mode
-                                ? 'bg-white/[0.08] text-white/70 border border-white/[0.1]'
+                                ? 'bg-white/8 text-white/70 border border-white/10'
                                 : 'text-white/20 hover:text-white/40 border border-transparent'
                                 }`}
                         >
@@ -1281,18 +1310,26 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                 const pctRounded = Math.round(seg.pct * 100);
                                 const stats = majorStats[seg.major];
                                 const medalColor = RANK_MEDALS[seg.rank] || '';
+                                const majorColor = MAJOR_COLORS[seg.major] || fallbackColor;
+                                let background = 'transparent';
+                                let borderColor = 'transparent';
+
+                                if (isSelected) {
+                                    background = `linear-gradient(135deg, ${majorColor}12, ${majorColor}04)`;
+                                    borderColor = `${majorColor}30`;
+                                } else if (isActive) {
+                                    background = `${majorColor}08`;
+                                    borderColor = `${majorColor}15`;
+                                }
+                                const rankBorderColor = medalColor ? `${medalColor}30` : 'rgba(255,255,255,0.04)';
+                                const rankBackground = medalColor ? `${medalColor}20` : 'rgba(255,255,255,0.03)';
 
                                 return (
                                     <motion.div
                                         key={seg.major}
                                         layout
                                         className="rounded-xl transition-all duration-200 cursor-pointer"
-                                        style={{
-                                            background: isSelected
-                                                ? `linear-gradient(135deg, ${MAJOR_COLORS[seg.major] || fallbackColor}12, ${MAJOR_COLORS[seg.major] || fallbackColor}04)`
-                                                : isActive ? `${MAJOR_COLORS[seg.major] || fallbackColor}08` : 'transparent',
-                                            border: `1px solid ${isSelected ? `${MAJOR_COLORS[seg.major] || fallbackColor}30` : isActive ? `${MAJOR_COLORS[seg.major] || fallbackColor}15` : 'transparent'}`,
-                                        }}
+                                        style={{ background, border: `1px solid ${borderColor}` }}
                                         onMouseEnter={() => setHoveredMajor(seg.major)}
                                         onMouseLeave={() => setHoveredMajor(null)}
                                         onClick={() => handleSegmentClick(seg.major)}
@@ -1304,9 +1341,9 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                             {/* Rank Badge */}
                                             <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
                                                 style={{
-                                                    background: medalColor ? `${medalColor}20` : 'rgba(255,255,255,0.03)',
+                                                    background: rankBackground,
                                                     color: medalColor || 'rgba(255,255,255,0.2)',
-                                                    border: `1px solid ${medalColor ? `${medalColor}30` : 'rgba(255,255,255,0.04)'}`,
+                                                    border: `1px solid ${rankBorderColor}`,
                                                 }}>
                                                 {seg.rank}
                                             </div>
@@ -1339,7 +1376,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                                 </div>
                                                 {/* Stacked bar: distribution + progress */}
                                                 <div className="flex items-center gap-1.5">
-                                                    <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                                                    <div className="flex-1 h-1.5 bg-white/4 rounded-full overflow-hidden">
                                                         <motion.div
                                                             className="h-full rounded-full"
                                                             initial={{ width: 0 }}
@@ -1351,7 +1388,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                                             }}
                                                         />
                                                     </div>
-                                                    <div className="w-12 h-1.5 bg-white/[0.03] rounded-full overflow-hidden" title="Avg progress">
+                                                    <div className="w-12 h-1.5 bg-white/3 rounded-full overflow-hidden" title="Avg progress">
                                                         <motion.div
                                                             className="h-full rounded-full"
                                                             initial={{ width: 0 }}
@@ -1475,7 +1512,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
-                                    <tr className="border-b border-white/[0.04]">
+                                    <tr className="border-b border-white/4">
                                         <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4">#</th>
                                         <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4">Major</th>
                                         <th className="text-[10px] text-white/25 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Students</th>
@@ -1489,11 +1526,11 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                     {segments.map((seg, i) => {
                                         const stats = majorStats[seg.major];
                                         if (!stats) return null;
-                                        const barColor = stats.avgProgress >= 75 ? '#10b981' : stats.avgProgress >= 50 ? '#3b82f6' : stats.avgProgress >= 25 ? '#f59e0b' : '#ef4444';
+                                        const barColor = getProgressBarColor(stats.avgProgress);
                                         return (
                                             <motion.tr key={seg.major}
                                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
-                                                className="border-b border-white/[0.02] hover:bg-white/[0.015] transition-colors">
+                                                className="border-b border-white/2 hover:bg-white/1.5 transition-colors">
                                                 <td className="py-3 pr-4">
                                                     <span className="text-[10px] font-black tabular-nums"
                                                         style={{ color: RANK_MEDALS[seg.rank] || 'rgba(255,255,255,0.2)' }}>
@@ -1518,7 +1555,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
                                                 <td className="py-3 pr-4 text-right text-xs font-mono text-white/35 tabular-nums">{stats.maxCH}</td>
                                                 <td className="py-3 pr-4">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className="w-20 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                                                        <div className="w-20 h-1.5 bg-white/4 rounded-full overflow-hidden">
                                                             <motion.div initial={{ width: 0 }} animate={{ width: `${stats.avgProgress}%` }}
                                                                 transition={{ duration: 0.6, delay: i * 0.04 }}
                                                                 className="h-full rounded-full"
@@ -1540,7 +1577,7 @@ function MajorDonutSection({ majors, total, students }: { majors: [string, numbe
     );
 }
 
-function AreaChart({ data, maxVal }: { data: TrafficDay[]; maxVal: number }) {
+function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: number }>) {
     const [hoverIdx, setHoverIdx] = useState<number | null>(null);
     const W = 700, H = 200, PL = 40, PR = 10, PT = 10, PB = 28;
     const chartW = W - PL - PR, chartH = H - PT - PB;
@@ -1576,7 +1613,7 @@ function AreaChart({ data, maxVal }: { data: TrafficDay[]; maxVal: number }) {
     })();
 
     const areaPath = linePath
-        ? `${linePath} L ${points[points.length - 1].x} ${PT + chartH} L ${points[0].x} ${PT + chartH} Z`
+        ? `${linePath} L ${points.at(-1)?.x ?? 0} ${PT + chartH} L ${points[0].x} ${PT + chartH} Z`
         : '';
 
     return (
@@ -1594,8 +1631,8 @@ function AreaChart({ data, maxVal }: { data: TrafficDay[]; maxVal: number }) {
                 </defs>
 
                 {/* Grid lines */}
-                {yTicks.map((t, i) => (
-                    <g key={i}>
+                {yTicks.map((t) => (
+                    <g key={`tick-${t.val}`}>
                         <line x1={PL} y1={t.y} x2={W - PR} y2={t.y}
                             stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray={i === 0 ? 'none' : '4 4'} />
                         <text x={PL - 8} y={t.y + 3} textAnchor="end" fill="rgba(255,255,255,0.15)"
@@ -1625,14 +1662,14 @@ function AreaChart({ data, maxVal }: { data: TrafficDay[]; maxVal: number }) {
                 {data.map((d, i) => {
                     if (n > 10 && i % Math.ceil(n / 6) !== 0 && i !== n - 1) return null;
                     return (
-                        <text key={i} x={points[i]?.x ?? 0} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.15)"
+                        <text key={`label-${d.date}`} x={points[i]?.x ?? 0} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.15)"
                             style={{ fontSize: 8, fontFamily: 'monospace' }}>{d.date.slice(5)}</text>
                     );
                 })}
 
                 {/* Invisible hover areas */}
                 {points.map((pt, i) => (
-                    <rect key={i} x={pt.x - chartW / n / 2} y={PT} width={chartW / n} height={chartH}
+                    <rect key={`hover-${pt.x}-${pt.y}`} x={pt.x - chartW / n / 2} y={PT} width={chartW / n} height={chartH}
                         fill="transparent" className="cursor-crosshair"
                         onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)} />
                 ))}
@@ -1658,33 +1695,33 @@ function AreaChart({ data, maxVal }: { data: TrafficDay[]; maxVal: number }) {
     );
 }
 
-function Heatmap({ data }: { data: HeatmapCell[] }) {
+function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
     const maxCount = Math.max(...data.map(d => d.count), 1);
-    const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+    const grid: number[][] = new Array(7).fill(null).map(() => new Array(24).fill(0));
     for (const cell of data) {
         if (cell.day >= 0 && cell.day < 7 && cell.hour >= 0 && cell.hour < 24) grid[cell.day][cell.hour] = cell.count;
     }
     if (data.length === 0) return <Empty text="No heatmap data" />;
 
     return (
-        <div className="space-y-[3px]">
-            <div className="flex gap-[3px] ml-10">
+        <div className="space-y-0.75">
+            <div className="flex gap-0.75 ml-10">
                 {Array.from({ length: 24 }, (_, h) => (
-                    <div key={h} className="flex-1 text-center text-[7px] text-white/12 font-mono font-bold">{h % 3 === 0 ? `${h}` : ''}</div>
+                    <div key={`hour-${h}`} className="flex-1 text-center text-[7px] text-white/12 font-mono font-bold">{h % 3 === 0 ? `${h}` : ''}</div>
                 ))}
             </div>
             {grid.map((row, dayIdx) => (
-                <div key={dayIdx} className="flex items-center gap-[3px]">
+                <div key={`day-${DAYS[dayIdx]}`} className="flex items-center gap-0.75">
                     <span className="w-8 text-[9px] text-white/20 font-mono text-right pr-1 font-bold">{DAYS[dayIdx]}</span>
                     {row.map((count, hourIdx) => {
                         const intensity = count / maxCount;
                         return (
-                            <motion.div key={hourIdx}
+                            <motion.div key={`cell-${dayIdx}-${hourIdx}`}
                                 initial={{ opacity: 0, scale: 0.5 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: dayIdx * 0.02 + hourIdx * 0.003, duration: 0.2 }}
                                 title={`${DAYS[dayIdx]} ${hourIdx}:00 — ${count} visits`}
-                                className="flex-1 aspect-square rounded-[4px] cursor-default transition-transform duration-200 hover:scale-150 hover:z-10"
+                                className="flex-1 aspect-square rounded-sm cursor-default transition-transform duration-200 hover:scale-150 hover:z-10"
                                 style={{
                                     background: count === 0
                                         ? 'rgba(255,255,255,0.015)'
@@ -1698,8 +1735,8 @@ function Heatmap({ data }: { data: HeatmapCell[] }) {
             ))}
             <div className="flex items-center justify-end gap-1.5 mt-3">
                 <span className="text-[8px] text-white/15 font-bold">Less</span>
-                {[0, 0.2, 0.4, 0.7, 1].map((v, i) => (
-                    <div key={i} className="w-3.5 h-3.5 rounded-[3px]"
+                {[0, 0.2, 0.4, 0.7, 1].map((v) => (
+                    <div key={`legend-${v}`} className="w-3.5 h-3.5 rounded-[3px]"
                         style={{
                             background: v === 0 ? 'rgba(255,255,255,0.015)' : `rgba(139,92,246,${0.12 + v * 0.75})`,
                             boxShadow: v > 0.5 ? `0 0 6px rgba(139,92,246,${v * 0.25})` : 'none'
@@ -1711,10 +1748,10 @@ function Heatmap({ data }: { data: HeatmapCell[] }) {
     );
 }
 
-function Empty({ text }: { text: string }) {
+function Empty({ text }: Readonly<{ text: string }>) {
     return (
         <div className="flex flex-col items-center justify-center py-10 gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/[0.03] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-white/3 flex items-center justify-center">
                 <BarChart3 className="w-4 h-4 text-white/10" />
             </div>
             <p className="text-xs text-white/15 font-medium">{text}</p>
@@ -1735,29 +1772,29 @@ function SkeletonLoader() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
                 {/* Header skeleton */}
                 <div className="space-y-3">
-                    <div className={`h-4 w-28 rounded-lg bg-white/[0.04] ${shimmer}`} />
-                    <div className={`h-8 w-56 rounded-xl bg-white/[0.04] ${shimmer}`} />
-                    <div className={`h-3 w-40 rounded-lg bg-white/[0.03] ${shimmer}`} />
+                    <div className={`h-4 w-28 rounded-lg bg-white/4 ${shimmer}`} />
+                    <div className={`h-8 w-56 rounded-xl bg-white/4 ${shimmer}`} />
+                    <div className={`h-3 w-40 rounded-lg bg-white/3 ${shimmer}`} />
                 </div>
                 {/* Stat cards skeleton */}
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                    {[...Array(5)].map((_, i) => (
-                        <div key={i} className={`h-20 rounded-2xl bg-white/[0.02] border border-white/[0.03] ${shimmer}`} />
+                    {new Array(5).fill(null).map((_, i) => (
+                        <div key={`skeleton-${i + 1}`} className={`h-20 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
                     ))}
                 </div>
                 {/* Chart skeleton */}
-                <div className={`h-64 rounded-2xl bg-white/[0.02] border border-white/[0.03] ${shimmer}`} />
+                <div className={`h-64 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
                 {/* Two columns skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className={`h-72 rounded-2xl bg-white/[0.02] border border-white/[0.03] ${shimmer}`} />
-                    <div className={`h-72 rounded-2xl bg-white/[0.02] border border-white/[0.03] ${shimmer}`} />
+                    <div className={`h-72 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
+                    <div className={`h-72 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
                 </div>
             </div>
         </div>
     );
 }
 
-function ErrorState({ onRetry }: { onRetry: () => void }) {
+function ErrorState({ onRetry }: Readonly<{ onRetry: () => void }>) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/15 flex items-center justify-center">
@@ -1765,7 +1802,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
             </div>
             <p className="text-sm text-white/30 font-medium">Failed to load analytics</p>
             <button onClick={onRetry}
-                className="text-xs font-semibold text-white/40 hover:text-white/70 transition-colors px-4 py-2 rounded-xl border border-white/[0.06] hover:border-white/10">
+                className="text-xs font-semibold text-white/40 hover:text-white/70 transition-colors px-4 py-2 rounded-xl border border-white/6 hover:border-white/10">
                 Try Again
             </button>
         </div>

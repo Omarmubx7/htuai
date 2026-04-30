@@ -75,7 +75,7 @@ export default function MobileNav() {
                         {isLightMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
                     <button
-                        onClick={() => signOut()}
+                        onClick={() => void signOut({ callbackUrl: '/' })}
                         className="p-3 rounded-2xl text-white/40 hover:text-red-400 transition-all active:scale-90"
                         title="Sign out"
                     >
