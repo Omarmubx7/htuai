@@ -66,6 +66,16 @@ export async function logAIUsage(data: AIUsageLogData): Promise<void> {
  * Get AI usage statistics for admin dashboard
  */
 export async function getAIUsageStats(days: number = 7) {
+  const emptyStats = {
+    totalCalls: 0,
+    callsByEndpoint: [],
+    callsByModel: [],
+    callsByStatus: [],
+    totalTokens: { input: 0, output: 0, total: 0 },
+    avgResponseTimeMs: 0,
+    recentLogs: [],
+  };
+
   try {
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
@@ -78,35 +88,26 @@ export async function getAIUsageStats(days: number = 7) {
       avgResponseTime,
       recentLogs,
     ] = await Promise.all([
-      // Total calls
       prisma.aIUsageLog.count({
         where: { created_at: { gte: cutoffDate } },
       }),
-
-      // Calls by endpoint
       prisma.aIUsageLog.groupBy({
         by: ['endpoint'],
         where: { created_at: { gte: cutoffDate } },
         _count: true,
         orderBy: { _count: { endpoint: 'desc' } },
       }),
-
-      // Calls by model
       prisma.aIUsageLog.groupBy({
         by: ['model_used'],
         where: { created_at: { gte: cutoffDate } },
         _count: true,
         orderBy: { _count: { model_used: 'desc' } },
       }),
-
-      // Calls by status
       prisma.aIUsageLog.groupBy({
         by: ['status'],
         where: { created_at: { gte: cutoffDate } },
         _count: true,
       }),
-
-      // Total tokens
       prisma.aIUsageLog.aggregate({
         where: { created_at: { gte: cutoffDate } },
         _sum: {
@@ -115,8 +116,6 @@ export async function getAIUsageStats(days: number = 7) {
           output_tokens: true,
         },
       }),
-
-      // Average response time
       prisma.aIUsageLog.aggregate({
         where: {
           created_at: { gte: cutoffDate },
@@ -124,8 +123,6 @@ export async function getAIUsageStats(days: number = 7) {
         },
         _avg: { response_time_ms: true },
       }),
-
-      // Recent logs
       prisma.aIUsageLog.findMany({
         where: { created_at: { gte: cutoffDate } },
         orderBy: { created_at: 'desc' },
@@ -134,19 +131,24 @@ export async function getAIUsageStats(days: number = 7) {
       }),
     ]);
 
+    const getCount = (item: { _count: unknown }) => {
+      const c = item._count;
+      return typeof c === 'number' ? c : (c as Record<string, number>)?._all ?? (c as number) ?? 0;
+    };
+
     return {
       totalCalls,
       callsByEndpoint: callsByEndpoint.map(item => ({
         endpoint: item.endpoint,
-        count: typeof item._count === 'number' ? item._count : (item._count as any)._all ?? item._count,
+        count: getCount(item),
       })),
       callsByModel: callsByModel.map(item => ({
         model: item.model_used || 'unknown',
-        count: typeof item._count === 'number' ? item._count : (item._count as any)._all ?? item._count,
+        count: getCount(item),
       })),
       callsByStatus: callsByStatus.map(item => ({
         status: item.status,
-        count: typeof item._count === 'number' ? item._count : (item._count as any)._all ?? item._count,
+        count: getCount(item),
       })),
       totalTokens: {
         input: totalTokens._sum.input_tokens || 0,
@@ -168,7 +170,7 @@ export async function getAIUsageStats(days: number = 7) {
     };
   } catch (error) {
     console.error('Failed to get AI usage stats:', error);
-    return null;
+    return emptyStats;
   }
 }
 

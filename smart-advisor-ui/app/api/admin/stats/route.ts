@@ -376,9 +376,26 @@ async function loadAdminLogs(): Promise<AdminLogRow[]> {
 
 async function loadAiUsage() {
     try {
-        return await getAIUsageStats(7);
+        const stats = await getAIUsageStats(7);
+        return stats ?? {
+            totalCalls: 0,
+            callsByEndpoint: [],
+            callsByModel: [],
+            callsByStatus: [],
+            totalTokens: { input: 0, output: 0, total: 0 },
+            avgResponseTimeMs: 0,
+            recentLogs: [],
+        };
     } catch {
-        return null;
+        return {
+            totalCalls: 0,
+            callsByEndpoint: [],
+            callsByModel: [],
+            callsByStatus: [],
+            totalTokens: { input: 0, output: 0, total: 0 },
+            avgResponseTimeMs: 0,
+            recentLogs: [],
+        };
     }
 }
 

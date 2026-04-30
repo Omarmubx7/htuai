@@ -268,11 +268,10 @@ export async function GET(req: NextRequest) {
             .sort((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime());
 
         const nextWeekEvents = combinedEvents.filter(e => new Date(e.start_datetime) <= nextWeek);
-        let upcomingEvents = nextWeekEvents.length > 0 ? nextWeekEvents.slice(0, 5) : combinedEvents.slice(0, 5);
-        let upcomingEventsLabel = nextWeekEvents.length > 0 ? "Upcoming 7 Days" : "Upcoming Deadlines";
+        const upcomingEvents = nextWeekEvents.length > 0 ? nextWeekEvents.slice(0, 5) : combinedEvents.slice(0, 5);
+        const upcomingEventsLabel = nextWeekEvents.length > 0 ? "Upcoming 7 Days" : "Upcoming Deadlines";
 
         // 7. Progress
-        let completedCreditsFromTracker = 0;
         if (progress?.completed && curriculum) {
             let completedList: any[] = [];
             try {

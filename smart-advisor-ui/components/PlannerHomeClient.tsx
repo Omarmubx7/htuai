@@ -499,7 +499,7 @@ function PlannerHomeClient() {
                                                         <span className="text-xs font-bold truncate text-white/90">{session.course}</span>
                                                         <span className="text-[10px] font-bold text-emerald-400/80 shrink-0">{session.hours}h</span>
                                                     </div>
-                                                    <p className="text-[10px] text-white/40 line-clamp-1 italic">"{session.focus}"</p>
+                                                    <p className="text-[10px] text-white/40 line-clamp-1 italic">&quot;{session.focus}&quot;</p>
                                                 </div>
                                             ))}
                                         </div>

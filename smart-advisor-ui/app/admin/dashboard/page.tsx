@@ -372,7 +372,7 @@ function DashboardInner() {
                             Platform Analytics
                         </h1>
                         <p className="text-white/25 text-xs mt-1.5 font-medium">
-                            {lastFetched ? `Updated ${timeAgo(lastFetched.toISOString())} · Auto-refreshes every 30s` : 'Loading...'}
+                            {lastFetched ? `Updated ${timeAgo(lastFetched.toISOString())} · Auto-refreshes every 10s` : 'Loading...'}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -692,10 +692,6 @@ function AIUsageTab({ aiUsage }: Readonly<{ aiUsage?: AIUsageStats }>) {
     const animTokens = useCountUp(totalTokens);
     const animAvgResponseTime = useCountUp(Math.round(usage.avgResponseTimeMs));
 
-    if (!aiUsage) {
-        return <Empty text="No AI usage data available" />;
-    }
-
     return (
         <>
             {/* Stat Cards */}
@@ -828,7 +824,7 @@ function AIUsageTab({ aiUsage }: Readonly<{ aiUsage?: AIUsageStats }>) {
                             </div>
                         </motion.div>
                     ))}
-                    {usage.recentLogs.length === 0 && <Empty text="No AI usage logs" />}
+                    {usage.recentLogs.length === 0 && <Empty text="No AI calls yet — data appears when students use AI features" />}
                 </div>
             </GlassCard>
         </>
@@ -840,7 +836,7 @@ function AIUsageTab({ aiUsage }: Readonly<{ aiUsage?: AIUsageStats }>) {
    ═══════════════════════════════════════════════════════════════════ */
 
 function LogsTab({ logs }: Readonly<{ logs: Record<string, unknown>[] }>) {
-    if (!logs || logs.length === 0) return <Empty text="No system logs found" />;
+    if (!logs || logs.length === 0) return <Empty text="No system activity yet — logs appear when students use the platform" />;
 
     return (
         <GlassCard delay={0.05} scrollable>

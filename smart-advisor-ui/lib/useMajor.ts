@@ -97,8 +97,11 @@ export function useMajor() {
 
     useEffect(() => {
         const saved = readStoredMajor();
-        if (saved) setMajorState(saved);
+        if (saved) {
+            setMajorState(saved);
+        }
         setLoaded(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const setMajor = (key: MajorKey) => {
