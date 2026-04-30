@@ -4,7 +4,7 @@ import type { DefaultJWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
-import { getUserByStudentId, createUser, getUserByEmail, linkAccount } from "./lib/database";
+import { getUserByStudentId, createUser, getUserByEmail, linkAccount, createAdminLog } from "./lib/database";
 import { requireEnv } from "@/lib/env";
 
 declare module "next-auth" {
@@ -90,6 +90,13 @@ export const authOptions: NextAuthOptions = {
                 const existingUser = await getUserByEmail(user.email || "");
                 if (existingUser) {
                     await linkAccount(existingUser.id, account.provider, account.providerAccountId);
+                    createAdminLog({
+                        type: 'login',
+                        message: `User ${user.email} logged in via Google OAuth`,
+                        details: { email: user.email, name: user.name, provider: 'google' },
+                        event_kind: 'login',
+                        target_id: user.email || String(existingUser.id),
+                    }).catch(() => {});
                     return true;
                 }
                 const newUser = await createUser({
@@ -98,6 +105,13 @@ export const authOptions: NextAuthOptions = {
                     image: user.image
                 });
                 await linkAccount(newUser.id, account.provider, account.providerAccountId);
+                createAdminLog({
+                    type: 'register',
+                    message: `New user registered via Google: ${user.email} (${user.name})`,
+                    details: { email: user.email, name: user.name, provider: 'google', db_id: newUser.id },
+                    event_kind: 'register',
+                    target_id: user.email || String(newUser.id),
+                }).catch(() => {});
             }
             return true;
         },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createAdminLog } from "@/lib/database";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -40,6 +41,14 @@ export async function POST(req: NextRequest) {
                 }
             }
         });
+
+        createAdminLog({
+            type: 'profile_update',
+            message: `Student ${studentId} updated academic profile (GPA: ${previous_gpa}, Credits: ${previous_credits})`,
+            details: { student_id: studentId, email, previous_gpa, previous_credits },
+            event_kind: 'profile_update',
+            target_id: studentId,
+        }).catch(() => {});
 
         return NextResponse.json(
             { success: true, profile: { ...updatedProfile, updated_at: Number(updatedProfile.updated_at) } },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getUserByStudentId } from "@/lib/database";
+import { getUserByStudentId, createAdminLog } from "@/lib/database";
 import { encode } from "next-auth/jwt";
 import { requireEnv } from "@/lib/env";
 
@@ -52,6 +52,14 @@ export async function POST(req: NextRequest) {
       path: "/",
       maxAge: 30 * 24 * 60 * 60,
     });
+
+    createAdminLog({
+      type: 'login',
+      message: `Student ${user.student_id} logged in via credentials`,
+      details: { student_id: user.student_id, email: user.email, name: user.name },
+      event_kind: 'login',
+      target_id: user.student_id || String(user.id),
+    }).catch(() => {});
 
     return response;
   } catch (e) {

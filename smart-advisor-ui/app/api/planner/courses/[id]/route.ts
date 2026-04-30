@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
+import { createAdminLog } from "@/lib/database";
 
 async function verifyAccess(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -85,6 +86,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: updatedInfo
         });
 
+        const changedFields = Object.keys(body).filter(k => k !== 'updated_at');
+        createAdminLog({
+            type: 'course_update',
+            message: `Student ${auth.user!.student_id || auth.user!.email} updated course ${existing.code} (${changedFields.join(', ')})`,
+            details: { student_id: auth.user!.student_id, email: auth.user!.email, course_code: existing.code, course_id: courseId, changed_fields: changedFields, is_completed: updated.is_completed, grade_letter: updated.grade_letter },
+            event_kind: 'course_update',
+            target_id: String(courseId),
+            course_id: courseId,
+        }).catch(() => {});
+
         // Award XP for course completion (Spec: +150 XP)
         if (updated.is_completed && !existing.is_completed) {
             await prisma.gamificationProfile.upsert({
@@ -119,9 +130,19 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             return NextResponse.json({ error: 'Course not found' }, { status: 404 });
         }
 
+        const courseCode = existing.code;
         await prisma.course.delete({
             where: { id: courseId }
         });
+
+        createAdminLog({
+            type: 'course_delete',
+            message: `Student ${auth.user!.student_id || auth.user!.email} deleted course ${courseCode}`,
+            details: { student_id: auth.user!.student_id, email: auth.user!.email, course_code: courseCode, course_id: courseId },
+            event_kind: 'course_delete',
+            target_id: String(courseId),
+            course_id: courseId,
+        }).catch(() => {});
 
         return NextResponse.json({ success: true });
     } catch (e) {

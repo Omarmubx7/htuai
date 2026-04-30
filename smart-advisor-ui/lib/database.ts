@@ -83,6 +83,33 @@ export async function resolveUserByString(identity: string) {
     return user;
 }
 
+/** Create an admin log entry */
+export async function createAdminLog(data: {
+    type: string;
+    message?: string;
+    details?: Record<string, unknown>;
+    course_id?: number;
+    event_kind?: string;
+    target_id?: string;
+}) {
+    try {
+        await prisma.adminLog.create({
+            data: {
+                type: data.type,
+                message: data.message || null,
+                details: (data.details as any) || {},
+                course_id: data.course_id || null,
+                event_kind: data.event_kind || null,
+                target_id: data.target_id || null,
+            }
+        });
+    } catch (e) {
+        if (!isMissingTableError(e)) {
+            console.error('Admin log creation failed:', e);
+        }
+    }
+}
+
 /** Log visitor information */
 export async function logVisitor(data: VisitorLog): Promise<void> {
     try {

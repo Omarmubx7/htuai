@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createAdminLog } from "@/lib/database";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession(authOptions);
@@ -41,6 +42,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 content: content || {}
             }
         });
+
+        createAdminLog({
+            type: 'semester_notes',
+            message: `Student ${session.user.student_id || session.user.email} created note "${title || 'Untitled'}" in semester ${semesterId}`,
+            details: { student_id: session.user.student_id, email: session.user.email, semester_id: semesterId, note_id: newNote.id, title },
+            event_kind: 'note_create',
+            target_id: String(newNote.id),
+        }).catch(() => {});
+
         return NextResponse.json({ note: newNote });
     } catch (e) {
         console.error("Create note error:", e);

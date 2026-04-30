@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
+import { createAdminLog } from "@/lib/database";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -91,6 +92,14 @@ export async function POST(req: NextRequest) {
 
         // Trigger dynamic achievements evaluation
         await evaluateAchievements(user.id, Number(duration_minutes));
+
+        createAdminLog({
+            type: 'study_session',
+            message: `Student ${user.student_id || user.email} logged ${duration_minutes}min study session (${type})`,
+            details: { student_id: user.student_id, email: user.email, duration_minutes, type, course_id: course_id || null, earned_xp: earnedXP, new_total_xp: gamificationUpdate.xp, streak: newCurrentStreak },
+            event_kind: 'study_session',
+            target_id: user.student_id || String(user.id),
+        }).catch(() => {});
 
         return NextResponse.json({ session: newSession, earnedXP, newTotalXP: gamificationUpdate.xp });
     } catch (error) {

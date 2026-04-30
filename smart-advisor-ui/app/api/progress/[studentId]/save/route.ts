@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { saveProgress, logVisitor } from '@/lib/database';
+import { saveProgress, logVisitor, createAdminLog } from '@/lib/database';
 import { getClientInfo } from '@/lib/client-info';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
@@ -31,6 +31,14 @@ export async function POST(
         }
 
         await saveProgress(targetId, major, completed);
+
+        createAdminLog({
+            type: 'progress_update',
+            message: `Student ${targetId} updated progress for ${major} (${completed.length} courses completed)`,
+            details: { student_id: targetId, major, courses_completed: completed.length, courses: completed },
+            event_kind: 'progress_save',
+            target_id: targetId,
+        }).catch(() => {});
 
         // Silent logging linked to student
         const info = await getClientInfo();

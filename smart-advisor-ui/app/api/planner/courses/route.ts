@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createAdminLog } from "@/lib/database";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -56,6 +57,15 @@ export async function POST(req: NextRequest) {
                 status: 'planned'
             }
         });
+
+        createAdminLog({
+            type: 'course_create',
+            message: `Student ${user.student_id || user.email} added course ${code.toUpperCase()} (${name}) to semester`,
+            details: { student_id: user.student_id, email: user.email, course_code: code.toUpperCase(), course_name: name, credits, semester_id },
+            event_kind: 'course_create',
+            target_id: String(newCourse.id),
+            course_id: newCourse.id,
+        }).catch(() => {});
 
         return NextResponse.json({ course: newCourse });
     } catch (error) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createAdminLog } from "@/lib/database";
 
 async function verifyAccess(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -45,6 +46,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             include: { courses: true }
         });
 
+        createAdminLog({
+            type: 'semester_update',
+            message: `Student ${auth.user!.student_id || auth.user!.email} updated semester "${updated.name}"`,
+            details: { student_id: auth.user!.student_id, email: auth.user!.email, semester_id: semesterId, name: updated.name },
+            event_kind: 'semester_update',
+            target_id: String(semesterId),
+        }).catch(() => {});
+
         return NextResponse.json({ semester: updated });
     } catch (e) {
         console.error("PUT Semester Error:", e);
@@ -63,9 +72,18 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         const existing = await prisma.semester.findFirst({ where: { id: semesterId, user_id: auth.user!.id } });
         if (!existing) return NextResponse.json({ error: 'Semester not found' }, { status: 404 });
 
+        const semesterName = existing.name;
         await prisma.semester.delete({
             where: { id: semesterId }
         });
+
+        createAdminLog({
+            type: 'semester_delete',
+            message: `Student ${auth.user!.student_id || auth.user!.email} deleted semester "${semesterName}"`,
+            details: { student_id: auth.user!.student_id, email: auth.user!.email, semester_id: semesterId, name: semesterName },
+            event_kind: 'semester_delete',
+            target_id: String(semesterId),
+        }).catch(() => {});
 
         return NextResponse.json({ success: true });
     } catch (e) {

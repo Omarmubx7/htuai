@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createAdminLog } from "@/lib/database";
 
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -69,6 +70,14 @@ export async function POST(req: NextRequest) {
             },
             include: { courses: true }
         });
+
+        createAdminLog({
+            type: 'semester_create',
+            message: `Student ${user.student_id || user.email} created semester "${name}" (${type} ${year})`,
+            details: { student_id: user.student_id, email: user.email, semester_name: name, type, year },
+            event_kind: 'semester_create',
+            target_id: String(newSemester.id),
+        }).catch(() => {});
 
         return NextResponse.json({ semester: newSemester });
     } catch (error) {

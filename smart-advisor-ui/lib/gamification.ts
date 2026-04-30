@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { createAdminLog } from "./database";
 
 // The core engine for dynamic gamification evaluation
 // Run this after any major action (e.g., logging a study session)
@@ -61,6 +62,14 @@ export async function evaluateAchievements(userId: number, newMinutes: number = 
             where: { user_id: userId },
             data: { level: calculatedLevel }
         });
+
+        createAdminLog({
+            type: 'level_up',
+            message: `User ${userId} leveled up to level ${calculatedLevel}`,
+            details: { user_id: userId, new_level: calculatedLevel, xp: profile.xp },
+            event_kind: 'level_up',
+            target_id: String(userId),
+        }).catch(() => {});
     }
 
     return { newBadgesUnlocked };
@@ -81,6 +90,14 @@ async function awardBadge(userId: number, code: string, name: string, descriptio
             badge_id: badge.id
         }
     });
+
+    createAdminLog({
+        type: 'badge_unlocked',
+        message: `User ${userId} unlocked badge: ${name}`,
+        details: { user_id: userId, badge_code: code, badge_name: name, description },
+        event_kind: 'badge_unlock',
+        target_id: String(userId),
+    }).catch(() => {});
 }
 
 async function processActiveQuests(userId: number, newMinutes: number) {
@@ -106,6 +123,14 @@ async function processActiveQuests(userId: number, newMinutes: number) {
                     where: { user_id: userId },
                     data: { xp: { increment: 50 } } // standard quest finish
                 });
+
+                createAdminLog({
+                    type: 'quest_completed',
+                    message: `User ${userId} completed quest: ${quest.type} (${quest.target_value}min)`,
+                    details: { user_id: userId, quest_id: quest.id, quest_type: quest.type, target_value: quest.target_value },
+                    event_kind: 'quest_complete',
+                    target_id: String(userId),
+                }).catch(() => {});
             } else {
                 await prisma.quest.update({
                     where: { id: quest.id },

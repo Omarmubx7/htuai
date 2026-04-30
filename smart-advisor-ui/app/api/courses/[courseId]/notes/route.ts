@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { getCourseNotes, saveCourseNotes, initDB } from "@/lib/database";
+import { getCourseNotes, saveCourseNotes, initDB, createAdminLog } from "@/lib/database";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -48,6 +48,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
     const notesStr = typeof notes === 'string' ? notes : JSON.stringify(notes);
     await initDB();
     await saveCourseNotes(studentId, normalizedCourseId, notesStr);
+
+    createAdminLog({
+      type: 'course_notes',
+      message: `Student ${studentId} updated notes for course ${normalizedCourseId}`,
+      details: { student_id: studentId, course_id: normalizedCourseId },
+      event_kind: 'notes_update',
+      target_id: studentId,
+    }).catch(() => {});
+
     return NextResponse.json({ success: true, updatedAt: new Date().toISOString() });
   } catch (e) {
     console.error("Notes POST Error:", e);

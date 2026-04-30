@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { createAdminLog } from './database';
 
 interface AIUsageLogData {
   userId?: number | null;
@@ -43,6 +44,14 @@ export async function logAIUsage(data: AIUsageLogData): Promise<void> {
     });
 
     console.log('[AI Logger] Successfully logged entry with ID:', result.id);
+
+    createAdminLog({
+      type: 'ai_usage',
+      message: `AI ${data.featureName || data.endpoint} called by user ${data.userId} (${data.status || 'success'})`,
+      details: { user_id: data.userId, endpoint: data.endpoint, feature: data.featureName, model: data.modelUsed, tokens: data.totalTokens, status: data.status, response_time_ms: data.responseTimeMs },
+      event_kind: 'ai_usage',
+      target_id: String(data.userId || ''),
+    }).catch(() => {});
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('[AI Logger] FAILED to log AI usage:', {

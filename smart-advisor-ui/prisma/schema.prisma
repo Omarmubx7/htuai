@@ -64,6 +64,7 @@ model User {
   role                 String?              @default("student")
   updated_at           DateTime?            @default(now())
   accounts             Account[]
+  ai_usage_logs        AIUsageLog[]
   calendar_events      CalendarEvent[]
   course_notes         CourseNote[]
   gamification_profile GamificationProfile?
@@ -76,7 +77,6 @@ model User {
   study_sessions       StudySession[]
   user_badges          UserBadge[]
   visitor_logs         VisitorLog[]
-  ai_usage_logs        AIUsageLog[]
 
   @@map("users")
 }
@@ -121,8 +121,8 @@ model Semester {
   semester_gpa   Float?
   created_at     DateTime?      @default(now())
   updated_at     DateTime?      @default(now())
-  study_schedule Json?          @default("[]")
   ai_exam_tips   Json?          @default("[]")
+  study_schedule Json?          @default("[]")
   courses        Course[]
   gpa_history    GPAHistory[]
   quests         Quest[]
@@ -332,20 +332,20 @@ model Quest {
 }
 
 model AIUsageLog {
-  id              Int       @id @default(autoincrement())
-  user_id         Int?
-  endpoint        String    // e.g., "generate-schedule", "suggest-courses"
-  feature_name    String?   // Human-readable feature name
-  input_tokens    Int?      @default(0)
-  output_tokens   Int?      @default(0)
-  total_tokens    Int?      @default(0)
-  model_used      String?   // e.g., "groq", "claude", "gpt4"
-  status          String?   @default("success") // "success", "error", "timeout"
-  error_message   String?
-  response_time_ms Int?     // Response time in milliseconds
-  metadata        Json?     @default("{}")
-  created_at      DateTime? @default(now())
-  user            User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  id               Int       @id @default(autoincrement())
+  user_id          Int?
+  endpoint         String
+  feature_name     String?
+  input_tokens     Int?      @default(0)
+  output_tokens    Int?      @default(0)
+  total_tokens     Int?      @default(0)
+  model_used       String?
+  status           String?   @default("success")
+  error_message    String?
+  response_time_ms Int?
+  metadata         Json?     @default("{}")
+  created_at       DateTime? @default(now())
+  user             User?     @relation(fields: [user_id], references: [id])
 
   @@index([user_id])
   @@index([endpoint])

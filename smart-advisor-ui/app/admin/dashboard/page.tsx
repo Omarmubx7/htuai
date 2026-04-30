@@ -897,7 +897,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                             right={<span className="text-[10px] text-white/20 font-mono tabular-nums">{stats.deviceBreakdown.length}</span>} />
                     </div>
                     <div className="space-y-3.5">
-                        {stats.deviceBreakdown.map((d) => {
+                        {stats.deviceBreakdown.map((d, i) => {
                             const pct = Math.round((d.count / totalDeviceCount) * 100);
                             const isMobile = /ios|android/i.test(d.os);
                             return (
