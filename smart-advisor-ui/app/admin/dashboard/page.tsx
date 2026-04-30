@@ -1631,7 +1631,7 @@ function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: numb
                 </defs>
 
                 {/* Grid lines */}
-                {yTicks.map((t) => (
+                {yTicks.map((t, i) => (
                     <g key={`tick-${t.val}`}>
                         <line x1={PL} y1={t.y} x2={W - PR} y2={t.y}
                             stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray={i === 0 ? 'none' : '4 4'} />
