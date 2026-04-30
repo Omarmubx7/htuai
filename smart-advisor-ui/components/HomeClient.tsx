@@ -294,8 +294,13 @@ export default function HomeClient() {
     useEffect(() => {
         if (status === "loading") return;
         if (status === "unauthenticated") {
-            setAppState("landing");
-        } else if (status === "authenticated" && session?.user && appState !== "changing-major") {
+            if (appState === "checking") {
+                setAppState("landing");
+            }
+            return;
+        }
+
+        if (status === "authenticated" && session?.user && appState !== "changing-major") {
             const sid = session.user.student_id || session.user.name;
             if (sid) {
                 const storageMajor = safeStorage.get(`major-${sid}`) as MajorKey | null;
