@@ -59,7 +59,7 @@ export default function PlannerSettings() {
     useEffect(() => {
         if (searchParams.get("connected") === "google") {
             toast("Google Calendar connected successfully!", "success");
-            router.replace(globalThis.location.pathname, { scroll: false });
+            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
             // Refresh integration status and profile to reflect connection immediately
             checkIntegrationStatus();
             fetchUserProfile();
@@ -72,14 +72,14 @@ export default function PlannerSettings() {
             } else {
                 toast("An error occurred while connecting to Google Calendar.", "error");
             }
-            router.replace(globalThis.location.pathname, { scroll: false });
+            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
         }
     }, [searchParams, router, toast]);
 
     const checkIntegrationStatus = async () => {
         try {
-            const data = await fetchJSON("/api/connect/status", { retries: 2 });
-            setCalendarConnected(data.google_calendar);
+            const data = await fetchJSON<{ google_calendar?: boolean; google_account_email?: string }>("/api/connect/status", { retries: 2 });
+            setCalendarConnected(data.google_calendar ?? false);
             setConnectedEmail(data.google_account_email || null);
         } catch (error) {
             console.error("Failed to check integration status", error);

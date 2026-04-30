@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ cour
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const studentId = session.user.student_id || session.user.email || session.user.name;
+  const studentId = session.user.student_id || session.user.email || session.user.name || 'unknown';
   const { courseId } = await params;
   const normalizedCourseId = String(courseId).trim().toUpperCase();
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const studentId = session.user.student_id || session.user.email || session.user.name;
+  const studentId = session.user.student_id || session.user.email || session.user.name || 'unknown';
   const { courseId } = await params;
   const normalizedCourseId = String(courseId).trim().toUpperCase();
   const { notes } = await req.json();
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
       message: `Student ${studentId} updated notes for course ${normalizedCourseId}`,
       details: { student_id: studentId, course_id: normalizedCourseId },
       event_kind: 'notes_update',
-      target_id: studentId,
+      target_id: String(studentId),
     }).catch(() => {});
 
     return NextResponse.json({ success: true, updatedAt: new Date().toISOString() });

@@ -424,7 +424,7 @@ export async function saveIntegrationToken({
             refresh_token: refreshToken || null,
             expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
             provider_account_id: providerAccountId || null,
-            metadata: finalMetadata,
+            metadata: JSON.parse(JSON.stringify(finalMetadata)),
             updated_at: new Date()
         };
 

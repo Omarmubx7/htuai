@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = session.user.student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.name || 'unknown';
     const email = session.user.email;
 
     try {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         const { previous_gpa, previous_credits } = body;
 
         const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] },
+            where: { OR: [{ email: email ?? undefined }, { student_id: studentId ?? undefined }] },
         });
 
         if (!user) {

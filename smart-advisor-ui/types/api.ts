@@ -126,11 +126,6 @@ export interface IntegrationToken {
   scope: string;
 }
 
-/** Request Helper Types */
-export interface ApiRequest extends NextRequest {
-  body?: unknown;
-}
-
 /** Response data structures */
 export interface StatsResponse {
   totalStudents: number;

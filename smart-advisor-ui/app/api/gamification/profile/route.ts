@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Safeguard: Ensure XP is never negative
-        if (profile.xp < 0) {
+        if (profile.xp !== null && profile.xp < 0) {
             profile = await prisma.gamificationProfile.update({
                 where: { user_id: user.id },
                 data: { xp: 0 }

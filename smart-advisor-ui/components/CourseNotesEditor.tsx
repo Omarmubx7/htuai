@@ -86,10 +86,7 @@ export default function CourseNotesEditor({
         italic: false,
         strike: false,
         code: false,
-        // Ensure these are disabled if StarterKit includes them in this version
-        // @ts-expect-error - TipTap StarterKit includes these extensions
         underline: false,
-        // @ts-expect-error - TipTap StarterKit includes these extensions
         link: false,
       }),
       Underline,

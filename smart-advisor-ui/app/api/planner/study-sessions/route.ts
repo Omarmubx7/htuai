@@ -125,13 +125,8 @@ export async function GET(req: NextRequest) {
         const searchParams = req.nextUrl.searchParams;
         const courseIdStr = searchParams.get("courseId");
 
-        const whereClause: Parameters<typeof prisma.studySession.findMany>[0]["where"] = { user_id: user.id };
-        if (courseIdStr) {
-            whereClause.course_id = Number(courseIdStr);
-        }
-
         const sessions = await prisma.studySession.findMany({
-            where: whereClause,
+            where: courseIdStr ? { user_id: user.id, course_id: Number(courseIdStr) } : { user_id: user.id },
             orderBy: { date: 'desc' },
             take: 50
         });

@@ -119,8 +119,9 @@ async function handleScheduleRequest(request: NextRequest, session: Awaited<Retu
     let errorMessage: string | undefined;
 
     try {
-        if (session.user?.db_id) {
-            userId = session.user.db_id;
+        const typedSession = session as { user?: { db_id?: number } } | null;
+        if (typedSession?.user?.db_id) {
+            userId = typedSession.user.db_id;
         }
 
         const body = await request.json() as ScheduleRequest & { semesterId?: number };
@@ -140,7 +141,7 @@ async function handleScheduleRequest(request: NextRequest, session: Awaited<Retu
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        let parsed: { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown };
+        let parsed: { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown } = { weeklyPlan: [], examTips: [] };
         try {
             const { content, usage } = await getStudySchedule({
                 major,
@@ -151,7 +152,7 @@ async function handleScheduleRequest(request: NextRequest, session: Awaited<Retu
                 courses,
                 weeklyHours,
             });
-            parsed = parseScheduleResponse(content);
+            parsed = parseScheduleResponse(content) as { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown };
 
             await logAIUsage({
                 userId,
@@ -190,8 +191,8 @@ async function handleScheduleRequest(request: NextRequest, session: Awaited<Retu
                     await prisma.semester.update({
                         where: { id: existingSemester.id },
                         data: {
-                            study_schedule: parsed.weeklyPlan || [],
-                            ai_exam_tips: parsed.examTips || []
+                            study_schedule: JSON.parse(JSON.stringify(parsed.weeklyPlan || [])),
+                            ai_exam_tips: JSON.parse(JSON.stringify(parsed.examTips || []))
                         }
                     });
                     console.log(`[AI] Persisted schedule to semester ${semesterId}`);

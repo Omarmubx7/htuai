@@ -248,6 +248,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
 
     const handleSaveDates = async () => {
+        if (!course) return;
         // Validate dates individually and against each other
         if (midtermDate) {
             const m = new Date(midtermDate);
@@ -334,7 +335,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     };
 
     const handleSaveInfo = async () => {
-        if (!course.semester?.start_date || !course.semester?.end_date) {
+        if (!course || !course.semester?.start_date || !course.semester?.end_date) {
             toast("Set semester start and end dates first, then edit course metadata.", "error");
             return;
         }

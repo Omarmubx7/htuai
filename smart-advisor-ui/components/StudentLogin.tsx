@@ -40,7 +40,7 @@ export default function StudentLogin() {
                 if (result?.error) {
                     setError(isClaiming ? "Account already exists or invalid data." : "Invalid ID or password.");
                 } else {
-                    globalThis.location.reload();
+                    window.location.reload();
                 }
             } catch (err) {
                 console.error("Login failed", err);

@@ -39,7 +39,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 semester_id: semesterId,
                 title: title || "Untitled Note",
                 notes: notes || "",
-                content: content || {}
+                content: JSON.parse(JSON.stringify(content || {}))
             }
         });
 
@@ -89,7 +89,7 @@ export async function PATCH(req: NextRequest) {
             data: {
                 title: title ?? undefined,
                 notes: notes ?? undefined,
-                content: content ?? undefined,
+                content: content !== undefined ? JSON.parse(JSON.stringify(content)) : undefined,
                 updated_at: new Date()
             }
         });

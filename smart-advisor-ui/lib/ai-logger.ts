@@ -39,7 +39,7 @@ export async function logAIUsage(data: AIUsageLogData): Promise<void> {
         status: data.status || 'success',
         error_message: data.errorMessage,
         response_time_ms: data.responseTimeMs,
-        metadata: data.metadata || {},
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : {},
       },
     });
 
@@ -138,15 +138,15 @@ export async function getAIUsageStats(days: number = 7) {
       totalCalls,
       callsByEndpoint: callsByEndpoint.map(item => ({
         endpoint: item.endpoint,
-        count: item._count._all,
+        count: typeof item._count === 'number' ? item._count : (item._count as any)._all ?? item._count,
       })),
       callsByModel: callsByModel.map(item => ({
         model: item.model_used || 'unknown',
-        count: item._count._all,
+        count: typeof item._count === 'number' ? item._count : (item._count as any)._all ?? item._count,
       })),
       callsByStatus: callsByStatus.map(item => ({
         status: item.status,
-        count: item._count._all,
+        count: typeof item._count === 'number' ? item._count : (item._count as any)._all ?? item._count,
       })),
       totalTokens: {
         input: totalTokens._sum.input_tokens || 0,

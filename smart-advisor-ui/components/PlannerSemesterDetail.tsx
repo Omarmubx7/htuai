@@ -437,9 +437,9 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             )}
                         </p>
                         <h2 className="text-4xl font-black mt-2 text-transparent bg-clip-text bg-linear-to-r from-violet-400 to-blue-400">
-                            {semester.semester_gpa !== null ? semester.semester_gpa.toFixed(2) : liveGPA}
+                            {semester.semester_gpa != null ? semester.semester_gpa.toFixed(2) : liveGPA}
                         </h2>
-                        {semester.semester_gpa !== null && (
+                        {semester.semester_gpa != null && (
                             <p className="text-[10px] text-white/20 mt-2 font-medium italic">Calculated: {liveGPA}</p>
                         )}
                     </div>

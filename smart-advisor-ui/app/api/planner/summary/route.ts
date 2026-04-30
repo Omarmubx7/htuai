@@ -42,7 +42,8 @@ interface UpcomingEventLike {
     type: string;
     title: string;
     start_datetime: Date;
-    course_id?: number;
+    course_id?: number | null;
+    end_datetime?: Date;
 }
 
 function getJordanDayKey(date: Date): string {
@@ -127,7 +128,7 @@ export async function GET(req: NextRequest) {
             where: {
                 OR: [
                     { user_id: user.id },
-                    { student_id: user.student_id || studentId }
+                    { student_id: user.student_id ?? undefined }
                 ]
             }
         });
