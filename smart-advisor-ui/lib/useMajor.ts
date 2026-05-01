@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { safeStorage } from "./safe-storage";
 
 export type MajorKey = "data_science" | "computer_science" | "cybersecurity" | "game_design" | "electrical_engineering" | "energy_engineering" | "industrial_engineering" | "mechanical_engineering";
@@ -92,17 +92,10 @@ function readStoredMajor(): MajorKey | null {
 }
 
 export function useMajor() {
-    const [major, setMajorState] = useState<MajorKey | null>(null);
-    const [loaded, setLoaded] = useState(false);
-
-    useEffect(() => {
-        const saved = readStoredMajor();
-        if (saved) {
-            setMajorState(saved);
-        }
-        setLoaded(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const [major, setMajorState] = useState<MajorKey | null>(() => {
+        if (typeof window === 'undefined') return null;
+        return readStoredMajor();
+    });
 
     const setMajor = (key: MajorKey) => {
         for (const k of STORAGE_KEYS) safeStorage.set(k, key);
@@ -114,5 +107,5 @@ export function useMajor() {
         setMajorState(null);
     };
 
-    return { major, setMajor, clearMajor, loaded };
+    return { major, setMajor, clearMajor, loaded: true };
 }

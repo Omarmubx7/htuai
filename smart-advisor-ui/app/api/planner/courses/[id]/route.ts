@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
 import { createAdminLog } from "@/lib/database";
 
-async function verifyAccess(req: NextRequest) {
+async function verifyAccess(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return { error: 'Unauthorized', status: 401 };
 

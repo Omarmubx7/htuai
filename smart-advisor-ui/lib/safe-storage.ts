@@ -37,7 +37,7 @@ const getStores = () => {
                 ls.setItem(x, x);
                 ls.removeItem(x);
                 localStore = ls;
-            } catch (e) {
+            } catch (_e) {
                 console.warn("[SafeStorage] LocalStorage restricted, using fallback");
                 localStore = createFallbackStore();
             }
@@ -50,12 +50,12 @@ const getStores = () => {
                 ss.setItem(x, x);
                 ss.removeItem(x);
                 sessionStore = ss;
-            } catch (e) {
+            } catch (_e) {
                 console.warn("[SafeStorage] SessionStorage restricted, using fallback");
                 sessionStore = createFallbackStore();
             }
         }
-    } catch (globalError) {
+    } catch (_globalError) {
         localStore = createFallbackStore();
         sessionStore = createFallbackStore();
     }
@@ -70,7 +70,7 @@ export const safeStorage = {
     get: (key: string): string | null => {
         try {
             return getStores().local.getItem(key);
-        } catch (e) {
+        } catch (_e) {
             return null;
         }
     },
@@ -81,13 +81,12 @@ export const safeStorage = {
             try {
                 const event = new StorageEvent('storage', { key, newValue: value, oldValue: null, storageArea: window.localStorage });
                 window.dispatchEvent(event);
-            } catch (_) { /* ignore in non-window contexts */ }
-
+            } catch (_e) { /* ignore in non-window contexts */ }
             // Dispatch a custom event so app components can react to HTUAI-specific saves
             try {
                 const custom = new CustomEvent('htuai-synced', { detail: { key, value } });
                 window.dispatchEvent(custom);
-            } catch (_) { /* ignore */ }
+            } catch (_e) { /* ignore */ }
 
             return true;
         } catch (e) {
@@ -98,25 +97,25 @@ export const safeStorage = {
         try {
             getStores().local.removeItem(key);
             return true;
-        } catch (e) {
-            return false;
-        }
-    },
-    session: {
-        get: (key: string): string | null => {
-            try {
-                return getStores().session.getItem(key);
-            } catch (e) {
-                return null;
-            }
-        },
-        set: (key: string, value: string): boolean => {
-            try {
-                getStores().session.setItem(key, value);
-                return true;
-            } catch (e) {
+            } catch (_e) {
                 return false;
             }
+        },
+        session: {
+            get: (key: string): string | null => {
+                try {
+                    return getStores().session.getItem(key);
+                } catch (_e) {
+                    return null;
+                }
+            },
+            set: (key: string, value: string): boolean => {
+                try {
+                    getStores().session.setItem(key, value);
+                    return true;
+                } catch (_e) {
+                    return false;
+                }
+            }
         }
-    }
-};
+    };

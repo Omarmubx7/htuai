@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getBaseUrl } from "@/lib/env";
-import { randomBytes } from "node:crypto";
+import { getIntegrationToken } from "@/lib/database";
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
 export async function GET(req: NextRequest): Promise<Response> {
@@ -20,8 +20,10 @@ export async function GET(req: NextRequest): Promise<Response> {
         return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
     }
 
-    // Generate secure state parameter to prevent CSRF
-    const state = randomBytes(32).toString("hex");
+    // Generate secure state parameter to prevent CSRF using Web Crypto API
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    const state = btoa(String.fromCharCode(...array)).replace(/[=+/]/g, "").toLowerCase();
     const returnToEncoded = Buffer.from(returnTo).toString("base64url");
     const stateValue = `${state}.${returnToEncoded}`;
 
@@ -111,10 +113,14 @@ async function processCourseExam(course: any, type: "Midterm" | "Final", token: 
 // POST /api/connect/google — Push midterm/final dates as events
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session?.user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const userId = session.user.db_id;
-    if (!userId) return NextResponse.json({ error: "Unauthorized: No database user found" }, { status: 401 });
+    if (!userId) {
+        return NextResponse.json({ error: "Unauthorized: No database user found" }, { status: 401 });
+    }
 
     const token = await getIntegrationToken(userId.toString(), "google_calendar");
 
@@ -123,7 +129,9 @@ export async function POST(req: NextRequest) {
     }
 
     const { courses } = await req.json();
-    if (!Array.isArray(courses)) return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    if (!Array.isArray(courses)) {
+        return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    }
 
     const results: any[] = [];
     const updatedCourses: any[] = [];

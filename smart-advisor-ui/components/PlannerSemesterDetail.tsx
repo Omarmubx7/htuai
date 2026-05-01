@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, ArrowLeft, BookOpen, Plus, MoreVertical, Target, MapPin, User, Save, ArrowRight, Search, Calendar as CalendarIcon, Edit2, Trash2, FileText, ChevronRight, Settings2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Plus, MapPin, User, Save, ArrowRight, Search, Calendar as CalendarIcon, Edit2, Trash2, FileText, ChevronRight, Settings2 } from "lucide-react";
 import Link from "next/link";
-import { GRADE_MAP } from "@/lib/grading";
 import { useToast } from "./ui/Toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import ThemeToggle from "@/components/ThemeToggle";
 import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+import { GRADE_MAP } from "@/lib/grading";
 
 interface PlannerSemesterDetailProps {
     semesterId: string;
@@ -310,7 +310,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         }
     };
 
-    const confirmDeleteCourse = (courseId: number) => {
+    const _confirmDeleteCourse = (courseId: number) => {
         setCourseToDelete(courseId);
         setShowDeleteCourseConfirm(true);
     };

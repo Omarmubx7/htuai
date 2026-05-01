@@ -72,6 +72,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "happy-dom": "^20.9.0",
     "prisma": "^6.19.2",
     "tailwindcss": "^4",
     "typescript": "^5",

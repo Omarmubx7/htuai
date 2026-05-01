@@ -49,7 +49,7 @@ describe('fetchWithRetry', () => {
       .mockResolvedValueOnce(mockSuccessResponse);
 
     vi.useFakeTimers();
-    const startTime = Date.now();
+    const _startTime = Date.now();
 
     const promise = fetchWithRetry('https://example.com/api', { retries: 3, retryDelay: 100 });
     

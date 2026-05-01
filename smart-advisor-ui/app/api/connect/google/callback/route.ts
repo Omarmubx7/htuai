@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
-    const errorDescription = req.nextUrl.searchParams.get("error_description");
+    const _errorDescription = req.nextUrl.searchParams.get("error_description");
     const stateParam = req.nextUrl.searchParams.get("state") || "";
 
     if (error || !code) {
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
         const redirectUrl = new URL(returnTo, req.url);
         redirectUrl.searchParams.set("connected", "google");
         return NextResponse.redirect(redirectUrl);
-    } catch (e: unknown) {
+    } catch (_e: unknown) {
         const errUrl = new URL(returnTo, req.url);
         errUrl.searchParams.set("error", "oauth_failed");
         return NextResponse.redirect(errUrl);

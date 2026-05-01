@@ -3,39 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/database";
-import { validateInput, validationErrorResponse } from "@/lib/validation";
-
-const semesterSchema = {
-    type: { type: "string" as const, required: true, enum: ["Fall", "Spring", "Summer"] },
-    year: { type: "number" as const, required: true, min: 2000, max: 2100 },
-    name: { type: "string" as const, required: true, min: 1, max: 100 },
-    start_date: { type: "string" as const, required: false },
-    end_date: { type: "string" as const, required: false }
-};
-
-export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const userId = session.user.db_id;
-    if (!userId) return NextResponse.json({ error: 'Unauthorized: No database user found' }, { status: 401 });
-
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id: userId }
-        });
-
-        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-
-        const body = await req.json();
-        const validation = validateInput(body, semesterSchema);
-        
-        if (!validation.isValid) {
-            return validationErrorResponse(validation.errors);
-        }
-
-        const { type, year, name, start_date, end_date } = body;
-}
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);

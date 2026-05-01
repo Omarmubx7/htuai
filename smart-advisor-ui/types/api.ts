@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+// NextRequest removed - unused
 
 /** Common API request/response types */
 

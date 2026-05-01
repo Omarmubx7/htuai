@@ -772,7 +772,6 @@ function CourseTrackerView({
                 onClose={() => setSelectedCourseForNotes(null)}
                 courseId={selectedCourseForNotes?.id || ""}
                 courseTitle={selectedCourseForNotes?.title || ""}
-                studentId={studentId}
             />
 
             <AnimatePresence>

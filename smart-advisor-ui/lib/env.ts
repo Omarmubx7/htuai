@@ -40,7 +40,7 @@ export function getBaseUrl(req?: Request | NextRequest) {
             // Fallback to the actual URL origin of the request
             const url = new URL(req.url);
             return url.origin;
-        } catch (e) {
+        } catch (_e) {
             // Fallback
         }
     }

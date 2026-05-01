@@ -106,7 +106,7 @@ export default async function RootLayout({
     const info = await getClientInfo();
     // Fire and forget - don't await the DB insert to avoid blocking
     logVisitor(info).catch(e => console.error("Logging failed", e));
-  } catch (e) {
+  } catch (_e) {
     // Ignore errors to not break the app
   }
 

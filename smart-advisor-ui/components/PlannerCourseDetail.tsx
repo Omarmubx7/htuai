@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, Save, History, PlayCircle, CheckCircle2, BookOpen, Calendar as CalendarIcon, Info } from "lucide-react";
@@ -83,14 +83,6 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     const [scheduleTime, setScheduleTime] = useState("");
     const [scheduleEndTime, setScheduleEndTime] = useState("");
     const ALL_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/");
-        } else if (status === "authenticated") {
-            fetchCourseData();
-        }
-    }, [status, router, courseId]);
 
     const parseAndSetSchedule = (scheduleData: unknown) => {
         try {
@@ -199,6 +191,14 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/");
+        } else if (status === "authenticated") {
+            fetchCourseData();
+        }
+    }, [status, router, courseId, fetchCourseData]);
 
     const handleAutoSaveNotes = async (content: NotesContent) => {
         try {

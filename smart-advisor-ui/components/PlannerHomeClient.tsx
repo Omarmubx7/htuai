@@ -95,14 +95,6 @@ function PlannerHomeClient() {
     const [generatingSchedule, setGeneratingSchedule] = useState(false);
     const { toast } = useToast();
 
-    useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/");
-        } else if (status === "authenticated") {
-            fetchSummary();
-        }
-    }, [status, router]);
-
     const fetchSummary = async () => {
         try {
             const res = await fetch("/api/planner/summary", { cache: "no-store" });
@@ -151,6 +143,14 @@ function PlannerHomeClient() {
             toast(e.message || "Failed to load your dashboard. Please refresh.", "error");
         }
     };
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/");
+        } else if (status === "authenticated") {
+            fetchSummary();
+        }
+    }, [status, router, fetchSummary]);
 
     const handleSync = async () => {
         if (!summary?.google_calendar_connected) {
@@ -486,7 +486,7 @@ function PlannerHomeClient() {
                                     </div>
                                 ))
                             ) : (
-                                weeklyPlan.slice(0, 4).map((dayPlan, i) => (
+                                weeklyPlan.slice(0, 4).map((dayPlan, _i) => (
                                     <div key={dayPlan.day} className="bg-white/3 border border-white/5 rounded-2xl p-4 hover:bg-white/5 transition-colors">
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{dayPlan.day}</span>

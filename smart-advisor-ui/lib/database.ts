@@ -97,7 +97,7 @@ export async function createAdminLog(data: {
             data: {
                 type: data.type,
                 message: data.message || null,
-                details: (data.details as any) || {},
+                details: (data.details as unknown) || {},
                 course_id: data.course_id || null,
                 event_kind: data.event_kind || null,
                 target_id: data.target_id || null,

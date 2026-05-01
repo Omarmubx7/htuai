@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { motion } from "framer-motion";
-import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
+import { BubbleMenu } from "@tiptap/react/menus";
 import { Extension } from "@tiptap/core";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Underline } from "@tiptap/extension-underline";
@@ -23,11 +23,11 @@ import { suggestion } from "@/lib/tiptap-suggestions";
 import { Callout } from "@/lib/tiptap-extensions";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
-  List, ListOrdered, CheckSquare,
-  Quote, Code, Minus, Info, Sparkles,
+  List, CheckSquare,
+  Quote, Code,
   Heading1, Heading2, Heading3, Heading4, Link as LinkIcon,
-  Undo, Redo, Image as ImageIcon, Search, Plus, Save, CheckCircle2,
-  Highlighter, Palette, ChevronDown, Trash2, Terminal
+  Undo, Redo, Plus, CheckCircle2,
+  Highlighter, Terminal, Sparkles
 } from "lucide-react";
 
 const lowlight = createLowlight(common);

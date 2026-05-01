@@ -6,18 +6,18 @@ type ValidationRule = {
     min?: number;
     max?: number;
     pattern?: RegExp;
-    enum?: any[];
+    enum?: unknown[];
 };
 
 type ValidationSchema = {
     [key: string]: ValidationRule;
 };
 
-export function validateInput(data: any, schema: ValidationSchema): { isValid: boolean; errors: string[] } {
+export function validateInput(data: unknown, schema: ValidationSchema): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     for (const [field, rules] of Object.entries(schema)) {
-        const value = data[field];
+        const value = (data as Record<string, unknown>)[field];
 
         // Check required
         if (rules.required && (value === undefined || value === null || value === "")) {

@@ -47,35 +47,6 @@ export default function PlannerSettings() {
     });
     const { toast } = useToast();
 
-    useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/");
-        } else if (status === "authenticated") {
-            checkIntegrationStatus();
-            fetchUserProfile();
-        }
-    }, [status, router]);
-
-    useEffect(() => {
-        if (searchParams.get("connected") === "google") {
-            toast("Google Calendar connected successfully!", "success");
-            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
-            // Refresh integration status and profile to reflect connection immediately
-            checkIntegrationStatus();
-            fetchUserProfile();
-        } else if (searchParams.get("error")) {
-            const errCode = searchParams.get("error");
-            if (errCode === "google_denied") {
-                toast("Google Calendar connection was cancelled or denied.", "error");
-            } else if (errCode === "google_token_failed") {
-                toast("Failed to connect to Google Calendar. Please try again.", "error");
-            } else {
-                toast("An error occurred while connecting to Google Calendar.", "error");
-            }
-            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
-        }
-    }, [searchParams, router, toast]);
-
     const checkIntegrationStatus = async () => {
         try {
             const data = await fetchJSON<{ google_calendar?: boolean; google_account_email?: string }>("/api/connect/status", { retries: 2 });
@@ -102,6 +73,35 @@ export default function PlannerSettings() {
             toast("Could not load profile settings", "error");
         }
     };
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/");
+        } else if (status === "authenticated") {
+            checkIntegrationStatus();
+            fetchUserProfile();
+        }
+    }, [status, router, checkIntegrationStatus, fetchUserProfile]);
+
+    useEffect(() => {
+        if (searchParams.get("connected") === "google") {
+            toast("Google Calendar connected successfully!", "success");
+            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
+            // Refresh integration status and profile to reflect connection immediately
+            checkIntegrationStatus();
+            fetchUserProfile();
+        } else if (searchParams.get("error")) {
+            const errCode = searchParams.get("error");
+            if (errCode === "google_denied") {
+                toast("Google Calendar connection was cancelled or denied.", "error");
+            } else if (errCode === "google_token_failed") {
+                toast("Failed to connect to Google Calendar. Please try again.", "error");
+            } else {
+                toast("An error occurred while connecting to Google Calendar.", "error");
+            }
+            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
+        }
+    }, [searchParams, router, toast, checkIntegrationStatus, fetchUserProfile]);
 
     const handleGoogleConnect = () => {
         // Redirect to external Google OAuth flow specific to the calendar

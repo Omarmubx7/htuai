@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 interface MajorSelectorProps {

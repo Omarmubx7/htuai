@@ -1,8 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { randomBytes } from "node:crypto";
+
+function generateNonce(): string {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Buffer.from(bytes).toString("base64");
+}
 
 export function middleware(request: NextRequest) {
-    const nonce = randomBytes(16).toString("base64");
+    const nonce = generateNonce();
     
     const cspHeader = `
         default-src 'self';

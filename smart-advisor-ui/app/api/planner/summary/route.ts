@@ -99,7 +99,7 @@ async function handleGpaImprovement(userId: number, cgpa: number, classification
     }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -281,7 +281,7 @@ export async function GET(req: NextRequest) {
             } catch { /* ok */ }
 
             const creditMap = buildCourseCreditMap(curriculum);
-            completedCreditsFromTracker = (completedList || []).reduce((total, entry) => {
+            const _completedCreditsFromTracker = (completedList || []).reduce((total, entry) => {
                 const code = getCompletedEntryCode(entry);
                 if (!code) return total;
                 return total + (creditMap.get(code) ?? 3);

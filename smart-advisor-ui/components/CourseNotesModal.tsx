@@ -21,7 +21,6 @@ interface CourseNotesModalProps {
     onClose: () => void;
     courseId: string;
     courseTitle: string;
-    studentId: string;
 }
 
 export default function CourseNotesModal({
@@ -29,17 +28,10 @@ export default function CourseNotesModal({
     onClose,
     courseId,
     courseTitle,
-    studentId
 }: CourseNotesModalProps) {
     const [notes, setNotes] = useState<Record<string, unknown> | string | null>(null);
     const [loading, setLoading] = useState(false);
     const [updatedAt, setUpdatedAt] = useState<string | undefined>();
-
-    useEffect(() => {
-        if (isOpen && courseId) {
-            loadNotes();
-        }
-    }, [isOpen, courseId]);
 
     const loadNotes = async () => {
         setLoading(true);
@@ -56,6 +48,12 @@ export default function CourseNotesModal({
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (isOpen && courseId) {
+            loadNotes();
+        }
+    }, [isOpen, courseId, loadNotes]);
 
     const handleAutoSave = async (content: Record<string, unknown> | string | null) => {
         try {

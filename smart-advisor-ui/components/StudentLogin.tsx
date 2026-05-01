@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Lock, User, Globe } from "lucide-react";
+import { ArrowRight, Lock, User } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 
