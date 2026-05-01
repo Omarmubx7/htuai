@@ -1,17 +1,12 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-    // Admin Auth Check
-    const secret = request.headers.get("x-admin-secret");
-    if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
-        return NextResponse.json(
-            { data: null, error: "Unauthorized access" },
-            { status: 401 }
-        );
-    }
+    const adminCheck = await requireAdmin();
+    if (adminCheck) return adminCheck;
 
     try {
         // Query top 100 students by XP

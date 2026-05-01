@@ -408,9 +408,7 @@ export async function GET(req: NextRequest) {
     } catch (error: any) {
         console.error("GET Planner Summary Error:", error);
         return NextResponse.json({ 
-            error: "Server Error", 
-            details: error?.message || "Unknown error",
-            stack: error?.stack 
+            error: "Server Error" 
         }, { status: 500 });
     }
 }

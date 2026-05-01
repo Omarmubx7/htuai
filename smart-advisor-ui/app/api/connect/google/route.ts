@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { getIntegrationToken } from "@/lib/database";
 import { getBaseUrl } from "@/lib/env";
+import { randomBytes } from "node:crypto";
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
 export async function GET(req: NextRequest): Promise<Response> {
-    console.log("[OAuth-Init] Starting OAuth flow");
-    
     const session = await getServerSession(authOptions);
-    console.log("[OAuth-Init] Session exists:", !!session?.user);
     
     if (!session?.user) {
-        console.error("[OAuth-Init] No session");
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
 
@@ -20,19 +16,16 @@ export async function GET(req: NextRequest): Promise<Response> {
     const redirectUri = `${getBaseUrl(req)}/api/connect/google/callback`;
     const returnTo = req.nextUrl.searchParams.get("returnTo") || "/planner/settings";
 
-    console.log("[OAuth-Init] Config check:", {
-        clientId: clientId ? clientId.substring(0, 10) + "..." : "MISSING",
-        redirectUri,
-        returnTo
-    });
-
     if (!clientId) {
-        console.error("[OAuth-Init] Missing GOOGLE_CLIENT_ID");
         return NextResponse.redirect(new URL("/?error=google_not_configured", req.url));
     }
 
-    // Append scopes
+    // Generate secure state parameter to prevent CSRF
+    const state = randomBytes(32).toString("hex");
+    const returnToEncoded = Buffer.from(returnTo).toString("base64url");
+    const stateValue = `${state}.${returnToEncoded}`;
 
+    // Append scopes
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.append("client_id", clientId);
     url.searchParams.append("redirect_uri", redirectUri);
@@ -40,10 +33,20 @@ export async function GET(req: NextRequest): Promise<Response> {
     url.searchParams.append("scope", "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email");
     url.searchParams.append("access_type", "offline");
     url.searchParams.append("prompt", "consent");
-    url.searchParams.append("state", returnTo);
+    url.searchParams.append("state", stateValue);
 
-    console.log("[OAuth-Init] Redirecting to Google OAuth URL");
-    return NextResponse.redirect(url.toString());
+    const response = NextResponse.redirect(url.toString());
+    
+    // Store state in cookie for verification
+    response.cookies.set("oauth_state", state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 600, // 10 minutes
+        path: "/"
+    });
+    
+    return response;
 }
 
 async function upsertExamEvent(token: string, event: any, existingEventId?: string) {

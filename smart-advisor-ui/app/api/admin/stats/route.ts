@@ -5,6 +5,7 @@ import { getAIUsageStats } from '@/lib/ai-logger';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -400,10 +401,8 @@ async function loadAiUsage() {
 }
 
 export async function GET(request: NextRequest) {
-    const secret = request.headers.get('x-admin-secret');
-    if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const adminCheck = await requireAdmin();
+    if (adminCheck) return adminCheck;
 
     try {
         await initDB();

@@ -1,13 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { getVisitorLogs } from '@/lib/database';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
-    const secret = request.headers.get('x-admin-secret');
-    if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export async function GET(request: NextRequest) {
+    const adminCheck = await requireAdmin();
+    if (adminCheck) return adminCheck;
 
     try {
         const logs = await getVisitorLogs(100);

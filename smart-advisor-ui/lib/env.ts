@@ -10,6 +10,12 @@ export function requireEnv(name: string): string {
 }
 
 
+const ALLOWED_HOSTS = [
+    'localhost:3000',
+    process.env.VERCEL_URL,
+    process.env.NEXTAUTH_URL?.replace(/https?:\/\//, '')
+].filter(Boolean) as string[];
+
 export function getBaseUrl(req?: Request | NextRequest) {
     // 1. If on the client, always use window.location.origin
     if (typeof window !== 'undefined') {
@@ -24,7 +30,11 @@ export function getBaseUrl(req?: Request | NextRequest) {
             const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
 
             if (forwardedHost) {
-                return `${forwardedProto}://${forwardedHost}`;
+                // Validate against allowed hosts
+                if (ALLOWED_HOSTS.includes(forwardedHost)) {
+                    return `${forwardedProto}://${forwardedHost}`;
+                }
+                // Fall through to default URL
             }
 
             // Fallback to the actual URL origin of the request

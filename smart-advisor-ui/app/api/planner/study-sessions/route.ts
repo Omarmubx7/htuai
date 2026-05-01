@@ -4,6 +4,15 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
 import { createAdminLog } from "@/lib/database";
+import { validateInput, validationErrorResponse } from "@/lib/validation";
+
+const studySessionSchema = {
+    course_id: { type: "number" as const, required: false },
+    duration_minutes: { type: "number" as const, required: true, min: 1, max: 1440 },
+    type: { type: "string" as const, required: true, enum: ["study", "assignment", "exam_prep", "project", "reading", "other"] },
+    notes: { type: "string" as const, required: false, max: 2000 },
+    date: { type: "string" as const, required: false }
+};
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -20,11 +29,13 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         const body = await req.json();
-        const { course_id, duration_minutes, type, notes, date } = body;
-
-        if (!duration_minutes || !type) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const validation = validateInput(body, studySessionSchema);
+        
+        if (!validation.isValid) {
+            return validationErrorResponse(validation.errors);
         }
+
+        const { course_id, duration_minutes, type, notes, date } = body;
 
         const newSession = await prisma.studySession.create({
             data: {
