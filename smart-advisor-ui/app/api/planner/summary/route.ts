@@ -145,10 +145,16 @@ export async function GET(_req: NextRequest) {
             }, { status: 200 });
         }
 
-        const JORDAN_TIMEZONE = 'Asia/Amman';
         const today = new Date();
-        const jordanDateStr = today.toLocaleDateString('en-CA', { timeZone: JORDAN_TIMEZONE });
-        const todayStart = new Date(`${jordanDateStr}T00:00:00.000Z`);
+        const jordanDateStr = getJordanDayKey(today);
+
+        // Calculate the Jordan timezone offset for midnight on this date
+        const tzFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Amman', timeZoneName: 'longOffset' });
+        const tzName = tzFormatter.formatToParts(new Date(jordanDateStr + 'T00:00:00'))
+            .find(p => p.type === 'timeZoneName')?.value || 'GMT+03:00';
+        const offsetMatch = /GMT([+-]\d{1,2})/.exec(tzName);
+        const offset = offsetMatch ? (offsetMatch[1].length <= 3 ? offsetMatch[1] + ':00' : offsetMatch[1]) : '+03:00';
+        const todayStart = new Date(`${jordanDateStr}T00:00:00${offset}`);
 
         // 3. Parallel fetching
         const [

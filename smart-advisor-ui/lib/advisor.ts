@@ -22,16 +22,24 @@ function checkDepartmentApproval(prereqStr: string): PrereqResult | null {
 
 function checkCreditHours(prereqStr: string, completedCredits: number): PrereqResult | null {
     // Matches patterns like "90 credit hours", "30 CH", "60 credits completed", ">= 45"
-    const hoursMatch = /(?:>=\s*(\d+))|(\d+)\s*(?:HRS|HOURS?|CH|CREDITS?)/i.exec(prereqStr);
-    if (hoursMatch) {
-        const required = Number.parseInt(hoursMatch[1] || hoursMatch[2], 10);
-        if (completedCredits < required) {
-            return {
-                isLocked: true,
-                missing: [],
-                lockReason: `Requires ${required} CH completed (you have ${completedCredits} CH)`,
-            };
+    // Using match with global flag to find all occurrences, then take the first valid match
+    const regex = /(?:>=\s*(\d+))|(\d+)\s*(?:HRS|HOURS?|CH|CREDITS?)/ig;
+    let match;
+    let required = 0;
+    // Find the first match with a captured number
+    while ((match = regex.exec(prereqStr)) !== null) {
+        const numStr = match[1] || match[2];
+        if (numStr) {
+            required = Number.parseInt(numStr, 10);
+            break;
         }
+    }
+    if (required > 0 && completedCredits < required) {
+        return {
+            isLocked: true,
+            missing: [],
+            lockReason: `Requires ${required} CH completed (you have ${completedCredits} CH)`,
+        };
     }
     return null;
 }
