@@ -1,20 +1,19 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [],
   test: {
     environment: 'happy-dom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
-        exclude: [
-          'node_modules/**',
-          'tests/**/*.spec.ts', // Exclude Playwright E2E tests
-          '.next/**',
-          'playwright-report/**',
-          'test-results/**',
-        ],
+    exclude: [
+      'node_modules/**',
+      'tests/**/*.spec.ts', // Exclude Playwright E2E tests
+      '.next/**',
+      'playwright-report/**',
+      'test-results/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

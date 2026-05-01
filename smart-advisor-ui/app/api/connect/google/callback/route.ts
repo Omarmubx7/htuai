@@ -8,7 +8,7 @@ import { getBaseUrl, requireEnv } from "@/lib/env";
 // Google redirects here after the user authorizes
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     // Verify state parameter to prevent CSRF
     const storedState = req.cookies.get("oauth_state")?.value;
     const [receivedState, returnToEncoded] = stateParam.split(".");
-    
+
     if (!storedState || storedState !== receivedState) {
         return NextResponse.redirect(new URL("/?error=invalid_state", req.url));
     }

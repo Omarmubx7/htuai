@@ -5,11 +5,11 @@ import { getIntegrationToken } from "@/lib/database";
 import { prisma } from "@/lib/prisma";
 
 type CourseDate = string | number | Date;
-type SyncResult = { 
-    course: string; 
-    type: string; 
-    success: boolean; 
-    eventId?: string; 
+type SyncResult = {
+    course: string;
+    type: string;
+    success: boolean;
+    eventId?: string;
     error?: string;
     status?: "synced" | "skipped" | "failed"
 };
@@ -46,7 +46,7 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
         const listRes = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
             headers: { Authorization: `Bearer ${token.accessToken}` }
         });
-        
+
         if (listRes.ok) {
             const listData = await listRes.json();
             const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
@@ -222,7 +222,7 @@ function parseSchedule(schedule: any): { days: string[]; startH: number; startM:
 function calculateScheduleDates(schedule: { days: string[]; startH: number; startM: number; endH: number; endM: number }, semesterObj?: Record<string, unknown>) {
     const dayToNum: Record<string, number> = { "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6 };
     const targetDays = new Set(schedule.days.map(d => dayToNum[d]).filter(n => n !== undefined));
-    
+
     let baseDate = new Date();
     if (semesterObj?.start_date) {
         const d = new Date(semesterObj.start_date as CourseDate);
@@ -231,7 +231,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
 
     const firstDate = new Date(baseDate);
     firstDate.setHours(schedule.startH, schedule.startM, 0, 0);
-    
+
     let attempts = 0;
     while (!targetDays.has(firstDate.getDay()) && attempts < 7) {
         firstDate.setDate(firstDate.getDate() + 1);
@@ -247,7 +247,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
         const d = new Date(semesterObj.end_date as CourseDate);
         if (!Number.isNaN(d.getTime())) untilDate = d;
     }
-    
+
     untilDate.setHours(23, 59, 59, 0);
     const untilStr = untilDate.toISOString().replaceAll("-", "").replaceAll(":", "").split(".")[0] + "Z";
 
@@ -279,10 +279,10 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
             colorId: "1"
         };
 
-        const existingEvent = await prisma.calendarEvent.findFirst({ 
-            where: { course_id: course.id, type: "Schedule", user_id: user.id } 
+        const existingEvent = await prisma.calendarEvent.findFirst({
+            where: { course_id: course.id, type: "Schedule", user_id: user.id }
         });
-        
+
         const method = existingEvent?.google_event_id ? "PATCH" : "POST";
         const baseEventsUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
         const eventPath = existingEvent?.google_event_id ? `/${existingEvent.google_event_id}` : "";
@@ -388,12 +388,12 @@ export async function POST() {
             googleAccountEmail
         );
 
-        return NextResponse.json({ 
-            success: true, 
+        return NextResponse.json({
+            success: true,
             message: statusMessage,
             syncedItems: successCount,
             googleAccount: googleAccountEmail,
-            details: results 
+            details: results
         });
 
     } catch (e: unknown) {

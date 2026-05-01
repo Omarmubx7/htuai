@@ -9,7 +9,7 @@ export async function GET() {
         const content = await fs.readFile(path.join(dataDir, "curriculum.json"), "utf8");
         const data = JSON.parse(content);
 
-        const courseMap: Map<string, { name: string, code: string, ch: number }> = new Map();
+        const courseMap: Map<string, { name: string; code: string; ch: number }> = new Map();
 
         const processList = (list: any[]) => {
             if (!list) return;
