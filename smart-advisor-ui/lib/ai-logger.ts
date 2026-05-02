@@ -39,7 +39,7 @@ export async function logAIUsage(data: AIUsageLogData): Promise<void> {
         status: data.status || 'success',
         error_message: data.errorMessage,
         response_time_ms: data.responseTimeMs,
-        metadata: data.metadata ? structuredClone(data.metadata) : {},
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata, (key, value) => value === undefined ? null : value)) : {},
       },
     });
 

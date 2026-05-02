@@ -108,7 +108,7 @@ function evaluateLogic(
             return { isLocked: true, missing: [code] };
         }
         // If it's a real course code in our curriculum
-        if (allCourseCodes.has(code)) {
+        if (allCodes.has(code)) {
             if (completed.has(code)) return { isLocked: false, missing: [] };
             return { isLocked: true, missing: [code] };
         }

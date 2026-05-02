@@ -177,14 +177,29 @@ export async function saveProgress(studentId: string, major: string, completed: 
     });
 
     if (existing) {
-        await prisma.studentProgress.update({
-            where: { id: existing.id }, // Use primary key to avoid stale data issues
-            data: {
-                completed: jsonStr,
-                updated_at: time,
-                student_id: studentId // Update ID if it changed
+        // Use user_id and major to find the record (more stable than student_id which may change)
+        const recordToUpdate = await prisma.studentProgress.findFirst({
+            where: {
+                user_id: user.id,
+                major: major
             }
         });
+
+        if (recordToUpdate) {
+            await prisma.studentProgress.update({
+                where: {
+                    student_id_major: {
+                        student_id: recordToUpdate.student_id,
+                        major: recordToUpdate.major
+                    }
+                },
+                data: {
+                    completed: jsonStr,
+                    updated_at: time,
+                    student_id: studentId // Update to new ID if changed
+                }
+            });
+        }
     } else {
         await prisma.studentProgress.create({
             data: {
