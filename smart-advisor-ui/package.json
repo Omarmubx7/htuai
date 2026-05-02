@@ -19,7 +19,7 @@
     "db:fix-credits": "node scripts/fix-previous-credits.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "6.19.2",
     "@tailwindcss/typography": "^0.5.19",
     "@tiptap/core": "^3.20.0",
     "@tiptap/extension-bubble-menu": "^3.20.0",
