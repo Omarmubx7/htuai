@@ -81,7 +81,7 @@ export function calculateCGPA(
     }
 
     // 2. Add historical baseline
-    if (history?.gpa !== null && history?.gpa !== undefined && history?.credits) {
+    if (history?.gpa != null && history?.credits != null) {
         totalQualityPoints += (history.gpa * history.credits);
         totalCredits += history.credits;
     }

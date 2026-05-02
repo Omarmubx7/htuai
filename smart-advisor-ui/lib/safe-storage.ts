@@ -79,13 +79,17 @@ export const safeStorage = {
             getStores().local.setItem(key, value);
             // Mirror native storage event for other tabs and listeners
             try {
-                const event = new StorageEvent('storage', { key, newValue: value, oldValue: null, storageArea: window.localStorage });
-                window.dispatchEvent(event);
+                if (typeof StorageEvent !== 'undefined') {
+                    const event = new StorageEvent('storage', { key, newValue: value, oldValue: null, storageArea: window.localStorage });
+                    window.dispatchEvent(event);
+                }
             } catch (_e) { /* ignore in non-window contexts */ }
             // Dispatch a custom event so app components can react to HTUAI-specific saves
             try {
-                const custom = new CustomEvent('htuai-synced', { detail: { key, value } });
-                window.dispatchEvent(custom);
+                if (typeof CustomEvent !== 'undefined') {
+                    const custom = new CustomEvent('htuai-synced', { detail: { key, value } });
+                    window.dispatchEvent(custom);
+                }
             } catch (_e) { /* ignore */ }
 
             return true;

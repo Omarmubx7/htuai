@@ -6,14 +6,27 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Clean up old entries every 5 minutes
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitStore.entries()) {
-        if (now > entry.resetTime) {
-            rateLimitStore.delete(key);
+let cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+if (typeof window === 'undefined') {
+    // Only run cleanup in server environment (not Edge/Serverless where module may reload)
+    cleanupInterval = setInterval(() => {
+        const now = Date.now();
+        for (const [key, entry] of rateLimitStore.entries()) {
+            if (now > entry.resetTime) {
+                rateLimitStore.delete(key);
+            }
         }
+    }, 5 * 60 * 1000);
+}
+
+// Export for testing or manual cleanup if needed
+export function stopRateLimitCleanup() {
+    if (cleanupInterval) {
+        clearInterval(cleanupInterval);
+        cleanupInterval = null;
     }
-}, 5 * 60 * 1000);
+}
 
 export interface RateLimitOptions {
     maxRequests: number;

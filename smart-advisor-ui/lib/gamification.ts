@@ -109,7 +109,8 @@ async function processActiveQuests(userId: number, newMinutes: number) {
 
     for (const quest of activeQuests) {
         if (quest.type === "study_time") {
-            const newProgress = Math.min(quest.current_value! + newMinutes, quest.target_value);
+            const currentValue = quest.current_value ?? 0;
+            const newProgress = Math.min(currentValue + newMinutes, quest.target_value);
 
             if (newProgress >= quest.target_value) {
                 // Completed Quest!

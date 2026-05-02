@@ -119,9 +119,11 @@ export const authOptions: NextAuthOptions = {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
                 session.user.provider = token.provider;
-                
+
                 // Fetch the definitive DB user to get the internal Int ID and student_id
-                const dbUser = await getUserByEmail(session.user.email || "") || await getUserByStudentId(session.user.name || "");
+                // Use email first, then fall back to student_id from token (not session.user.name)
+                const dbUser = await getUserByEmail(session.user.email || "") ||
+                    (token.student_id ? await getUserByStudentId(token.student_id) : null);
                 if (dbUser) {
                     session.user.student_id = dbUser.student_id;
                     // Force the session ID to be the stable database ID string

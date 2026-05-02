@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 function generateNonce(): string {
     const bytes = new Uint8Array(16);
     crypto.getRandomValues(bytes);
-    return Buffer.from(bytes).toString("base64");
+    // Use btoa for Edge Runtime compatibility (Buffer not available in middleware)
+    return btoa(String.fromCharCode(...bytes));
 }
 
 export function middleware(request: NextRequest) {

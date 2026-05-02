@@ -30,8 +30,13 @@ export function getBaseUrl(req?: Request | NextRequest) {
             const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
 
             if (forwardedHost) {
-                // Validate against allowed hosts
-                if (ALLOWED_HOSTS.includes(forwardedHost)) {
+                // Validate against allowed hosts (handle ports in forwardedHost)
+                const hostWithoutPort = forwardedHost.split(':')[0];
+                const isAllowed = ALLOWED_HOSTS.some(allowed => {
+                    const allowedWithoutPort = allowed.split(':')[0];
+                    return allowedWithoutPort === hostWithoutPort;
+                });
+                if (isAllowed) {
                     return `${forwardedProto}://${forwardedHost}`;
                 }
                 // Fall through to default URL

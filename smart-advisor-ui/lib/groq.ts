@@ -43,8 +43,7 @@ function formatCourseSummary(courses: ScheduleCourse[]) {
 function getGroqClient() {
     const apiKey = process.env.GROQ_API_TOKEN || process.env.groqapi_token;
     if (!apiKey) {
-        // Keep the error explicit so API routes can return a clear 500 reason.
-        requireEnv("GROQ_API_TOKEN");
+        throw new Error("Missing required environment variable: GROQ_API_TOKEN");
     }
     return new Groq({ apiKey });
 }

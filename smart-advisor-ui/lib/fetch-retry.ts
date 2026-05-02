@@ -9,6 +9,7 @@ export interface FetchRetryOptions extends RequestInit {
     retryOn?: number[];
     retryCondition?: (response: Response) => boolean;
     onRetry?: (attempt: number, error: Error | null, response: Response | null) => void;
+    timeout?: number; // Timeout in milliseconds for each fetch attempt
 }
 
 /**
@@ -27,6 +28,7 @@ export async function fetchWithRetry(
         retryOn = [408, 429, 500, 502, 503, 504],
         retryCondition,
         onRetry,
+        timeout = 30000, // Default 30 second timeout per attempt
         ...fetchOptions
     } = options;
 
@@ -34,13 +36,18 @@ export async function fetchWithRetry(
     let lastResponse: Response | null = null;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
         try {
-            const response = await fetch(url, fetchOptions);
-            
+            const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
+            clearTimeout(timeoutId);
+
             // Check if we should retry based on status code
             const shouldRetryStatus = retryOn.includes(response.status);
             const shouldRetryCustom = retryCondition ? retryCondition(response) : false;
-            
+
             if (!shouldRetryStatus && !shouldRetryCustom) {
                 return response;
             }
@@ -54,16 +61,17 @@ export async function fetchWithRetry(
 
             // Calculate exponential backoff delay
             const delay = retryDelay * Math.pow(2, attempt);
-            
+
             if (onRetry) {
                 onRetry(attempt + 1, null, response);
             }
 
             await new Promise(resolve => setTimeout(resolve, delay));
-            
+
         } catch (error) {
+            clearTimeout(timeoutId);
             lastError = error instanceof Error ? error : new Error(String(error));
-            
+
             // Don't retry on last attempt
             if (attempt === retries) {
                 throw lastError;
@@ -71,7 +79,7 @@ export async function fetchWithRetry(
 
             // Calculate exponential backoff delay
             const delay = retryDelay * Math.pow(2, attempt);
-            
+
             if (onRetry) {
                 onRetry(attempt + 1, lastError, null);
             }

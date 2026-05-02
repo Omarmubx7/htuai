@@ -102,12 +102,18 @@ function evaluateLogic(
     // 3. Leaf node: extract code
     const code = extractCode(s, rules);
     if (code) {
-        // If it's a real course code (in our curriculum) OR a special code like HTU_PLACEMENT
-        if (allCodes.size === 0 || allCodes.has(code) || code === 'HTU_PLACEMENT') {
+        // If it's a special code like HTU_PLACEMENT
+        if (code === 'HTU_PLACEMENT') {
             if (completed.has(code)) return { isLocked: false, missing: [] };
             return { isLocked: true, missing: [code] };
         }
-        return { isLocked: true, missing: [code] };
+        // If it's a real course code in our curriculum
+        if (allCourseCodes.has(code)) {
+            if (completed.has(code)) return { isLocked: false, missing: [] };
+            return { isLocked: true, missing: [code] };
+        }
+        // If not in curriculum, treat as external/satisfied (don't lock)
+        return { isLocked: false, missing: [] };
     }
 
     return { isLocked: false, missing: [] };

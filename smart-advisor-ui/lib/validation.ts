@@ -67,8 +67,19 @@ export function validateInput(data: unknown, schema: ValidationSchema): { isVali
             }
         }
 
-        // Enum validation
-        if (rules.enum && !rules.enum.includes(value)) {
+        // Enum validation (handle type coercion)
+        if (rules.enum && !rules.enum.some(option => {
+            // Handle strict equality first, then try type coercion for common cases
+            if (option === value) return true;
+            // Handle string/number coercion
+            if (typeof option === 'number' && typeof value === 'string' && !isNaN(Number(value))) {
+                return option === Number(value);
+            }
+            if (typeof option === 'string' && typeof value === 'number') {
+                return option === String(value);
+            }
+            return false;
+        })) {
             errors.push(`${field} must be one of: ${rules.enum.join(", ")}`);
         }
     }
