@@ -22,9 +22,10 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./"
+        "./*"
       ],
       "@prisma/client": [
         "node_modules/@prisma/client"

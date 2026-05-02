@@ -7,10 +7,16 @@ const nextConfig: NextConfig = {
     turbo: {
       root: path.join(__dirname),
     },
-    serverExternalPackages: ['@prisma/client'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.join(__dirname),
+    };
+    return config;
   },
 };
 
