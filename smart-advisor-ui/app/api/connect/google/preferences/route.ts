@@ -8,10 +8,8 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const identity = session.user.db_id?.toString()
-        || (session.user as Record<string, unknown>).student_id as string
-        || session.user.email
-        || session.user.name;
+    const identity = (session.user as Record<string, unknown>).student_id as string
+        || session.user.email;
     if (!identity) return NextResponse.json({ error: "No user identity" }, { status: 400 });
 
     const user = await resolveUserByString(identity);

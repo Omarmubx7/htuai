@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Settings2, Calendar, RefreshCcw, Bell, User, Mail, GraduationCap, ShieldCheck } from "lucide-react";
@@ -14,9 +14,9 @@ interface PlannerUserProfile {
     image?: string | null;
     name?: string | null;
     email?: string | null;
-    student_id: string;
-    major: string;
-    role: string;
+    student_id?: string | null;
+    major?: string | null;
+    role?: string | null;
 }
 
 interface GooglePreferences {
@@ -47,7 +47,7 @@ export default function PlannerSettings() {
     });
     const { toast } = useToast();
 
-    const checkIntegrationStatus = async () => {
+    const checkIntegrationStatus = useCallback(async () => {
         try {
             const data = await fetchJSON<{ google_calendar?: boolean; google_account_email?: string }>("/api/connect/status", { retries: 2 });
             setCalendarConnected(data.google_calendar ?? false);
@@ -56,9 +56,9 @@ export default function PlannerSettings() {
             console.error("Failed to check integration status", error);
             toast("Could not load integration status", "error");
         }
-    };
+    }, [toast]);
 
-    const fetchUserProfile = async () => {
+    const fetchUserProfile = useCallback(async () => {
         try {
             const data = await fetchJSON<PlannerSummaryResponse>("/api/planner/summary", { retries: 2 });
             setUserProfile(data.user ?? null);
@@ -72,7 +72,7 @@ export default function PlannerSettings() {
             console.error("Failed to fetch user profile", error);
             toast("Could not load profile settings", "error");
         }
-    };
+    }, [toast]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -86,7 +86,8 @@ export default function PlannerSettings() {
     useEffect(() => {
         if (searchParams.get("connected") === "google") {
             toast("Google Calendar connected successfully!", "success");
-            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
+            const currentPath = typeof globalThis.location === 'undefined' ? '/' : globalThis.location.pathname;
+            router.replace(currentPath, { scroll: false });
             // Refresh integration status and profile to reflect connection immediately
             checkIntegrationStatus();
             fetchUserProfile();
@@ -99,7 +100,8 @@ export default function PlannerSettings() {
             } else {
                 toast("An error occurred while connecting to Google Calendar.", "error");
             }
-            router.replace(typeof window !== 'undefined' ? window.location.pathname : '/', { scroll: false });
+            const currentPath = typeof globalThis.location === 'undefined' ? '/' : globalThis.location.pathname;
+            router.replace(currentPath, { scroll: false });
         }
     }, [searchParams, router, toast, checkIntegrationStatus, fetchUserProfile]);
 
@@ -173,6 +175,10 @@ export default function PlannerSettings() {
 
     const currentExamReminderDays = preferences.exam_reminders_days ?? (preferences.exam_reminders ? 7 : 0);
 
+    const displayStudentId = userProfile?.student_id?.trim() || "Not set yet";
+    const displayMajor = (userProfile?.major || "undecided").replaceAll('_', ' ');
+    const displayRole = userProfile?.role?.trim() || "Student";
+
     const getInitials = (name?: string | null) => {
         if (!name) return "HT";
         const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -240,12 +246,12 @@ export default function PlannerSettings() {
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Student ID / Major</p>
                                         <p className="text-sm font-bold text-white/90">
-                                            {userProfile.student_id} • <span className="text-violet-400 capitalize">{(userProfile.major || "undecided").replaceAll('_', ' ')}</span>
+                                            {displayStudentId} • <span className="text-violet-400 capitalize">{displayMajor}</span>
                                         </p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Account Role</p>
-                                        <p className="text-sm font-bold text-emerald-400 capitalize">{userProfile.role}</p>
+                                        <p className="text-sm font-bold text-emerald-400 capitalize">{displayRole}</p>
                                     </div>
                                 </div>
                             </div>
@@ -263,7 +269,7 @@ export default function PlannerSettings() {
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2">
-                                    Google Calendar 
+                                    <span>Google Calendar</span>
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${calendarConnected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
                                         {calendarConnected ? 'Connected' : 'Disconnected'}
                                     </span>
@@ -300,7 +306,7 @@ export default function PlannerSettings() {
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2 text-white/60">
-                                    Google Sheets 
+                                    <span>Google Sheets</span>
                                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-white/5 text-white/40">Coming Soon</span>
                                 </h4>
                                 <p className="text-sm text-white/30 mt-1 max-w-sm">
@@ -311,7 +317,7 @@ export default function PlannerSettings() {
                                 disabled
                                 className="px-6 py-3 bg-white/5 text-white/20 font-bold rounded-xl text-sm cursor-not-allowed w-full sm:w-auto"
                             >
-                                Connect Sheets
+                                Available Soon
                             </button>
                         </div>
                     </div>
@@ -324,29 +330,40 @@ export default function PlannerSettings() {
                     </h3>
 
                     <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] space-y-4 text-sm text-white/80">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                            <span>Sync daily classes dynamically</span>
-                            <button
-                                onClick={() => updatePreference('sync_daily', !preferences.sync_daily)}
-                                disabled={!calendarConnected}
-                                className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 ${preferences.sync_daily ? 'bg-emerald-500' : 'bg-white/10'} ${calendarConnected ? 'cursor-pointer' : 'opacity-30 cursor-not-allowed'}`}
-                            >
-                                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${preferences.sync_daily ? 'translate-x-6' : 'translate-x-0'}`} />
-                            </button>
+                        <div className="flex flex-col gap-2 border-b border-white/5 pb-4">
+                            <div className="flex items-center justify-between gap-4">
+                                <span>Sync daily classes dynamically</span>
+                                <button
+                                    onClick={() => updatePreference('sync_daily', !preferences.sync_daily)}
+                                    disabled={!calendarConnected}
+                                    aria-pressed={preferences.sync_daily}
+                                    className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ${preferences.sync_daily ? 'bg-emerald-500' : 'bg-white/10'} ${calendarConnected ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed border border-white/10'}`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${preferences.sync_daily ? 'translate-x-6' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+                            {!calendarConnected && (
+                                <p className="text-[11px] text-white/35">Connect Google Calendar to enable automatic daily sync.</p>
+                            )}
                         </div>
-                        <div className="flex items-center justify-between pt-2">
-                            <span>Reminder for Exams (Before Date)</span>
-                            <select
-                                value={currentExamReminderDays}
-                                onChange={(e) => updatePreference('exam_reminders_days', Number.parseInt(e.target.value))}
-                                disabled={!calendarConnected}
-                                className={`bg-black border border-white/10 rounded-xl px-2 py-1 text-white text-xs focus:outline-hidden ${!calendarConnected && 'opacity-50'}`}
-                            >
-                                <option value={7}>7 Days</option>
-                                <option value={3}>3 Days</option>
-                                <option value={1}>1 Day</option>
-                                <option value={0}>Disabled</option>
-                            </select>
+                        <div className="flex flex-col gap-2 pt-2">
+                            <div className="flex items-center justify-between gap-4">
+                                <span>Reminder for Exams (Before Date)</span>
+                                <select
+                                    value={currentExamReminderDays}
+                                    onChange={(e) => updatePreference('exam_reminders_days', Number.parseInt(e.target.value))}
+                                    disabled={!calendarConnected}
+                                    className={`bg-black border border-white/10 rounded-xl px-2 py-1 text-white text-xs focus:outline-none ${!calendarConnected && 'opacity-50 cursor-not-allowed'}`}
+                                >
+                                    <option value={7}>7 Days</option>
+                                    <option value={3}>3 Days</option>
+                                    <option value={1}>1 Day</option>
+                                    <option value={0}>Disabled</option>
+                                </select>
+                            </div>
+                            {!calendarConnected && (
+                                <p className="text-[11px] text-white/35">Connect Google Calendar to change exam reminder timing.</p>
+                            )}
                         </div>
                     </div>
                 </div>

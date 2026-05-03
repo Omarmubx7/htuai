@@ -104,7 +104,7 @@ export async function GET(_req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const email = session.user.email;
-    const studentId = session.user.student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.email;
 
     try {
         const user = await prisma.user.findFirst({
@@ -140,7 +140,9 @@ export async function GET(_req: NextRequest) {
                 user: {
                     name: user.name,
                     email: user.email,
-                    student_id: user.student_id || studentId
+                    student_id: user.student_id || null,
+                    role: user.role || "student",
+                    major: "undecided"
                 }
             }, { status: 200 });
         }
@@ -408,7 +410,8 @@ export async function GET(_req: NextRequest) {
                 name: user.name,
                 email: user.email,
                 student_id: profile.student_id,
-                major: profile?.major || "undecided"
+                major: profile?.major || "undecided",
+                role: user.role || "student"
             }
         });
     } catch (error: any) {

@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
 
         // Verify ownership: check that the note's semester belongs to the authenticated user
         const email = session.user.email;
-        const studentId = session.user.student_id || session.user.name;
+        const studentId = session.user.student_id || session.user.email;
         const user = await prisma.user.findFirst({
             where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
         });

@@ -301,3 +301,256 @@ All 14 identified bugs have been fixed:
 12. ✅ **Bug #12** - Fetch Retry Timeout (fetch-retry.ts)
 13. ✅ **Bug #13** - Quest current_value (gamification.ts)
 14. ✅ **Bug #14** - Deep Clone undefined (ai-logger.ts)
+
+
+
+
+
+# HTUAI Bug Report — Admin Dashboard & Planner Settings
+
+**Project:** [htuai.mubx](https://htuai.mubx.dev)  
+**Date:** 2026-05-03  
+**Reporter:** Omar Mubaidin  
+**Status:** Open  
+
+## Scope
+
+**Pages audited**  
+- [Admin Dashboard](https://htuai.mubx.dev/admin/dashboard)  
+- [Planner Settings](https://htuai.mubx.dev/planner/settings)  
+
+## Triage Summary
+
+This report organizes the currently observed issues into admin access, page identity/layout, planner integrations/settings, profile data binding, and counter behavior. The highest-priority problems are the blocked admin authentication flow, misleading or unusable planner actions, incorrect profile mapping, and the newly noted counter malfunction.
+
+## Severity Guide
+
+- 🔴 Critical — blocks core functionality or access
+- 🟠 Medium — important functionality is broken, misleading, or incomplete
+- 🟡 Low — polish, layout, or contextual consistency issue
+
+---
+
+## 🔴 BUG-001 — Invalid Admin Secret Blocks Access with No Recovery
+
+**Area:** Admin Dashboard  
+**Severity:** Critical  
+**Status:** Open
+
+### Description
+The admin dashboard is stuck behind an authentication gate that shows an admin secret field, an **Unlock** action, and an inline **"Invalid admin secret"** error at the same time. The core admin experience is not reachable from the current session.
+
+### Reproduction Steps
+1. Navigate to `/admin/dashboard`
+2. Observe the admin secret input field
+3. Submit the form
+4. Notice the inline **"Invalid admin secret"** state
+5. No recovery help, reset guidance, or retry explanation is provided
+
+### Expected Behavior
+The page should clearly separate empty, loading, and rejected states. When the secret is invalid, the UI should help the user recover instead of stopping at a dead-end error.
+
+### Suggested Fix
+Add explicit UI states for `empty`, `loading`, and `error`. Clear the field after a failed attempt and show helper text such as: `Forgot the secret? Contact your system admin.`
+
+---
+
+## 🟠 BUG-002 — Public App Title Shown on Admin Page
+
+**Area:** Admin Dashboard  
+**Severity:** Medium  
+**Status:** Open
+
+### Description
+The page `<title>` and meta snippet still show the public HTUAI marketing identity instead of an admin-specific page identity. This makes browser tabs, history, and debugging more confusing.
+
+### Reproduction Steps
+1. Navigate to `/admin/dashboard`
+2. Check the browser tab title and metadata
+3. Observe the page still uses the public shell identity
+
+### Expected Behavior
+Admin pages should expose a distinct identity such as `Admin — HTUAI`.
+
+### Suggested Fix
+Set route-specific metadata for all `/admin/*` pages, for example `Admin Panel | HTUAI`.
+
+---
+
+## 🟡 BUG-003 — Public Footer and Promo Element Visible on Locked Admin Gate
+
+**Area:** Admin Dashboard  
+**Severity:** Low  
+**Status:** Open
+
+### Description
+The locked admin state still shows public footer links like Privacy, Terms, and AI Transparency, plus a **SimplyCodes** close element. This makes the protected state feel mixed into the public marketing shell instead of isolated.
+
+### Reproduction Steps
+1. Navigate to `/admin/dashboard` while unauthenticated
+2. Scroll through the locked state
+3. Observe the public footer and promo-related UI elements
+
+### Expected Behavior
+The admin authentication gate should use a clean protected layout with no public footer or promotional elements.
+
+### Suggested Fix
+Create a separate minimal layout for `/admin/*` routes that excludes the public footer, nav shell, and promo widgets.
+
+---
+
+## 🔴 BUG-004 — “Connect Sheets” CTA Conflicts With “COMING SOON” State
+
+**Area:** Planner Settings  
+**Severity:** High  
+**Status:** Open
+
+### Description
+Google Sheets is labeled **COMING SOON** but still displays a **Connect Sheets** button. The label says the feature is unavailable while the CTA suggests it is usable.
+
+### Reproduction Steps
+1. Navigate to `/planner/settings`
+2. Locate the Google Sheets integration row
+3. Observe both the **COMING SOON** label and the **Connect Sheets** button
+4. Attempt to use the CTA
+
+### Expected Behavior
+A coming-soon feature should not expose a live-looking action button unless it is intentionally disabled and explained.
+
+### Suggested Fix
+Hide the CTA or render it in a disabled state with explanatory text such as `Available soon`. A better alternative would be a passive CTA like `Notify me` or `Learn more`.
+
+---
+
+## 🟠 BUG-005 — Exam Reminder Dropdown Disabled With No Explanation
+
+**Area:** Planner Settings  
+**Severity:** Medium  
+**Status:** Open
+
+### Description
+The **Reminder for Exams (Before Date)** dropdown is disabled, and the visible options inside it also appear disabled. There is no explanation for why the setting is locked.
+
+### Reproduction Steps
+1. Navigate to `/planner/settings`
+2. Locate **Reminder for Exams (Before Date)**
+3. Attempt to open or change the select field
+4. Observe the control is disabled with no helper text
+
+### Expected Behavior
+If the control depends on another integration or permission, the user should be told what is required to unlock it.
+
+### Suggested Fix
+Show helper text such as `Connect Google Calendar to enable reminders.` If there is no dependency, remove the disabled state and verify the control works normally.
+
+---
+
+## 🟠 BUG-006 — “Sync Daily Classes Dynamically” Toggle Appears Missing or Unrendered
+
+**Area:** Planner Settings  
+**Severity:** Medium  
+**Status:** Open
+
+### Description
+The **Sync daily classes dynamically** setting appears as plain text without a clearly visible switch, checkbox, or active state. This suggests the actual toggle UI may not be rendering.
+
+### Reproduction Steps
+1. Navigate to `/planner/settings`
+2. Find **Sync daily classes dynamically**
+3. Observe the label area closely
+4. No obvious interactive control is shown
+
+### Expected Behavior
+The setting should render with a visible interactive toggle that shows whether the feature is on or off.
+
+### Suggested Fix
+Inspect the toggle component path and verify it is not blocked by missing props, CSS visibility issues, feature flags, or conditional rendering errors.
+
+---
+
+## 🔴 BUG-007 — Student ID Field Displays Full Name Instead of ID
+
+**Area:** Planner Settings — Profile Section  
+**Severity:** High  
+**Status:** Open
+
+### Description
+Under **STUDENT ID / MAJOR**, the displayed value is `omar mubaidin - Computer Science`, which uses the name instead of the actual student ID. This strongly suggests a profile mapping bug.
+
+### Reproduction Steps
+1. Navigate to `/planner/settings`
+2. Find the **STUDENT ID / MAJOR** profile field
+3. Observe the first value is the user name rather than a student ID
+
+### Expected Behavior
+The field should show the actual ID and the major, for example `24110213 - Computer Science`.
+
+### Suggested Fix
+Audit the binding path and verify `studentId` is populated from the real student identifier source, not from `user.name` or `profile.displayName`.
+
+---
+
+## 🟠 BUG-008 — Account Role Value Missing From Profile Display
+
+**Area:** Planner Settings — Profile Section  
+**Severity:** Medium  
+**Status:** Open
+
+### Description
+The **ACCOUNT ROLE** label appears without a visible value. The role may be missing, failing to render, or hidden by a styling issue.
+
+### Reproduction Steps
+1. Navigate to `/planner/settings`
+2. Locate **ACCOUNT ROLE**
+3. Observe there is no visible role value below or beside it
+
+### Expected Behavior
+The page should show the current role such as `Student` or use a fallback like `Role not assigned`.
+
+### Suggested Fix
+Check the profile/auth response for the `role` field. If it is null, add a fallback value. If it is missing entirely, include it in the API payload and confirm the UI maps it correctly.
+
+---
+
+## 🟠 BUG-009 — Counter Is Not Working Properly
+
+**Area:** Planner Settings or related interactive UI  
+**Severity:** Medium  
+**Status:** Open
+
+### Description
+The counter is reported as not working properly. Based on the current note, the issue is confirmed at the product level but still needs exact scope definition, because the failing counter behavior, affected component, and expected increment/decrement logic were not yet fully documented.
+
+### Reproduction Steps
+1. Navigate to the screen containing the counter
+2. Interact with the counter control
+3. Observe that the displayed count does not update correctly, updates inconsistently, or fails entirely
+
+### Expected Behavior
+The counter should update immediately and reliably according to the user action, with the UI always matching the real internal state.
+
+### Suggested Fix
+Verify the counter state binding, event handler wiring, and render updates. Check for stale state, incorrect parsing, disabled handlers, async race conditions, or UI text that is not subscribed to the live value.
+
+### Follow-up Needed
+Document the exact location of the counter, its current behavior, the intended behavior, and whether the issue affects incrementing, decrementing, resetting, persistence, or display only.
+
+---
+
+## Bug Summary Table
+
+| ID | Area | Severity | Title |
+|---|---|---|---|
+| BUG-001 | Admin Dashboard | 🔴 Critical | Invalid admin secret blocks access with no recovery |
+| BUG-002 | Admin Dashboard | 🟠 Medium | Public app title shown on admin page |
+| BUG-003 | Admin Dashboard | 🟡 Low | Public footer and promo element visible on locked admin gate |
+| BUG-004 | Planner Settings | 🔴 High | “Connect Sheets” CTA conflicts with “COMING SOON” |
+| BUG-005 | Planner Settings | 🟠 Medium | Exam reminder dropdown disabled with no explanation |
+| BUG-006 | Planner Settings | 🟠 Medium | “Sync daily classes dynamically” toggle appears missing or unrendered |
+| BUG-007 | Planner Settings — Profile | 🔴 High | Student ID field shows full name instead of ID |
+| BUG-008 | Planner Settings — Profile | 🟠 Medium | Account role value missing from profile display |
+| BUG-009 | Counter / interactive UI | 🟠 Medium | Counter is not working properly |
+
+## Recommended Fix Order
+
+Start with **BUG-001**, **BUG-004**, **BUG-007**, and **BUG-009** because they affect access, trust, correctness, and expected interactivity. After that, address the disabled/unrendered settings controls, then clean up admin-shell identity and layout consistency issues.

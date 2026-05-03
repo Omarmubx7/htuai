@@ -218,6 +218,7 @@ function useCountUp(target: number, duration = 1400) {
     const [value, setValue] = useState(0);
     useEffect(() => {
         const startTime = performance.now();
+        let rafId = 0;
         const step = (now: number) => {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
@@ -225,7 +226,10 @@ function useCountUp(target: number, duration = 1400) {
             setValue(Math.round(eased * target));
             if (progress < 1) requestAnimationFrame(step);
         };
-        requestAnimationFrame(step);
+        rafId = requestAnimationFrame(step);
+        return () => {
+            cancelAnimationFrame(rafId);
+        };
     }, [target, duration]);
     return value;
 }

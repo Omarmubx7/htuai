@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode, type SyntheticEvent } from 'react';
 import { KeyRound, Loader2, ShieldAlert } from 'lucide-react';
 import { safeStorage } from '@/lib/safe-storage';
 import { fetchWithRetry } from '@/lib/fetch-retry';
@@ -8,21 +8,23 @@ import { fetchWithRetry } from '@/lib/fetch-retry';
 const AdminSecretContext = createContext<string>('');
 export const useAdminSecret = () => useContext(AdminSecretContext);
 
-export default function AdminGate({ children }: { children: ReactNode }) {
+export default function AdminGate({ children }: Readonly<{ children: ReactNode }>) {
     const [secret, setSecret] = useState<string | null>(() => {
-        if (typeof window === 'undefined') return null;
+        if (typeof globalThis.window === 'undefined') return null;
         return safeStorage.session.get('admin_secret');
     });
 
     const [input, setInput] = useState('');
     const [error, setError] = useState('');
     const [verifying, setVerifying] = useState(false);
+    const [attempted, setAttempted] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!input.trim()) return;
         setVerifying(true);
         setError('');
+        setAttempted(true);
         try {
             const res = await fetchWithRetry('/api/admin/stats', {
                 headers: { 'x-admin-secret': input.trim() },
@@ -31,11 +33,14 @@ export default function AdminGate({ children }: { children: ReactNode }) {
             if (res.ok) {
                 safeStorage.session.set('admin_secret', input.trim());
                 setSecret(input.trim());
+                setInput('');
             } else {
+                setInput('');
                 setError('Invalid admin secret');
             }
         } catch (error) {
             console.error('Admin verification failed', error);
+            setInput('');
             setError('Connection failed');
         }
         setVerifying(false);
@@ -73,10 +78,16 @@ export default function AdminGate({ children }: { children: ReactNode }) {
                 />
 
                 {error && (
-                    <div className="flex items-center gap-2 text-xs text-red-400/80">
+                    <div className="flex items-start gap-2 text-xs text-red-400/80" role="status" aria-live="polite">
                         <ShieldAlert className="w-3.5 h-3.5" />
-                        {error}
+                        <span>{error}</span>
                     </div>
+                )}
+
+                {!error && attempted && !verifying && (
+                    <p className="text-[11px] text-white/30 leading-relaxed">
+                        Forgot the secret? Contact your system admin.
+                    </p>
                 )}
 
                 <button type="submit" disabled={verifying || !input.trim()}

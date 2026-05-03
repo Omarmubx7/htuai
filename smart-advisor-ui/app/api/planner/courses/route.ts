@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const email = session.user.email;
-    const studentId = session.user.student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.email;
 
     try {
         const user = await prisma.user.findFirst({

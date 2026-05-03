@@ -9,7 +9,7 @@ async function verifyAccess(_req: NextRequest) {
     if (!session?.user) return { error: 'Unauthorized', status: 401 };
 
     const email = session.user.email;
-    const studentId = session.user.student_id || session.user.name;
+    const studentId = session.user.student_id || session.user.email;
 
     const user = await prisma.user.findFirst({
         where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
