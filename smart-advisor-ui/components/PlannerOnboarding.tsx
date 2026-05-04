@@ -44,7 +44,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                 </div>
 
                 <div className="p-8 sm:p-12 text-center min-h-[400px] flex flex-col items-center justify-center relative">
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence>
                         <motion.div
                             key={step}
                             initial={{ opacity: 0, x: 20 }}

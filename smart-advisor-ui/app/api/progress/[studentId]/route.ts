@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadProgress } from '@/lib/database';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 export async function GET(
     request: NextRequest,
@@ -16,9 +17,12 @@ export async function GET(
         return NextResponse.json({ error: 'Invalid student ID' }, { status: 400 });
     }
 
-    const authedSid = session?.user?.student_id || session?.user?.name;
+    if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!session || authedSid !== targetId) {
+    const user = await resolveAuthenticatedUser(session);
+    if (!user || (user.student_id !== targetId && user.email !== targetId && String(user.id) !== targetId)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

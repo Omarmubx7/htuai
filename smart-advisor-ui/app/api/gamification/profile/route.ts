@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 export async function GET(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
-
     try {
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] },
+        const baseUser = await resolveAuthenticatedUser(session);
+        if (!baseUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+        const user = await prisma.user.findUnique({
+            where: { id: baseUser.id },
             include: { gamification_profile: true, user_badges: { include: { badge: true } } }
         });
 

@@ -3,15 +3,17 @@ import bcrypt from "bcryptjs";
 import { getUserByStudentId, createAdminLog } from "@/lib/database";
 import { encode } from "next-auth/jwt";
 import { requireEnv } from "@/lib/env";
+import { authCredentialsSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { student_id, password } = body;
-
-    if (!student_id || !password) {
-      return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
+    const validation = authCredentialsSchema.safeParse(body);
+    if (!validation.success) {
+      return validationErrorResponse(validation.error.issues);
     }
+    const { student_id, password } = validation.data;
 
     const user = await getUserByStudentId(student_id);
     if (!user || !user.password_hash) {

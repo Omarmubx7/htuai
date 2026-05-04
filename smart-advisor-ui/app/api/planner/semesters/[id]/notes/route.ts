@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/database";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
+import { createSemesterNoteSchema, updateSemesterNoteSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession(authOptions);
@@ -11,7 +14,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const semesterId = Number.parseInt(id, 10);
 
+    const user = await resolveAuthenticatedUser(session);
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
     try {
+        const semester = await prisma.semester.findUnique({ where: { id: semesterId } });
+        if (!semester || semester.user_id !== user.id) {
+            return NextResponse.json({ error: "Semester not found or access denied" }, { status: 403 });
+        }
         const notes = await prisma.semesterNote.findMany({
             where: { semester_id: semesterId },
             orderBy: { created_at: "desc" }
@@ -30,9 +40,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
     const semesterId = Number.parseInt(id, 10);
 
+    const user = await resolveAuthenticatedUser(session);
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
     try {
-        const body = await req.json() as { title?: string; notes?: string; content?: Record<string, unknown> };
-        const { title, notes, content } = body;
+        const semester = await prisma.semester.findUnique({ where: { id: semesterId } });
+        if (!semester || semester.user_id !== user.id) {
+            return NextResponse.json({ error: "Semester not found or access denied" }, { status: 403 });
+        }
+        const body = await req.json();
+        const validation = createSemesterNoteSchema.safeParse(body);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
+        }
+        const { title, notes, content } = validation.data;
 
         const newNote = await prisma.semesterNote.create({
             data: {
@@ -63,15 +84,15 @@ export async function PATCH(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {
-        const body = await req.json() as { id: number | string; title?: string; notes?: string; content?: Record<string, unknown> };
-        const { id, title, notes, content } = body;
+        const body = await req.json();
+        const validation = updateSemesterNoteSchema.safeParse(body);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
+        }
+        const { id, title, notes, content } = validation.data;
 
         // Verify ownership: check that the note's semester belongs to the authenticated user
-        const email = session.user.email;
-        const studentId = session.user.student_id || session.user.email;
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-        });
+        const user = await resolveAuthenticatedUser(session);
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -111,11 +132,7 @@ export async function DELETE(req: NextRequest) {
         if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
         // Verify ownership before deletion
-        const email = session.user.email;
-        const studentId = session.user.student_id || session.user.name;
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-        });
+        const user = await resolveAuthenticatedUser(session);
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 

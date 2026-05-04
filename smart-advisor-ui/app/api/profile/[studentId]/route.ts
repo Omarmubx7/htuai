@@ -4,6 +4,7 @@ import { loadMajor } from '@/lib/database';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 export async function GET(
     _req: NextRequest,
@@ -14,9 +15,12 @@ export async function GET(
 
     if (!targetId) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
-    const authedSid = session?.user?.student_id || session?.user?.name;
+    if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!session || authedSid !== targetId) {
+    const user = await resolveAuthenticatedUser(session);
+    if (!user || (user.student_id !== targetId && user.email !== targetId && String(user.id) !== targetId)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

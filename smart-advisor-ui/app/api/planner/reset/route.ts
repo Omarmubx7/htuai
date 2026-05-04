@@ -2,23 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 export async function DELETE(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
-
     try {
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-        });
-
+        const user = await resolveAuthenticatedUser(session);
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
         // Wipe planner-derived data so all planner widgets reflect fresh state.
-        const [calendarEvents, quests, studySessions, semesters, gpaHistory] = await prisma.$transaction([
+        const [calendarEvents, quests, studySessions, semesters, gpaHistory, gamificationReset] = await prisma.$transaction([
             prisma.calendarEvent.deleteMany({ where: { user_id: user.id } }),
             prisma.quest.deleteMany({ where: { user_id: user.id } }),
             prisma.studySession.deleteMany({ where: { user_id: user.id } }),

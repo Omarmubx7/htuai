@@ -70,8 +70,10 @@ export async function getSuggestedCourses(params: {
         `Candidates: ${candidateCourses.map(c => c.code + ": " + c.name).join(" | ")}`
     ].join("\n");
 
-    console.log("--- Groq Request (getSuggestedCourses) ---");
-    console.log("Prompt:", prompt);
+    if (process.env.NODE_ENV === 'development') {
+        console.log("--- Groq Request (getSuggestedCourses) ---");
+        console.log("Prompt:", prompt);
+    }
 
     const completion = await client.chat.completions.create({
         model: modelUsed,
@@ -83,10 +85,14 @@ export async function getSuggestedCourses(params: {
         ],
     });
 
-    console.log("--- Groq Response ---");
-    console.log("Usage:", completion.usage);
+    if (process.env.NODE_ENV === 'development') {
+        console.log("--- Groq Response ---");
+        console.log("Usage:", completion.usage);
+    }
     const content = completion.choices[0]?.message?.content ?? "";
-    console.log("Raw Content:", content);
+    if (process.env.NODE_ENV === 'development') {
+        console.log("Raw Content:", content);
+    }
     const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
     const recommendations = [];
     const tips = [];
@@ -152,8 +158,10 @@ export async function getStudySchedule(params: {
         `Courses: ${courseSummary}`
     ].join("\n");
 
-    console.log("--- Groq Request (getStudySchedule) ---");
-    console.log("Prompt:", prompt);
+    if (process.env.NODE_ENV === 'development') {
+        console.log("--- Groq Request (getStudySchedule) ---");
+        console.log("Prompt:", prompt);
+    }
 
     const completion = await client.chat.completions.create({
         model: modelUsed,
@@ -165,10 +173,14 @@ export async function getStudySchedule(params: {
         ],
     });
 
-    console.log("--- Groq Response ---");
-    console.log("Usage:", completion.usage);
+    if (process.env.NODE_ENV === 'development') {
+        console.log("--- Groq Response ---");
+        console.log("Usage:", completion.usage);
+    }
     const content = completion.choices[0]?.message?.content ?? "";
-    console.log("Raw Content:", content);
+    if (process.env.NODE_ENV === 'development') {
+        console.log("Raw Content:", content);
+    }
     const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
     const weeklyPlanMap = new Map<string, Array<{course: string, hours: number, focus: string}>>();
     const examTips = [];

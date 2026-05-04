@@ -471,7 +471,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                     {["Choose Semester Type", "Add Courses", "Add Exam Dates", "Course Details", "All Set!"][step]}
                 </h2>
 
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                     <motion.div
                         key={step}
                         initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}

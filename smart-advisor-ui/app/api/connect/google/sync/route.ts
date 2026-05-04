@@ -39,7 +39,7 @@ async function updateTokenMetadata(userId: number, metadata: any) {
     });
 }
 
-async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<string> {
+async function getOrCreateHtuCalendar(token: any, userId: number): Promise<string> {
     try {
         if (token.metadata?.htu_calendar_id) return token.metadata.htu_calendar_id;
 
@@ -51,7 +51,7 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
             const listData = await listRes.json();
             const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
             if (existing) {
-                await updateTokenMetadata(token.user_id || Number(studentId), { ...token.metadata, htu_calendar_id: existing.id });
+                await updateTokenMetadata(userId, { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
             }
         }
@@ -72,7 +72,7 @@ async function getOrCreateHtuCalendar(token: any, studentId: string): Promise<st
                 body: JSON.stringify({ id: newId, selected: true, colorId: "14" })
             });
 
-            await updateTokenMetadata(token.user_id || Number(studentId), { ...token.metadata, htu_calendar_id: newId });
+            await updateTokenMetadata(userId, { ...token.metadata, htu_calendar_id: newId });
             return newId;
         }
     } catch (e) {
@@ -355,7 +355,7 @@ export async function POST() {
         return NextResponse.json({ error: "Connection to Google failed." }, { status: 503 });
     }
 
-    const htuCalendarId = await getOrCreateHtuCalendar(token, studentId);
+    const htuCalendarId = await getOrCreateHtuCalendar(token, userId);
 
     try {
         const user = await prisma.user.findUnique({

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getCourseNotes, saveCourseNotes, initDB, createAdminLog } from "@/lib/database";
+import { updateCourseNotesSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -42,7 +44,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cou
   const studentId = session.user.student_id || session.user.email || 'unknown';
   const { courseId } = await params;
   const normalizedCourseId = String(courseId).trim().toUpperCase();
-  const { notes } = await req.json();
+  const body = await req.json();
+  const validation = updateCourseNotesSchema.safeParse(body);
+  if (!validation.success) {
+      return validationErrorResponse(validation.error.issues);
+  }
+  const { notes } = validation.data;
 
   try {
     const notesStr = typeof notes === 'string' ? notes : JSON.stringify(notes);

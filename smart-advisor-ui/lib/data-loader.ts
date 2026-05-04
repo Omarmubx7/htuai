@@ -31,6 +31,8 @@ export function getAllCourses(data: CourseData): Course[] {
         ...data.university_requirements,
         ...data.college_requirements,
         ...data.department_requirements,
-        ...data.electives
+        ...data.electives,
+        ...(data.university_electives || []),
+        ...(data.work_market_requirements || [])
     ];
 }

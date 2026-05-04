@@ -24,6 +24,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
     interface JWT extends DefaultJWT {
         student_id?: string | null;
+        db_id?: number | null;
         provider?: string;
     }
 }
@@ -115,29 +116,50 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
+
+        /**
+         * Reads session data from the JWT token — NO DB call on every request.
+         * This fixes the "Initializing Workspace" hang caused by DB latency on
+         * every page load. DB lookups are done once at sign-in time (jwt callback).
+         */
         async session({ session, token }) {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
                 session.user.provider = token.provider;
-
-                // Fetch the definitive DB user to get the internal Int ID and student_id
-                // Use email first, then fall back to student_id from token (not session.user.name)
-                const dbUser = await getUserByEmail(session.user.email || "") ||
-                    (token.student_id ? await getUserByStudentId(token.student_id) : null);
-                if (dbUser) {
-                    session.user.student_id = dbUser.student_id;
-                    // Force the session ID to be the stable database ID string
-                    session.user.db_id = dbUser.id;
+                if (token.student_id) {
+                    session.user.student_id = token.student_id;
+                }
+                if (token.db_id) {
+                    session.user.db_id = token.db_id;
                 }
             }
             return session;
         },
+
+        /**
+         * JWT is only called at sign-in time (first time) or when token is refreshed.
+         * This is the right place for the one-time DB lookup per session.
+         */
         async jwt({ token, user, account }) {
+            // Persist student_id from the Credentials authorize() return
             if (user) {
-                token.student_id = user.student_id;
+                token.student_id = (user as { student_id?: string | null }).student_id;
             }
             if (account) {
                 token.provider = account.provider;
+                // For Google OAuth: look up the DB user ONCE at sign-in time
+                if (account.provider === "google" && user?.email) {
+                    try {
+                        const dbUser = await getUserByEmail(user.email);
+                        if (dbUser) {
+                            token.student_id = dbUser.student_id;
+                            token.db_id = dbUser.id;
+                        }
+                    } catch (e) {
+                        console.error("[JWT] Failed to look up Google user in DB:", e);
+                        // Non-fatal: session will still work, student_id just won't be set
+                    }
+                }
             }
             return token;
         }

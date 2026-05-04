@@ -4,35 +4,31 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
 import { createAdminLog } from "@/lib/database";
-import { validateInput, validationErrorResponse } from "@/lib/validation";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
+import { validationErrorResponse } from "@/lib/validation";
+import { z } from "zod";
 
-const studySessionSchema = {
-    course_id: { type: "number" as const, required: false },
-    duration_minutes: { type: "number" as const, required: true, min: 1, max: 1440 },
-    type: { type: "string" as const, required: true, enum: ["study", "assignment", "exam_prep", "project", "reading", "other"] },
-    notes: { type: "string" as const, required: false, max: 2000 },
-    date: { type: "string" as const, required: false }
-};
+const studySessionSchema = z.object({
+    course_id: z.number().optional().nullable(),
+    duration_minutes: z.number().min(1).max(1440),
+    type: z.enum(["study", "assignment", "exam_prep", "project", "reading", "other"]),
+    notes: z.string().max(2000).optional().nullable(),
+    date: z.string().optional().nullable()
+});
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
-
     try {
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-        });
-
+        const user = await resolveAuthenticatedUser(session);
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         const body = await req.json();
-        const validation = validateInput(body, studySessionSchema);
+        const validation = studySessionSchema.safeParse(body);
         
-        if (!validation.isValid) {
-            return validationErrorResponse(validation.errors);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
         }
 
         const { course_id, duration_minutes, type, notes, date } = body;
@@ -57,14 +53,18 @@ export async function POST(req: NextRequest) {
         });
 
         const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Amman' }).format(now);
+        const [tYear, tMonth, tDay] = todayStr.split('-').map(Number);
+        const today = new Date(tYear, tMonth - 1, tDay);
 
         let newCurrentStreak = 1;
         let newLongestStreak = 1;
 
         if (currentProfile && currentProfile.last_activity_date) {
             const lastActivity = new Date(currentProfile.last_activity_date);
-            const lastActivityDay = new Date(lastActivity.getFullYear(), lastActivity.getMonth(), lastActivity.getDate());
+            const lastStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Amman' }).format(lastActivity);
+            const [lYear, lMonth, lDay] = lastStr.split('-').map(Number);
+            const lastActivityDay = new Date(lYear, lMonth - 1, lDay);
 
             const diffTime = Math.abs(today.getTime() - lastActivityDay.getTime());
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -123,14 +123,8 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
-
     try {
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-        });
-
+        const user = await resolveAuthenticatedUser(session);
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         const searchParams = req.nextUrl.searchParams;

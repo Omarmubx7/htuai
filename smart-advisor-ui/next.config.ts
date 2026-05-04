@@ -1,15 +1,28 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
+if (typeof global !== "undefined" && typeof global.localStorage !== "undefined" && typeof global.localStorage.getItem !== "function") {
+  Object.defineProperty(global, "localStorage", {
+    value: {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+      clear: () => {},
+      length: 0,
+      key: () => null,
+    },
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+}
+
 const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true,
-    turbo: {
-      root: path.join(__dirname),
-    },
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ['error', 'warn'] } : false,
   },
   webpack: (config) => {
     config.resolve.alias = {

@@ -95,7 +95,7 @@ function PlannerHomeClient() {
     const [generatingSchedule, setGeneratingSchedule] = useState(false);
     const { toast } = useToast();
 
-    const fetchSummary = async () => {
+    const fetchSummary = useCallback(async () => {
         try {
             const res = await fetch("/api/planner/summary", { cache: "no-store" });
             const data = await res.json();
@@ -142,7 +142,7 @@ function PlannerHomeClient() {
             console.error("Fetch error:", e);
             toast(e.message || "Failed to load your dashboard. Please refresh.", "error");
         }
-    };
+    }, [toast]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -312,7 +312,7 @@ function PlannerHomeClient() {
                                                             <div>
                                                                 <p className="text-[11px] font-bold text-white/90 leading-tight">{ev.title}</p>
                                                                 <p className="text-[10px] text-white/40 mt-1">
-                                                                    {new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                                    {new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' })}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -473,9 +473,9 @@ function PlannerHomeClient() {
                         )}
                     </div>
 
-                    {weeklyPlan.length > 0 ? (
+                    {weeklyPlan.length > 0 || generatingSchedule ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {generatingSchedule && weeklyPlan.length === 0 ? (
+                            {generatingSchedule ? (
                                 Array.from({ length: 4 }).map((_, i) => (
                                     <div key={`skel-weekly-plan-${i}`} className="bg-white/3 border border-white/5 rounded-2xl p-4 animate-pulse space-y-3">
                                         <div className="h-2 w-12 bg-white/10 rounded" />
@@ -803,7 +803,7 @@ function PlannerHomeClient() {
                                                             {event.type.replace('_', ' ').toUpperCase()}
                                                         </span>
                                                         <span className="text-[10px] text-white/20 tabular-nums">
-                                                            {new Date(event.start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            {new Date(event.start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' })}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -828,7 +828,7 @@ function PlannerHomeClient() {
                 {showSetupWizard && (
                     <SemesterSetupWizard
                         onClose={() => setShowSetupWizard(false)}
-                        onComplete={() => {
+                        onComplete={(semesterId) => {
                             setShowSetupWizard(false);
                             fetchSummary();
                         }}

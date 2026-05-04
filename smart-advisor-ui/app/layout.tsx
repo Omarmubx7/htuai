@@ -118,7 +118,9 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
-              var m={getItem:function(){return null},setItem:function(){},removeItem:function(){},clear:function(){},length:0,key:function(){return null}};
+              var isStorageLike=function(value){
+                return !!value && typeof value.getItem==="function" && typeof value.setItem==="function" && typeof value.removeItem==="function";
+              };
               var s=function(e){
                 var msg=(e.message||e.reason?.message||"").toLowerCase();
                 if(msg.includes("storage")||msg.includes("access")||msg.includes("zap")||msg.includes("clock")||msg.includes("extension")||msg.includes("cactus")){
@@ -129,16 +131,20 @@ export default async function RootLayout({
               };
               window.addEventListener("error",s,true);
               window.addEventListener("unhandledrejection",s,true);
-              try {
-                Object.defineProperty(window, 'localStorage', { get: function(){ return m; } });
-                Object.defineProperty(window, 'sessionStorage', { get: function(){ return m; } });
-              } catch(e){}
-              
+
               var f=function(a){if(!a || typeof a!=="string")return false;var s=a.toLowerCase();return s.includes("zustand")||s.includes("deprecated")||s.includes("extension")||s.includes("storage")||s.includes("access")||s.includes("zap")||s.includes("clock")||s.includes("cactus");};
               var ow=console.warn;console.warn=function(){if(f(arguments[0]))return;ow.apply(console,arguments)};
               var oe=console.error;console.error=function(){if(f(arguments[0]))return;oe.apply(console,arguments)};
               var ol=console.log;console.log=function(){if(f(arguments[0]))return;ol.apply(console,arguments)};
-            })();try{if(typeof window!=="undefined"&&window.localStorage){var t=window.localStorage.getItem("htuai-theme");if(t==="light")document.documentElement.classList.add("light-theme");}}catch(e){}`
+
+              try{
+                var storage=window.localStorage;
+                if(isStorageLike(storage)){
+                  var t=storage.getItem("htuai-theme");
+                  if(t==="light")document.documentElement.classList.add("light-theme");
+                }
+              }catch(e){}
+            })();`
           }}
         />
       </head>
@@ -282,9 +288,9 @@ export default async function RootLayout({
               {children}
             </main>
             <MobileNav />
+            <SiteFooter />
           </Providers>
         </ThemeProvider>
-        <SiteFooter />
         <Analytics />
       </body>
     </html>

@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { resolveUserByString } from "@/lib/database";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const identity = (session.user as Record<string, unknown>).student_id as string
-        || session.user.email;
-    if (!identity) return NextResponse.json({ error: "No user identity" }, { status: 400 });
-
-    const user = await resolveUserByString(identity);
+    const user = await resolveAuthenticatedUser(session);
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     try {
         const body = await req.json();
-        const { preferences } = body;
+        const schema = z.object({ preferences: z.record(z.unknown()).optional() });
+        const validation = schema.safeParse(body);
+        if (!validation.success) return validationErrorResponse(validation.error.issues);
+        const { preferences } = validation.data;
 
         await prisma.integrationToken.update({
             where: { user_id_provider: { user_id: user.id, provider: "google_calendar" } },

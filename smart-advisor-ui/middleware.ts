@@ -8,12 +8,20 @@ function generateNonce(): string {
 }
 
 export function middleware(request: NextRequest) {
+    // In development, skip CSP so that React hydration & HMR aren't blocked
+    if (process.env.NODE_ENV !== "production") {
+        const response = NextResponse.next();
+        response.headers.set("X-Frame-Options", "SAMEORIGIN");
+        response.headers.set("X-Content-Type-Options", "nosniff");
+        return response;
+    }
+
     const nonce = generateNonce();
-    
+
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://cdn.vercel-insights.com https://va.vercel-scripts.com https://vercel.live;
-        style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com https://vercel.live;
+        script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://www.googletagmanager.com https://cdn.vercel-insights.com https://va.vercel-scripts.com https://vercel.live;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live;
         font-src 'self' https://fonts.gstatic.com https://r2cdn.perplexity.ai https://vercel.live;
         img-src 'self' data: https: https://vercel.live;
         connect-src 'self' https://vitals.vercel-insights.com https://va.vercel-scripts.com https://vercel.live https://geoip.cactusglobal.io;

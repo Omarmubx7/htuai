@@ -4,6 +4,7 @@ import { saveMajor, logVisitor, createAdminLog } from '@/lib/database';
 import { getClientInfo } from '@/lib/client-info';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 export async function POST(
     request: NextRequest,
@@ -14,9 +15,12 @@ export async function POST(
 
     if (!targetId) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
-    const authedSid = session?.user?.student_id || session?.user?.name;
+    if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!session || authedSid !== targetId) {
+    const user = await resolveAuthenticatedUser(session);
+    if (!user || (user.student_id !== targetId && user.email !== targetId && String(user.id) !== targetId)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

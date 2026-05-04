@@ -2,19 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { createAdminLog } from "@/lib/database";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
+import { semesterSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 async function verifyAccess(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return { error: 'Unauthorized', status: 401 };
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
-
-    const user = await prisma.user.findFirst({
-        where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-    });
-
+    const user = await resolveAuthenticatedUser(session);
     if (!user) return { error: 'User not found', status: 404 };
     return { user };
 }
@@ -31,7 +27,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (!existing) return NextResponse.json({ error: 'Semester not found' }, { status: 404 });
 
         const body = await req.json();
-        const { name, start_date, end_date, type, year } = body;
+        const validation = semesterSchema.safeParse(body);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
+        }
+        const { name, start_date, end_date, type, year } = validation.data;
 
         const updated = await prisma.semester.update({
             where: { id: semesterId },

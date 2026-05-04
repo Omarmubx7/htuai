@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import path from "path";
 import fs from "fs/promises";
 
 export async function GET() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const dataDir = path.join(process.cwd(), "public/data");
 
     try {
@@ -11,7 +16,7 @@ export async function GET() {
 
         const courseMap: Map<string, { name: string; code: string; ch: number }> = new Map();
 
-        const processList = (list: any[]) => {
+        const processList = (list: Array<{code?: string, name?: string, ch?: number}>) => {
             if (!list) return;
             list.forEach(c => {
                 if (c.code && c.name) {

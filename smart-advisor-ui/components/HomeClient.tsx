@@ -40,17 +40,19 @@ export default function HomeClient() {
     // ─── 1. Core Logic & Data Fetching (Defined first to avoid ReferenceErrors) ────────────────
 
     const saveProgressRemote = useCallback(async (currentProgress: Map<string, string>) => {
-        if (!studentId) return;
+        const sid = studentId || session?.user?.student_id || session?.user?.email;
+        const maj = major || (session?.user as { major?: string })?.major;
+        if (!sid || !maj) return;
         try {
             const completedObjects = Array.from(currentProgress.entries()).map(([c, g]) => ({
                 code: c,
                 name: courseNameMap.get(c) || "",
                 grade: g
             }));
-            await fetchWithRetry(`/api/progress/${encodeURIComponent(studentId)}/save`, {
+            await fetchWithRetry(`/api/progress/${encodeURIComponent(sid)}/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ major, completed: completedObjects }),
+                body: JSON.stringify({ major: maj, completed: completedObjects }),
                 retries: 2
             });
             setSaveStatus("saved");
@@ -58,7 +60,7 @@ export default function HomeClient() {
             console.error("Failed to save progress", error);
             setSaveStatus(null);
         }
-    }, [studentId, major, courseNameMap]);
+    }, [studentId, session, major, courseNameMap]);
 
     const debouncedSave = useCallback((nextState: Map<string, string>) => {
         setSaveStatus("saving");
@@ -191,7 +193,13 @@ export default function HomeClient() {
     // ─── 2. Mutation Handlers (Referencing core logic) ───────────────────────
 
     const toggleCourse = useCallback(async (code: string) => {
-        if (!studentId || !major) return;
+        // Resolve studentId from state OR session (guards against race during hydration)
+        const sid = studentId || session?.user?.student_id || session?.user?.email;
+        const maj = major || (session?.user as { major?: string })?.major;
+        if (!sid || !maj) {
+            console.warn("[HomeClient] toggleCourse: no studentId or major yet", { sid, maj });
+            return;
+        }
         
         setCompletedCourses(prev => {
             const next = new Map(prev);
@@ -200,10 +208,12 @@ export default function HomeClient() {
             debouncedSave(next);
             return next;
         });
-    }, [studentId, major, debouncedSave]);
+    }, [studentId, session, major, debouncedSave]);
 
     const updateCourseGrade = useCallback((code: string, grade: string) => {
-        if (!studentId || !major) return;
+        const sid = studentId || session?.user?.student_id || session?.user?.email;
+        const maj = major || (session?.user as { major?: string })?.major;
+        if (!sid || !maj) return;
         
         setCompletedCourses(prev => {
             const next = new Map(prev);
@@ -211,12 +221,12 @@ export default function HomeClient() {
             debouncedSave(next);
             return next;
         });
-    }, [studentId, major, debouncedSave]);
+    }, [studentId, session, major, debouncedSave]);
 
     const handleMajorSelect = async (key: MajorKey) => {
         setAppState("changing-major");
         setMajor(key);
-        const sid = studentId || session?.user?.student_id || session?.user?.name;
+        const sid = studentId || session?.user?.student_id || session?.user?.email;
         if (sid) {
             safeStorage.set(`major-${sid}`, key);
             try {
@@ -247,6 +257,18 @@ export default function HomeClient() {
     };
 
     // ─── 3. Life Cycle Effects ──────────────────────────────────────────────
+
+    // Failsafe: if stuck in checking for >1.5s, force landing
+    // Guards against NextAuth hanging or DB latency during session resolution
+    useEffect(() => {
+        if (appState === "checking") {
+            const timer = setTimeout(() => {
+                console.warn("[HomeClient] Failsafe triggered: Forced to landing state");
+                setAppState("landing");
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [appState]);
 
     // Ensure we scroll to top after switching to the login view (scroll after render)
     useEffect(() => {
@@ -301,17 +323,22 @@ export default function HomeClient() {
         }
 
         if (status === "authenticated" && session?.user && appState !== "changing-major") {
-            const sid = session.user.student_id || session.user.name;
+            const sid = session.user.student_id || session.user.email;
             if (sid) {
+                // Always ensure studentId state is set from session immediately
+                setStudentId(prev => prev ?? sid);
+
                 const storageMajor = safeStorage.get(`major-${sid}`) as MajorKey | null;
                 
                 // If we have it in storage and haven't loaded data yet, load it
                 if (storageMajor && !courseData && (appState === "checking" || appState === "landing")) {
                     setMajor(storageMajor);
-                    void loadCourses(storageMajor);
-                    void loadProgress(sid, storageMajor); // Pass storageMajor here
-                    setAppState("course-tracker");
-                } 
+                    (async () => {
+                        const loaded = await loadCourses(storageMajor);
+                        await loadProgress(sid, storageMajor);
+                        setAppState(loaded ? "course-tracker" : "major-select");
+                    })();
+                }
                 // If not in storage, try database recovery
                 else if (!storageMajor && (appState === "checking" || appState === "landing" || appState === "login")) {
                     void loadProfile(sid);
@@ -329,42 +356,28 @@ export default function HomeClient() {
     const majorInfo = major ? MAJORS.find(m => m.key === major) : null;
 
     return (
-        <AnimatePresence mode="wait">
+        <>
             {(appState === "checking" || appState === "changing-major") && (
-                <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <Spinner message={appState === "changing-major" ? "Updating Curriculum" : "Initializing Workspace"} />
-                </motion.div>
+                <Spinner message={appState === "changing-major" ? "Updating Curriculum" : "Initializing Workspace"} />
             )}
 
             {appState === "landing" && (
-                <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <LandingPage onGetStarted={() => setAppState("login")} />
-                </motion.div>
+                <LandingPage onGetStarted={() => setAppState("login")} />
             )}
 
             {appState === "login" && (
-                <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <StudentLogin />
-                </motion.div>
+                <StudentLogin />
             )}
 
             {appState === "major-select" && (
-                <motion.div key="major-select" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <MajorSelector 
-                        onSelect={handleMajorSelect} 
-                        onCancel={major ? () => setAppState("course-tracker") : undefined} 
-                    />
-                </motion.div>
+                <MajorSelector 
+                    onSelect={handleMajorSelect} 
+                    onCancel={major ? () => setAppState("course-tracker") : undefined} 
+                />
             )}
 
             {appState === "course-tracker" && courseData && rules && (
-                <motion.div
-                    key="tracker"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="min-h-screen flex flex-col pt-20"
-                >
+                <div className="min-h-screen flex flex-col pt-20">
                     <header className="fixed top-0 left-0 right-0 z-60 h-20 bg-white/2 backdrop-blur-2xl border-b border-white/6">
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             <div id="wt-header-brand" className="flex items-center gap-3">
@@ -441,15 +454,13 @@ export default function HomeClient() {
                             }}
                         />
                     </main>
-                </motion.div>
+                </div>
             )}
 
             {appState === "course-tracker" && (!courseData || !rules) && (
-                <motion.div key="tracker-fallback" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <Spinner message="Loading your curriculum..." />
-                </motion.div>
+                <Spinner message="Loading your curriculum..." />
             )}
-        </AnimatePresence>
+        </>
     );
 }
 

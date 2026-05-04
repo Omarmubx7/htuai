@@ -245,14 +245,14 @@ export default function Dashboard() {
 function DashboardInner() {
     const adminSecret = useAdminSecret();
     const [stats, setStats] = useState<Stats | null>(null);
-        const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<TabKey>('overview');
     const [refreshing, setRefreshing] = useState(false);
     const [lastFetched, setLastFetched] = useState<Date | null>(null);
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('count');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-        const [majorFilter, setMajorFilter] = useState<string>('all');
+    const [majorFilter, setMajorFilter] = useState<string>('all');
 
     const fetchData = useCallback(async (silent = false) => {
         if (!adminSecret) return;

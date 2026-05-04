@@ -3,20 +3,27 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/database";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
+import { studentProfileSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const studentId = session.user.student_id || session.user.email;
-    const email = session.user.email;
-
     try {
         const body = await req.json();
-        const { previous_gpa, previous_credits } = body;
+        const validation = studentProfileSchema.safeParse(body);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
+        }
+        const { previous_gpa, previous_credits } = validation.data;
 
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email ?? undefined }, { student_id: studentId ?? undefined }] },
+        const baseUser = await resolveAuthenticatedUser(session);
+        if (!baseUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+        const user = await prisma.user.findUnique({
+            where: { id: baseUser.id },
             include: { student_profile: true }
         });
 
@@ -24,7 +31,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const resolvedStudentId = user.student_id || user.student_profile?.student_id || studentId;
+        const resolvedStudentId = user.student_id || user.student_profile?.student_id || String(user.id);
         if (!resolvedStudentId) {
             return NextResponse.json({ error: "Student ID not set" }, { status: 400 });
         }

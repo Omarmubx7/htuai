@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { createAdminLog, resolveUserByString } from "@/lib/database";
+import { createAdminLog } from "@/lib/database";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
+import { semesterSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
-        const user = await resolveUserByString(
-            String(session.user.db_id || session.user.student_id || session.user.email || session.user.name)
-        );
+        const user = await resolveAuthenticatedUser(session);
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
@@ -33,14 +34,15 @@ export async function POST(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
-        const user = await resolveUserByString(
-            String(session.user.db_id || session.user.student_id || session.user.email || session.user.name)
-        );
-
+        const user = await resolveAuthenticatedUser(session);
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         const body = await req.json();
-        const { type, year, name, start_date, end_date } = body;
+        const validation = semesterSchema.safeParse(body);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
+        }
+        const { type, name, start_date, end_date, year } = validation.data;
 
         if (!type || !year || !name) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

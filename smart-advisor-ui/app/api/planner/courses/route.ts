@@ -3,27 +3,25 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/database";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
+import { createCourseSchema } from "@/lib/schemas/api";
+import { validationErrorResponse } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
-
     try {
-        const user = await prisma.user.findFirst({
-            where: { OR: [{ email: email || undefined }, { student_id: studentId || undefined }] }
-        });
+        const user = await resolveAuthenticatedUser(session);
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
         const body = await req.json();
-        const { semester_id, name, code, credits, instructor_name, location } = body;
-
-        if (!semester_id || !name || !code || credits === undefined) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const validation = createCourseSchema.safeParse(body);
+        if (!validation.success) {
+            return validationErrorResponse(validation.error.issues);
         }
+        const { semester_id, name, code, credits, instructor_name, location } = validation.data;
 
         // Verify semester belongs to user
         const semester = await prisma.semester.findFirst({

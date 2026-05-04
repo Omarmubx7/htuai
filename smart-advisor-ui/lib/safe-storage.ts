@@ -21,6 +21,10 @@ type StorageLike = Storage | FallbackStore;
 let localStore: StorageLike | undefined;
 let sessionStore: StorageLike | undefined;
 
+const isStorageLike = (value: unknown): value is Storage => {
+    return !!value && typeof (value as Storage).getItem === "function" && typeof (value as Storage).setItem === "function" && typeof (value as Storage).removeItem === "function";
+};
+
 const getStores = () => {
     try {
         if (localStore && sessionStore) return { local: localStore, session: sessionStore };
@@ -32,7 +36,7 @@ const getStores = () => {
             // Test LocalStorage
             try {
                 const ls = window.localStorage;
-                if (!ls) throw new Error("no_ls");
+                if (!isStorageLike(ls)) throw new Error("no_ls");
                 const x = '__storage_test__';
                 ls.setItem(x, x);
                 ls.removeItem(x);
@@ -45,7 +49,7 @@ const getStores = () => {
             // Test SessionStorage
             try {
                 const ss = window.sessionStorage;
-                if (!ss) throw new Error("no_ss");
+                if (!isStorageLike(ss)) throw new Error("no_ss");
                 const x = '__storage_test__';
                 ss.setItem(x, x);
                 ss.removeItem(x);

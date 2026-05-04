@@ -192,7 +192,7 @@ function CourseTrackerView({
                 "Second Year (Level 2)": allCourses.filter(c => c.level === 2),
                 "Third Year (Level 3)": allCourses.filter(c => c.level === 3),
                 "Fourth Year (Level 4)": allCourses.filter(c => c.level === 4),
-                "Fifth Year (Level 5)": allCourses.filter(c => (c.level || 5) >= 5),
+                "Fifth Year (Level 5)": allCourses.filter(c => c.level !== undefined && c.level >= 5),
             };
         }
     };
@@ -424,7 +424,7 @@ function CourseTrackerView({
 
                     <div className="flex items-center gap-4">
                         <div className="min-w-25 h-6 flex items-center">
-                            <AnimatePresence mode="wait">
+                            <AnimatePresence>
                                 {saveStatus === 'saving' && (
                                     <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                         className="flex items-center gap-2 text-xs font-bold text-white/30">
@@ -790,24 +790,22 @@ function CourseTrackerView({
                 courseTitle={selectedCourseForNotes?.title || ""}
             />
 
-            <AnimatePresence>
-                {showSetupWizard && (
-                    <SemesterSetupWizard
-                        onClose={() => setShowSetupWizard(false)}
-                        onComplete={(sid) => {
-                            setShowSetupWizard(false);
-                            // Refresh active semester state after wizard completes
-                            fetch('/api/planner/semesters')
-                                .then(r => r.json())
-                                .then((data: { semesters?: Array<{ id: number; name: string; courses?: Array<{ code: string; name: string; credits: number }> }> }) => {
-                                    const sem = data.semesters?.find(s => s.id === sid);
-                                    if (sem) setActiveSemester({ id: sem.id, name: sem.name, courses: sem.courses ?? [] });
-                                })
-                                .catch(() => {});
-                        }}
-                    />
-                )}
-            </AnimatePresence>
+            {showSetupWizard && (
+                <SemesterSetupWizard
+                    onClose={() => setShowSetupWizard(false)}
+                    onComplete={(sid) => {
+                        setShowSetupWizard(false);
+                        // Refresh active semester state after wizard completes
+                        fetch('/api/planner/semesters')
+                            .then(r => r.json())
+                            .then((data: { semesters?: Array<{ id: number; name: string; courses?: Array<{ code: string; name: string; credits: number }> }> }) => {
+                                const sem = data.semesters?.find(s => s.id === sid);
+                                if (sem) setActiveSemester({ id: sem.id, name: sem.name, courses: sem.courses ?? [] });
+                            })
+                            .catch(() => {});
+                    }}
+                />
+            )}
         </div>
     );
 }

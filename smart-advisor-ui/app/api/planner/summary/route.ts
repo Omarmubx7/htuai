@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 import { evaluateAchievements } from "@/lib/gamification";
 import { calculateSemesterGpa, getClassification, buildCourseCreditMap, getCompletedEntryCode } from "@/lib/grading";
 import fs from 'fs/promises';
 import path from 'path';
 
 // --- In-memory cache for static curriculum data ---
-let curriculumCache: any = null;
-let rulesCache: any = null;
+let curriculumCache: Record<string, unknown> | null = null;
+let rulesCache: Record<string, unknown> | null = null;
 
 async function getCurriculum() {
     if (!curriculumCache) {
@@ -103,17 +104,12 @@ export async function GET(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const email = session.user.email;
-    const studentId = session.user.student_id || session.user.email;
+    const baseUser = await resolveAuthenticatedUser(session);
+    if (!baseUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     try {
-        const user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email: email || undefined },
-                    { student_id: studentId || undefined }
-                ]
-            },
+        const user = await prisma.user.findUnique({
+            where: { id: baseUser.id },
             include: {
                 student_profile: true,
                 gamification_profile: true
@@ -218,10 +214,14 @@ export async function GET(_req: NextRequest) {
             : null;
 
         // 5. GPA
-        const allCompletedCourses = semesters.flatMap(s => s.courses.map(c => ({
-            grade: c.grade_letter || "",
-            credits: c.credits
-        })));
+        const allCompletedCourses = semesters.flatMap(s => 
+            s.courses
+                .filter(c => c.grade_letter && ['D', 'M', 'P', 'U'].includes(c.grade_letter))
+                .map(c => ({
+                    grade: c.grade_letter as string,
+                    credits: c.credits
+                }))
+        );
 
         let totalQualityPoints = 0;
         let totalCredits = 0;
@@ -240,7 +240,7 @@ export async function GET(_req: NextRequest) {
         const classificationObj = getClassification(cgpa);
         const classification = classificationObj.label;
 
-        handleGpaImprovement(user.id, cgpa, classification);
+        handleGpaImprovement(user.id, cgpa, classification).catch(e => console.error("GPA Improvement handler error:", e));
 
         // 6. Exams
         const nextWeek = new Date(todayStart);

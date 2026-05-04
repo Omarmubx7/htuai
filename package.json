@@ -7,6 +7,8 @@
     "build": "cd smart-advisor-ui && npm run build",
     "start": "cd smart-advisor-ui && npm run start",
     "lint": "cd smart-advisor-ui && npm run lint",
-    "install-all": "cd smart-advisor-ui && npm install"
+    "install-all": "cd smart-advisor-ui && npm install",
+    "test": "cd smart-advisor-ui && npm run test",
+    "test:unit": "cd smart-advisor-ui && npm run test:unit"
   }
 }
