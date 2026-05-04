@@ -66,6 +66,17 @@ function CourseTrackerView({
     const [aiTips, setAiTips] = useState<string[]>([]);
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [examTips, setExamTips] = useState<string[]>([]);
+
+    const jumpToCourseList = () => {
+        setViewMode('level');
+        globalThis.window.setTimeout(() => {
+            const anchor = globalThis.document.getElementById('wt-first-course')
+                || globalThis.document.getElementById('wt-view-toggle');
+            if (!anchor) return;
+            const y = anchor.getBoundingClientRect().top + globalThis.window.scrollY - 100;
+            globalThis.window.scrollTo({ top: y, behavior: 'smooth' });
+        }, 140);
+    };
     const [showSetupWizard, setShowSetupWizard] = useState(false);
     const [loadingSemester, setLoadingSemester] = useState(true);
 
@@ -484,11 +495,16 @@ function CourseTrackerView({
                                         {Math.round(progress * 100)}% Complete
                                     </p>
                                 </div>
-                                <p className="text-[10px] font-bold text-white/60 tracking-tight">
+                                <button
+                                    type="button"
+                                    onClick={jumpToCourseList}
+                                    className="text-[10px] font-bold text-white/60 tracking-tight hover:text-white transition-colors"
+                                    title="Jump to course list"
+                                >
                                     <span className="text-white font-black">{completedCourses.size}</span>
                                     <span className="mx-1">/</span>
                                     <span>{allCourses.length} Courses</span>
-                                </p>
+                                </button>
                             </div>
                         </div>
                     </div>

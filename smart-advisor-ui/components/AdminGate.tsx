@@ -10,7 +10,7 @@ export const useAdminSecret = () => useContext(AdminSecretContext);
 
 export default function AdminGate({ children }: Readonly<{ children: ReactNode }>) {
     const [secret, setSecret] = useState<string | null>(() => {
-        if (typeof globalThis.window === 'undefined') return null;
+        if (globalThis.window === undefined) return null;
         return safeStorage.session.get('admin_secret');
     });
 
@@ -36,7 +36,11 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                 setInput('');
             } else {
                 setInput('');
-                setError('Invalid admin secret');
+                if (res.status >= 500) {
+                    setError('Admin service is temporarily unavailable');
+                } else {
+                    setError('Invalid admin secret');
+                }
             }
         } catch (error) {
             console.error('Admin verification failed', error);
@@ -72,7 +76,7 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                     placeholder="Admin secret"
                     autoFocus
                     className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/20 outline-none
-                        border border-white/[0.06] focus:border-violet-500/30 transition-colors"
+                        border border-white/6 focus:border-violet-500/30 transition-colors"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                     autoComplete="current-password"
                 />
@@ -87,6 +91,12 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                 {!error && attempted && !verifying && (
                     <p className="text-[11px] text-white/30 leading-relaxed">
                         Forgot the secret? Contact your system admin.
+                    </p>
+                )}
+
+                {error === 'Admin service is temporarily unavailable' && (
+                    <p className="text-[11px] text-white/35 leading-relaxed">
+                        Try again in a minute, or check that the backend services are online.
                     </p>
                 )}
 

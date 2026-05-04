@@ -401,7 +401,7 @@ async function loadAiUsage() {
 }
 
 export async function GET(_request: NextRequest) {
-    const adminCheck = await requireAdmin();
+    const adminCheck = await requireAdmin(_request);
     if (adminCheck) return adminCheck;
 
     try {
