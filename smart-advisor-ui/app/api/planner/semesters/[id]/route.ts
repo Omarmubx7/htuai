@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 import { semesterSchema } from "@/lib/schemas/api";
 import { validationErrorResponse } from "@/lib/validation";
+import { createAdminLog } from "@/lib/database";
 
 async function verifyAccess(_req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -33,12 +34,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
         const { name, start_date, end_date, type, year } = validation.data;
 
+        // Ensure year is a number for Prisma
+        const finalYear = year !== undefined ? (typeof year === 'string' ? parseInt(year, 10) : year) : existing.year;
+
         const updated = await prisma.semester.update({
             where: { id: semesterId },
             data: {
                 name: name !== undefined ? name : existing.name,
                 type: type !== undefined ? type : existing.type,
-                year: year !== undefined ? year : existing.year,
+                year: finalYear,
                 start_date: start_date !== undefined ? (start_date ? new Date(start_date) : null) : existing.start_date,
                 end_date: end_date !== undefined ? (end_date ? new Date(end_date) : null) : existing.end_date,
                 updated_at: new Date()
