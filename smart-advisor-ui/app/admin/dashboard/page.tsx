@@ -935,7 +935,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                             const borderColor = 'rgba(59,130,246,0.15)';
 
                             return (
-                                <motion.div key={`${act.student_id}-${act.time}`} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
+                                <motion.div key={`${act.student_id}-${act.time}-${i}`} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
                                     className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-white/1.5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-default">
                                     <div className="flex items-start gap-3">
                                         <div className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
