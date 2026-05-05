@@ -5,7 +5,7 @@ const fs = require('fs');
 
 // IMPORTANT: Replace this with your actual production deployment domain
 // Example: "https://your-app.vercel.app"
-const PRODUCTION_DOMAIN = "https://htuai.mubx.dev"; 
+const PRODUCTION_DOMAIN = "https://ai.mubx.dev"; 
 
 async function registerRiscReceiver() {
     const keyPath = path.join(__dirname, '..', 'downloaded-key.json');

@@ -52,8 +52,8 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     animate={{ opacity: 1, scale: 1 }}
                     className="pill-badge-premium mb-8 hover:border-violet-400/40 transition-colors cursor-default"
                 >
-                    <Image priority src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="animate-pulse dark-logo" />
-                    <Image priority src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="animate-pulse light-logo" />
+                    <Image priority src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="animate-pulse dark-logo" />
+                    <Image priority src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="animate-pulse light-logo" />
                     Student Success Reimagined
                 </motion.div>
 
@@ -65,7 +65,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         className="text-6xl sm:text-7xl md:text-9xl font-black text-white tracking-[-0.04em] leading-[0.9] px-4 uppercase italic"
                     >
-                        <span className="text-transparent bg-clip-text bg-linear-to-br from-white via-violet-400 to-blue-500 drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">HTUAI</span>
+                        <span className="text-transparent bg-clip-text bg-linear-to-br from-white via-violet-400 to-blue-500 drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">MUBXAI</span>
                     </motion.h1>
                 </div>
 

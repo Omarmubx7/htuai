@@ -1,12 +1,12 @@
-# HTUAI
+# MUBXAI
 
-HTUAI is a student planning and academic support tool built to help university students stay organized, study consistently, and track progress toward graduation goals.
+MUBXAI is a student planning and academic support tool built to help university students stay organized, study consistently, and track progress toward graduation goals.
 
 ## What This Tool Does
 
-HTUAI combines course planning, study tracking, and academic insights in one place.
+MUBXAI combines course planning, study tracking, and academic insights in one place.
 
-With HTUAI, students can:
+With MUBXAI, students can:
 
 - Plan semesters and add courses with details like credits, instructor, and class schedule
 - Log study sessions and monitor weekly study habits
@@ -78,5 +78,5 @@ npm run lint     # Run lint checks
 
 - `smart-advisor-ui/README.md`: App-level details
 - `smart-advisor-ui/README-TECHNICAL.md`: Technical notes
-- `HTUAICOMPLETE SPEC.md`: Full product/system specification
+- `MUBXAICOMPLETE SPEC.md`: Full product/system specification
 - `designdox.md`, `mobiletest.md`, `test.md`: Design and test artifacts

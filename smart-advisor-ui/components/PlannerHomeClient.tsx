@@ -265,9 +265,9 @@ function PlannerHomeClient() {
                     <div>
                         <h1 className="font-bold text-lg leading-tight">Semester Planner</h1>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                            <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={10} height={10} className="dark-logo" />
-                            <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={10} height={10} className="light-logo" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">HTUAI Hub</p>
+                            <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={10} height={10} className="dark-logo" />
+                            <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={10} height={10} className="light-logo" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">MUBXAI Hub</p>
                         </div>
                     </div>
                 </div>

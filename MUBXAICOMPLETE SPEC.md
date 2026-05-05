@@ -8,7 +8,7 @@ You can paste this into one `.md` or `.txt` file and give it to your dev.
 
 ***
 
-# HTUAI – COMPLETE SPEC (COURSE TRACKER + NEW PLANNER)
+# MUBXAI – COMPLETE SPEC (COURSE TRACKER + NEW PLANNER)
 
 Author: Omar Mubaidin
 Date: 2026
@@ -17,7 +17,7 @@ Date: 2026
 
 ## 0. PRODUCT OVERVIEW
 
-HTUAI is a web app for **all HTU students** that helps them understand and manage their academic journey.
+MUBXAI is a web app for **all HTU students** that helps them understand and manage their academic journey.
 
 It has two main parts:
 
@@ -47,7 +47,7 @@ This section describes what already exists and **must not be broken**.
 
 ### 1.1 Product overview (v1)
 
-HTUAI currently is a degree progress tracker for HTU Computer Science students that centralizes their curriculum, visualizes completion, and helps them understand what to take next to graduate on time. [studentmanager](https://www.studentmanager.app)
+MUBXAI currently is a degree progress tracker for HTU Computer Science students that centralizes their curriculum, visualizes completion, and helps them understand what to take next to graduate on time. [studentmanager](https://www.studentmanager.app)
 
 **Goals (current):**
 
@@ -126,7 +126,7 @@ Some advanced courses show visual prerequisite progress:
 ### 1.6 Interface & layout / footer (v1)
 
 - Header:  
-  - Logo “HTUAI”, subtitle “Course Tracker”, student info, sign-out.
+  - Logo “MUBXAI”, subtitle “Course Tracker”, student info, sign-out.
 
 - Global “Reset All” button (intended for local progress reset — detailed behavior TBD).
 
@@ -407,7 +407,7 @@ Planner does not modify Course Tracker requirements.
 
 - Behavior:
   - Autosave on edit.  
-  - User always edits within HTUAI; no external Notion.
+  - User always edits within MUBXAI; no external Notion.
 
 ### 5.5 Study log
 
@@ -444,7 +444,7 @@ Planner does not modify Course Tracker requirements.
 - Updates:
 
   - If schedule or exam date changes, update existing event using `google_event_id`.  
-  - No reading from Calendar → HTUAI.
+  - No reading from Calendar → MUBXAI.
 
 ### 5.7 Gamification (personal)
 
@@ -727,8 +727,8 @@ Analytics:
 1. Do **not** change existing Course Tracker degree logic without explicit approval.  
 2. Course codes must always be **real HTU codes**, never generated.  
 3. All GPA logic must use the HTU rules module; don’t re‑implement in UI.  
-4. Notes are stored and edited **inside HTUAI** only; no Notion.  
-5. Google Calendar is one‑way (HTUAI → Google).  
+4. Notes are stored and edited **inside MUBXAI** only; no Notion.  
+5. Google Calendar is one‑way (MUBXAI → Google).  
 6. Gamification is personal only (no leaderboards).  
 7. Mobile UX uses separate screens, not one giant view.  
 

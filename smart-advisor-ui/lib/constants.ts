@@ -4,4 +4,4 @@ export const SEMESTERS = [
     { name: "Summer", startMonth: 7, endMonth: 9, label: "July - September" },
 ];
 
-export const APP_NAME = "HTUAI";
+export const APP_NAME = "MUBXAI";

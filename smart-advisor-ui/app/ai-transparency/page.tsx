@@ -21,14 +21,14 @@ export default function AITransparencyPage() {
                     <div className="flex items-center gap-4">
                         <div className="relative group/logo">
                             <div className="absolute -inset-2 bg-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
-                            <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={48} height={48} className="relative z-10 dark-logo" />
-                            <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={48} height={48} className="relative z-10 light-logo" />
+                            <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={48} height={48} className="relative z-10 dark-logo" />
+                            <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={48} height={48} className="relative z-10 light-logo" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gradient">
                             AI Transparency
                         </h1>
                     </div>
-                    <p className="text-white/40 font-medium">Commitment to Open & Responsible AI at HTUAI</p>
+                    <p className="text-white/40 font-medium">Commitment to Open & Responsible AI at MUBXAI</p>
                 </header>
 
                 <div className="space-y-12 text-white/70 leading-relaxed font-medium">
@@ -37,7 +37,7 @@ export default function AITransparencyPage() {
                             <Info className="w-5 h-5 text-violet-400" /> 1. Our AI Philosophy
                         </h2>
                         <p>
-                            At HTUAI, we believe that Artificial Intelligence should be a supportive partner in your academic journey. We use AI to simplify complex university processes, provide personalized insights, and help you focus on what matters: learning.
+                            At MUBXAI, we believe that Artificial Intelligence should be a supportive partner in your academic journey. We use AI to simplify complex university processes, provide personalized insights, and help you focus on what matters: learning.
                         </p>
                     </section>
 
@@ -53,7 +53,7 @@ export default function AITransparencyPage() {
                                 <div className="space-y-2">
                                     <h3 className="text-lg font-bold text-white">Google Gemini</h3>
                                     <p className="text-sm">
-                                        HTUAI integrates <span className="text-white font-semibold">Google Gemini</span> (Pro and Flash models) to power our most intelligent features. Gemini provides the reasoning capabilities behind our academic advising and content summarization.
+                                        MUBXAI integrates <span className="text-white font-semibold">Google Gemini</span> (Pro and Flash models) to power our most intelligent features. Gemini provides the reasoning capabilities behind our academic advising and content summarization.
                                     </p>
                                 </div>
                             </div>

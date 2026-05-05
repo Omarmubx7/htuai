@@ -76,9 +76,9 @@ export default function StudentLogin() {
                 {/* Badge */}
                 <div className="flex justify-center mb-6">
                     <span className="pill-badge-premium">
-                        <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="dark-logo" />
-                        <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="light-logo" />
-                        HTUAI
+                        <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="dark-logo" />
+                        <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="light-logo" />
+                        MUBXAI
                     </span>
                 </div>
 
@@ -95,13 +95,13 @@ export default function StudentLogin() {
                                 exit={{ opacity: 0, y: -10 }}
                                 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight leading-none"
                             >
-                                {isClaiming ? "Start Your HTU Journey" : "HTUAI Login"}
+                                {isClaiming ? "Start Your HTU Journey" : "MUBXAI Login"}
                             </motion.h1>
                         </AnimatePresence>
                         <p className="text-sm text-white/50 font-semibold">
                             {isClaiming
                                 ? "Link your university ID to start tracking."
-                                : "Sign in to access your HTUAI dashboard."}
+                                : "Sign in to access your MUBXAI dashboard."}
                         </p>
                     </div>
 

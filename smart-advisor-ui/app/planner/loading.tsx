@@ -16,8 +16,8 @@ export default function Loading() {
                 <div className="relative">
                     <div className="absolute -inset-4 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
                     <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative z-10 shadow-[0_0_30px_rgba(139,92,246,0.15)] flex-col gap-2">
-                        <Image priority src="/htuai-dark-logo.svg" alt="HTUAI" width={32} height={32} className="dark-logo animate-pulse" />
-                        <Image priority src="/htuai-light-logo.svg" alt="HTUAI" width={32} height={32} className="light-logo animate-pulse" />
+                        <Image priority src="/mubxai-dark-logo.svg" alt="MUBXAI" width={32} height={32} className="dark-logo animate-pulse" />
+                        <Image priority src="/mubxai-light-logo.svg" alt="MUBXAI" width={32} height={32} className="light-logo animate-pulse" />
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-2">

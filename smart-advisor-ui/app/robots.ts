@@ -17,6 +17,6 @@ export default function robots(): MetadataRoute.Robots {
             { userAgent: 'PerplexityBot', allow: '/' },
             { userAgent: 'Bytespider', allow: '/' },
         ],
-        sitemap: 'https://htuai.mubx.dev/sitemap.xml',
+        sitemap: 'https://ai.mubx.dev/sitemap.xml',
     };
 }

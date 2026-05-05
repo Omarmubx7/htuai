@@ -5,7 +5,7 @@ test.describe.configure({ timeout: 90000 });
 async function openTrackerWithFreshWalkthrough(page: Page, testInfo: TestInfo): Promise<boolean> {
   await page.context().clearCookies();
   await page.goto("/");
-  await page.evaluate(() => localStorage.removeItem("htuai-walkthrough-done"));
+  await page.evaluate(() => localStorage.removeItem("mubxai-walkthrough-done"));
 
   await page.getByRole("button", { name: /Start Tracking Progress/i }).click();
   await page.getByPlaceholder(/University ID/i).waitFor({ state: "visible", timeout: 10000 });
@@ -91,7 +91,7 @@ test.describe("Walkthrough Overlay", () => {
     test.skip(!reachedWalkthrough, "Walkthrough is not reachable in this environment");
     await page.getByRole("button", { name: /Skip Tour|Finish/i }).click();
 
-    const done = await page.evaluate(() => localStorage.getItem("htuai-walkthrough-done"));
+    const done = await page.evaluate(() => localStorage.getItem("mubxai-walkthrough-done"));
     expect(done).toBe("true");
   });
 });

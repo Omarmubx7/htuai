@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import PlannerSettings from "@/components/PlannerSettings";
 
 export const metadata: Metadata = {
-    title: "Semester Planner | HTUAI",
+    title: "Semester Planner | MUBXAI",
     description: "Configure your academic planner preferences and calendar sync.",
 };
 

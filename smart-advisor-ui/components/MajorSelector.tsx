@@ -135,9 +135,9 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                 >
                     <div className="flex justify-center mb-6">
                         <span className="pill-badge-premium">
-                            <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={16} height={16} className="dark-logo" />
-                            <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={16} height={16} className="light-logo" />
-                            HTUAI
+                            <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="dark-logo" />
+                            <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="light-logo" />
+                            MUBXAI
                         </span>
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-none">

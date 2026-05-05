@@ -31,7 +31,7 @@ interface WalkthroughOverlayProps {
    Constants
    ═══════════════════════════════════════════════════════════════════ */
 
-const STORAGE_KEY = "htuai-walkthrough-done";
+const STORAGE_KEY = "mubxai-walkthrough-done";
 const PADDING = 10;
 const TOOLTIP_GAP = 16;
 
@@ -382,7 +382,7 @@ export function useWalkthrough() {
 export const TRACKER_WALKTHROUGH_STEPS_DESKTOP: WalkthroughStep[] = [
     {
         targetId: "wt-header-brand",
-        title: "Welcome to HTUAI 👋",
+        title: "Welcome to MUBXAI 👋",
         description: "Your personal academic tracking companion. This walkthrough will guide you through every feature. Let's go!",
         position: "bottom",
     },

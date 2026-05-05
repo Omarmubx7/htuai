@@ -160,7 +160,7 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: an
 
             const eventData = {
                 summary: `${course.name} — ${type} Exam`,
-                description: `${type} examination for ${course.name}. Automatically synced from HTUAI.`,
+                description: `${type} examination for ${course.name}. Automatically synced from MUBXAI.`,
                 location: course.location || undefined,
                 start: { dateTime: formatAmmanTime(dateObj), timeZone: "Asia/Amman" },
                 end: { dateTime: formatAmmanTime(new Date(dateObj.getTime() + 2 * 60 * 60 * 1000)), timeZone: "Asia/Amman" },
@@ -271,7 +271,7 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
         const eventData = {
             summary: `${course.name} (Class)`,
             location: course.location || undefined,
-            description: `Weekly class schedule for ${course.name}. Automatically synced from HTUAI.`,
+            description: `Weekly class schedule for ${course.name}. Automatically synced from MUBXAI.`,
             start: { dateTime: formatAmmanTime(start), timeZone: "Asia/Amman" },
             end: { dateTime: formatAmmanTime(end), timeZone: "Asia/Amman" },
             recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${rruleDays};UNTIL=${untilStr}`],

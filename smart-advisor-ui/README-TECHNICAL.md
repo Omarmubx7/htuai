@@ -1,4 +1,4 @@
-# HTUAI Smart Advisor UI — Academic Planning & Course Tracking Platform
+# MUBXAI Smart Advisor UI — Academic Planning & Course Tracking Platform
 
 **Last Updated:** March 7, 2026  
 ![](https://img.shields.io/badge/Next.js-16.1.6-black?logo=next.js)
@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-HTUAI is a comprehensive academic lifecycle management platform for Al Hussein Technical University (HTU) students. It integrates degree progress tracking, semantic course planning, GPA calculation under HTU's grading taxonomy, real-time gamification mechanics, and Google Calendar synchronization into a unified web application. The system serves as a single source of truth for academic roadmaps, enabling students to visualize completion status, understand prerequisite dependencies, and optimize their academic trajectory.
+MUBXAI is a comprehensive academic lifecycle management platform for Al Hussein Technical University (HTU) students. It integrates degree progress tracking, semantic course planning, GPA calculation under HTU's grading taxonomy, real-time gamification mechanics, and Google Calendar synchronization into a unified web application. The system serves as a single source of truth for academic roadmaps, enabling students to visualize completion status, understand prerequisite dependencies, and optimize their academic trajectory.
 
 **Key Value Propositions:**
 - Sub-100ms prerequisite validation through optimized dependency resolution
@@ -796,8 +796,8 @@ smart-advisor-ui/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/htuai.git
-cd htuai/smart-advisor-ui
+git clone https://github.com/your-org/mubxai.git
+cd mubxai/smart-advisor-ui
 
 # 2. Install dependencies (clean install for reproducibility)
 npm ci
@@ -805,7 +805,7 @@ npm ci
 # 3. Configure environment variables
 cp .env.example .env.local
 # Edit .env.local:
-# POSTGRES_PRISMA_URL=postgresql://user:pass@localhost:5432/htuai_dev
+# POSTGRES_PRISMA_URL=postgresql://user:pass@localhost:5432/mubxai_dev
 # NEXTAUTH_SECRET=<run: openssl rand -base64 32>
 # GOOGLE_CLIENT_ID=<from Google Cloud Console>
 # GOOGLE_CLIENT_SECRET=<from Google Cloud Console>
@@ -1063,10 +1063,10 @@ npx prisma db seed                 # Repopulate seed data
 ```bash
 # Check connection string validity
 $ echo $POSTGRES_PRISMA_URL
-postgresql://user:pass@localhost:5432/htuai_dev
+postgresql://user:pass@localhost:5432/mubxai_dev
 
 # Connect directly to verify
-psql postgresql://user:pass@localhost:5432/htuai_dev
+psql postgresql://user:pass@localhost:5432/mubxai_dev
 
 # View Prisma Client debug logs
 DEBUG=prisma npm run dev

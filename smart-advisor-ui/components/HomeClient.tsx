@@ -282,13 +282,13 @@ export default function HomeClient() {
 
     // Load initial major
     useEffect(() => {
-        const primaryMajor = safeStorage.get("htuai-major");
+        const primaryMajor = safeStorage.get("mubxai-major");
         const legacyMajor = safeStorage.get("htu_selected_major");
         const storedMajor = primaryMajor || legacyMajor;
         if (storedMajor) {
             setMajor(storedMajor as MajorKey);
             safeStorage.set("htu_selected_major", storedMajor);
-            safeStorage.set("htuai-major", storedMajor);
+            safeStorage.set("mubxai-major", storedMajor);
         }
     }, []);
 
@@ -382,10 +382,10 @@ export default function HomeClient() {
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             <div id="wt-header-brand" className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                    <Image src="/htuai-dark-logo.svg" alt="HTUAI" width={20} height={20} className="dark-logo" />
-                                    <Image src="/htuai-light-logo.svg" alt="HTUAI" width={20} height={20} className="light-logo" />
+                                    <Image src="/mubxai-dark-logo.svg" alt="MUBXAI" width={20} height={20} className="dark-logo" />
+                                    <Image src="/mubxai-light-logo.svg" alt="MUBXAI" width={20} height={20} className="light-logo" />
                                 </div>
-                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic">HTUAI</span>
+                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic">MUBXAI</span>
                             </div>
 
                             <div id="wt-profile" className="flex items-center gap-3">

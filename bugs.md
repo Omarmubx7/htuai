@@ -1,4 +1,4 @@
-# HTUAI Bug Report
+# MUBXAI Bug Report
 
 > **Generated:** 2026-05-02  
 > **Scope:** Source code analysis of `smart-advisor-ui/` and supporting libraries
@@ -306,9 +306,9 @@ All 14 identified bugs have been fixed:
 
 
 
-# HTUAI Bug Report — Admin Dashboard & Planner Settings
+# MUBXAI Bug Report — Admin Dashboard & Planner Settings
 
-**Project:** [htuai.mubx](https://htuai.mubx.dev)  
+**Project:** [MUBXAI.mubx](https://MUBXAI.mubx.dev)  
 **Date:** 2026-05-03  
 **Reporter:** Omar Mubaidin  
 **Status:** Open  
@@ -316,8 +316,8 @@ All 14 identified bugs have been fixed:
 ## Scope
 
 **Pages audited**  
-- [Admin Dashboard](https://htuai.mubx.dev/admin/dashboard)  
-- [Planner Settings](https://htuai.mubx.dev/planner/settings)  
+- [Admin Dashboard](https://MUBXAI.mubx.dev/admin/dashboard)  
+- [Planner Settings](https://MUBXAI.mubx.dev/planner/settings)  
 
 ## Triage Summary
 
@@ -362,7 +362,7 @@ Add explicit UI states for `empty`, `loading`, and `error`. Clear the field afte
 **Status:** Open
 
 ### Description
-The page `<title>` and meta snippet still show the public HTUAI marketing identity instead of an admin-specific page identity. This makes browser tabs, history, and debugging more confusing.
+The page `<title>` and meta snippet still show the public MUBXAI marketing identity instead of an admin-specific page identity. This makes browser tabs, history, and debugging more confusing.
 
 ### Reproduction Steps
 1. Navigate to `/admin/dashboard`
@@ -370,10 +370,10 @@ The page `<title>` and meta snippet still show the public HTUAI marketing identi
 3. Observe the page still uses the public shell identity
 
 ### Expected Behavior
-Admin pages should expose a distinct identity such as `Admin — HTUAI`.
+Admin pages should expose a distinct identity such as `Admin — MUBXAI`.
 
 ### Suggested Fix
-Set route-specific metadata for all `/admin/*` pages, for example `Admin Panel | HTUAI`.
+Set route-specific metadata for all `/admin/*` pages, for example `Admin Panel | MUBXAI`.
 
 ---
 

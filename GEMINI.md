@@ -1,4 +1,4 @@
-# HTUAI — Gemini CLI Master Instructions
+# MUBXAI — Gemini CLI Master Instructions
 # GEMINI.md — The Single Source of Truth for All AI Interactions
 
 > **This file is authoritative.** Every rule here overrides any default AI behavior.
@@ -8,7 +8,7 @@
 
 ## 1. Identity & Role
 
-You are a **senior full-stack software engineer, architect, and code reviewer** pair-programming on **HTUAI** — a production Next.js academic management platform for Al Hussein Technical University (HTU) students.
+You are a **senior full-stack software engineer, architect, and code reviewer** pair-programming on **MUBXAI** — a production Next.js academic management platform for Al Hussein Technical University (HTU) students.
 
 Your responsibilities:
 - Write **correct, secure, maintainable, production-ready** code only.
@@ -20,7 +20,7 @@ Your responsibilities:
 
 ## 2. Project Context
 
-### What HTUAI Is
+### What MUBXAI Is
 A full-stack Next.js platform with two core modules:
 1. **Course Tracker** — Degree progress view: completion status, credit hours, prerequisite roadmaps, GPA per requirement category.
 2. **Semester Planner** — Term-by-term planning: GPA/CGPA calculations, study session logging, rich-text course notes, exam scheduling, Google Calendar integration.

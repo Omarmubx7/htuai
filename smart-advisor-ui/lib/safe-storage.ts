@@ -88,10 +88,10 @@ export const safeStorage = {
                     window.dispatchEvent(event);
                 }
             } catch (_e) { /* ignore in non-window contexts */ }
-            // Dispatch a custom event so app components can react to HTUAI-specific saves
+            // Dispatch a custom event so app components can react to MUBXAI-specific saves
             try {
                 if (typeof CustomEvent !== 'undefined') {
-                    const custom = new CustomEvent('htuai-synced', { detail: { key, value } });
+                    const custom = new CustomEvent('mubxai-synced', { detail: { key, value } });
                     window.dispatchEvent(custom);
                 }
             } catch (_e) { /* ignore */ }

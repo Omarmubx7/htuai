@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
     const [isLightMode, setIsLightMode] = useState(false);
 
     useEffect(() => {
-        const stored = safeStorage.get("htuai-theme");
+        const stored = safeStorage.get("mubxai-theme");
         if (stored === "light") {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLightMode(true);
@@ -32,10 +32,10 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
             const next = !prev;
             if (next) {
                 document.documentElement.classList.add("light-theme");
-                safeStorage.set("htuai-theme", "light");
+                safeStorage.set("mubxai-theme", "light");
             } else {
                 document.documentElement.classList.remove("light-theme");
-                safeStorage.set("htuai-theme", "dark");
+                safeStorage.set("mubxai-theme", "dark");
             }
             return next;
         });

@@ -21,8 +21,8 @@ export default function TermsPage() {
                     <div className="flex items-center gap-4">
                         <div className="relative group/logo">
                             <div className="absolute -inset-2 bg-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
-                            <Image src="/htuai-dark-logo.svg" alt="HTUAI Logo" width={48} height={48} className="relative z-10 dark-logo" />
-                            <Image src="/htuai-light-logo.svg" alt="HTUAI Logo" width={48} height={48} className="relative z-10 light-logo" />
+                            <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={48} height={48} className="relative z-10 dark-logo" />
+                            <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={48} height={48} className="relative z-10 light-logo" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gradient">
                             Terms of Service
@@ -37,7 +37,7 @@ export default function TermsPage() {
                             <CheckCircle2 className="w-5 h-5 text-violet-400" /> Acceptance of Terms
                         </h2>
                         <p>
-                            By using HTUAI (the &quot;Service&quot;), you agree to be bound by these Terms of Service. This Service is provided for educational organization purposes for students.
+                            By using MUBXAI (the &quot;Service&quot;), you agree to be bound by these Terms of Service. This Service is provided for educational organization purposes for students.
                         </p>
                     </section>
 

@@ -1,6 +1,6 @@
 {
-  "name": "HTUAI",
-  "short_name": "HTUAI",
+  "name": "MUBXAI",
+  "short_name": "MUBXAI",
   "description": "The ultimate academic tracking platform for Al Hussein Technical University students. Track courses, calculate GPA, plan semesters, and optimize your degree journey.",
   "start_url": "/",
   "display": "standalone",
@@ -11,12 +11,12 @@
   "lang": "en",
   "icons": [
     {
-      "src": "/htuai-dark-favicon.ico",
+      "src": "/mubxai-dark-favicon.ico",
       "sizes": "48x48",
       "type": "image/x-icon"
     },
     {
-      "src": "/htuai-dark-logo.svg",
+      "src": "/mubxai-dark-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

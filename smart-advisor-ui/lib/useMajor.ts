@@ -81,7 +81,7 @@ export const MAJORS: Major[] = [
     },
 ];
 
-const STORAGE_KEYS = ["htu_selected_major", "htuai-major"];
+const STORAGE_KEYS = ["htu_selected_major", "mubxai-major"];
 
 function readStoredMajor(): MajorKey | null {
     for (const k of STORAGE_KEYS) {

@@ -12,15 +12,15 @@ import SiteFooter from "@/components/SiteFooter";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://htuai.mubx.dev'),
+  metadataBase: new URL('https://ai.mubx.dev'),
   title: {
-    default: "HTUAI — Smart Academic Tracker for HTU Students",
-    template: "%s | HTUAI",
+    default: "MUBXAI — Smart Academic Tracker for HTU Students",
+    template: "%s | MUBXAI",
   },
   description: "The #1 free academic tracking platform for Al Hussein Technical University (HTU) students in Jordan. Track courses, calculate GPA & CGPA, plan semesters, check prerequisites, and monitor your degree progress — from 0 to graduation.",
   keywords: [
     // English core
-    "HTUAI", "HTU", "Al Hussein Technical University", "HTU course tracker",
+    "MUBXAI", "HTU", "Al Hussein Technical University", "HTU course tracker",
     "HTU student portal", "HTU GPA calculator", "HTU academic advisor",
     "HTU degree progress", "HTU semester planner", "HTU prerequisites",
     "HTU credit hours", "HTU curriculum", "HTU courses",
@@ -41,45 +41,45 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Omar Mubaidin", url: "https://mubx.dev" }],
   creator: "Omar Mubaidin",
-  publisher: "HTUAI",
+  publisher: "MUBXAI",
   alternates: {
-    canonical: "https://htuai.mubx.dev",
+    canonical: "https://ai.mubx.dev",
     languages: {
-      "en": "https://htuai.mubx.dev",
-      "ar": "https://htuai.mubx.dev",
+      "en": "https://ai.mubx.dev",
+      "ar": "https://ai.mubx.dev",
     },
   },
   openGraph: {
-    title: "HTUAI — Smart Academic Tracker for HTU Students",
+    title: "MUBXAI — Smart Academic Tracker for HTU Students",
     description: "Track courses, calculate GPA, plan semesters & monitor degree progress. Free for all Al Hussein Technical University students.",
-    url: "https://htuai.mubx.dev",
-    siteName: "HTUAI",
+    url: "https://ai.mubx.dev",
+    siteName: "MUBXAI",
     locale: "en_US",
     alternateLocale: "ar_JO",
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/mubxai-og-image.png",
         width: 1200,
         height: 630,
-        alt: "HTUAI — Smart Academic Tracker for Al Hussein Technical University Students",
+        alt: "MUBXAI — Smart Academic Tracker for Al Hussein Technical University Students",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HTUAI — Smart Academic Tracker",
+    title: "MUBXAI — Smart Academic Tracker",
     description: "The #1 free course tracker & GPA calculator for HTU students in Jordan. Track 160+ credit hours to graduation.",
-    images: ["/og-image.png"],
+    images: ["/mubxai-og-image.png"],
     creator: "@omarmubaidin",
   },
   icons: {
     icon: [
-      { url: "/htuai-light-favicon.ico", media: "(prefers-color-scheme: light)" },
-      { url: "/htuai-dark-favicon.ico", media: "(prefers-color-scheme: dark)" }
+      { url: "/mubxai-light-favicon.ico", media: "(prefers-color-scheme: light)" },
+      { url: "/mubxai-dark-favicon.ico", media: "(prefers-color-scheme: dark)" }
     ],
-    apple: "/htuai-dark-favicon.ico",
+    apple: "/mubxai-dark-favicon.ico",
   },
   manifest: "/manifest.json",
   robots: {
@@ -140,7 +140,7 @@ export default async function RootLayout({
               try{
                 var storage=window.localStorage;
                 if(isStorageLike(storage)){
-                  var t=storage.getItem("htuai-theme");
+                  var t=storage.getItem("mubxai-theme");
                   if(t==="light")document.documentElement.classList.add("light-theme");
                 }
               }catch(e){}
@@ -158,8 +158,8 @@ export default async function RootLayout({
                 __html: JSON.stringify({
                   "@context": "https://schema.org",
                   "@type": "SoftwareApplication",
-                  "name": "HTUAI",
-                  "url": "https://htuai.mubx.dev",
+                  "name": "MUBXAI",
+                  "url": "https://ai.mubx.dev",
                   "operatingSystem": "Web",
                   "applicationCategory": "EducationalApplication",
                   "applicationSubCategory": "Academic Planning",
@@ -179,7 +179,7 @@ export default async function RootLayout({
                     "Support for all HTU engineering & CS majors",
                     "Course notes editor"
                   ],
-                  "screenshot": "https://htuai.mubx.dev/og-image.png",
+                  "screenshot": "https://ai.mubx.dev/mubxai-og-image.png",
                   "author": {
                     "@type": "Person",
                     "name": "Omar Mubaidin",
@@ -206,10 +206,10 @@ export default async function RootLayout({
                   "mainEntity": [
                     {
                       "@type": "Question",
-                      "name": "What is HTUAI?",
+                      "name": "What is MUBXAI?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "HTUAI is a free academic tracking platform built specifically for Al Hussein Technical University (HTU) students in Jordan. It helps students track their course completion, calculate GPA and CGPA, plan semesters, check prerequisites, and monitor their overall degree progress from enrollment to graduation."
+                        "text": "MUBXAI is a free academic tracking platform built specifically for Al Hussein Technical University (HTU) students in Jordan. It helps students track their course completion, calculate GPA and CGPA, plan semesters, check prerequisites, and monitor their overall degree progress from enrollment to graduation."
                       }
                     },
                     {
@@ -217,39 +217,39 @@ export default async function RootLayout({
                       "name": "How do I track my courses at HTU?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "Sign up on HTUAI, select your major (Computer Science, AI, Cybersecurity, etc.), and you'll see your full curriculum. Tap any course to mark it as completed and set your grade. The app automatically calculates your GPA, tracks prerequisites, and shows your remaining credit hours."
+                        "text": "Sign up on MUBXAI, select your major (Computer Science, AI, Cybersecurity, etc.), and you'll see your full curriculum. Tap any course to mark it as completed and set your grade. The app automatically calculates your GPA, tracks prerequisites, and shows your remaining credit hours."
                       }
                     },
                     {
                       "@type": "Question",
-                      "name": "What majors does HTUAI support?",
+                      "name": "What majors does MUBXAI support?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "HTUAI supports all majors at Al Hussein Technical University including Computer Science, Artificial Intelligence, Cybersecurity, Software Engineering, Data Science, and all engineering programs. Each major has its complete curriculum with prerequisites and credit hour requirements."
+                        "text": "MUBXAI supports all majors at Al Hussein Technical University including Computer Science, Artificial Intelligence, Cybersecurity, Software Engineering, Data Science, and all engineering programs. Each major has its complete curriculum with prerequisites and credit hour requirements."
                       }
                     },
                     {
                       "@type": "Question",
-                      "name": "Is HTUAI free to use?",
+                      "name": "Is MUBXAI free to use?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "Yes, HTUAI is 100% free for all HTU students. There are no premium tiers, subscriptions, or hidden fees. All features including course tracking, GPA calculation, semester planning, and Google Calendar integration are available at no cost."
+                        "text": "Yes, MUBXAI is 100% free for all HTU students. There are no premium tiers, subscriptions, or hidden fees. All features including course tracking, GPA calculation, semester planning, and Google Calendar integration are available at no cost."
                       }
                     },
                     {
                       "@type": "Question",
-                      "name": "How does the CGPA calculator work in HTUAI?",
+                      "name": "How does the CGPA calculator work in MUBXAI?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "HTUAI calculates your True CGPA by combining your tracked course grades with any previous academic history you enter. It uses the standard 4.0 scale and accounts for credit hour weighting. You can also predict how future grades will affect your CGPA using the Semester Planner."
+                        "text": "MUBXAI calculates your True CGPA by combining your tracked course grades with any previous academic history you enter. It uses the standard 4.0 scale and accounts for credit hour weighting. You can also predict how future grades will affect your CGPA using the Semester Planner."
                       }
                     },
                     {
                       "@type": "Question",
-                      "name": "ما هو HTUAI؟",
+                      "name": "ما هو MUBXAI؟",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "HTUAI هو منصة تتبع أكاديمي مجانية مصممة خصيصاً لطلاب جامعة الحسين التقنية في الأردن. يساعد الطلاب على تتبع إتمام المواد، حساب المعدل التراكمي، تخطيط الفصول الدراسية، التحقق من المتطلبات السابقة، ومراقبة تقدمهم الأكاديمي من القبول حتى التخرج."
+                        "text": "MUBXAI هو منصة تتبع أكاديمي مجانية مصممة خصيصاً لطلاب جامعة الحسين التقنية في الأردن. يساعد الطلاب على تتبع إتمام المواد، حساب المعدل التراكمي، تخطيط الفصول الدراسية، التحقق من المتطلبات السابقة، ومراقبة تقدمهم الأكاديمي من القبول حتى التخرج."
                       }
                     }
                   ]
@@ -264,9 +264,9 @@ export default async function RootLayout({
                 __html: JSON.stringify({
                   "@context": "https://schema.org",
                   "@type": "Organization",
-                  "name": "HTUAI",
-                  "url": "https://htuai.mubx.dev",
-                  "logo": "https://htuai.mubx.dev/htuai-dark-logo.svg",
+                  "name": "MUBXAI",
+                  "url": "https://ai.mubx.dev",
+                  "logo": "https://ai.mubx.dev/mubxai-dark-logo.svg",
                   "description": "Free academic tools for Al Hussein Technical University students in Jordan.",
                   "founder": {
                     "@type": "Person",

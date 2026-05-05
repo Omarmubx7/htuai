@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import PlannerHomeClient from "@/components/PlannerHomeClient";
 
 export const metadata: Metadata = {
-    title: "Semester Planner | HTUAI",
+    title: "Semester Planner | MUBXAI",
     description: "Manage your semesters, track grades, and earn gamification XP.",
 };
 
