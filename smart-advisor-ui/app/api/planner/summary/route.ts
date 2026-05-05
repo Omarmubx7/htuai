@@ -331,8 +331,8 @@ export async function GET(_req: NextRequest) {
         let TOTAL_DEGREE_CH = 135;
         if (rules?.degree_types) {
             for (const type in rules.degree_types) {
-                if (rules.degree_types[type].major_keys.includes(profile?.major || "")) {
-                    TOTAL_DEGREE_CH = rules.degree_types[type].total_credits;
+                if ((rules.degree_types as any)[type].major_keys.includes(profile?.major || "")) {
+                    TOTAL_DEGREE_CH = (rules.degree_types as any)[type].total_credits;
                     break;
                 }
             }
