@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         createAdminLog({
             type: 'profile_update',
             message: `Student ${resolvedStudentId} updated academic profile (GPA: ${previous_gpa}, Credits: ${previous_credits})`,
-            details: { student_id: studentId, email, previous_gpa, previous_credits },
+            details: { student_id: resolvedStudentId, email: user.email, previous_gpa, previous_credits },
             event_kind: 'profile_update',
             target_id: resolvedStudentId,
         }).catch(() => {});
