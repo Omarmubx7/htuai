@@ -14,18 +14,18 @@ const outfit = Outfit({ subsets: ["latin"] });
 export const metadata: Metadata = {
   metadataBase: new URL('https://ai.mubx.dev'),
   title: {
-    default: "MUBXAI — Smart Academic Tracker for HTU Students",
+    default: "MUBXAI — Smart Academic Tracker for MUBX Students",
     template: "%s | MUBXAI",
   },
-  description: "The #1 free academic tracking platform for Al Hussein Technical University (HTU) students in Jordan. Track courses, calculate GPA & CGPA, plan semesters, check prerequisites, and monitor your degree progress — from 0 to graduation.",
+  description: "The #1 free academic tracking platform for MUBX University (MUBX) students in Jordan. Track courses, calculate GPA & CGPA, plan semesters, check prerequisites, and monitor your degree progress — from 0 to graduation.",
   keywords: [
     // English core
-    "MUBXAI", "HTU", "Al Hussein Technical University", "HTU course tracker",
-    "HTU student portal", "HTU GPA calculator", "HTU academic advisor",
-    "HTU degree progress", "HTU semester planner", "HTU prerequisites",
-    "HTU credit hours", "HTU curriculum", "HTU courses",
+    "MUBXAI", "MUBX", "MUBX University", "MUBX course tracker",
+    "MUBX student portal", "MUBX GPA calculator", "MUBX academic advisor",
+    "MUBX degree progress", "MUBX semester planner", "MUBX prerequisites",
+    "MUBX credit hours", "MUBX curriculum", "MUBX courses",
     // Long-tail English
-    "HTU computer science courses", "HTU engineering curriculum",
+    "MUBX computer science courses", "MUBX engineering curriculum",
     "university course tracker Jordan", "college GPA calculator free",
     "academic progress tracker", "degree completion tracker",
     "semester planner for university students",
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "MUBXAI — Smart Academic Tracker for HTU Students",
-    description: "Track courses, calculate GPA, plan semesters & monitor degree progress. Free for all Al Hussein Technical University students.",
+    title: "MUBXAI — Smart Academic Tracker for MUBX Students",
+    description: "Track courses, calculate GPA, plan semesters & monitor degree progress. Free for all MUBX University students.",
     url: "https://ai.mubx.dev",
     siteName: "MUBXAI",
     locale: "en_US",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
         url: "/mubxai-og-image.png",
         width: 1200,
         height: 630,
-        alt: "MUBXAI — Smart Academic Tracker for Al Hussein Technical University Students",
+        alt: "MUBXAI — Smart Academic Tracker for MUBX University Students",
         type: "image/png",
       },
     ],
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "MUBXAI — Smart Academic Tracker",
-    description: "The #1 free course tracker & GPA calculator for HTU students in Jordan. Track 160+ credit hours to graduation.",
+    description: "The #1 free course tracker & GPA calculator for MUBX students in Jordan. Track 160+ credit hours to graduation.",
     images: ["/mubxai-og-image.png"],
     creator: "@omarmubaidin",
   },
@@ -168,7 +168,7 @@ export default async function RootLayout({
                     "price": "0",
                     "priceCurrency": "USD"
                   },
-                  "description": "The #1 free academic tracking platform for Al Hussein Technical University (HTU) students. Track courses, calculate CGPA, plan semesters, check prerequisites, and monitor degree progress.",
+                  "description": "The #1 free academic tracking platform for MUBX University (MUBX) students. Track courses, calculate CGPA, plan semesters, check prerequisites, and monitor degree progress.",
                   "featureList": [
                     "Course completion tracking with prerequisites",
                     "Real-time GPA & CGPA calculator",
@@ -176,7 +176,7 @@ export default async function RootLayout({
                     "Degree progress monitoring",
                     "Study session logging with gamification",
                     "Google Calendar integration",
-                    "Support for all HTU engineering & CS majors",
+                    "Support for all MUBX engineering & CS majors",
                     "Course notes editor"
                   ],
                   "screenshot": "https://ai.mubx.dev/mubxai-og-image.png",
@@ -209,12 +209,12 @@ export default async function RootLayout({
                       "name": "What is MUBXAI?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "MUBXAI is a free academic tracking platform built specifically for Al Hussein Technical University (HTU) students in Jordan. It helps students track their course completion, calculate GPA and CGPA, plan semesters, check prerequisites, and monitor their overall degree progress from enrollment to graduation."
+                        "text": "MUBXAI is a free academic tracking platform built specifically for MUBX University (MUBX) students in Jordan. It helps students track their course completion, calculate GPA and CGPA, plan semesters, check prerequisites, and monitor their overall degree progress from enrollment to graduation."
                       }
                     },
                     {
                       "@type": "Question",
-                      "name": "How do I track my courses at HTU?",
+                      "name": "How do I track my courses at MUBX?",
                       "acceptedAnswer": {
                         "@type": "Answer",
                         "text": "Sign up on MUBXAI, select your major (Computer Science, AI, Cybersecurity, etc.), and you'll see your full curriculum. Tap any course to mark it as completed and set your grade. The app automatically calculates your GPA, tracks prerequisites, and shows your remaining credit hours."
@@ -225,7 +225,7 @@ export default async function RootLayout({
                       "name": "What majors does MUBXAI support?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "MUBXAI supports all majors at Al Hussein Technical University including Computer Science, Artificial Intelligence, Cybersecurity, Software Engineering, Data Science, and all engineering programs. Each major has its complete curriculum with prerequisites and credit hour requirements."
+                        "text": "MUBXAI supports all majors at MUBX University including Computer Science, Artificial Intelligence, Cybersecurity, Software Engineering, Data Science, and all engineering programs. Each major has its complete curriculum with prerequisites and credit hour requirements."
                       }
                     },
                     {
@@ -233,7 +233,7 @@ export default async function RootLayout({
                       "name": "Is MUBXAI free to use?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "Yes, MUBXAI is 100% free for all HTU students. There are no premium tiers, subscriptions, or hidden fees. All features including course tracking, GPA calculation, semester planning, and Google Calendar integration are available at no cost."
+                        "text": "Yes, MUBXAI is 100% free for all MUBX students. There are no premium tiers, subscriptions, or hidden fees. All features including course tracking, GPA calculation, semester planning, and Google Calendar integration are available at no cost."
                       }
                     },
                     {
@@ -267,7 +267,7 @@ export default async function RootLayout({
                   "name": "MUBXAI",
                   "url": "https://ai.mubx.dev",
                   "logo": "https://ai.mubx.dev/mubxai-dark-logo.svg",
-                  "description": "Free academic tools for Al Hussein Technical University students in Jordan.",
+                  "description": "Free academic tools for MUBX University students in Jordan.",
                   "founder": {
                     "@type": "Person",
                     "name": "Omar Mubaidin",
