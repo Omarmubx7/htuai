@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BookOpen, Plus, MapPin, User, Save, ArrowRight, Search, Calendar as CalendarIcon, Edit2, Trash2, FileText, ChevronRight, Settings2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Plus, MapPin, User, Save, ArrowRight, Search, Calendar as CalendarIcon, Edit2, Trash2, FileText, ChevronRight, Settings2, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "./ui/Toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
@@ -48,6 +48,39 @@ interface SemesterDetail {
     courses: PlannerCourseItem[];
 }
 
+function GradeLegendPopover({ onClose }: Readonly<{ onClose: () => void }>) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-8 left-0 z-50 bg-white/10 border border-white/20 rounded-2xl p-3 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
+            style={{ minWidth: '240px' }}
+            onClick={(e) => e.stopPropagation()}
+        >
+            <h4 className="text-xs font-bold text-white mb-3 flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-cyan-400" />
+                Grading Scale
+            </h4>
+            <div className="space-y-2">
+                {Object.entries(GRADE_MAP).slice(0, 4).map(([grade, info]) => (
+                    <div key={grade} className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-white/80">{grade} = {info.label}</span>
+                        <span className="text-white/50 text-[10px]">{info.points} pts</span>
+                    </div>
+                ))}
+            </div>
+            <button
+                onClick={onClose}
+                className="mt-3 w-full py-1.5 text-[10px] font-bold text-white/60 hover:text-white/80 transition-colors"
+            >
+                Close
+            </button>
+        </motion.div>
+    );
+}
+
 function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailProps>) {
     const { status } = useSession();
     const router = useRouter();
@@ -86,7 +119,8 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const [noteToDelete, setNoteToDelete] = useState<number | null>(null);
     const [showDeleteCourseConfirm, setShowDeleteCourseConfirm] = useState(false);
     const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
-
+    // Grade Legend State
+    const [showGradeLegend, setShowGradeLegend] = useState(false);
     const fetchNotes = useCallback(async () => {
         try {
             const data = await fetchJSON<{ notes: SemesterNoteItem[] }>(`/api/planner/semesters/${semesterId}/notes`, { retries: 2 });
@@ -172,8 +206,14 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         }
     }, [status, router, fetchSemester, fetchNotes]);
 
+    const [addCourseError, setAddCourseError] = useState<string | null>(null);
+
     const handleAddCourse = async () => {
-        if (!newCourse.code || !newCourse.name) return;
+        setAddCourseError(null);
+        if (!newCourse.code || !newCourse.name) {
+            setAddCourseError("Please provide both Course Code and Course Name.");
+            return;
+        }
         
         // Check if course already exists in this semester
         const isDuplicate = courses.some(c => 
@@ -487,8 +527,22 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             </div>
 
                             <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4 z-10 pt-4 sm:pt-0 border-t border-white/5 sm:border-0 mt-2 sm:mt-0">
-                                <div className="flex flex-col items-start sm:items-end">
-                                    <label htmlFor={`grade-${course.id}`} className="text-[10px] uppercase font-bold text-white/30 tracking-widest pl-1 mb-1">Grade</label>
+                                <div className="flex flex-col items-start sm:items-end relative">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <label htmlFor={`grade-${course.id}`} className="text-[10px] uppercase font-bold text-white/30 tracking-widest pl-1">Grade</label>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setShowGradeLegend(!showGradeLegend); }}
+                                            className="p-0.5 hover:bg-white/10 rounded-full transition-colors"
+                                            title="View grading scale"
+                                        >
+                                            <HelpCircle className="w-3.5 h-3.5 text-cyan-400/60 hover:text-cyan-400" />
+                                        </button>
+                                        <AnimatePresence>
+                                            {showGradeLegend && (
+                                                <GradeLegendPopover onClose={() => setShowGradeLegend(false)} />
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                     <div className="relative group/select">
                                         <select
                                             id={`grade-${course.id}`}
@@ -733,10 +787,15 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                         className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
                                     />
                                 </div>
+                                {addCourseError && (
+                                    <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center font-bold">
+                                        {addCourseError}
+                                    </div>
+                                )}
                             </div>
                             <div className="flex gap-3 mt-8">
                                 <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">Cancel</button>
-                                <button onClick={handleAddCourse} disabled={!newCourse.code || !newCourse.name} className="flex-1 py-3 bg-blue-600 focus:outline-[3px] outline-blue-500/30 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">Add</button>
+                                <button onClick={handleAddCourse} className="flex-1 py-3 bg-blue-600 focus:outline-[3px] outline-blue-500/30 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">Add</button>
                             </div>
                         </motion.div>
                     </div>

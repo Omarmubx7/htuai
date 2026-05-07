@@ -1,556 +1,485 @@
-# MUBXAI Bug Report
-
-> **Generated:** 2026-05-02  
-> **Scope:** Source code analysis of `smart-advisor-ui/` and supporting libraries
-
----
-
-## 🔴 Critical Bugs
-
-### 1. Student ID Resolution Fails for Leading Zeros ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/database.ts:60-61`
-- **Description:** `resolveUserByString()` parses student IDs with `Number.parseInt()`. IDs like `"001234"` become `1234`. The subsequent database lookup uses the original string, but the numeric comparison may cause issues with ID matching in certain flows.
-- **Impact:** Students with leading zeros in their IDs may not be found in some lookup paths.
-- **Fix:** Avoid parsing student IDs as numbers; treat them as strings consistently.
-
-```typescript
-// Current (problematic):
-const numId = Number.parseInt(identity, 10);
-if (!Number.isNaN(numId) && String(numId) === identity) { ... }
-
-// Suggested:
-// Remove numeric parsing for student IDs; only parse if ID is explicitly numeric-only
-```
-
----
-
-### 2. Groq Client May Receive Undefined API Key ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/groq.ts:43-50`
-- **Description:** `getGroqClient()` checks if `apiKey` is falsy, then calls `requireEnv("GROQ_API_TOKEN")` which throws, but the function continues execution and passes `undefined` to `new Groq({ apiKey })`.
-- **Impact:** Runtime error when GROQ_API_TOKEN is missing; error message may be unclear.
-- **Fix:** Return early or re-throw after `requireEnv` throws.
-
-```typescript
-// Current:
-if (!apiKey) {
-    requireEnv("GROQ_API_TOKEN"); // throws but doesn't stop execution
-}
-return new Groq({ apiKey }); // apiKey still undefined
-
-// Suggested:
-if (!apiKey) {
-    throw new Error("Missing GROQ_API_TOKEN environment variable");
-}
-return new Groq({ apiKey });
-```
-
----
-
-### 3. Buffer Not Available in Next.js Edge Runtime ✅ SOLVED
-- **File:** `smart-advisor-ui/middleware.ts:4-7`
-- **Description:** `generateNonce()` uses `Buffer.from()` which is not available in Next.js Edge Runtime (middleware runs in edge).
-- **Impact:** Middleware will crash in production if deployed to Vercel Edge or similar environments.
-- **Fix:** Use Web Crypto API or base64 encoding that works in edge runtime.
-
-```typescript
-// Current:
-const bytes = new Uint8Array(16);
-crypto.getRandomValues(bytes);
-return Buffer.from(bytes).toString("base64"); // Buffer undefined in edge
-
-// Suggested:
-const bytes = new Uint8Array(16);
-crypto.getRandomValues(bytes);
-return btoa(String.fromCharCode(...bytes));
-```
-
----
-
-### 4. Session Callback Incorrectly Uses name as Student ID ✅ SOLVED
-- **File:** `smart-advisor-ui/auth.ts:124`
-- **Description:** In the `session` callback, the code tries `getUserByStudentId(session.user.name || "")`. However, `session.user.name` may contain the user's display name, not their student ID.
-- **Impact:** Student ID lookup may fail; `db_id` and `student_id` may not be set correctly in session.
-- **Fix:** Use `session.user.email` or the `token.student_id` from JWT instead.
-
-```typescript
-// Current:
-const dbUser = await getUserByEmail(session.user.email || "") || await getUserByStudentId(session.user.name || "");
-
-// Suggested:
-const dbUser = await getUserByEmail(session.user.email || "");
-// If not found by email, try student_id from token
-if (!dbUser && token.student_id) {
-    const dbUserByStudentId = await getUserByStudentId(token.student_id);
-    // ...
-}
-```
-
----
-
-### 5. saveProgress Uses Stale student_id in Update ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/database.ts:186-199`
-- **Description:** When updating existing progress, the code sets `student_id: studentId` in the update payload, but the WHERE clause uses `existing.student_id` which may differ from the new `studentId` parameter if the user's ID changed.
-- **Impact:** Update may fail or update wrong record if student_id changed.
-- **Fix:** Use the unique `id` or `user_id` for the WHERE clause instead of the composite key with potentially stale data.
-
-```typescript
-// Current:
-await prisma.studentProgress.update({
-    where: { 
-        student_id_major: { 
-            student_id: existing.student_id, // may be stale
-            major: existing.major 
-        } 
-    },
-    data: { ..., student_id: studentId } // updates to new ID
-});
-
-// Suggested:
-await prisma.studentProgress.update({
-    where: { id: existing.id }, // use primary key
-    data: { completed: jsonStr, updated_at: time, student_id: studentId }
-});
-```
-
----
-
-## 🟡 Medium Bugs
-
-### 6. calculateCGPA Incorrectly Treats GPA of 0 as Missing ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/grading.ts:84-87`
-- **Description:** The condition `if (history?.gpa !== null && history?.gpa !== undefined && history?.credits)` treats `gpa: 0` as valid, but the `credits` check may fail if credits is `0` (falsy). Also, the condition structure is confusing.
-- **Impact:** Historical GPA with value `0` may not be included in CGPA calculation.
-- **Fix:** Use explicit null/undefined checks.
-
-```typescript
-// Current:
-if (history?.gpa !== null && history?.gpa !== undefined && history?.credits) {
-    // credits being 0 is falsy, so this block won't run
-}
-
-// Suggested:
-if (history?.gpa != null && history?.credits != null) {
-    totalQualityPoints += (history.gpa * history.credits);
-    totalCredits += history.credits;
-}
-```
-
----
-
-### 7. Prerequisite Check Locks Courses Not in Curriculum ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/advisor.ts:106-111`
-- **Description:** In `evaluateLogic()`, if a course code is NOT in `allCourseCodes`, the function returns `isLocked: true`. This seems incorrect—if a course isn't in the curriculum, it shouldn't necessarily be locked due to prerequisites.
-- **Impact:** Courses with codes not in the curriculum may incorrectly show as locked.
-- **Fix:** Re-evaluate the logic for handling unknown course codes.
-
-```typescript
-// Current:
-if (allCourseCodes.size === 0 || allCourseCodes.has(code) || code === 'HTU_PLACEMENT') {
-    if (completed.has(code)) return { isLocked: false, missing: [] };
-    return { isLocked: true, missing: [code] };
-}
-return { isLocked: true, missing: [code] }; // Always locked if not in curriculum
-
-// Suggested: If not in curriculum, treat as satisfied (external course)
-```
-
----
-
-### 8. Rate Limit Cleanup Interval Never Cleared ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/rate-limit.ts:9-16`
-- **Description:** `setInterval()` is called at module load time and never cleared. In a serverless environment, this can lead to multiple intervals running.
-- **Impact:** Memory leaks; multiple cleanup intervals running in serverless functions.
-- **Fix:** Store the interval ID and clear it on module cleanup, or use a more robust cleanup mechanism.
-
-```typescript
-// Current:
-setInterval(() => { ... }, 5 * 60 * 1000); // never cleared
-
-// Suggested:
-const cleanupInterval = setInterval(() => { ... }, 5 * 60 * 1000);
-// In a cleanup function:
-// clearInterval(cleanupInterval);
-```
-
----
-
-### 9. ALLOWED_HOSTS Doesn't Handle Ports in x-forwarded-host ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/env.ts:34`
-- **Description:** The `ALLOWED_HOSTS` check compares `forwardedHost` directly against the allowed list, but `x-forwarded-host` may include a port (e.g., `localhost:3000`), while the allowed list might not include the port.
-- **Impact:** Valid requests from allowed hosts with ports may be rejected.
-- **Fix:** Normalize the host or extract hostname without port.
-
-```typescript
-// Current:
-if (ALLOWED_HOSTS.includes(forwardedHost)) { ... }
-
-// Suggested:
-const hostname = forwardedHost.split(':')[0];
-if (ALLOWED_HOSTS.some(h => h.split(':')[0] === hostname)) { ... }
-```
-
----
-
-## 🟢 Minor Bugs
-
-### 10. StorageEvent Constructor May Not Exist ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/safe-storage.ts:82-83`
-- **Description:** `new StorageEvent('storage', ...)` may not be available in all environments (e.g., React Native, older browsers).
-- **Impact:** Error thrown when trying to dispatch storage events.
-- **Fix:** Check if `StorageEvent` exists before using it.
-
-```typescript
-// Suggested:
-try {
-    if (typeof StorageEvent !== 'undefined') {
-        const event = new StorageEvent('storage', { key, newValue: value, ... });
-        window.dispatchEvent(event);
-    }
-} catch (_e) { /* ignore */ }
-```
-
----
-
-### 11. Enum Validation Uses Strict Equality ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/validation.ts:71`
-- **Description:** `rules.enum.includes(value)` uses strict equality. If the enum values are of different types (e.g., string vs number), the check may fail.
-- **Impact:** False validation errors for type mismatches.
-- **Fix:** Consider type coercion or explicit type checking.
-
----
-
-### 12. Fetch Retry Has No Timeout ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/fetch-retry.ts:20-87`
-- **Description:** The `fetchWithRetry` function doesn't set a timeout for the fetch request. A hanging request could block indefinitely.
-- **Impact:** Requests may hang forever if the server doesn't respond.
-- **Fix:** Add an `AbortController` with a timeout.
-
-```typescript
-// Suggested:
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), options.timeout || 30000);
-try {
-    const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
-    // ...
-} finally {
-    clearTimeout(timeoutId);
-}
-```
-
----
-
-### 13. Non-Null Assertion on Quest current_value ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/gamification.ts:112`
-- **Description:** `quest.current_value!` uses a non-null assertion, assuming `current_value` is always defined. However, the Prisma schema may allow `null`.
-- **Impact:** Runtime error if `current_value` is `null`.
-- **Fix:** Add a null check or provide a default value.
-
-```typescript
-// Current:
-const newProgress = Math.min(quest.current_value! + newMinutes, quest.target_value);
-
-// Suggested:
-const currentValue = quest.current_value ?? 0;
-const newProgress = Math.min(currentValue + newMinutes, quest.target_value);
-```
-
----
-
-### 14. Deep Clone Loses undefined Values ✅ SOLVED
-- **File:** `smart-advisor-ui/lib/ai-logger.ts:42`
-- **Description:** `JSON.parse(JSON.stringify(data.metadata))` is used for deep cloning, but `JSON.stringify()` drops `undefined` values.
-- **Impact:** Metadata with `undefined` values will lose those values during logging.
-- **Fix:** Use a proper deep clone utility or handle `undefined` explicitly.
-
-```typescript
-// Current:
-metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : {},
-
-// Suggested (if undefined handling matters):
-metadata: data.metadata ? structuredClone(data.metadata) : {},
-```
-
----
-
-## Summary
-
-| Severity | Count | Solved |
-|----------|-------|--------|
-| 🔴 Critical | 5 | ✅ 5 |
-| 🟡 Medium | 4 | ✅ 4 |
-| 🟢 Minor | 5 | ✅ 5 |
-| **Total** | **14** | **✅ 14** |
+## MUBXAI – Full App Bug Report & UX Flaw Analysis
 
----
+This document groups the discovered issues into phases so the team can fix the app in a sensible order.
 
-## Action Plan - COMPLETED ✅
+## Phase 1 – Critical Stability & Data Integrity
 
-All 14 identified bugs have been fixed:
+These issues break core flows or can block normal app usage.
 
-1. ✅ **Bug #1** - Student ID Resolution (database.ts)
-2. ✅ **Bug #2** - Groq Client API Key (groq.ts)
-3. ✅ **Bug #3** - Buffer in Edge Runtime (middleware.ts)
-4. ✅ **Bug #4** - Session Callback Student ID (auth.ts)
-5. ✅ **Bug #5** - saveProgress Stale ID (database.ts)
-6. ✅ **Bug #6** - calculateCGPA GPA=0 (grading.ts)
-7. ✅ **Bug #7** - Prerequisite Check (advisor.ts)
-8. ✅ **Bug #8** - Rate Limit Cleanup (rate-limit.ts)
-9. ✅ **Bug #9** - ALLOWED_HOSTS Port Handling (env.ts)
-10. ✅ **Bug #10** - StorageEvent Constructor (safe-storage.ts)
-11. ✅ **Bug #11** - Enum Validation (validation.ts)
-12. ✅ **Bug #12** - Fetch Retry Timeout (fetch-retry.ts)
-13. ✅ **Bug #13** - Quest current_value (gamification.ts)
-14. ✅ **Bug #14** - Deep Clone undefined (ai-logger.ts)
+### Bug 1 — Course Detail Page Crash
 
+Location: Semester Planner → Any semester → Open a course detail page
 
+Navigating to a planner course detail page can crash the renderer and leave the screen black with only a spinner visible.
 
+Impact: The course detail feature becomes unusable.
+Severity: Critical
 
+### Bug 2 — Notes Feature Infinite Loading
 
-# MUBXAI Bug Report — Admin Dashboard & Planner Settings
+Location: Main Course Tracker → Any course → Notes
 
-**Project:** [MUBXAI.mubx](https://MUBXAI.mubx.dev)  
-**Date:** 2026-05-03  
-**Reporter:** Omar Mubaidin  
-**Status:** Open  
+The notes panel opens but remains stuck on a loading state indefinitely.
 
-## Scope
+Impact: Notes cannot be viewed or edited.
+Severity: Critical
 
-**Pages audited**  
-- [Admin Dashboard](https://MUBXAI.mubx.dev/admin/dashboard)  
-- [Planner Settings](https://MUBXAI.mubx.dev/planner/settings)  
+### Bug 3 — Previous Academic History Lacks GPA Validation
 
-## Triage Summary
+Location: Main Tracker → TRUE CGPA → Gear icon → Previous Academic History modal
 
-This report organizes the currently observed issues into admin access, page identity/layout, planner integrations/settings, profile data binding, and counter behavior. The highest-priority problems are the blocked admin authentication flow, misleading or unusable planner actions, incorrect profile mapping, and the newly noted counter malfunction.
+The modal accepts invalid GPA values above 4.0 or below 0 and gives no feedback when saving fails.
 
-## Severity Guide
+Impact: Users can attempt to save corrupt data without understanding why it failed.
+Severity: Major
 
-- 🔴 Critical — blocks core functionality or access
-- 🟠 Medium — important functionality is broken, misleading, or incomplete
-- 🟡 Low — polish, layout, or contextual consistency issue
+### Bug 5 — Add Course Form Has No Validation Feedback
 
----
+Location: Semester Planner → View Semester → Add Course
 
-## 🔴 BUG-001 — Invalid Admin Secret Blocks Access with No Recovery
+Submitting the modal with empty required fields keeps it open without any error message.
 
-**Area:** Admin Dashboard  
-**Severity:** Critical  
-**Status:** Open
+Impact: Users cannot tell what needs to be fixed.
+Severity: Major
 
-### Description
-The admin dashboard is stuck behind an authentication gate that shows an admin secret field, an **Unlock** action, and an inline **"Invalid admin secret"** error at the same time. The core admin experience is not reachable from the current session.
+### Bug 6 — AI Suggests Already-Enrolled Courses
 
-### Reproduction Steps
-1. Navigate to `/admin/dashboard`
-2. Observe the admin secret input field
-3. Submit the form
-4. Notice the inline **"Invalid admin secret"** state
-5. No recovery help, reset guidance, or retry explanation is provided
+Location: Main Tracker → MUBX AI Advisor → Suggest Courses
 
-### Expected Behavior
-The page should clearly separate empty, loading, and rejected states. When the secret is invalid, the UI should help the user recover instead of stopping at a dead-end error.
+The recommendation engine suggests courses that are already enrolled in the active semester.
 
-### Suggested Fix
-Add explicit UI states for `empty`, `loading`, and `error`. Clear the field after a failed attempt and show helper text such as: `Forgot the secret? Contact your system admin.`
+Impact: AI suggestions feel wrong and untrustworthy.
+Severity: Major
 
----
+### Bug 8 — CGPA Overview Desync Between Tracker and Planner
 
-## 🟠 BUG-002 — Public App Title Shown on Admin Page
+Location: Semester Planner Dashboard → CGPA Overview
 
-**Area:** Admin Dashboard  
-**Severity:** Medium  
-**Status:** Open
+The planner shows `-.-` even when the tracker already has a real CGPA value.
 
-### Description
-The page `<title>` and meta snippet still show the public MUBXAI marketing identity instead of an admin-specific page identity. This makes browser tabs, history, and debugging more confusing.
+Impact: Users see inconsistent academic summaries.
+Severity: Moderate
 
-### Reproduction Steps
-1. Navigate to `/admin/dashboard`
-2. Check the browser tab title and metadata
-3. Observe the page still uses the public shell identity
+## Phase 2 – Modal & Interaction UX
 
-### Expected Behavior
-Admin pages should expose a distinct identity such as `Admin — MUBXAI`.
+These issues do not usually break the app, but they interrupt expected interaction patterns.
 
-### Suggested Fix
-Set route-specific metadata for all `/admin/*` pages, for example `Admin Panel | MUBXAI`.
+### Bug 4 — Previous Academic History Modal Cannot Close on Outside Click
 
----
+Location: Previous Academic History modal
 
-## 🟡 BUG-003 — Public Footer and Promo Element Visible on Locked Admin Gate
+Clicking the backdrop does not close the modal, and there is no obvious close icon.
 
-**Area:** Admin Dashboard  
-**Severity:** Low  
-**Status:** Open
+Impact: The modal feels trapped and harder to escape.
+Severity: Major
 
-### Description
-The locked admin state still shows public footer links like Privacy, Terms, and AI Transparency, plus a **SimplyCodes** close element. This makes the protected state feel mixed into the public marketing shell instead of isolated.
+### Bug 7 — Notifications Dropdown Does Not Close on Outside Click
 
-### Reproduction Steps
-1. Navigate to `/admin/dashboard` while unauthenticated
-2. Scroll through the locked state
-3. Observe the public footer and promo-related UI elements
+Location: Semester Planner → Bell icon → Academic Alerts
 
-### Expected Behavior
-The admin authentication gate should use a clean protected layout with no public footer or promotional elements.
+The notifications panel stays open unless the user clicks in the header area.
 
-### Suggested Fix
-Create a separate minimal layout for `/admin/*` routes that excludes the public footer, nav shell, and promo widgets.
+Impact: Standard dropdown behavior is broken.
+Severity: Major
 
----
+### Bug 11 — Accidental Course Toggle Without Confirmation
 
-## 🔴 BUG-004 — “Connect Sheets” CTA Conflicts With “COMING SOON” State
+Location: Course Tracker → Course cards
 
-**Area:** Planner Settings  
-**Severity:** High  
-**Status:** Open
+Clicking the card body can mark a course complete immediately with no confirmation.
 
-### Description
-Google Sheets is labeled **COMING SOON** but still displays a **Connect Sheets** button. The label says the feature is unavailable while the CTA suggests it is usable.
+Impact: Users can change progress state by mistake.
+Severity: Moderate
 
-### Reproduction Steps
-1. Navigate to `/planner/settings`
-2. Locate the Google Sheets integration row
-3. Observe both the **COMING SOON** label and the **Connect Sheets** button
-4. Attempt to use the CTA
+## Phase 3 – Visual Consistency & Branding
 
-### Expected Behavior
-A coming-soon feature should not expose a live-looking action button unless it is intentionally disabled and explained.
+These are polish issues that lower trust and visual quality.
 
-### Suggested Fix
-Hide the CTA or render it in a disabled state with explanatory text such as `Available soon`. A better alternative would be a passive CTA like `Notify me` or `Learn more`.
+### Bug 9 — Persistent Floating Teal Ripple Animation
 
----
+Location: Global
 
-## 🟠 BUG-005 — Exam Reminder Dropdown Disabled With No Explanation
+A teal/cyan blob appears after clicks and remains visible for too long.
 
-**Area:** Planner Settings  
-**Severity:** Medium  
-**Status:** Open
+Impact: The effect is distracting and makes the interface feel unfinished.
+Severity: Moderate
 
-### Description
-The **Reminder for Exams (Before Date)** dropdown is disabled, and the visible options inside it also appear disabled. There is no explanation for why the setting is locked.
+### Bug 10 — Broken Logo on Planner Pages
 
-### Reproduction Steps
-1. Navigate to `/planner/settings`
-2. Locate **Reminder for Exams (Before Date)**
-3. Attempt to open or change the select field
-4. Observe the control is disabled with no helper text
+Location: Planner sidebar, Privacy Policy, Terms of Service
 
-### Expected Behavior
-If the control depends on another integration or permission, the user should be told what is required to unlock it.
+The MUBXAI logo fails to load and shows a broken image placeholder.
 
-### Suggested Fix
-Show helper text such as `Connect Google Calendar to enable reminders.` If there is no dependency, remove the disabled state and verify the control works normally.
+Impact: Branding looks broken on several pages.
+Severity: Moderate
 
----
+### Bug 12 — Exam Notification Times Show 03:00 AM
 
-## 🟠 BUG-006 — “Sync Daily Classes Dynamically” Toggle Appears Missing or Unrendered
+Location: Semester Planner → Academic Alerts
 
-**Area:** Planner Settings  
-**Severity:** Medium  
-**Status:** Open
+Exam alerts show fabricated-looking midnight-converted times even when the user never set actual exam times.
 
-### Description
-The **Sync daily classes dynamically** setting appears as plain text without a clearly visible switch, checkbox, or active state. This suggests the actual toggle UI may not be rendering.
+Impact: The alert times are misleading.
+Severity: Moderate
 
-### Reproduction Steps
-1. Navigate to `/planner/settings`
-2. Find **Sync daily classes dynamically**
-3. Observe the label area closely
-4. No obvious interactive control is shown
+### Bug 13 — Info Icon on Locked Course Cards Does Nothing
 
-### Expected Behavior
-The setting should render with a visible interactive toggle that shows whether the feature is on or off.
+Location: Course category views → Locked course cards
 
-### Suggested Fix
-Inspect the toggle component path and verify it is not blocked by missing props, CSS visibility issues, feature flags, or conditional rendering errors.
+The orange info icon looks interactive but does nothing when clicked.
 
----
+Impact: Users cannot discover why a course is locked.
+Severity: Moderate
 
-## 🔴 BUG-007 — Student ID Field Displays Full Name Instead of ID
+## Phase 4 – UX Clarity & Content
 
-**Area:** Planner Settings — Profile Section  
-**Severity:** High  
-**Status:** Open
+These issues confuse users even though the underlying feature may work.
 
-### Description
-Under **STUDENT ID / MAJOR**, the displayed value is `omar mubaidin - Computer Science`, which uses the name instead of the actual student ID. This strongly suggests a profile mapping bug.
+### Flaw 1 — Grade Labels Are Cryptic
 
-### Reproduction Steps
-1. Navigate to `/planner/settings`
-2. Find the **STUDENT ID / MAJOR** profile field
-3. Observe the first value is the user name rather than a student ID
+Location: Semester Planner → Semester View → Grade dropdown
 
-### Expected Behavior
-The field should show the actual ID and the major, for example `24110213 - Computer Science`.
+The grades D, M, P, and U are shown without explanation or legend.
 
-### Suggested Fix
-Audit the binding path and verify `studentId` is populated from the real student identifier source, not from `user.name` or `profile.displayName`.
+Impact: Users unfamiliar with the grading scheme do not know what the options mean.
 
----
+### Flaw 2 — “Below Minimum” Status Is Unexplained
 
-## 🟠 BUG-008 — Account Role Value Missing From Profile Display
+Location: Semester Planner Dashboard → Status card
 
-**Area:** Planner Settings — Profile Section  
-**Severity:** Medium  
-**Status:** Open
+The card says “Below Minimum” without explaining what minimum is being measured.
 
-### Description
-The **ACCOUNT ROLE** label appears without a visible value. The role may be missing, failing to render, or hidden by a styling issue.
+Impact: The message is alarming but not actionable.
 
-### Reproduction Steps
-1. Navigate to `/planner/settings`
-2. Locate **ACCOUNT ROLE**
-3. Observe there is no visible role value below or beside it
+### Flaw 3 — Student ID Field Shows Email Address
 
-### Expected Behavior
-The page should show the current role such as `Student` or use a fallback like `Role not assigned`.
+Location: Settings → Profile & Preferences → My Profile → Student ID / Major
 
-### Suggested Fix
-Check the profile/auth response for the `role` field. If it is null, add a fallback value. If it is missing entirely, include it in the API payload and confirm the UI maps it correctly.
+The field shows an email address instead of a student ID value.
 
----
+Impact: The profile section feels mislabeled.
 
-## 🟠 BUG-009 — Counter Is Not Working Properly
+### Flaw 4 — Exam Tips Are Rendered as Raw Pipe-Separated Data
 
-**Area:** Planner Settings or related interactive UI  
-**Severity:** Medium  
-**Status:** Open
+Location: Main Tracker → MUBX AI Advisor → Exam Tips
 
-### Description
-The counter is reported as not working properly. Based on the current note, the issue is confirmed at the product level but still needs exact scope definition, because the failing counter behavior, affected component, and expected increment/decrement logic were not yet fully documented.
+The tips appear as raw developer-style strings instead of readable copy.
 
-### Reproduction Steps
-1. Navigate to the screen containing the counter
-2. Interact with the counter control
-3. Observe that the displayed count does not update correctly, updates inconsistently, or fails entirely
+Impact: The section is hard to scan and understand.
 
-### Expected Behavior
-The counter should update immediately and reliably according to the user action, with the UI always matching the real internal state.
+### Flaw 5 — Weekly Schedule Day Names Are Inconsistent
 
-### Suggested Fix
-Verify the counter state binding, event handler wiring, and render updates. Check for stale state, incorrect parsing, disabled handlers, async race conditions, or UI text that is not subscribed to the live value.
+Location: AI Advisor → Weekly Schedule
 
-### Follow-up Needed
-Document the exact location of the counter, its current behavior, the intended behavior, and whether the issue affects incrementing, decrementing, resetting, persistence, or display only.
+One schedule view uses full day names while the rebuilt version uses abbreviations.
 
----
+Impact: The schedule view feels inconsistent.
 
-## Bug Summary Table
+### Flaw 6 — XP Gains Are Invisible and Unexplained
 
-| ID | Area | Severity | Title |
-|---|---|---|---|
-| BUG-001 | Admin Dashboard | 🔴 Critical | Invalid admin secret blocks access with no recovery |
-| BUG-002 | Admin Dashboard | 🟠 Medium | Public app title shown on admin page |
-| BUG-003 | Admin Dashboard | 🟡 Low | Public footer and promo element visible on locked admin gate |
-| BUG-004 | Planner Settings | 🔴 High | “Connect Sheets” CTA conflicts with “COMING SOON” |
-| BUG-005 | Planner Settings | 🟠 Medium | Exam reminder dropdown disabled with no explanation |
-| BUG-006 | Planner Settings | 🟠 Medium | “Sync daily classes dynamically” toggle appears missing or unrendered |
-| BUG-007 | Planner Settings — Profile | 🔴 High | Student ID field shows full name instead of ID |
-| BUG-008 | Planner Settings — Profile | 🟠 Medium | Account role value missing from profile display |
-| BUG-009 | Counter / interactive UI | 🟠 Medium | Counter is not working properly |
+Location: Semester Planner → Level / XP banner
 
-## Recommended Fix Order
+XP changes without showing why points were awarded.
 
-Start with **BUG-001**, **BUG-004**, **BUG-007**, and **BUG-009** because they affect access, trust, correctness, and expected interactivity. After that, address the disabled/unrendered settings controls, then clean up admin-shell identity and layout consistency issues.
+Impact: Gamification lacks transparency.
+
+### Flaw 7 — No Back to Dashboard Control in Tracker Category Views
+
+Location: Course Tracker → Category views
+
+There is no visible breadcrumb or back control in the header.
+
+Impact: Users must rely on browser navigation.
+
+### Flaw 8 — Prerequisite Badges Look Interactive but Do Nothing
+
+Location: Course cards → Prerequisites section
+
+The prerequisite badges suggest interactivity, but clicking them has no effect.
+
+Impact: Users expect help and get none.
+
+## What Works Well
+
+The dark/light theme toggle works correctly.
+The Reset All confirmation dialog is clear and well-designed.
+MUBXBOT query responses work correctly with email lookup and quick actions.
+Course category expansion works as expected.
+The profile dropdown navigates correctly.
+Reset Semester Planner has a strong confirmation flow.
+The Add Term flow in the Semester Planner works correctly.
+
+## Issue Summary
+
+| # | Issue | Severity | Area |
+| --- | --- | --- | --- |
+| 1 | Course detail page black screen crash | Critical | Planner course detail |
+| 2 | Notes infinite loading | Critical | Course tracker notes |
+| 3 | GPA validation missing in history modal | Major | CGPA history modal |
+| 4 | History modal cannot close on backdrop click | Major | CGPA history modal |
+| 5 | Add Course form has no validation feedback | Major | Planner add course |
+| 6 | AI suggests already-enrolled courses | Major | AI advisor |
+| 7 | Notifications dropdown does not close on outside click | Major | Planner notifications |
+| 8 | CGPA shows `-.-` in planner | Moderate | Planner dashboard |
+| 9 | Persistent floating teal ripple | Moderate | Global |
+| 10 | Broken logo image | Moderate | Planner / legal pages |
+| 11 | Clicking course card toggles completion accidentally | Moderate | Course tracker |
+| 12 | Exam alerts show wrong time | Moderate | Planner notifications |
+| 13 | Locked course info icon does nothing | Moderate | Course cards |
+| 14 | Grade labels lack explanation | UX flaw | Planner semester view |
+| 15 | “Below Minimum” status is unclear | UX flaw | Planner dashboard |
+| 16 | Student ID field shows email instead of ID | UX flaw | Profile & settings |
+| 17 | Exam tips are raw pipe-separated text | UX flaw | AI advisor |
+| 18 | Schedule day names are inconsistent | UX flaw | AI advisor schedule |
+| 19 | XP gains are silent | UX flaw | Planner gamification |
+| 20 | Prerequisite badges look interactive but do nothing | UX flaw | Course cards |
+**Severity:** 🟡 Moderate
+
+***
+
+## Phase 2 – Modal, Navigation, and Interaction UX
+
+This phase improves basic interaction patterns, closing behavior, and accidental state changes.[^1]
+
+### 🟠 Bug 4 — Previous Academic History Modal Cannot Be Closed by Clicking Outside
+
+**Location:** Previous Academic History modal[^1]
+
+Clicking on the background overlay does not dismiss the modal, contrary to common modal behavior.[^1]
+There is no close (X) icon, leaving "Cancel" as the only way to exit.[^1]
+
+**Impact:** Users feel trapped in the modal and may think the UI is stuck.[^1]
+**Severity:** 🟠 Major
+
+***
+
+### 🟠 Bug 7 — Notifications Dropdown Does Not Close on Outside Click
+
+**Location:** Semester Planner → Bell icon (Academic Alerts)[^1]
+
+After opening the Academic Alerts dropdown, clicks on the main page content do not close it.[^1]
+The dropdown remains open until the user clicks elsewhere in the header region.[^1]
+
+**Impact:** Breaks expected dropdown behavior and feels clunky in everyday use.[^1]
+**Severity:** 🟠 Major
+
+***
+
+### 🟡 Bug 11 — Accidental Course Completion Toggle
+
+**Location:** Course Tracker → Any course category[^1]
+
+Clicking anywhere on a course card body toggles it to "completed" without a confirmation dialog.[^1]
+This easily leads to accidental completions, changing totals (e.g., from 46 CH / 18 courses to 49 CH / 20 courses) with no easy per-course undo other than "Reset All".[^1]
+
+**Impact:** Users can unintentionally corrupt their progress data, with poor recovery options.[^1]
+**Severity:** 🟡 Moderate
+
+***
+
+### 🔵 Flaw 7 — No Clear "Back to Dashboard" in Course Tracker
+
+**Location:** Course Tracker → Category views (e.g., University Requirements)[^1]
+
+When viewing a specific category, there is no breadcrumb or visible "Back to Dashboard" control in the header.[^1]
+Users must scroll up or rely on the browser back button to navigate, which feels indirect and non-obvious.[^1]
+
+**Impact:** Navigation feels heavier and less intuitive for multi-step workflows.[^1]
+**Type:** UX Flaw
+
+***
+
+## Phase 3 – Visual, Branding, and Feedback
+
+This phase targets branding consistency, distracting visuals, and surface-level polish.[^1]
+
+### 🟡 Bug 9 — Persistent Floating Teal Ripple Animation
+
+**Location:** Across ai.mubx.dev and bot.mubx.dev[^1]
+
+After many clicks, a teal/cyan circular blob appears and floats around the screen for several seconds.[^1]
+The ripple element seems never removed from the DOM, overlaps UI, and distracts from content.[^1]
+
+**Impact:** Degrades perceived quality and professionalism of the entire product.[^1]
+**Severity:** 🟡 Moderate
+
+***
+
+### 🟡 Bug 10 — Broken Logo on Planner and Legal Pages
+
+**Location:** Semester Planner sidebar top-left, Privacy Policy page, Terms of Service page[^1]
+
+The MUBXAI logo fails to load and displays as a broken image icon on multiple views.[^1]
+Branding appears incomplete or broken wherever this happens.[^1]
+
+**Impact:** Weakens brand impression and trust, especially on legal pages.[^1]
+**Severity:** 🟡 Moderate
+
+***
+
+### 🔵 Flaw 6 — Invisible and Unexplained XP Gains
+
+**Location:** Semester Planner → Level/XP banner[^1]
+
+User level increased from 203 to 204 and XP from 101490 to 101660 (170 XP) during simple navigation.[^1]
+There is no notification, no "XP gained" event, and no explanation of which actions earn XP.[^1]
+
+**Impact:** Gamification feels arbitrary and meaningless due to lack of transparency.[^1]
+**Type:** UX Flaw
+
+***
+
+### 🔵 Flaw 3 — Student ID Field Mislabeling
+
+**Location:** Settings → Profile \& Preferences → My Profile → "STUDENT ID / MAJOR"[^1]
+
+The field labeled "STUDENT ID / MAJOR" shows the email address (e.g., `omarmubaidincs@gmail.com`) instead of a student ID value.[^1]
+This mismatch between label and content is confusing and may make users question data accuracy.[^1]
+
+**Impact:** Undermines confidence in profile correctness and terminology.[^1]
+**Type:** UX Flaw
+
+***
+
+### 🔵 Flaw 5 — Weekly Schedule Day Name Inconsistency
+
+**Location:** AI Advisor → Weekly Schedule[^1]
+
+The initial schedule renders full day names such as "Sunday" and "Monday".[^1]
+After clicking "BUILD YOUR SCHEDULE," the rebuilt view switches to abbreviations like "Su", "Mo", and "Tu".[^1]
+
+**Impact:** Inconsistent presentation reduces polish and may momentarily confuse users.[^1]
+**Type:** UX Flaw
+
+***
+
+### 🔵 Flaw 8 — Prerequisite Badges Look Interactive but Do Nothing
+
+**Location:** Course cards → Prerequisites section (e.g., "NOT HTU_PLACEMENT" badges)[^1]
+
+Prerequisite badges have hover states and visual styling that imply interactivity.[^1]
+However, clicking them yields no tooltip, explanation, or navigation to related courses.[^1]
+
+**Impact:** Users expect to learn why a course is locked but receive no information.[^1]
+**Type:** UX Flaw
+
+***
+
+## Phase 4 – Academic Logic, Clarity, and Copy
+
+This phase addresses confusing academic messaging, grading schemes, and misinterpreted time data.[^1]
+
+### 🟡 Bug 12 — Exam Notification Times Default to 03:00 AM
+
+**Location:** Semester Planner → Bell icon (Academic Alerts)[^1]
+
+All exam alerts display times like "Jun 3, 03:00 AM" and "Jun 7, 03:00 AM" even though no exam times were set by the user.[^1]
+This suggests stored dates at midnight UTC are being auto-converted to 03:00 AM in Jordan (UTC+3) and shown as if they were actual exam times.[^1]
+
+**Impact:** Users see misleading, fabricated exam times and may rely on incorrect information.[^1]
+**Severity:** 🟡 Moderate
+
+***
+
+### 🟡 Bug 13 — Non-Functional Info Icon on Locked Courses
+
+**Location:** Course category views → Locked course cards (orange ⓘ icon)[^1]
+
+Clicking the orange ⓘ icon on locked or prerequisite-blocked courses has no effect.[^1]
+There is no tooltip, popup, or message describing the lock reason or necessary prerequisites.[^1]
+
+**Impact:** Users cannot understand what is blocking them from enrolling in certain courses.[^1]
+**Severity:** 🟡 Moderate
+
+***
+
+### 🔵 Flaw 1 — Cryptic Grade Labels (D, M, P, U)
+
+**Location:** Semester Planner → Semester View → GRADE dropdown[^1]
+
+Grades are shown as D, M, P, U (Distinction, Merit, Pass, Ungraded) with no legend or explanation.[^1]
+Selecting D instantly jumps the GPA to 4.00 without making clear that D means "Distinction" and represents the top grade.[^1]
+
+**Impact:** Users unfamiliar with BTEC/HND grading will struggle to interpret their results.[^1]
+**Type:** UX Flaw
+
+***
+
+### 🔵 Flaw 2 — "Below Minimum" Status Unexplained
+
+**Location:** Semester Planner Dashboard → STATUS card[^1]
+
+The STATUS banner shows "Below Minimum" while the CGPA in the tracker is 3.20.[^1]
+There is no tooltip or indicator of what "minimum" refers to (GPA threshold, credit hours, or other rule).[^1]
+
+**Impact:** Messaging feels alarming and arbitrary with no guidance on how to fix it.[^1]
+**Type:** UX Flaw
+
+
+***
+
+### 🔵 Flaw 4 — Exam Tips Shown as Raw Pipe-Separated Text
+
+**Location:** Main Tracker → MUBX AI Advisor → EXAM TIPS section[^1]
+
+Tips currently appear as unformatted strings like `- Sunday | 40201100 | 3 | Review for midterm`.[^1]
+This pipe-separated developer format is not user-friendly and lacks structure like labels or bullets.[^1]
+
+**Impact:** Users must mentally parse raw data instead of reading clear, concise tips.[^1]
+**Type:** UX Flaw
+
+***
+
+## Phase 5 – Global Polish and Information Architecture
+
+This phase deals with broader consistency issues and non-blocking improvements.[^1]
+
+### 🔵 Flaw 6 (Reiterated) — XP System Transparency
+
+As mentioned earlier, XP values change silently during simple navigation without any clear triggers.[^1]
+To feel rewarding, the system needs explicit feedback, criteria, and possibly a history or "XP earned" feed.[^1]
+
+**Impact:** Gamification risks becoming noise instead of motivation.[^1]
+**Type:** UX Flaw
+
+***
+
+### Confirmed Working Features
+
+These flows behaved correctly during testing and can serve as reference for expected quality.[^1]
+
+Dark/Light theme toggle works reliably and applies across the app.[^1]
+"Reset All" confirmation dialog in the tracker is clear and strongly warns the user before destructive actions.[^1]
+MUBXBOT query responses function correctly with email lookup and quick actions on `bot.mubx.dev`.[^1]
+Course category expansion in the tracker (e.g., Critical Roadmap → University Requirements) operates as expected.[^1]
+Profile dropdown navigation behaves correctly.[^1]
+"Reset Semester Planner" uses a strong confirmation flow before wiping data.[^1]
+"Add Term" flow in the Semester Planner works end-to-end without obvious issues.[^1]
+
+***
+
+## Issue Index Table by Phase
+
+| \# | Issue | Type | Severity | Phase | Location |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| 1 | Course detail page black screen crash | Bug | 🔴 | 1 | Planner → Course detail |
+| 2 | Notes infinite loading spinner | Bug | 🔴 | 1 | Course Tracker → Notes |
+| 3 | No GPA validation in history modal | Bug | 🟠 | 1 | CGPA History modal |
+| 5 | Add Course form lacks validation feedback | Bug | 🟠 | 1 | Planner → Add Course |
+| 6 | AI suggests already-enrolled courses | Bug | 🟠 | 1 | AI Advisor |
+| 8 | CGPA shows `-.-` in Planner while Tracker has 3.20 | Bug | 🟡 | 1 | Planner Dashboard |
+| 4 | History modal cannot close on outside click | Bug | 🟠 | 2 | CGPA History modal |
+| 7 | Notifications dropdown does not close on outside click | Bug | 🟠 | 2 | Planner notifications |
+| 11 | Clicking course card marks it complete with no confirmation | Bug | 🟡 | 2 | Course Tracker |
+| 9 | Persistent floating teal ripple animation | Bug | 🟡 | 3 | Global |
+| 10 | Broken logo image on multiple pages | Bug | 🟡 | 3 | Planner/Privacy/Terms |
+| 6f | XP gains silent and unexplained | UX Flaw | — | 3 | Planner gamification |
+| 3f | Student ID field shows email instead of ID | UX Flaw | — | 3 | Profile \& Settings |
+| 5f | Weekly schedule day name inconsistency | UX Flaw | — | 3 | AI Advisor Schedule |
+| 8f | Prerequisite badges clickable but non-functional | UX Flaw | — | 3 | Course cards |
+| 12 | Exam alerts show default 03:00 AM times | Bug | 🟡 | 4 | Planner notifications |
+| 13 | ⓘ icon on locked courses does nothing | Bug | 🟡 | 4 | Course cards |
+| 1f | Grade labels (D/M/P/U) have no explanation | UX Flaw | — | 4 | Planner → Semester view |
+| 2f | "Below Minimum" status is unexplained | UX Flaw | — | 4 | Planner Dashboard |
+| 4f | Exam tips shown in raw pipe-separated format | UX Flaw | — | 4 | AI Advisor |
+

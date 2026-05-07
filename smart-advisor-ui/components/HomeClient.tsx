@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
 import { Course, CourseData, CurriculumRules } from "@/types";
@@ -377,8 +376,8 @@ export default function HomeClient() {
             )}
 
             {appState === "course-tracker" && courseData && rules && (
-                <div className="min-h-screen flex flex-col pt-20">
-                    <header className="fixed top-0 left-0 right-0 z-60 h-20 bg-white/2 backdrop-blur-2xl border-b border-white/6">
+                <div className="min-h-screen flex flex-col pt-14 sm:pt-20">
+                    <header className="hidden sm:flex fixed top-0 left-0 right-0 z-60 h-20 bg-white/2 backdrop-blur-2xl border-b border-white/6">
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             <div id="wt-header-brand" className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">

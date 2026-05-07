@@ -40,7 +40,7 @@ function extractRequiredCH(prereq: string): number | null {
     return m ? Number.parseInt(m[1], 10) : null;
 }
 
-function StatusIcon({ isLocked, hasPrereqWarning, isCompleted }: { isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean }) {
+function StatusIcon({ isLocked, hasPrereqWarning, isCompleted }: Readonly<{ isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean }>) {
     if (isLocked) return <Lock className="w-4 h-4 text-white/10" />;
     if (hasPrereqWarning) return <AlertCircle className="w-4 h-4 text-amber-500/60" />;
     if (isCompleted) return <CheckCircle className="w-4 h-4 text-emerald-400" />;
@@ -60,7 +60,7 @@ function PrerequisiteSection({
     courseMap,
     missingPrereqs,
     fullPrereq
-}: {
+}: Readonly<{
     isMobile: boolean;
     isExpanded: boolean;
     setIsExpanded: (v: boolean) => void;
@@ -73,7 +73,7 @@ function PrerequisiteSection({
     courseMap: Record<string, string>;
     missingPrereqs: string[];
     fullPrereq?: string;
-}) {
+}>) {
     if (!prereqCodes.length && !hasCHRule && !hasOtherText) return null;
 
     return (
@@ -124,17 +124,31 @@ function PrerequisiteSection({
                                 const name = courseMap[code];
                                 const isMissing = missingPrereqs.includes(code);
                                 return (
-                                    <span key={code} title={name ?? code}
-                                        className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all ${isMobile ? "w-full" : ""}
+                                    <button
+                                        key={code}
+                                        type="button"
+                                        title={`${name ?? code} - Click for details`}
+                                        className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer hover:shadow-[0_0_12px_rgba(${isMissing ? '239,68,68' : '16,185,129'},0.2)] ${isMobile ? "w-full" : ""}
                                             ${isMissing
-                                                ? "bg-red-500/10 border-red-500/20 text-red-400/60"
-                                                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60"
-                                            }`}>
+                                                ? "bg-red-500/10 border-red-500/20 text-red-400/60 hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400"
+                                                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400"
+                                            }`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Tooltip-style feedback on click
+                                            const btn = e.currentTarget;
+                                            const ringClass = isMissing ? 'ring-red-500/30' : 'ring-emerald-500/30';
+                                            btn.classList.add('ring-2', ringClass);
+                                            setTimeout(() => {
+                                                btn.classList.remove('ring-2', ringClass);
+                                            }, 300);
+                                        }}
+                                    >
                                         {isMissing
                                             ? <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
                                             : <CheckCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />}
                                         <span className="truncate">{name ?? code}</span>
-                                    </span>
+                                    </button>
                                 );
                             })}
                             {hasOtherText && (
@@ -148,6 +162,67 @@ function PrerequisiteSection({
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+function LockInfoPopover({ lockReason, missingPrereqs, courseMap, onClose }: Readonly<{ lockReason?: string; missingPrereqs: string[]; courseMap: Record<string, string>; onClose: () => void }>) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-12 right-0 z-50 bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
+            style={{ minWidth: '280px', maxWidth: '340px' }}
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-red-400" />
+                    <h4 className="text-sm font-bold text-white">Course Locked</h4>
+                </div>
+                <button
+                    onClick={onClose}
+                    className="shrink-0 w-5 h-5 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                    aria-label="Close"
+                >
+                    <span className="text-sm text-white/60">✕</span>
+                </button>
+            </div>
+
+            {lockReason && (
+                <p className="text-xs text-white/70 mb-3 leading-relaxed">
+                    {lockReason}
+                </p>
+            )}
+
+            {missingPrereqs.length > 0 && (
+                <div className="space-y-2">
+                    <p className="text-xs font-semibold text-white/60 uppercase tracking-wider">Missing Prerequisites:</p>
+                    <div className="flex flex-wrap gap-2">
+                        {missingPrereqs.map((code) => {
+                            const name = courseMap[code];
+                            return (
+                                <span
+                                    key={code}
+                                    className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400/80"
+                                    title={name}
+                                >
+                                    <AlertCircle className="w-3 h-3" />
+                                    {name || code}
+                                </span>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            <div className="mt-3 pt-3 border-t border-white/10">
+                <p className="text-[11px] text-white/50 italic">
+                    Complete the missing prerequisites to unlock this course.
+                </p>
+            </div>
+        </motion.div>
     );
 }
 
@@ -169,6 +244,7 @@ function CourseCard({
     const hasOtherText = !!course.prereq && prereqCodes.length === 0 && !hasCHRule;
 
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showLockInfo, setShowLockInfo] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -203,7 +279,14 @@ function CourseCard({
                 ${cardBorder}
             `}
             style={{ backdropFilter: "blur(12px)" }}
-            onClick={() => { if (!isLocked) onToggle(); }}
+            onClick={() => {
+                if (isLocked) return;
+                if (!isCompleted && typeof globalThis.confirm === "function") {
+                    const accepted = globalThis.confirm(`Mark ${course.code} as completed?`);
+                    if (!accepted) return;
+                }
+                onToggle();
+            }}
             title={lockReason}
         >
             {/* Completed/Hover Glows */}
@@ -221,12 +304,26 @@ function CourseCard({
                     data-testid="status-icon"
                     onClick={(e) => {
                         e.stopPropagation();
-                        setIsExpanded(!isExpanded);
+                        if (isLocked) {
+                            setShowLockInfo(!showLockInfo);
+                        } else {
+                            setIsExpanded(!isExpanded);
+                        }
                     }}
-                    title="Course Prerequisites & Status"
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"
+                    title={isLocked ? "Course Requirements" : "Course Prerequisites & Status"}
+                    className="relative flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"
                 >
                     <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
+                    <AnimatePresence>
+                        {showLockInfo && isLocked && (
+                            <LockInfoPopover
+                                lockReason={lockReason}
+                                missingPrereqs={missingPrereqs}
+                                courseMap={courseMap}
+                                onClose={() => setShowLockInfo(false)}
+                            />
+                        )}
+                    </AnimatePresence>
                 </button>
             </div>
 
@@ -241,7 +338,7 @@ function CourseCard({
                     <span data-testid="course-code" className="text-[10px] text-white/20 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors mt-0.5">{course.code}</span>
                     <button
                         onClick={(e) => { e.stopPropagation(); onOpenNotes?.(); }}
-                        className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-white/5 border border-white/10 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes min-h-[32px]"
+                        className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-white/5 border border-white/10 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes min-h-8"
                         title="Course Notes"
                     >
                         <Sparkles className="w-3.5 h-3.5 text-white/40 group-hover/notes:text-violet-400 transition-colors" />

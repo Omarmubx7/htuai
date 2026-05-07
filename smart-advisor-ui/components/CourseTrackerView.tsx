@@ -19,6 +19,47 @@ const CourseNotesModal = dynamic(() => import('./CourseNotesModal'), {
     ssr: false,
 });
 
+// Parse and format exam tips that may be pipe-separated strings
+// Format: "day | course_code | hours | tip_text" or just plain text
+function parseExamTip(tip: string): { day?: string; course?: string; hours?: string; text: string } {
+    if (!tip || typeof tip !== 'string') {
+        return { text: tip || '' };
+    }
+    
+    const parts = tip.split('|').map(p => p.trim());
+    if (parts.length === 4) {
+        // Pipe-separated format
+        const [day, course, hours, text] = parts;
+        return { day, course, hours, text: text || tip };
+    }
+    // Plain text format
+    return { text: tip };
+}
+
+type ExamTipItemProps = Readonly<{ tip: string }>;
+
+function ExamTipItem({ tip }: ExamTipItemProps) {
+    const parsed = parseExamTip(tip);
+    
+    if (parsed.day || parsed.course || parsed.hours) {
+        // Structured format
+        return (
+            <div className="text-xs text-white/70 space-y-0.5">
+                <p className="font-semibold text-white/90">
+                    {parsed.day && `${parsed.day}`}
+                    {parsed.day && parsed.course && ' • '}
+                    {parsed.course && `${parsed.course}`}
+                </p>
+                {parsed.hours && <p className="text-white/60">⏱️ {parsed.hours} hours</p>}
+                <p className="text-white/70">{parsed.text}</p>
+            </div>
+        );
+    }
+    
+    // Plain text format
+    return <p className="text-xs text-white/70">✓ {parsed.text}</p>;
+}
+
 export interface CourseTrackerViewProps {
     data: CourseData;
     studentId: string;
@@ -203,6 +244,8 @@ function CourseTrackerView({
         setAiLoading("suggestions");
         setAiError(null);
 
+        const enrolledCodes = new Set(activeSemester?.courses?.map((c: any) => c.code) || []);
+
         try {
             const response = await fetch("/api/ai/suggest-courses", {
                 method: "POST",
@@ -212,6 +255,7 @@ function CourseTrackerView({
                     completedCourses: Array.from(completedCourses.keys()),
                     candidateCourses: allCourses.filter(course => {
                         if (completedCodes.has(course.code)) return false;
+                        if (enrolledCodes.has(course.code)) return false;
                         let isElectiveLocked = false;
                         if (uniElectiveCodes.has(course.code)) isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES;
                         else if (deptElectiveCodes.has(course.code)) isElectiveLocked = deptElecCapReached;
@@ -675,11 +719,13 @@ function CourseTrackerView({
                 )}
 
                 {examTips.length > 0 && (
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                         <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Exam Tips</h3>
-                        {examTips.map((tip) => (
-                            <p key={tip} className="text-xs text-white/70">- {tip}</p>
-                        ))}
+                        <div className="space-y-1.5">
+                            {examTips.map((tip) => (
+                                <ExamTipItem key={tip} tip={tip} />
+                            ))}
+                        </div>
                     </div>
                 )}
             </section>

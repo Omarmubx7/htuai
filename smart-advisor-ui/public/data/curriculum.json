@@ -785,14 +785,14 @@
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
                     "level": 1,
-                    "prereq": "30301110 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30301121",
                     "name": "English Pre-Intermediate Intensive + Lab",
                     "ch": 4,
                     "level": 1,
-                    "prereq": "30301120 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30301122",
@@ -976,7 +976,7 @@
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
                     "level": 1,
-                    "prereq": "30301120 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30301122",
@@ -1031,7 +1031,7 @@
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
                     "level": 1,
-                    "prereq": "30301110 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30302129",
@@ -1455,7 +1455,7 @@
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
                     "level": 1,
-                    "prereq": "30301120 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30301122",
@@ -1510,7 +1510,7 @@
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
                     "level": 1,
-                    "prereq": "30301110 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30302129",
@@ -1871,7 +1871,7 @@
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
                     "level": 1,
-                    "prereq": "30301120 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30301122",
@@ -1926,7 +1926,7 @@
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
                     "level": 1,
-                    "prereq": "30301110 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30302129",
@@ -2322,7 +2322,7 @@
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
                     "level": 1,
-                    "prereq": "30301120 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30301122",
@@ -2377,7 +2377,7 @@
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
                     "level": 1,
-                    "prereq": "30301110 OR HTU_PLACEMENT"
+                    "prereq": ""
                 },
                 {
                     "code": "30302129",
@@ -2783,44 +2783,12 @@
     "shared": {
         "university_requirements": [
             {
-                "code": "HTU_PLACEMENT",
-                "name": "HTU Placement Tests (Math, Arabic, English)",
-                "ch": 0,
-                "framework": "HTU",
-                "level": 0,
-                "description": "Mark this if you passed the HTU placement tests to skip remedial courses."
-            },
-            {
-                "code": "30303110",
-                "name": "Remedial Math",
-                "ch": 3,
-                "framework": "HTU",
-                "level": 0,
-                "prereq": "NOT HTU_PLACEMENT"
-            },
-            {
-                "code": "30301110",
-                "name": "Remedial Arabic",
-                "ch": 3,
-                "framework": "HTU",
-                "level": 0,
-                "prereq": "NOT HTU_PLACEMENT"
-            },
-            {
-                "code": "30301120",
-                "name": "Remedial English",
-                "ch": 3,
-                "framework": "HTU",
-                "level": 0,
-                "prereq": "NOT HTU_PLACEMENT"
-            },
-            {
                 "code": "30301121",
                 "name": "English Pre-Intermediate Intensive + Lab",
                 "ch": 4,
                 "framework": "HTU",
                 "level": 1,
-                "prereq": "30301120 OR HTU_PLACEMENT"
+                "prereq": ""
             },
             {
                 "code": "30301122",
@@ -2875,7 +2843,7 @@
                 "ch": 1,
                 "framework": "HTU",
                 "level": 1,
-                "prereq": "30301110 OR HTU_PLACEMENT"
+                "prereq": ""
             },
             {
                 "code": "30302129",

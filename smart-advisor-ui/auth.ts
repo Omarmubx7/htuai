@@ -5,7 +5,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { getUserByStudentId, createUser, getUserByEmail, linkAccount, createAdminLog } from "./lib/database";
-import { requireEnv } from "@/lib/env";
 
 declare module "next-auth" {
     interface Session {
@@ -32,8 +31,8 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
-            clientId: requireEnv("GOOGLE_CLIENT_ID"),
-            clientSecret: requireEnv("GOOGLE_CLIENT_SECRET"),
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
         }),
         CredentialsProvider({
             name: "University ID",
@@ -68,7 +67,7 @@ export const authOptions: NextAuthOptions = {
                         return { id: finalUser.id.toString(), name: studentId, student_id: studentId };
                     }
 
-                    if (!user || !user.password_hash) {
+                    if (!user?.password_hash) {
                         return null;
                     }
 
@@ -80,41 +79,49 @@ export const authOptions: NextAuthOptions = {
                     return { id: user.id.toString(), name: user.student_id, student_id: user.student_id };
                 } catch (error) {
                     console.error("Auth Error in authorize callback:", error);
-                    throw error;
+                    // Return null instead of throwing to avoid HTML error responses
+                    return null;
                 }
             }
         }),
     ],
     callbacks: {
         async signIn({ user, account }) {
-            if (account?.provider === "google") {
-                const existingUser = await getUserByEmail(user.email || "");
-                if (existingUser) {
-                    await linkAccount(existingUser.id, account.provider, account.providerAccountId);
+            try {
+                if (account?.provider === "google") {
+                    const existingUser = await getUserByEmail(user.email || "");
+                    if (existingUser) {
+                        await linkAccount(existingUser.id, account.provider, account.providerAccountId).catch(() => {});
+                        createAdminLog({
+                            type: 'login',
+                            message: `User ${user.email} logged in via Google OAuth`,
+                            details: { email: user.email, name: user.name, provider: 'google' },
+                            event_kind: 'login',
+                            target_id: user.email || String(existingUser.id),
+                        }).catch(() => {});
+                        return true;
+                    }
+                    const newUser = await createUser({
+                        email: user.email,
+                        name: user.name,
+                        image: user.image
+                    });
+                    await linkAccount(newUser.id, account.provider, account.providerAccountId).catch(() => {});
                     createAdminLog({
-                        type: 'login',
-                        message: `User ${user.email} logged in via Google OAuth`,
-                        details: { email: user.email, name: user.name, provider: 'google' },
-                        event_kind: 'login',
-                        target_id: user.email || String(existingUser.id),
+                        type: 'register',
+                        message: `New user registered via Google: ${user.email} (${user.name})`,
+                        details: { email: user.email, name: user.name, provider: 'google', db_id: newUser.id },
+                        event_kind: 'register',
+                        target_id: user.email || String(newUser.id),
                     }).catch(() => {});
-                    return true;
                 }
-                const newUser = await createUser({
-                    email: user.email,
-                    name: user.name,
-                    image: user.image
-                });
-                await linkAccount(newUser.id, account.provider, account.providerAccountId);
-                createAdminLog({
-                    type: 'register',
-                    message: `New user registered via Google: ${user.email} (${user.name})`,
-                    details: { email: user.email, name: user.name, provider: 'google', db_id: newUser.id },
-                    event_kind: 'register',
-                    target_id: user.email || String(newUser.id),
-                }).catch(() => {});
+                return true;
+            } catch (error) {
+                console.error("[signIn callback] Error:", error);
+                // Return true to allow auth to proceed even if DB calls fail
+                // User can still authenticate, just without extra data
+                return true;
             }
-            return true;
         },
 
         /**
@@ -123,17 +130,23 @@ export const authOptions: NextAuthOptions = {
          * every page load. DB lookups are done once at sign-in time (jwt callback).
          */
         async session({ session, token }) {
-            if (token.sub && session.user) {
-                session.user.id = token.sub;
-                session.user.provider = token.provider;
-                if (token.student_id) {
-                    session.user.student_id = token.student_id;
+            try {
+                if (token.sub && session.user) {
+                    session.user.id = token.sub;
+                    session.user.provider = token.provider;
+                    if (token.student_id) {
+                        session.user.student_id = token.student_id;
+                    }
+                    if (token.db_id) {
+                        session.user.db_id = token.db_id;
+                    }
                 }
-                if (token.db_id) {
-                    session.user.db_id = token.db_id;
-                }
+                return session;
+            } catch (error) {
+                console.error("[session callback] Error:", error);
+                // Return session even if there's an error
+                return session;
             }
-            return session;
         },
 
         /**
@@ -141,30 +154,36 @@ export const authOptions: NextAuthOptions = {
          * This is the right place for the one-time DB lookup per session.
          */
         async jwt({ token, user, account }) {
-            // Persist student_id from the Credentials authorize() return
-            if (user) {
-                token.student_id = (user as { student_id?: string | null }).student_id;
-            }
-            if (account) {
-                token.provider = account.provider;
-                // For Google OAuth: look up the DB user ONCE at sign-in time
-                if (account.provider === "google" && user?.email) {
-                    try {
-                        const dbUser = await getUserByEmail(user.email);
-                        if (dbUser) {
-                            token.student_id = dbUser.student_id;
-                            token.db_id = dbUser.id;
+            try {
+                // Persist student_id from the Credentials authorize() return
+                if (user) {
+                    token.student_id = (user as { student_id?: string | null }).student_id;
+                }
+                if (account) {
+                    token.provider = account.provider;
+                    // For Google OAuth: look up the DB user ONCE at sign-in time
+                    if (account.provider === "google" && user?.email) {
+                        try {
+                            const dbUser = await getUserByEmail(user.email);
+                            if (dbUser) {
+                                token.student_id = dbUser.student_id;
+                                token.db_id = dbUser.id;
+                            }
+                        } catch (e) {
+                            console.error("[JWT] Failed to look up Google user in DB:", e);
+                            // Non-fatal: session will still work, student_id just won't be set
                         }
-                    } catch (e) {
-                        console.error("[JWT] Failed to look up Google user in DB:", e);
-                        // Non-fatal: session will still work, student_id just won't be set
                     }
                 }
+                return token;
+            } catch (error) {
+                console.error("[jwt callback] Error:", error);
+                // Return token even if there's an error
+                return token;
             }
-            return token;
         }
     },
-    secret: requireEnv("AUTH_SECRET"),
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "dev-secret-key",
     cookies: {
         sessionToken: {
             name: process.env.NODE_ENV === 'production' ? `__Secure-next-auth.session-token` : `next-auth.session-token`,

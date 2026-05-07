@@ -6,7 +6,7 @@
       "ch": 4,
       "framework": "HTU",
       "level": 1,
-      "prereq": "30301120"
+      "prereq": ""
     },
     {
       "code": "30301122",
@@ -111,7 +111,7 @@
       "ch": 3,
       "framework": "HTU",
       "level": 1,
-      "prereq": "30303110"
+      "prereq": ""
     },
     {
       "code": "40303121",

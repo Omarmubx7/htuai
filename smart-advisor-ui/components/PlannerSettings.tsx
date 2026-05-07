@@ -175,7 +175,11 @@ export default function PlannerSettings() {
 
     const currentExamReminderDays = preferences.exam_reminders_days ?? (preferences.exam_reminders ? 7 : 0);
 
-    const displayStudentId = userProfile?.student_id?.trim() || "Not set yet";
+    const displayStudentId = (() => {
+        const studentId = userProfile?.student_id?.trim() || "";
+        if (!studentId || studentId.includes("@")) return "Not set yet";
+        return studentId;
+    })();
     const displayMajor = (userProfile?.major || "undecided").replaceAll('_', ' ');
     const displayRole = userProfile?.role?.trim() || "Student";
 

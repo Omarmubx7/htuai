@@ -70,8 +70,24 @@ function StudentDashboard({
 
     const classification = getClassification(trueCGPA);
 
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
     // Overriding the previous save handler to sum terms:
     const handleSavePreviousGpa = async () => {
+        setErrorMsg(null);
+        let hasInvalid = false;
+        terms.forEach(t => {
+            const g = Number.parseFloat(t.gpa);
+            const c = Number.parseFloat(t.credits);
+            if (t.gpa !== "" && (Number.isNaN(g) || g < 0 || g > 4)) hasInvalid = true;
+            if (t.credits !== "" && (Number.isNaN(c) || c < 0)) hasInvalid = true;
+        });
+
+        if (hasInvalid) {
+            setErrorMsg("Please enter valid GPA (0.0 - 4.0) and Credits (positive number).");
+            return;
+        }
+
         setSavingGpa(true);
         let totalQp = 0;
         let totalCr = 0;
@@ -376,7 +392,7 @@ function StudentDashboard({
                         const isDone = cat.remaining === 0 && cat.totalCH > 0;
                         return (
                             <motion.button
-                                key={`cat-${i}`}
+                                key={cat.label}
                                 onClick={() => onCategoryClick?.(cat.label)}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -415,18 +431,38 @@ function StudentDashboard({
 
             {/* GPA Edit Modal Overlay */}
             {isEditingGpa && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <>
+                    <button
+                        type="button"
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setIsEditingGpa(false)}
+                        aria-label="Close previous academic history modal"
+                    />
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-[#111] border border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     >
-                        <h3 className="text-lg font-bold text-white mb-2">Previous Academic History</h3>
+                        <div className="bg-[#111] border border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative">
+                        <button 
+                            onClick={() => setIsEditingGpa(false)} 
+                            className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1"
+                            title="Close"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                        <h3 className="text-lg font-bold text-white mb-2 pr-6">Previous Academic History</h3>
                         <p className="text-xs text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
+                        
+                        {errorMsg && (
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center">
+                                {errorMsg}
+                            </div>
+                        )}
 
                         <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-1">
                             {terms.map((term, i) => (
-                                <div key={`term-${i}`} className="flex items-center gap-3">
+                                <div key={`${term.gpa || "gpa"}-${term.credits || "cr"}-${term === terms[0] ? "primary" : "secondary"}`} className="flex items-center gap-3">
                                     <div className="flex-1">
                                         <label htmlFor={`gpa-${i}`} className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
                                         <input
@@ -482,8 +518,9 @@ function StudentDashboard({
                                 {savingGpa ? "Saving..." : "Save History"}
                             </button>
                         </div>
+                        </div>
                     </motion.div>
-                </div>
+                </>
             )}
         </motion.div>
     );

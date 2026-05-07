@@ -4,7 +4,7 @@ function generateNonce(): string {
     const bytes = new Uint8Array(16);
     crypto.getRandomValues(bytes);
     // Use btoa for Edge Runtime compatibility (Buffer not available in middleware)
-    return btoa(String.fromCharCode(...bytes));
+    return btoa(String.fromCodePoint(...bytes));
 }
 
 export function middleware(request: NextRequest) {
@@ -55,7 +55,7 @@ export function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         {
-            source: "/((?!_next/static|_next/image|favicon.ico).*)",
+            source: "/((?!_next/static|_next/image|favicon.ico|api/).*)",
             missing: [
                 { type: "header", key: "next-router-prefetch" },
                 { type: "header", key: "purpose", value: "prefetch" },

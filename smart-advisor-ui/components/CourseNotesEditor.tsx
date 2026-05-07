@@ -18,7 +18,7 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { Highlight } from "@tiptap/extension-highlight";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { common, createLowlight } from "lowlight";
-import Suggestion from "@tiptap/suggestion";
+import { Suggestion } from "@tiptap/suggestion";
 import { suggestion } from "@/lib/tiptap-suggestions";
 import { Callout } from "@/lib/tiptap-extensions";
 import {
@@ -56,7 +56,7 @@ const SlashCommand = Extension.create({
 });
 
 interface CourseNotesEditorProps {
-  value?: any; // JSON or HTML
+  value?: any;
   onChange?: (val: any) => void;
   onAutoSave?: (val: any) => void;
   courseTitle?: string;
@@ -74,14 +74,23 @@ export default function CourseNotesEditor({
   const [saveIndicator, setSaveIndicator] = useState<"saved" | "saving" | null>(null);
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
+  const [initTimeout, setInitTimeout] = useState(false);
   const linkInputRef = useRef<HTMLInputElement>(null);
+
+  // Timeout to prevent infinite loading if editor fails to initialize
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitTimeout(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         bulletList: { keepMarks: true, keepAttributes: false },
         orderedList: { keepMarks: true, keepAttributes: false },
-        codeBlock: false, 
+        codeBlock: false,
         bold: false,
         italic: false,
         strike: false,
@@ -98,7 +107,7 @@ export default function CourseNotesEditor({
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-violet-400 underline underline-offset-4 cursor-pointer" } }),
       Image.configure({ allowBase64: true, HTMLAttributes: { class: "rounded-2xl border border-white/10 my-8 shadow-2xl max-w-full" } }),
       Placeholder.configure({
-        placeholder: ({ node }) => {
+        placeholder: ({ node }: any) => {
           if (node.type.name === 'heading') return `Heading ${node.attrs.level}`;
           if (node.type.name === 'codeBlock') return "Paste your code here...";
           return "Type '/' for commands...";
@@ -147,6 +156,16 @@ export default function CourseNotesEditor({
   }, [value, editor]);
 
   if (!editor) {
+    if (initTimeout) {
+      return (
+        <div className="h-[400px] w-full bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-xs font-black uppercase tracking-widest text-red-400/50">Editor Failed to Load</span>
+            <span className="text-[10px] text-white/40">Please refresh the page</span>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="h-[400px] w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
         <div className="flex flex-col items-center gap-4">
@@ -188,7 +207,7 @@ export default function CourseNotesEditor({
         }
         .notion-task-list { list-style: none !important; padding: 0 !important; margin: 0.5rem 0 !important; }
         .notion-task-item { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.5rem; }
-        
+
         /* Custom Checkbox */
         .notion-task-item input[type="checkbox"] {
           appearance: none;
@@ -237,7 +256,7 @@ export default function CourseNotesEditor({
           content: '💡';
           font-size: 1.25rem;
         }
-        
+
         .bubble-menu-btn {
           padding: 0.5rem;
           border-radius: 0.75rem;
@@ -246,26 +265,26 @@ export default function CourseNotesEditor({
         }
         .bubble-menu-btn:hover { background-color: rgba(255, 255, 255, 0.08); color: white; }
         .bubble-menu-btn.is-active { color: #a78bfa; background-color: rgba(167, 139, 250, 0.1); }
-        
+
         /* Syntax highlighting */
         .hljs-comment, .hljs-quote { color: #5c6370; font-style: italic; }
         .hljs-keyword, .hljs-selector-tag { color: #c678dd; }
         .hljs-string, .hljs-attr, .hljs-type { color: #98c379; }
         .hljs-number, .hljs-literal { color: #d19a66; }
         .hljs-function, .hljs-title { color: #61afef; }
-        
+
         /* Notion-style Typography Overrides */
         .prose h1 { font-size: 2.25rem !important; font-weight: 800 !important; margin-top: 1.5em !important; margin-bottom: 0.5em !important; line-height: 1.2 !important; letter-spacing: -0.02em !important; color: #fff !important; }
         .prose h2 { font-size: 1.875rem !important; font-weight: 700 !important; margin-top: 1.4em !important; margin-bottom: 0.5em !important; line-height: 1.3 !important; letter-spacing: -0.01em !important; color: rgba(255,255,255,0.95) !important;}
         .prose h3 { font-size: 1.5rem !important; font-weight: 600 !important; margin-top: 1.2em !important; margin-bottom: 0.4em !important; line-height: 1.4 !important; color: rgba(255,255,255,0.9) !important;}
         .prose h4 { font-size: 1.25rem !important; font-weight: 600 !important; margin-top: 1.1em !important; margin-bottom: 0.4em !important; line-height: 1.5 !important; color: rgba(255,255,255,0.8) !important;}
         .prose p { margin-top: 0.5em !important; margin-bottom: 0.5em !important; line-height: 1.6 !important; }
-        
+
         /* Lists Overrides */
         .prose ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin: 0.5rem 0 !important; }
         .prose ol { list-style-type: decimal !important; padding-left: 1.5rem !important; margin: 0.5rem 0 !important; }
         .prose li p { margin-top: 0.25em !important; margin-bottom: 0.25em !important; }
-        
+
         /* Blockquote Override */
         .prose blockquote {
             border-left: 4px solid var(--htu-violet) !important;
@@ -277,13 +296,13 @@ export default function CourseNotesEditor({
             border-radius: 0 0.5rem 0.5rem 0 !important;
         }
 
-        .prose code { 
-            color: #ff7b72 !important; 
-            background: rgba(135,131,120,0.15) !important; 
-            padding: 0.2em 0.4em !important; 
-            border-radius: 4px !important; 
-            font-size: 85% !important; 
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important; 
+        .prose code {
+            color: #ff7b72 !important;
+            background: rgba(135,131,120,0.15) !important;
+            padding: 0.2em 0.4em !important;
+            border-radius: 4px !important;
+            font-size: 85% !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
         }
         .prose pre {
             background: #111111 !important;

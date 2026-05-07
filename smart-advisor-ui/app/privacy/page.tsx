@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, Lock, EyeOff, FileText, Share2, UserCheck, RefreshCw } from "lucide-react";
-import Image from "next/image";
+import BrandMark from "@/components/BrandMark";
 
 export default function PrivacyPage() {
     return (
@@ -19,11 +19,7 @@ export default function PrivacyPage() {
 
                 <header className="space-y-4 mb-16">
                     <div className="flex items-center gap-4">
-                        <div className="relative group/logo">
-                            <div className="absolute -inset-2 bg-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
-                            <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={48} height={48} className="relative z-10 dark-logo" />
-                            <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={48} height={48} className="relative z-10 light-logo" />
-                        </div>
+                        <BrandMark size="lg" />
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gradient">
                             Privacy Policy
                         </h1>

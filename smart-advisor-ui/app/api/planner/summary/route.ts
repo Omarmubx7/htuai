@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 import { evaluateAchievements } from "@/lib/gamification";
 import { calculateSemesterGpa, getClassification, buildCourseCreditMap, getCompletedEntryCode } from "@/lib/grading";
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 // --- In-memory cache for static curriculum data ---
 let curriculumCache: Record<string, unknown> | null = null;
@@ -183,14 +183,17 @@ export async function GET(_req: NextRequest) {
                 where: { user_id: user.id, status: "active" },
                 include: { course: true }
             }),
-            prisma.studentProgress.findUnique({
-                where: { 
-                    student_id_major: { 
-                        student_id: profile.student_id || "", 
-                        major: profile?.major || "" 
-                    } 
-                }
-            }),
+            // Only query StudentProgress if we have both student_id and major
+            (profile?.student_id && profile?.major)
+                ? prisma.studentProgress.findUnique({
+                    where: { 
+                        student_id_major: { 
+                            student_id: profile.student_id,
+                            major: profile.major
+                        } 
+                    }
+                })
+                : Promise.resolve(null),
             getCurriculum(),
             getCurriculumRules(),
             prisma.calendarEvent.findMany({
@@ -219,7 +222,8 @@ export async function GET(_req: NextRequest) {
                 .filter(c => c.grade_letter && ['D', 'M', 'P', 'U'].includes(c.grade_letter))
                 .map(c => ({
                     grade: c.grade_letter as string,
-                    credits: c.credits
+                    credits: c.credits,
+                    code: c.code
                 }))
         );
 
@@ -229,6 +233,38 @@ export async function GET(_req: NextRequest) {
             const points = calculateSemesterGpa([course]) * course.credits;
             totalQualityPoints += points;
             totalCredits += course.credits;
+        }
+
+        // Add from tracker (progress.completed)
+        if (progress?.completed && curriculum) {
+            let completedList: any[] = [];
+            try {
+                completedList = typeof progress.completed === 'string'
+                    ? JSON.parse(progress.completed)
+                    : progress.completed as any[];
+            } catch { /* ok */ }
+
+            const creditMap = buildCourseCreditMap(curriculum);
+            
+            // Create a set of codes already graded in planner to avoid double counting
+            const plannerGradedCodes = new Set(allCompletedCourses.map(c => c.code));
+
+            for (const entry of completedList || []) {
+                const code = getCompletedEntryCode(entry);
+                if (!code || plannerGradedCodes.has(code)) continue;
+
+                const credits = creditMap.get(code) ?? 3;
+                const grade = (typeof entry === 'object' && entry !== null && typeof (entry as any).grade === 'string') 
+                    ? (entry as any).grade 
+                    : 'M';
+                    
+                const points = calculateSemesterGpa([{ grade, credits }]) * credits;
+                totalQualityPoints += points;
+                totalCredits += credits;
+                
+                // Track this so it isn't double counted
+                plannerGradedCodes.add(code);
+            }
         }
 
         if (profile?.previous_gpa && profile?.previous_credits) {
@@ -416,8 +452,12 @@ export async function GET(_req: NextRequest) {
         });
     } catch (error: any) {
         console.error("GET Planner Summary Error:", error);
+        console.error("Error Stack:", error?.stack);
+        console.error("Error Message:", error?.message);
         return NextResponse.json({ 
-            error: "Server Error" 
+            error: "Server Error",
+            details: error?.message || String(error),
+            timestamp: new Date().toISOString()
         }, { status: 500 });
     }
 }

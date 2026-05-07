@@ -98,7 +98,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }).catch(() => {});
 
         // Award XP for course completion (Spec: +150 XP)
+        let earnedXP = 0;
         if (updated.is_completed && !existing.is_completed) {
+            earnedXP = 150;
             const { evaluateAchievements } = await import("@/lib/gamification");
             await prisma.gamificationProfile.upsert({
                 where: { user_id: auth.user!.id },
@@ -108,7 +110,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             await evaluateAchievements(auth.user!.id);
         }
 
-        return NextResponse.json({ course: updated });
+        return NextResponse.json({ course: updated, xpEarned: earnedXP });
     } catch (e) {
         console.error("PUT Course Error:", e);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });

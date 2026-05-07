@@ -10,7 +10,7 @@ import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
-        <div className="h-[400px] w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
+        <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
             <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
         </div>
     ),
@@ -23,13 +23,15 @@ interface CourseNotesModalProps {
     courseTitle: string;
 }
 
+type NotesContent = Record<string, unknown> | string | null;
+
 export default function CourseNotesModal({
     isOpen,
     onClose,
     courseId,
     courseTitle,
-}: CourseNotesModalProps) {
-    const [notes, setNotes] = useState<Record<string, unknown> | string | null>(null);
+}: Readonly<CourseNotesModalProps>) {
+    const [notes, setNotes] = useState<NotesContent>(null);
     const [loading, setLoading] = useState(false);
     const [updatedAt, setUpdatedAt] = useState<string | undefined>();
 
@@ -53,9 +55,10 @@ export default function CourseNotesModal({
         if (isOpen && courseId) {
             loadNotes();
         }
-    }, [isOpen, courseId, loadNotes]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, courseId]);
 
-    const handleAutoSave = async (content: Record<string, unknown> | string | null) => {
+    const handleAutoSave = async (content: NotesContent) => {
         try {
             await fetchWithRetry(`/api/courses/${courseId}/notes`, {
                 method: "POST",
@@ -71,7 +74,7 @@ export default function CourseNotesModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -84,7 +87,7 @@ export default function CourseNotesModal({
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full h-[100dvh] sm:h-[90vh] sm:max-w-5xl bg-black sm:border sm:border-white/10 rounded-none sm:rounded-[2.5rem] overflow-hidden sm:shadow-2xl flex flex-col"
+                        className="relative w-full h-dvh sm:h-[90vh] sm:max-w-5xl bg-black sm:border sm:border-white/10 rounded-none sm:rounded-[2.5rem] overflow-hidden sm:shadow-2xl flex flex-col"
                     >
                         <div className="absolute top-6 right-8 z-50 flex items-center gap-2">
                             <Link href="/" className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/40 hover:text-white" title="Back to Dashboard">

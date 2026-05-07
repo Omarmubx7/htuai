@@ -5,7 +5,15 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, Save, History, PlayCircle, CheckCircle2, BookOpen, Calendar as CalendarIcon, Info } from "lucide-react";
 import Link from "next/link";
-import CourseNotesEditor from "./CourseNotesEditor";
+import dynamic from "next/dynamic";
+const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[400px] w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
+            <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
+        </div>
+    ),
+});
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
 import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
@@ -129,7 +137,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         }
     };
 
-    const fetchCourseData = async () => {
+    const fetchCourseData = useCallback(async () => {
         try {
             setLoading(true);
             const res = await fetchWithRetry("/api/planner/semesters", { retries: 2 });
@@ -190,7 +198,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         } finally {
             setLoading(false);
         }
-    };
+    }, [courseId, router]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -360,7 +368,12 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             });
 
             if (res.ok) {
-                toast("Course info saved successfully!", "success");
+                const data = await res.json() as { xpEarned?: number };
+                if (data.xpEarned && data.xpEarned > 0) {
+                    toast(`Course Completed! Earned ${data.xpEarned} XP.`, "success");
+                } else {
+                    toast("Course info saved successfully!", "success");
+                }
             } else {
                 toast("Failed to save course info.", "error");
             }

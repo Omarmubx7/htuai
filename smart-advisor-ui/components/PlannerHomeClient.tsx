@@ -2,16 +2,16 @@
 
 import { useState, useEffect, memo, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock } from "lucide-react";
+import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
 import ThemeToggle from "@/components/ThemeToggle";
 import { safeStorage } from "@/lib/safe-storage";
 import SemesterSetupWizard from "@/components/SemesterSetupWizard";
+import BrandMark from "@/components/BrandMark";
 
 interface NotificationEvent {
     id: number;
@@ -72,6 +72,67 @@ interface PlannerSummary {
     };
 }
 
+function StatusExplanationPopover({ classification, onClose }: Readonly<{ classification: string; onClose: () => void }>) {
+    const explanations: Record<string, { threshold: string; description: string; action: string }> = {
+        'EX': {
+            threshold: 'GPA 3.6 - 4.0',
+            description: 'Excellent performance! You\'re excelling academically.',
+            action: 'Keep up this outstanding work!'
+        },
+        'VG': {
+            threshold: 'GPA 3.2 - 3.59',
+            description: 'Very Good performance. You\'re doing exceptionally well.',
+            action: 'Aim for Distinction with consistent effort!'
+        },
+        'Good': {
+            threshold: 'GPA 2.8 - 3.19',
+            description: 'Good academic standing. You\'re performing well.',
+            action: 'Focus on consistent study habits to improve further.'
+        },
+        'SAT': {
+            threshold: 'GPA 2.4 - 2.79',
+            description: 'Satisfactory performance. You\'re meeting minimum standards.',
+            action: 'Increase study time and focus on challenging subjects.'
+        },
+        'LOW': {
+            threshold: 'GPA Below 2.4',
+            description: 'Below Minimum threshold. You need to improve your grades significantly.',
+            action: 'Seek academic support, increase study hours, and focus on high-credit courses.'
+        },
+    };
+
+    const info = explanations[classification] || { threshold: 'Unknown', description: 'Status unknown', action: 'Check your grades' };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-12 left-0 z-50 bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
+            style={{ minWidth: '300px', maxWidth: '360px' }}
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div className="flex items-start justify-between mb-3">
+                <h4 className="text-sm font-bold text-white">Academic Status</h4>
+                <button onClick={onClose} className="shrink-0 p-0.5 hover:bg-white/10 rounded transition-colors">
+                    <span className="text-sm text-white/60">✕</span>
+                </button>
+            </div>
+            
+            <p className="text-xs text-cyan-400/90 font-semibold mb-2">{info.threshold}</p>
+            <p className="text-sm text-white/70 mb-3 leading-relaxed">{info.description}</p>
+            
+            <div className="pt-3 border-t border-white/10">
+                <p className="text-xs text-white/60 italic flex items-start gap-2">
+                    <Target className="w-4 h-4 mt-0.5 shrink-0 text-violet-400" />
+                    <span>{info.action}</span>
+                </p>
+            </div>
+        </motion.div>
+    );
+}
+
 function PlannerHomeClient() {
     const { status } = useSession();
     const router = useRouter();
@@ -93,6 +154,7 @@ function PlannerHomeClient() {
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [showSetupWizard, setShowSetupWizard] = useState(false);
     const [generatingSchedule, setGeneratingSchedule] = useState(false);
+    const [showStatusInfo, setShowStatusInfo] = useState(false);
     const { toast } = useToast();
 
     const fetchSummary = useCallback(async () => {
@@ -227,7 +289,7 @@ function PlannerHomeClient() {
 
     if (status === "loading" || !summary) {
         return (
-            <div className="min-h-screen max-w-7xl mx-auto px-6 pt-24 space-y-8">
+            <div className="min-h-screen max-w-7xl mx-auto px-6 pt-14 sm:pt-24 space-y-8">
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-full bg-white/5 animate-pulse" />
@@ -257,7 +319,7 @@ function PlannerHomeClient() {
     return (
         <div className="min-h-screen pb-24 selection:bg-violet-500/30">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-white/2 backdrop-blur-2xl border-b border-white/6 px-6 py-4 flex items-center justify-between">
+            <header className="hidden sm:flex sticky top-0 z-50 bg-white/2 backdrop-blur-2xl border-b border-white/6 px-6 py-4 items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-violet-600/10 border border-white/6 flex items-center justify-center">
                         <LayoutDashboard className="w-5 h-5 text-violet-400" />
@@ -265,8 +327,7 @@ function PlannerHomeClient() {
                     <div>
                         <h1 className="font-bold text-lg leading-tight">Semester Planner</h1>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                            <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={10} height={10} className="dark-logo" />
-                            <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={10} height={10} className="light-logo" />
+                            <BrandMark size="sm" />
                             <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">MUBXAI Hub</p>
                         </div>
                     </div>
@@ -288,7 +349,7 @@ function PlannerHomeClient() {
                                 <>
                                     <button
                                         type="button"
-                                        className="fixed inset-0 z-40 bg-transparent border-none cursor-default"
+                                        className="fixed inset-0 z-100 bg-transparent border-none cursor-default"
                                         onClick={() => setShowNotifications(false)}
                                         aria-label="Close notifications"
                                     />
@@ -296,7 +357,7 @@ function PlannerHomeClient() {
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className="absolute right-0 mt-3 w-72 glass-panel border border-white/10 p-4 rounded-3xl z-50 shadow-2xl origin-top-right bg-zinc-900/90 backdrop-blur-xl"
+                                        className="absolute right-0 mt-3 w-72 glass-panel border border-white/10 p-4 rounded-3xl z-110 shadow-2xl origin-top-right bg-zinc-900/90 backdrop-blur-xl"
                                     >
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
                                             <Bell className="w-3 h-3" /> Academic Alerts
@@ -312,7 +373,9 @@ function PlannerHomeClient() {
                                                             <div>
                                                                 <p className="text-[11px] font-bold text-white/90 leading-tight">{ev.title}</p>
                                                                 <p className="text-[10px] text-white/40 mt-1">
-                                                                    {new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' })}
+                                                                    {ev.type?.toLowerCase().includes("exam")
+                                                                        ? new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'Asia/Amman' })
+                                                                        : new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' })}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -370,9 +433,26 @@ function PlannerHomeClient() {
                                 <span className="text-xl font-black text-orange-400">{summary.gamification.current_streak_days}🔥</span>
                                 <span className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Streak</span>
                             </div>
-                            <div className="flex-1 sm:flex-none glass-panel rounded-2xl p-4 flex flex-col items-center justify-center min-w-24">
+                            <div className="flex-1 sm:flex-none glass-panel rounded-2xl p-4 flex flex-col items-center justify-center min-w-24 relative">
                                 <span className="text-xl font-black text-blue-400">{summary.classification === 'N/A' ? '-' : summary.classification}</span>
                                 <span className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Status</span>
+                                {summary.classification && summary.classification !== 'N/A' && (
+                                    <button
+                                        onClick={() => setShowStatusInfo(!showStatusInfo)}
+                                        className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                                        title="View status explanation"
+                                    >
+                                        <HelpCircle className="w-4 h-4 text-cyan-400/60 hover:text-cyan-400" />
+                                    </button>
+                                )}
+                                <AnimatePresence>
+                                    {showStatusInfo && summary.classification && summary.classification !== 'N/A' && (
+                                        <StatusExplanationPopover
+                                            classification={summary.classification}
+                                            onClose={() => setShowStatusInfo(false)}
+                                        />
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </motion.div>

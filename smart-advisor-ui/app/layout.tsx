@@ -6,6 +6,7 @@ import { getClientInfo } from "@/lib/client-info";
 import { logVisitor } from "@/lib/database";
 import { Providers } from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
+import MobileHeader from "@/components/MobileHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -285,6 +286,7 @@ export default async function RootLayout({
               }}
             />
             <main className="flex-1 flex flex-col">
+              <MobileHeader />
               {children}
             </main>
             <MobileNav />

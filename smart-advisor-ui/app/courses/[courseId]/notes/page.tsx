@@ -1,11 +1,21 @@
 "use client";
 
-import CourseNotesEditor from "@/components/CourseNotesEditor";
+import dynamic from "next/dynamic";
+import { fetchJSON, fetchWithRetry } from "@/lib/fetch-retry";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
-export default function CourseNotesPage({ params }: { params: Promise<{ courseId: string }> }) {
+const CourseNotesEditor = dynamic(() => import("@/components/CourseNotesEditor"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-100 w-full bg-white/5 animate-pulse rounded-4xl border border-white/10 flex items-center justify-center">
+      <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
+    </div>
+  ),
+});
+
+export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{ courseId: string }> }>) {
   const { courseId } = use(params);
   const [notes, setNotes] = useState<any>(null);
   const [updatedAt, setUpdatedAt] = useState<string>("");
@@ -17,23 +27,27 @@ export default function CourseNotesPage({ params }: { params: Promise<{ courseId
     async function fetchData() {
       setLoading(true);
       try {
-        // Fetch curriculum for name
-        const curriculumRes = await fetch("/api/courses");
-        if (curriculumRes.ok) {
-          const curriculum = await curriculumRes.json();
+        // Fetch curriculum for name (don't fail entire flow if this fails)
+        try {
+          const curriculum = await fetchJSON<any[]>("/api/courses");
           const course = curriculum.find((c: any) => c.code === courseId);
           if (course) setCourseName(course.name);
+        } catch (curriculumError) {
+          console.error("Curriculum fetch error:", curriculumError);
         }
 
-        const res = await fetch(`/api/courses/${courseId}/notes`);
-        const data = await res.json();
+        const data = await fetchJSON<{ notes: any; updatedAt?: string }>(
+          `/api/courses/${courseId}/notes`,
+          { retries: 2 }
+        );
         setNotes(data.notes || null);
         setUpdatedAt(data.updatedAt || "");
       } catch (e) {
         console.error("Fetch Data Error:", e);
         setNotes(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchData();
   }, [courseId]);
@@ -41,10 +55,11 @@ export default function CourseNotesPage({ params }: { params: Promise<{ courseId
   // Save notes handler (for non-autosave changes or immediate feedback)
   const handleSave = async (val: any) => {
     try {
-      await fetch(`/api/courses/${courseId}/notes`, {
+      await fetchWithRetry(`/api/courses/${courseId}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: val }),
+        retries: 2
       });
     } catch (e) {
       console.error("Save Error:", e);
