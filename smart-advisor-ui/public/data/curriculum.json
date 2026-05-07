@@ -12,21 +12,6 @@
                     "framework": "HNC",
                     "level": 1,
                     "prereq": "40303130"
-                {
-                    "code": "00201290",
-                    "name": "Apprenticeship 1",
-                    "ch": 6,
-                    "level": 3,
-                    "prereq": ">= 85 CH"
-                },
-                    "prereq": "40201100"
-                {
-                    "code": "00201293",
-                    "name": "Apprenticeship 2",
-                    "ch": 3,
-                    "level": 3,
-                    "prereq": "00201290"
-                },
                 },
                 {
                     "code": "00203280",
@@ -928,7 +913,7 @@
             ],
             "work_market_requirements": [
                 {
-                    "code": "7102",
+                    "code": "00007102",
                     "name": "Career Readiness Workshop",
                     "ch": 0,
                     "level": 1

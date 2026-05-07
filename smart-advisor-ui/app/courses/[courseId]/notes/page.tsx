@@ -87,7 +87,7 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
         </div>
       ) : (
         <CourseNotesEditor
-          value={notes}
+          value={notes ?? "<p></p>"}
           onChange={setNotes}
           onAutoSave={handleSave}
           courseTitle={courseName || courseId}

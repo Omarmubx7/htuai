@@ -245,6 +245,19 @@ function CourseTrackerView({
         setAiError(null);
 
         const enrolledCodes = new Set(activeSemester?.courses?.map((c: any) => c.code) || []);
+        const eligibleCourses = allCourses.filter(course => {
+            if (completedCodes.has(course.code)) return false;
+            if (enrolledCodes.has(course.code)) return false;
+            let isElectiveLocked = false;
+            if (uniElectiveCodes.has(course.code)) isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES;
+            else if (deptElectiveCodes.has(course.code)) isElectiveLocked = deptElecCapReached;
+            if (isElectiveLocked) return false;
+
+            const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
+            const { isLocked: prereqLocked } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules?.prerequisites);
+            return isUniversitySubject ? false : !prereqLocked;
+        });
+        const eligibleCourseCodes = new Set(eligibleCourses.map(course => course.code));
 
         try {
             const response = await fetch("/api/ai/suggest-courses", {
@@ -253,18 +266,7 @@ function CourseTrackerView({
                 body: JSON.stringify({
                     major: majorKey,
                     completedCourses: Array.from(completedCourses.keys()),
-                    candidateCourses: allCourses.filter(course => {
-                        if (completedCodes.has(course.code)) return false;
-                        if (enrolledCodes.has(course.code)) return false;
-                        let isElectiveLocked = false;
-                        if (uniElectiveCodes.has(course.code)) isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES;
-                        else if (deptElectiveCodes.has(course.code)) isElectiveLocked = deptElecCapReached;
-                        if (isElectiveLocked) return false;
-                        
-                        const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
-                        const { isLocked: prereqLocked } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules?.prerequisites);
-                        return isUniversitySubject ? false : !prereqLocked;
-                    }).map(c => ({ code: c.code, name: c.name, credits: c.ch })),
+                    candidateCourses: eligibleCourses.map(c => ({ code: c.code, name: c.name, credits: c.ch })),
                 })
             });
 
@@ -288,6 +290,7 @@ function CourseTrackerView({
             const recommendations = Array.isArray(payload.result?.recommendations)
                 ? payload.result.recommendations
                     .filter((item): item is { code: string; reason: string; name?: string } => !!item?.code && !!item?.reason)
+                    .filter(item => eligibleCourseCodes.has(item.code))
                     .map(item => ({
                         code: item.code,
                         reason: item.reason,

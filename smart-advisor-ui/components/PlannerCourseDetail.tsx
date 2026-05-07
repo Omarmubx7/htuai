@@ -57,6 +57,90 @@ interface SemesterResponse {
     semesters: SemesterWithCourses[];
 }
 
+const ALL_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function toDateTimeLocalValue(dateValue?: string | null): string {
+    if (!dateValue) return "";
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "";
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 16);
+}
+
+function isJsonLikeScheduleText(value: string): boolean {
+    const trimmed = value.trim();
+    return (trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith('"') && trimmed.endsWith('"'));
+}
+
+function extractScheduleText(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (Array.isArray(value) && value.length > 0) return String(value[0] || "");
+    return "";
+}
+
+function safeJsonParse(value: string): unknown {
+    try {
+        return JSON.parse(value);
+    } catch {
+        return value;
+    }
+}
+
+function parseScheduleText(scheduleData: unknown): string {
+    const rawText = extractScheduleText(scheduleData);
+    if (!rawText) return "";
+    if (!isJsonLikeScheduleText(rawText)) return rawText;
+
+    const parsed = safeJsonParse(rawText);
+    const parsedText = extractScheduleText(parsed);
+    return parsedText || rawText;
+}
+
+function parseScheduleParts(scheduleData: unknown): { days: string[]; startTime: string; endTime: string } {
+    const scheduleText = parseScheduleText(scheduleData);
+    const [daysPart = "", timePart = ""] = scheduleText.split(" ");
+    const days = daysPart.split("/").filter((day) => ALL_DAYS.includes(day));
+    const [startTime = "", endTime = ""] = timePart.split("-");
+    return { days, startTime, endTime };
+}
+
+function findPlannerCourse(semesters: SemesterWithCourses[], courseId: string): PlannerCourse | null {
+    for (const sem of semesters) {
+        const match = sem.courses.find((course: PlannerCourse) => course.id.toString() === courseId);
+        if (match) return { ...match, semester: sem };
+    }
+    return null;
+}
+
+function validateDateWithinSemester(dateValue: string, label: string, semester?: SemesterMeta): string | null {
+    if (!dateValue) return null;
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return `Invalid ${label.toLowerCase()} date format.`;
+
+    if (semester?.start_date) {
+        const semStart = new Date(semester.start_date);
+        if (date < semStart) return `${label} date cannot be before semester start date.`;
+    }
+
+    if (semester?.end_date) {
+        const semEnd = new Date(semester.end_date);
+        if (date > semEnd) return `${label} date cannot be after semester end date.`;
+    }
+
+    return null;
+}
+
+function validateDateOrder(midtermValue: string, finalValue: string): string | null {
+    if (!midtermValue || !finalValue) return null;
+
+    const midterm = new Date(midtermValue);
+    const final = new Date(finalValue);
+    if (final <= midterm) return "Final exam must be scheduled after the Midterm.";
+
+    return null;
+}
+
 export default function PlannerCourseDetail({ courseId }: { readonly courseId: string }) {
     const { status } = useSession();
     const router = useRouter();
@@ -91,41 +175,12 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     const [scheduleDays, setScheduleDays] = useState<string[]>([]);
     const [scheduleTime, setScheduleTime] = useState("");
     const [scheduleEndTime, setScheduleEndTime] = useState("");
-    const ALL_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     const parseAndSetSchedule = (scheduleData: unknown) => {
-        try {
-            let parsed: unknown = scheduleData;
-            if (typeof scheduleData === 'string') {
-                const trimmed = scheduleData.trim();
-                if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
-                    try {
-                        parsed = JSON.parse(trimmed);
-                    } catch {
-                        parsed = trimmed;
-                    }
-                } else {
-                    parsed = trimmed;
-                }
-            }
-
-            let strValue = "";
-            if (Array.isArray(parsed) && parsed.length > 0) strValue = String(parsed[0] || "");
-            else if (typeof parsed === 'string') strValue = parsed;
-
-            // Try to parse "Mon/Wed 10:30-11:45"
-            const parts = strValue.split(" ");
-            if (parts.length >= 2) {
-                setScheduleDays(parts[0].split("/").filter((d: string) => ALL_DAYS.includes(d)));
-                const times = parts[1].split("-");
-                setScheduleTime(times[0] || "");
-                setScheduleEndTime(times[1] || "");
-            } else {
-                setScheduleTime("");
-                setScheduleEndTime("");
-                setScheduleDays([]);
-            }
-        } catch (e) { console.error("Could not parse schedule string", e); }
+        const { days, startTime, endTime } = parseScheduleParts(scheduleData);
+        setScheduleDays(days);
+        setScheduleTime(startTime);
+        setScheduleEndTime(endTime);
     };
 
     const fetchSessions = async () => {
@@ -148,14 +203,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
             }
 
             const data = await res.json() as SemesterResponse;
-            let foundCourse: PlannerCourse | null = null;
-            for (const sem of data.semesters) {
-                const match = sem.courses.find((c: PlannerCourse) => c.id.toString() === courseId);
-                if (match) {
-                    foundCourse = { ...match, semester: sem };
-                    break;
-                }
-            }
+            const foundCourse = findPlannerCourse(data.semesters, courseId);
             if (!foundCourse) {
                 alert("Course not found.");
                 router.push("/planner/semesters");
@@ -164,25 +212,13 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
             setCourse(foundCourse);
 
-            if (foundCourse.midterm_date) {
-                const d = new Date(foundCourse.midterm_date);
-                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                setMidtermDate(d.toISOString().slice(0, 16));
-            }
-            if (foundCourse.final_date) {
-                const d = new Date(foundCourse.final_date);
-                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                setFinalDate(d.toISOString().slice(0, 16));
-            }
-
-            if (foundCourse.instructor_name) setInstructorName(foundCourse.instructor_name);
-            if (foundCourse.location) setLocation(foundCourse.location);
-            if (foundCourse.final_mark !== null && foundCourse.final_mark !== undefined) setFinalMark(foundCourse.final_mark);
-            if (foundCourse.status) setCourseStatus(foundCourse.status);
-
-            if (foundCourse.class_schedule) {
-                parseAndSetSchedule(foundCourse.class_schedule);
-            }
+            setMidtermDate(toDateTimeLocalValue(foundCourse.midterm_date));
+            setFinalDate(toDateTimeLocalValue(foundCourse.final_date));
+            setInstructorName(foundCourse.instructor_name ?? "");
+            setLocation(foundCourse.location ?? "");
+            setFinalMark(foundCourse.final_mark ?? "");
+            setCourseStatus(foundCourse.status ?? "planned");
+            parseAndSetSchedule(foundCourse.class_schedule);
 
             // Fetch dedicated course notes content if available
             try {
@@ -258,63 +294,22 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
     const handleSaveDates = async () => {
         if (!course) return;
-        // Validate dates individually and against each other
-        if (midtermDate) {
-            const m = new Date(midtermDate);
-            if (Number.isNaN(m.getTime())) {
-                toast("Invalid midterm date format.", "error");
-                return;
-            }
-            
-            // Validate against semester boundaries if available
-            if (course.semester?.start_date) {
-                const semStart = new Date(course.semester.start_date);
-                if (m < semStart) {
-                    toast("Midterm date cannot be before semester start date.", "error");
-                    return;
-                }
-            }
-            if (course.semester?.end_date) {
-                const semEnd = new Date(course.semester.end_date);
-                if (m > semEnd) {
-                    toast("Midterm date cannot be after semester end date.", "error");
-                    return;
-                }
-            }
+        const midtermError = validateDateWithinSemester(midtermDate, "Midterm", course.semester);
+        if (midtermError) {
+            toast(midtermError, "error");
+            return;
         }
 
-        if (finalDate) {
-            const f = new Date(finalDate);
-            if (Number.isNaN(f.getTime())) {
-                toast("Invalid final exam date format.", "error");
-                return;
-            }
-            
-            // Validate against semester boundaries
-            if (course.semester?.start_date) {
-                const semStart = new Date(course.semester.start_date);
-                if (f < semStart) {
-                    toast("Final exam date cannot be before semester start date.", "error");
-                    return;
-                }
-            }
-            if (course.semester?.end_date) {
-                const semEnd = new Date(course.semester.end_date);
-                if (f > semEnd) {
-                    toast("Final exam date cannot be after semester end date.", "error");
-                    return;
-                }
-            }
+        const finalError = validateDateWithinSemester(finalDate, "Final exam", course.semester);
+        if (finalError) {
+            toast(finalError, "error");
+            return;
         }
 
-        // Validate that final is after midterm (if both are set)
-        if (midtermDate && finalDate) {
-            const m = new Date(midtermDate);
-            const f = new Date(finalDate);
-            if (f <= m) {
-                toast("Final exam must be scheduled after the Midterm.", "error");
-                return;
-            }
+        const orderError = validateDateOrder(midtermDate, finalDate);
+        if (orderError) {
+            toast(orderError, "error");
+            return;
         }
 
         setSavingDates(true);
@@ -639,7 +634,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-black/20">
                             <CourseNotesEditor
                                 courseTitle={course.name === course.code ? `Course ${course.code}` : course.name}
-                                value={courseContent || course.course_notes?.[0]?.content}
+                                value={courseContent ?? course.course_notes?.[0]?.content ?? "<p></p>"}
                                 onAutoSave={handleAutoSaveNotes}
                             />
                         </div>

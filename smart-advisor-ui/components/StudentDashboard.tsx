@@ -125,9 +125,13 @@ function StudentDashboard({
                     setPreviousGpaHistory({ gpa: finalGpa, credits: finalCr });
                 }
                 setIsEditingGpa(false);
+            } else {
+                const data = await res.json().catch(() => ({} as { error?: string }));
+                setErrorMsg(data.error || 'Failed to save previous academic history.');
             }
         } catch (error) {
             console.error("Failed to save previous GPA", error);
+            setErrorMsg(error instanceof Error ? error.message : 'Failed to save previous academic history.');
         } finally {
             setSavingGpa(false);
         }

@@ -109,7 +109,7 @@ export default function CourseNotesModal({
                                 </div>
                             ) : (
                                 <CourseNotesEditor
-                                    value={notes}
+                                    value={notes ?? "<p></p>"}
                                     courseTitle={courseTitle}
                                     onAutoSave={handleAutoSave}
                                     updatedAt={updatedAt}

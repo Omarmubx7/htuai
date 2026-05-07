@@ -69,7 +69,7 @@ export default function CourseNotesEditor({
   onAutoSave,
   courseTitle = "Course Notes",
   updatedAt
-}: CourseNotesEditorProps) {
+}: Readonly<CourseNotesEditorProps>) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveIndicator, setSaveIndicator] = useState<"saved" | "saving" | null>(null);
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
@@ -185,7 +185,7 @@ export default function CourseNotesEditor({
     setTimeout(() => linkInputRef.current?.focus(), 50);
   };
 
-  const submitLink = (e: React.FormEvent<HTMLFormElement>) => {
+  const submitLink = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (linkUrl === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -194,6 +194,26 @@ export default function CourseNotesEditor({
     }
     setShowLinkPrompt(false);
   };
+
+  const saveStatus = saveIndicator === "saving"
+    ? (
+      <div className="flex items-center gap-1.5">
+        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+        <span className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
+      </div>
+    )
+    : saveIndicator === "saved"
+      ? (
+        <div className="flex items-center gap-1.5">
+          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+          <span className="text-[10px] font-bold text-emerald-400/60 uppercase tracking-widest">Changes Saved</span>
+        </div>
+      )
+      : (
+        <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
+          Last edited {updatedAt ? new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
+        </span>
+      );
 
   return (
     <div className="relative flex flex-col min-h-screen bg-black overflow-x-hidden">
@@ -328,21 +348,7 @@ export default function CourseNotesEditor({
               {courseTitle}
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
-              {saveIndicator === "saving" ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-                  <span className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
-                </div>
-              ) : saveIndicator === "saved" ? (
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                  <span className="text-[10px] font-bold text-emerald-400/60 uppercase tracking-widest">Changes Saved</span>
-                </div>
-              ) : (
-                <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
-                  Last edited {updatedAt ? new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
-                </span>
-              )}
+              {saveStatus}
             </div>
           </div>
 
@@ -413,12 +419,19 @@ export default function CourseNotesEditor({
           <div 
             className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" 
             onClick={() => setShowLinkPrompt(false)}
-            role="presentation"
+            onKeyDown={(e) => {
+              if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+                setShowLinkPrompt(false);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close link prompt"
           >
-            <div 
+            <dialog
+              open
               className="glass-panel p-6 rounded-3xl w-full max-w-sm flex flex-col gap-4 shadow-2xl" 
               onClick={(e) => e.stopPropagation()}
-              role="dialog"
               aria-modal="true"
             >
               <h3 className="text-white font-semibold">Insert Link</h3>
@@ -435,7 +448,7 @@ export default function CourseNotesEditor({
                   Save
                 </button>
               </form>
-            </div>
+            </dialog>
           </div>
         )}
 
