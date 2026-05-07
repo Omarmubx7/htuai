@@ -25,32 +25,7 @@
                     "code": "40201201",
                     "name": "Data Structures & Algorithms",
                     "ch": 3,
-                    "framework": "HND",
-                    "level": 2,
-                    "prereq": "40201100"
-                },
-                {
-                    "code": "00203280",
-                    "name": "Security",
-                    "ch": 3,
-                    "framework": "HNC",
-                    "level": 2,
-                    "prereq": "40303130"
-                },
-                {
-                    "code": "40201200",
-                    "name": "Advanced Programming",
-                    "ch": 3,
-                    "framework": "HND",
-                    "level": 2,
-                    "prereq": "40201100"
-                },
-                {
-                    "code": "40201220",
-                    "name": "Software Development Lifecycles",
-                    "ch": 3,
-                    "framework": "HNC",
-                    "level": 2,
+                    "level": 1,
                     "prereq": "40201100"
                 },
                 {
@@ -784,15 +759,13 @@
                     "code": "30301111",
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30301121",
                     "name": "English Pre-Intermediate Intensive + Lab",
                     "ch": 4,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30301122",
@@ -975,8 +948,7 @@
                     "code": "30301121",
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30301122",
@@ -1030,8 +1002,7 @@
                     "code": "30301111",
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30302129",
@@ -1454,8 +1425,7 @@
                     "code": "30301121",
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30301122",
@@ -1509,8 +1479,7 @@
                     "code": "30301111",
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30302129",
@@ -1870,8 +1839,7 @@
                     "code": "30301121",
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30301122",
@@ -1925,8 +1893,7 @@
                     "code": "30301111",
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30302129",
@@ -2321,8 +2288,7 @@
                     "code": "30301121",
                     "name": "Pre-Intermediate English Intensive + Lab",
                     "ch": 4,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30301122",
@@ -2376,8 +2342,7 @@
                     "code": "30301111",
                     "name": "Arabic Language & Communication Skills",
                     "ch": 1,
-                    "level": 1,
-                    "prereq": ""
+                    "level": 1
                 },
                 {
                     "code": "30302129",
@@ -2787,8 +2752,7 @@
                 "name": "English Pre-Intermediate Intensive + Lab",
                 "ch": 4,
                 "framework": "HTU",
-                "level": 1,
-                "prereq": ""
+                "level": 1
             },
             {
                 "code": "30301122",
@@ -2842,8 +2806,7 @@
                 "name": "Arabic Language & Communication Skills",
                 "ch": 1,
                 "framework": "HTU",
-                "level": 1,
-                "prereq": ""
+                "level": 1
             },
             {
                 "code": "30302129",

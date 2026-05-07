@@ -5,8 +5,7 @@
       "name": "English Pre-Intermediate Intensive + Lab",
       "ch": 4,
       "framework": "HTU",
-      "level": 1,
-      "prereq": ""
+      "level": 1
     },
     {
       "code": "30301122",
@@ -110,8 +109,7 @@
       "name": "Functional Math",
       "ch": 3,
       "framework": "HTU",
-      "level": 1,
-      "prereq": ""
+      "level": 1
     },
     {
       "code": "40303121",

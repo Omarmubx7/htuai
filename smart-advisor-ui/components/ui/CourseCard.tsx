@@ -209,7 +209,7 @@ function LockInfoPopover({ lockReason, missingPrereqs, courseMap, onClose }: Rea
                                     title={name}
                                 >
                                     <AlertCircle className="w-3 h-3" />
-                                    {name || code}
+                                    {name ?? code}
                                 </span>
                             );
                         })}

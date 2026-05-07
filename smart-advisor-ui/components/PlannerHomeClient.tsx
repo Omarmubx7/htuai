@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo, useCallback } from "react";
+import { useState, useEffect, memo, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -73,6 +73,21 @@ interface PlannerSummary {
 }
 
 function StatusExplanationPopover({ classification, onClose }: Readonly<{ classification: string; onClose: () => void }>) {
+    const dialogRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        dialogRef.current?.focus();
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     const explanations: Record<string, { threshold: string; description: string; action: string }> = {
         'EX': {
             threshold: 'GPA 3.6 - 4.0',
@@ -104,18 +119,30 @@ function StatusExplanationPopover({ classification, onClose }: Readonly<{ classi
     const info = explanations[classification] || { threshold: 'Unknown', description: 'Status unknown', action: 'Check your grades' };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -8 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-12 left-0 z-50 bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
-            style={{ minWidth: '300px', maxWidth: '360px' }}
-            onClick={(e) => e.stopPropagation()}
-        >
+        <>
+            <button
+                type="button"
+                className="fixed inset-0 z-40 bg-transparent border-none cursor-default"
+                onClick={onClose}
+                aria-label="Close academic status popover"
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute top-12 right-0 z-50 bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] max-w-[calc(100vw-2rem)] overflow-x-hidden"
+                style={{ minWidth: 'min(300px,100%)', maxWidth: 'min(360px,calc(100vw-2rem))' }}
+                onClick={(e) => e.stopPropagation()}
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Academic status explanation"
+                tabIndex={-1}
+            >
             <div className="flex items-start justify-between mb-3">
                 <h4 className="text-sm font-bold text-white">Academic Status</h4>
-                <button onClick={onClose} className="shrink-0 p-0.5 hover:bg-white/10 rounded transition-colors">
+                <button onClick={onClose} className="shrink-0 p-0.5 hover:bg-white/10 rounded transition-colors" aria-label="Close academic status popover">
                     <span className="text-sm text-white/60">✕</span>
                 </button>
             </div>
@@ -129,7 +156,8 @@ function StatusExplanationPopover({ classification, onClose }: Readonly<{ classi
                     <span>{info.action}</span>
                 </p>
             </div>
-        </motion.div>
+            </motion.div>
+        </>
     );
 }
 

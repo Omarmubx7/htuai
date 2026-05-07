@@ -177,7 +177,9 @@ export default function PlannerSettings() {
 
     const displayStudentId = (() => {
         const studentId = userProfile?.student_id?.trim() || "";
-        if (!studentId || studentId.includes("@")) return "Not set yet";
+        const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentId);
+        // TODO: Sanitize student_id at write time in the backend OAuth/profile sync path.
+        if (!studentId || looksLikeEmail) return "Not set yet";
         return studentId;
     })();
     const displayMajor = (userProfile?.major || "undecided").replaceAll('_', ' ');

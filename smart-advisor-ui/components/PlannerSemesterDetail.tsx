@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +49,21 @@ interface SemesterDetail {
 }
 
 function GradeLegendPopover({ onClose }: Readonly<{ onClose: () => void }>) {
+    const dialogRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        dialogRef.current?.focus();
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -8 }}
@@ -58,6 +73,11 @@ function GradeLegendPopover({ onClose }: Readonly<{ onClose: () => void }>) {
             className="absolute top-8 left-0 z-50 bg-white/10 border border-white/20 rounded-2xl p-3 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)]"
             style={{ minWidth: '240px' }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Grading scale legend"
+            tabIndex={-1}
+            ref={dialogRef}
         >
             <h4 className="text-xs font-bold text-white mb-3 flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-cyan-400" />
@@ -120,7 +140,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const [showDeleteCourseConfirm, setShowDeleteCourseConfirm] = useState(false);
     const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
     // Grade Legend State
-    const [showGradeLegend, setShowGradeLegend] = useState(false);
+    const [gradeLegendCourseId, setGradeLegendCourseId] = useState<number | null>(null);
     const fetchNotes = useCallback(async () => {
         try {
             const data = await fetchJSON<{ notes: SemesterNoteItem[] }>(`/api/planner/semesters/${semesterId}/notes`, { retries: 2 });
@@ -241,6 +261,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 setShowAddModal(false);
                 setNewCourse({ code: "", name: "", credits: 3 });
                 setSearchQuery("");
+                setAddCourseError(null);
                 toast("Course added successfully!", "success");
             } else {
                 const errorData = await res.json();
@@ -477,7 +498,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             )}
                         </p>
                         <h2 className="text-4xl font-black mt-2 text-transparent bg-clip-text bg-linear-to-r from-violet-400 to-blue-400">
-                            {semester.semester_gpa != null ? semester.semester_gpa.toFixed(2) : liveGPA}
+                            {semester.semester_gpa === null ? liveGPA : semester.semester_gpa.toFixed(2)}
                         </h2>
                         {semester.semester_gpa != null && (
                             <p className="text-[10px] text-white/20 mt-2 font-medium italic">Calculated: {liveGPA}</p>
@@ -531,15 +552,15 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                     <div className="flex items-center gap-2 mb-1">
                                         <label htmlFor={`grade-${course.id}`} className="text-[10px] uppercase font-bold text-white/30 tracking-widest pl-1">Grade</label>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); setShowGradeLegend(!showGradeLegend); }}
+                                            onClick={(e) => { e.stopPropagation(); setGradeLegendCourseId((current) => current === course.id ? null : course.id); }}
                                             className="p-0.5 hover:bg-white/10 rounded-full transition-colors"
                                             title="View grading scale"
                                         >
                                             <HelpCircle className="w-3.5 h-3.5 text-cyan-400/60 hover:text-cyan-400" />
                                         </button>
                                         <AnimatePresence>
-                                            {showGradeLegend && (
-                                                <GradeLegendPopover onClose={() => setShowGradeLegend(false)} />
+                                            {gradeLegendCourseId === course.id && (
+                                                <GradeLegendPopover onClose={() => setGradeLegendCourseId(null)} />
                                             )}
                                         </AnimatePresence>
                                     </div>
@@ -702,7 +723,10 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setShowAddModal(false)}
+                            onClick={() => {
+                                setAddCourseError(null);
+                                setShowAddModal(false);
+                            }}
                         />
                         <motion.div
                             initial={{ scale: 0.95, y: 20, opacity: 0 }}
@@ -794,7 +818,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                 )}
                             </div>
                             <div className="flex gap-3 mt-8">
-                                <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">Cancel</button>
+                                <button onClick={() => { setAddCourseError(null); setShowAddModal(false); }} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">Cancel</button>
                                 <button onClick={handleAddCourse} className="flex-1 py-3 bg-blue-600 focus:outline-[3px] outline-blue-500/30 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">Add</button>
                             </div>
                         </motion.div>

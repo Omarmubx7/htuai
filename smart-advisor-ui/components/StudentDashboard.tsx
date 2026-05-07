@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, memo } from "react";
+import { useMemo, useState, memo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Course, CourseData, CurriculumRules } from "@/types";
 import {
@@ -27,6 +27,12 @@ interface StudentDashboardProps {
     onCategoryClick?: (category: string) => void;
 }
 
+type GpaTerm = {
+    id: string;
+    gpa: string;
+    credits: string;
+};
+
 /* ═══════════════════════════════════════════════════════════════════
    Badge Definitions
    ═══════════════════════════════════════════════════════════════════ */
@@ -47,10 +53,12 @@ function StudentDashboard({
     onCategoryClick,
 }: Readonly<StudentDashboardProps>) {
     const [isEditingGpa, setIsEditingGpa] = useState(false);
-    const [terms, setTerms] = useState<{ gpa: string, credits: string }[]>([
-        { gpa: previousGpaHistory?.gpa?.toString() || "", credits: previousGpaHistory?.credits?.toString() || "" }
+    const [terms, setTerms] = useState<GpaTerm[]>([
+        { id: crypto.randomUUID(), gpa: previousGpaHistory?.gpa?.toString() || "", credits: previousGpaHistory?.credits?.toString() || "" }
     ]);
     const [savingGpa, setSavingGpa] = useState(false);
+    const gpaDialogRef = useRef<HTMLDivElement | null>(null);
+    const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
     const completedCount = completedCourses.size;
     const progress = Math.min(completedCredits / totalCredits, 1);
     const progressPct = Math.round(progress * 100);
@@ -84,7 +92,7 @@ function StudentDashboard({
         });
 
         if (hasInvalid) {
-            setErrorMsg("Please enter valid GPA (0.0 - 4.0) and Credits (positive number).");
+            setErrorMsg("Please enter valid GPA (0.0 - 4.0) and Credits (zero or greater).");
             return;
         }
 
@@ -144,6 +152,51 @@ function StudentDashboard({
         if (semestersLeft === 2) return "~1 year left";
         return `~${yearsLeft} years (${semestersLeft} semesters)`;
     }, [completedCredits, totalCredits]);
+
+    useEffect(() => {
+        if (!isEditingGpa) return;
+
+        previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
+        gpaDialogRef.current?.focus();
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsEditingGpa(false);
+                return;
+            }
+
+            if (event.key !== "Tab") {
+                return;
+            }
+
+            const dialog = gpaDialogRef.current;
+            if (!dialog) return;
+
+            const focusableElements = Array.from(dialog.querySelectorAll<HTMLElement>(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )).filter((element) => !element.hasAttribute("disabled"));
+
+            if (focusableElements.length === 0) return;
+
+            const first = focusableElements[0];
+            const last = focusableElements.at(-1);
+            const active = document.activeElement as HTMLElement | null;
+
+            if (event.shiftKey && active === first) {
+                event.preventDefault();
+                last?.focus();
+            } else if (!event.shiftKey && active === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+            previouslyFocusedElementRef.current?.focus();
+        };
+    }, [isEditingGpa]);
 
     // ── Category CH breakdown for "What's Next" ──────────────────────
     const categories = useMemo(() => {
@@ -431,27 +484,33 @@ function StudentDashboard({
 
             {/* GPA Edit Modal Overlay */}
             {isEditingGpa && (
-                <>
+                <div className="fixed inset-0 z-50">
                     <button
                         type="button"
-                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm"
                         onClick={() => setIsEditingGpa(false)}
                         aria-label="Close previous academic history modal"
                     />
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        className="relative z-50 flex h-full items-center justify-center p-4"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="previous-academic-history-title"
+                        tabIndex={-1}
+                        ref={gpaDialogRef}
                     >
                         <div className="bg-[#111] border border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative">
                         <button 
                             onClick={() => setIsEditingGpa(false)} 
                             className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1"
                             title="Close"
+                            aria-label="Close previous academic history modal"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
-                        <h3 className="text-lg font-bold text-white mb-2 pr-6">Previous Academic History</h3>
+                        <h3 id="previous-academic-history-title" className="text-lg font-bold text-white mb-2 pr-6">Previous Academic History</h3>
                         <p className="text-xs text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
                         
                         {errorMsg && (
@@ -462,7 +521,7 @@ function StudentDashboard({
 
                         <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-1">
                             {terms.map((term, i) => (
-                                <div key={`${term.gpa || "gpa"}-${term.credits || "cr"}-${term === terms[0] ? "primary" : "secondary"}`} className="flex items-center gap-3">
+                                <div key={term.id} className="flex items-center gap-3">
                                     <div className="flex-1">
                                         <label htmlFor={`gpa-${i}`} className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
                                         <input
@@ -498,7 +557,7 @@ function StudentDashboard({
                                     )}
                                 </div>
                             ))}
-                            <button onClick={() => setTerms([...terms, { gpa: "", credits: "" }])} className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors mt-2">
+                            <button onClick={() => setTerms([...terms, { id: crypto.randomUUID(), gpa: "", credits: "" }])} className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors mt-2">
                                 + Add Another Term
                             </button>
                         </div>
@@ -507,6 +566,7 @@ function StudentDashboard({
                             <button
                                 onClick={() => setIsEditingGpa(false)}
                                 className="flex-1 py-3 text-sm font-bold text-white/60 hover:text-white transition-colors"
+                                aria-label="Cancel previous academic history"
                             >
                                 Cancel
                             </button>
@@ -520,7 +580,7 @@ function StudentDashboard({
                         </div>
                         </div>
                     </motion.div>
-                </>
+                </div>
             )}
         </motion.div>
     );

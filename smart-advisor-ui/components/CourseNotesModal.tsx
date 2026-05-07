@@ -10,7 +10,7 @@ import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
-        <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
+        <div className="h-[25rem] w-full bg-white/5 animate-pulse rounded-[2rem] border border-white/10 flex items-center justify-center">
             <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
         </div>
     ),
@@ -74,7 +74,7 @@ export default function CourseNotesModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

@@ -4,200 +4,71 @@ This document groups the discovered issues into phases so the team can fix the a
 
 ## Phase 1 – Critical Stability & Data Integrity
 
-These issues break core flows or can block normal app usage.
+These issues block core flows or create incorrect academic state.[^1]
 
-### Bug 1 — Course Detail Page Crash
+### 🔴 Bug 1 — Course Detail Page Crash
 
-Location: Semester Planner → Any semester → Open a course detail page
+**Location:** Semester Planner → Any semester → Open a course detail page[^1]
 
-Navigating to a planner course detail page can crash the renderer and leave the screen black with only a spinner visible.
+Navigating to a planner course detail page can crash the renderer and leave the screen black with only a spinner visible.[^1]
 
-Impact: The course detail feature becomes unusable.
-Severity: Critical
+**Impact:** The course detail feature becomes unusable.[^1]
+**Severity:** 🔴 Critical
 
-### Bug 2 — Notes Feature Infinite Loading
+***
 
-Location: Main Course Tracker → Any course → Notes
+### 🔴 Bug 2 — Notes Feature Infinite Loading
 
-The notes panel opens but remains stuck on a loading state indefinitely.
+**Location:** Main Course Tracker → Any course → Notes[^1]
 
-Impact: Notes cannot be viewed or edited.
-Severity: Critical
+The notes panel opens but remains stuck on a loading state indefinitely.[^1]
 
-### Bug 3 — Previous Academic History Lacks GPA Validation
+**Impact:** Notes cannot be viewed or edited.[^1]
+**Severity:** 🔴 Critical
 
-Location: Main Tracker → TRUE CGPA → Gear icon → Previous Academic History modal
+***
 
-The modal accepts invalid GPA values above 4.0 or below 0 and gives no feedback when saving fails.
+### 🟠 Bug 3 — Previous Academic History Lacks GPA Validation
 
-Impact: Users can attempt to save corrupt data without understanding why it failed.
-Severity: Major
+**Location:** Main Tracker → TRUE CGPA → Gear icon → Previous Academic History modal[^1]
 
-### Bug 5 — Add Course Form Has No Validation Feedback
+The modal accepts invalid GPA values above 4.0 or below 0 and gives no feedback when saving fails.[^1]
 
-Location: Semester Planner → View Semester → Add Course
+**Impact:** Users can attempt to save corrupt data without understanding why it failed.[^1]
+**Severity:** 🟠 Major
 
-Submitting the modal with empty required fields keeps it open without any error message.
+***
 
-Impact: Users cannot tell what needs to be fixed.
-Severity: Major
+### 🟠 Bug 5 — Add Course Form Has No Validation Feedback
 
-### Bug 6 — AI Suggests Already-Enrolled Courses
+**Location:** Semester Planner → View Semester → Add Course[^1]
 
-Location: Main Tracker → MUBX AI Advisor → Suggest Courses
+Submitting the modal with empty required fields keeps it open without any error message.[^1]
 
-The recommendation engine suggests courses that are already enrolled in the active semester.
+**Impact:** Users cannot tell what needs to be fixed.[^1]
+**Severity:** 🟠 Major
 
-Impact: AI suggestions feel wrong and untrustworthy.
-Severity: Major
+***
 
-### Bug 8 — CGPA Overview Desync Between Tracker and Planner
+### 🟠 Bug 6 — AI Suggests Already-Enrolled Courses
 
-Location: Semester Planner Dashboard → CGPA Overview
+**Location:** Main Tracker → MUBX AI Advisor → Suggest Courses[^1]
 
-The planner shows `-.-` even when the tracker already has a real CGPA value.
+The recommendation engine suggests courses that are already enrolled in the active semester.[^1]
 
-Impact: Users see inconsistent academic summaries.
-Severity: Moderate
+**Impact:** AI suggestions feel wrong and untrustworthy.[^1]
+**Severity:** 🟠 Major
 
-## Phase 2 – Modal & Interaction UX
+***
 
-These issues do not usually break the app, but they interrupt expected interaction patterns.
+### 🟡 Bug 8 — CGPA Overview Desync Between Tracker and Planner
 
-### Bug 4 — Previous Academic History Modal Cannot Close on Outside Click
+**Location:** Semester Planner Dashboard → CGPA Overview[^1]
 
-Location: Previous Academic History modal
+The planner shows `-.-` even when the tracker already has a real CGPA value.[^1]
 
-Clicking the backdrop does not close the modal, and there is no obvious close icon.
-
-Impact: The modal feels trapped and harder to escape.
-Severity: Major
-
-### Bug 7 — Notifications Dropdown Does Not Close on Outside Click
-
-Location: Semester Planner → Bell icon → Academic Alerts
-
-The notifications panel stays open unless the user clicks in the header area.
-
-Impact: Standard dropdown behavior is broken.
-Severity: Major
-
-### Bug 11 — Accidental Course Toggle Without Confirmation
-
-Location: Course Tracker → Course cards
-
-Clicking the card body can mark a course complete immediately with no confirmation.
-
-Impact: Users can change progress state by mistake.
-Severity: Moderate
-
-## Phase 3 – Visual Consistency & Branding
-
-These are polish issues that lower trust and visual quality.
-
-### Bug 9 — Persistent Floating Teal Ripple Animation
-
-Location: Global
-
-A teal/cyan blob appears after clicks and remains visible for too long.
-
-Impact: The effect is distracting and makes the interface feel unfinished.
-Severity: Moderate
-
-### Bug 10 — Broken Logo on Planner Pages
-
-Location: Planner sidebar, Privacy Policy, Terms of Service
-
-The MUBXAI logo fails to load and shows a broken image placeholder.
-
-Impact: Branding looks broken on several pages.
-Severity: Moderate
-
-### Bug 12 — Exam Notification Times Show 03:00 AM
-
-Location: Semester Planner → Academic Alerts
-
-Exam alerts show fabricated-looking midnight-converted times even when the user never set actual exam times.
-
-Impact: The alert times are misleading.
-Severity: Moderate
-
-### Bug 13 — Info Icon on Locked Course Cards Does Nothing
-
-Location: Course category views → Locked course cards
-
-The orange info icon looks interactive but does nothing when clicked.
-
-Impact: Users cannot discover why a course is locked.
-Severity: Moderate
-
-## Phase 4 – UX Clarity & Content
-
-These issues confuse users even though the underlying feature may work.
-
-### Flaw 1 — Grade Labels Are Cryptic
-
-Location: Semester Planner → Semester View → Grade dropdown
-
-The grades D, M, P, and U are shown without explanation or legend.
-
-Impact: Users unfamiliar with the grading scheme do not know what the options mean.
-
-### Flaw 2 — “Below Minimum” Status Is Unexplained
-
-Location: Semester Planner Dashboard → Status card
-
-The card says “Below Minimum” without explaining what minimum is being measured.
-
-Impact: The message is alarming but not actionable.
-
-### Flaw 3 — Student ID Field Shows Email Address
-
-Location: Settings → Profile & Preferences → My Profile → Student ID / Major
-
-The field shows an email address instead of a student ID value.
-
-Impact: The profile section feels mislabeled.
-
-### Flaw 4 — Exam Tips Are Rendered as Raw Pipe-Separated Data
-
-Location: Main Tracker → MUBX AI Advisor → Exam Tips
-
-The tips appear as raw developer-style strings instead of readable copy.
-
-Impact: The section is hard to scan and understand.
-
-### Flaw 5 — Weekly Schedule Day Names Are Inconsistent
-
-Location: AI Advisor → Weekly Schedule
-
-One schedule view uses full day names while the rebuilt version uses abbreviations.
-
-Impact: The schedule view feels inconsistent.
-
-### Flaw 6 — XP Gains Are Invisible and Unexplained
-
-Location: Semester Planner → Level / XP banner
-
-XP changes without showing why points were awarded.
-
-Impact: Gamification lacks transparency.
-
-### Flaw 7 — No Back to Dashboard Control in Tracker Category Views
-
-Location: Course Tracker → Category views
-
-There is no visible breadcrumb or back control in the header.
-
-Impact: Users must rely on browser navigation.
-
-### Flaw 8 — Prerequisite Badges Look Interactive but Do Nothing
-
-Location: Course cards → Prerequisites section
-
-The prerequisite badges suggest interactivity, but clicking them has no effect.
-
-Impact: Users expect help and get none.
+**Impact:** Users see inconsistent academic summaries.[^1]
+**Severity:** 🟡 Moderate
 
 ## What Works Well
 

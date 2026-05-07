@@ -6,6 +6,37 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { getUserByStudentId, createUser, getUserByEmail, linkAccount, createAdminLog } from "./lib/database";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+function requireEnv(name: string, value: string | undefined): string {
+    if (value && value.trim()) {
+        return value.trim();
+    }
+
+    const message = `[auth] Missing required environment variable: ${name}`;
+    if (isProduction) {
+        throw new Error(message);
+    }
+    console.warn(message);
+    throw new Error(message);
+}
+
+const googleClientId = requireEnv("GOOGLE_CLIENT_ID", process.env.GOOGLE_CLIENT_ID);
+const googleClientSecret = requireEnv("GOOGLE_CLIENT_SECRET", process.env.GOOGLE_CLIENT_SECRET);
+const nextAuthSecret = (() => {
+    const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+    if (secret && secret.trim()) {
+        return secret.trim();
+    }
+
+    const message = "[auth] NEXTAUTH_SECRET or AUTH_SECRET must be configured";
+    if (isProduction) {
+        throw new Error(message);
+    }
+    console.warn(`${message}; using a local development fallback.`);
+    return "dev-secret-key";
+})();
+
 declare module "next-auth" {
     interface Session {
         user: {
@@ -31,8 +62,8 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID || "",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
         }),
         CredentialsProvider({
             name: "University ID",
@@ -91,14 +122,18 @@ export const authOptions: NextAuthOptions = {
                 if (account?.provider === "google") {
                     const existingUser = await getUserByEmail(user.email || "");
                     if (existingUser) {
-                        await linkAccount(existingUser.id, account.provider, account.providerAccountId).catch(() => {});
+                        await linkAccount(existingUser.id, account.provider, account.providerAccountId).catch((err) => {
+                            console.error(`[signIn callback] linkAccount failed for ${account.provider}/${account.providerAccountId} user=${user.email}`, err);
+                        });
                         createAdminLog({
                             type: 'login',
                             message: `User ${user.email} logged in via Google OAuth`,
                             details: { email: user.email, name: user.name, provider: 'google' },
                             event_kind: 'login',
                             target_id: user.email || String(existingUser.id),
-                        }).catch(() => {});
+                        }).catch((err) => {
+                            console.error(`[signIn callback] createAdminLog failed for login user=${user.email}`, err);
+                        });
                         return true;
                     }
                     const newUser = await createUser({
@@ -106,14 +141,21 @@ export const authOptions: NextAuthOptions = {
                         name: user.name,
                         image: user.image
                     });
-                    await linkAccount(newUser.id, account.provider, account.providerAccountId).catch(() => {});
+                    if (!newUser?.id) {
+                        throw new Error(`[signIn callback] createUser returned no user for ${user.email}`);
+                    }
+                    await linkAccount(newUser.id, account.provider, account.providerAccountId).catch((err) => {
+                        console.error(`[signIn callback] linkAccount failed for ${account.provider}/${account.providerAccountId} newUser=${newUser.id}`, err);
+                    });
                     createAdminLog({
                         type: 'register',
                         message: `New user registered via Google: ${user.email} (${user.name})`,
                         details: { email: user.email, name: user.name, provider: 'google', db_id: newUser.id },
                         event_kind: 'register',
                         target_id: user.email || String(newUser.id),
-                    }).catch(() => {});
+                    }).catch((err) => {
+                        console.error(`[signIn callback] createAdminLog failed for register user=${user.email} target=${newUser.id}`, err);
+                    });
                 }
                 return true;
             } catch (error) {
@@ -183,7 +225,7 @@ export const authOptions: NextAuthOptions = {
             }
         }
     },
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "dev-secret-key",
+    secret: nextAuthSecret,
     cookies: {
         sessionToken: {
             name: process.env.NODE_ENV === 'production' ? `__Secure-next-auth.session-token` : `next-auth.session-token`,

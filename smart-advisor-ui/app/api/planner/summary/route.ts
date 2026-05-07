@@ -451,13 +451,11 @@ export async function GET(_req: NextRequest) {
             }
         });
     } catch (error: any) {
-        console.error("GET Planner Summary Error:", error);
-        console.error("Error Stack:", error?.stack);
-        console.error("Error Message:", error?.message);
-        return NextResponse.json({ 
-            error: "Server Error",
-            details: error?.message || String(error),
-            timestamp: new Date().toISOString()
+        const correlationId = crypto.randomUUID();
+        console.error("[GET Planner Summary Error]", { correlationId, message: error?.message, stack: error?.stack, error });
+        return NextResponse.json({
+            error: "Internal Server Error",
+            correlationId,
         }, { status: 500 });
     }
 }

@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, Save, History, PlayCircle, CheckCircle2, BookOpen, Calendar as CalendarIcon, Info } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useToast } from "./ui/Toast";
+import ThemeToggle from "@/components/ThemeToggle";
+import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+
 const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
@@ -14,9 +18,6 @@ const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
         </div>
     ),
 });
-import { useToast } from "./ui/Toast";
-import ThemeToggle from "@/components/ThemeToggle";
-import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 
 type NotesContent = Record<string, unknown> | string | null;
 
@@ -375,7 +376,8 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                     toast("Course info saved successfully!", "success");
                 }
             } else {
-                toast("Failed to save course info.", "error");
+                const data = await res.json().catch(() => ({} as { error?: string }));
+                toast(data.error || "Failed to save course info.", "error");
             }
         } catch (error) {
             console.error(error);

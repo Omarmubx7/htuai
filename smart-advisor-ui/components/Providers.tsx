@@ -1,9 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import { ToastProvider } from "@/components/ui/Toast";
 
-export function Providers({ children }: { readonly children: React.ReactNode }) {
+export function Providers({ children }: { readonly children: ReactNode }) {
     return (
         <SessionProvider 
             basePath="/api/auth"

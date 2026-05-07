@@ -9,7 +9,7 @@ import { ChevronLeft } from "lucide-react";
 const CourseNotesEditor = dynamic(() => import("@/components/CourseNotesEditor"), {
   ssr: false,
   loading: () => (
-    <div className="h-100 w-full bg-white/5 animate-pulse rounded-4xl border border-white/10 flex items-center justify-center">
+    <div className="h-[25rem] w-full bg-white/5 animate-pulse rounded-[2rem] border border-white/10 flex items-center justify-center">
       <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
     </div>
   ),
@@ -69,7 +69,7 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation Layer */}
-      <div className="fixed top-4 left-4 z-60 pointer-events-none">
+      <div className="fixed top-4 left-4 z-[60] pointer-events-none">
         <Link
           href="/planner"
           className="p-3 rounded-2xl bg-black/40 backdrop-blur-2xl border border-white/5 text-white/40 hover:text-white transition-all flex items-center justify-center pointer-events-auto hover:bg-white/5 active:scale-95"

@@ -285,8 +285,8 @@ export default async function RootLayout({
                 })
               }}
             />
+            <MobileHeader />
             <main className="flex-1 flex flex-col">
-              <MobileHeader />
               {children}
             </main>
             <MobileNav />
