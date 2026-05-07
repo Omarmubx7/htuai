@@ -445,8 +445,8 @@ export default function CourseNotesEditor({
       </main>
 
       {/* Mobile Toolbar (Bottom Floating) */}
-      <div className="sm:hidden fixed bottom-25 left-1/2 -translate-x-1/2 z-65 w-[95%] max-w-md\">
-        <div className="glass-card-premium p-1.5 rounded-4xl border border-white/10 flex items-center justify-between gap-1 shadow-2xl overflow-x-auto scrollbar-hide no-scrollbar scroll-smooth\">
+      <div className="sm:hidden fixed bottom-25 left-1/2 -translate-x-1/2 z-65 w-[95%] max-w-md">
+        <div className="glass-card-premium p-1.5 rounded-4xl border border-white/10 flex items-center justify-between gap-1 shadow-2xl overflow-x-auto scrollbar-hide no-scrollbar scroll-smooth">
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("bold") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Bold className="w-5 h-5" /></button>
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("italic") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Italic className="w-5 h-5" /></button>
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 1 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Heading1 className="w-5 h-5" /></button>
