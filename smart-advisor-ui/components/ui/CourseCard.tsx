@@ -281,10 +281,6 @@ function CourseCard({
             style={{ backdropFilter: "blur(12px)" }}
             onClick={() => {
                 if (isLocked) return;
-                if (!isCompleted && typeof globalThis.confirm === "function") {
-                    const accepted = globalThis.confirm(`Mark ${course.code} as completed?`);
-                    if (!accepted) return;
-                }
                 onToggle();
             }}
             title={lockReason}
