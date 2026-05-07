@@ -29,6 +29,14 @@
                     "prereq": "40201100"
                 },
                 {
+                    "code": "00203280",
+                    "name": "Security",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40303130"
+                },
+                {
                     "code": "40201261",
                     "name": "Prototyping",
                     "ch": 3,
