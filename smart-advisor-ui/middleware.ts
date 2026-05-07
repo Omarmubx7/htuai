@@ -31,7 +31,7 @@ export function middleware(request: NextRequest) {
         base-uri 'self';
         form-action 'self';
         frame-ancestors 'none';
-    `.replace(/\s+/g, ' ');
+    `.replaceAll(/\s+/g, ' ');
 
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-nonce", nonce);

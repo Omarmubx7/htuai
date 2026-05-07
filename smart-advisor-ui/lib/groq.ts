@@ -21,25 +21,6 @@ type ScheduleCourse = {
     final_date?: string;
 };
 
-function formatSemesterLabel(semesterType?: string, semesterName?: string) {
-    if (!semesterType) {
-        return "";
-    }
-
-    return semesterName
-        ? `Semester type: ${semesterType} (${semesterName}).`
-        : `Semester type: ${semesterType}.`;
-}
-
-function formatCourseSummary(courses: ScheduleCourse[]) {
-    return courses.map((course) => {
-        const parts = [course.code, `${course.credits}CH`];
-        if (course.midterm_date) parts.push(`M:${course.midterm_date}`);
-        if (course.final_date) parts.push(`F:${course.final_date}`);
-        return parts.join("|");
-    }).join("; ");
-}
-
 function getGroqClient() {
     const apiKey = process.env.GROQ_API_TOKEN || process.env.groqapi_token;
     if (!apiKey) {
@@ -57,18 +38,15 @@ export async function getSuggestedCourses(params: {
     const client = getGroqClient();
     const modelUsed = "llama-3.1-8b-instant";
 
-    const prompt = [
-        `You are an advisor for an HTU ${major} student. Recommend 5 courses.`,
-        "Output strict TOON format exactly like this:",
-        "R:",
-        "code1 | reason1",
-        "code2 | reason2",
-        "T:",
-        "Registration tip 1",
-        "Registration tip 2",
-        "No extra text.",
-        `Candidates: ${candidateCourses.map(c => c.code + ": " + c.name).join(" | ")}`
-    ].join("\n");
+    // Limit candidates sent to AI to reduce tokens
+    const topCandidates = candidateCourses.slice(0, 15);
+    const candidatesStr = topCandidates.map(c => `${c.code}:${c.name}`).join("|");
+
+    const prompt = `HTU ${major}. Recommend 5 from: ${candidatesStr}
+R:|code|reason
+code|reason  
+T:|tip
+tip`;
 
     if (process.env.NODE_ENV === 'development') {
         console.log("--- Groq Request (getSuggestedCourses) ---");
@@ -77,10 +55,10 @@ export async function getSuggestedCourses(params: {
 
     const completion = await client.chat.completions.create({
         model: modelUsed,
-        temperature: 0.2,
-        max_tokens: 500,
+        temperature: 0.1,
+        max_tokens: 300,
         messages: [
-            { role: "system", content: "You output TOON format only. Be extremely concise." },
+            { role: "system", content: "TOON format. Concise." },
             { role: "user", content: prompt }
         ],
     });
@@ -99,8 +77,8 @@ export async function getSuggestedCourses(params: {
     let mode = '';
 
     for (const line of lines) {
-        if (line === 'R:') mode = 'R';
-        else if (line === 'T:') mode = 'T';
+        if (line === 'R:' || line.startsWith('R:|')) mode = 'R';
+        else if (line === 'T:' || line.startsWith('T:|')) mode = 'T';
         else if (mode === 'R') {
             const parts = line.split('|');
             if (parts.length >= 2) {
@@ -140,23 +118,18 @@ export async function getStudySchedule(params: {
     const { major, semesterType, semesterName, semesterStartDate, semesterEndDate, courses, weeklyHours } = params;
     const client = getGroqClient();
     const modelUsed = "llama-3.1-8b-instant";
-    const semesterLabel = formatSemesterLabel(semesterType, semesterName);
-    const courseSummary = formatCourseSummary(courses);
+    
+    const semesterLabel = semesterType 
+        ? `${semesterType}${semesterName ? `(${semesterName})` : ''}`
+        : '';
+    const coursesStr = courses.map(c => `${c.code}(${c.credits}CH)`).join("|");
 
-    const prompt = [
-        `Create a weekly study schedule for an HTU ${major} student.`,
-        semesterLabel,
-        semesterStartDate || semesterEndDate ? `Semester window: ${semesterStartDate || "?"} to ${semesterEndDate || "?"}.` : "",
-        `Target weekly hours: ${weeklyHours}.`,
-        "IMPORTANT: Only use the courses provided below. Do NOT invent new courses, exams, or dates. Use the provided dates for exams if they exist.",
-        "Output strict TOON format only:",
-        "W:",
-        "Sunday | 40201100 | 1.5 | Review arrays",
-        "E:",
-        "Midterm on Oct 12 - Focus on Ch 1-3",
-        "No extra text.",
-        `Courses: ${courseSummary}`
-    ].join("\n");
+    const prompt = `HTU ${major} study plan. ${semesterLabel} ${weeklyHours}h/week
+Courses: ${coursesStr}
+W:|day|code|hours|focus
+Sun|CS101|2|arrays
+E:|exam_tip
+Oct 12 midterm`;
 
     if (process.env.NODE_ENV === 'development') {
         console.log("--- Groq Request (getStudySchedule) ---");
@@ -165,10 +138,10 @@ export async function getStudySchedule(params: {
 
     const completion = await client.chat.completions.create({
         model: modelUsed,
-        temperature: 0.2,
-        max_tokens: 800,
+        temperature: 0.1,
+        max_tokens: 400,
         messages: [
-            { role: "system", content: "You output TOON format only. Be extremely concise." },
+            { role: "system", content: "TOON format. Only use given courses/dates." },
             { role: "user", content: prompt }
         ],
     });
@@ -187,8 +160,8 @@ export async function getStudySchedule(params: {
     let mode = '';
 
     for (const line of lines) {
-        if (line === 'W:') mode = 'W';
-        else if (line === 'E:') mode = 'E';
+        if (line === 'W:' || line.startsWith('W:|')) mode = 'W';
+        else if (line === 'E:' || line.startsWith('E:|')) mode = 'E';
         else if (mode === 'W') {
             const parts = line.split('|');
             if (parts.length >= 4) {

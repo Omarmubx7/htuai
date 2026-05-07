@@ -328,8 +328,8 @@ function PlannerHomeClient() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={`skel-summary-${i}`} className="premium-card h-32 animate-pulse bg-white/5" />
+                    {Array.from({ length: 4 }).map(() => (
+                        <div key={crypto.randomUUID()} className="premium-card h-32 animate-pulse bg-white/5" />
                     ))}
                 </div>
                 <div className="premium-card h-64 animate-pulse bg-white/5" />
@@ -502,7 +502,7 @@ function PlannerHomeClient() {
                         <div className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white to-white/60">
                             {summary?.cgpa && summary.cgpa > 0 ? summary.cgpa.toFixed(2) : '-.--'}
                         </div>
-                        <p className="text-sm text-white/40 mt-2 max-w-[200px]">
+                        <p className="text-sm text-white/40 mt-2 max-w-50">
                             Calculated dynamically combining your imported academic history and HTU Planner tracked modules.
                         </p>
                     </motion.div>
@@ -584,8 +584,8 @@ function PlannerHomeClient() {
                     {weeklyPlan.length > 0 || generatingSchedule ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {generatingSchedule ? (
-                                Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={`skel-weekly-plan-${i}`} className="bg-white/3 border border-white/5 rounded-2xl p-4 animate-pulse space-y-3">
+                                Array.from({ length: 4 }).map(() => (
+                                    <div key={crypto.randomUUID()} className="bg-white/3 border border-white/5 rounded-2xl p-4 animate-pulse space-y-3">
                                         <div className="h-2 w-12 bg-white/10 rounded" />
                                         <div className="space-y-2">
                                             <div className="h-3 w-full bg-white/5 rounded" />
@@ -621,7 +621,7 @@ function PlannerHomeClient() {
                                 <Sparkles className="w-8 h-8 text-violet-400 opacity-20" />
                             </div>
                             <h3 className="text-base font-bold text-white/60">No Study Plan Yet</h3>
-                            <p className="text-xs text-white/40 max-w-[240px] mt-2 mb-6">
+                            <p className="text-xs text-white/40 max-w-60 mt-2 mb-6">
                                 Generate a personalized study schedule using AI to optimize your learning.
                             </p>
                             {activeSemester && activeSemester.courses.length > 0 ? (
@@ -849,7 +849,7 @@ function PlannerHomeClient() {
                                     <div key={`trend-${day.date}-${i}`} className="flex-1 flex flex-col items-center gap-2 group">
                                         <div className="relative w-full flex justify-center items-end h-full">
                                             <div
-                                                className={`w-full max-w-[40px] rounded-t-lg transition-all duration-700 ${day.minutes > 0 ? 'bg-linear-to-t from-violet-600 to-blue-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]' : 'border-2 border-dashed border-white/10 bg-transparent'}`}
+                                                className={`w-full max-w-10 rounded-t-lg transition-all duration-700 ${day.minutes > 0 ? 'bg-linear-to-t from-violet-600 to-blue-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]' : 'border-2 border-dashed border-white/10 bg-transparent'}`}
                                                 style={{ height: `${Math.max(height, 10)}%` }}
                                             />
                                             {day.minutes > 0 && (
@@ -894,7 +894,7 @@ function PlannerHomeClient() {
                             </button>
                         </div>
 
-                        <div className="space-y-3 h-[240px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="space-y-3 h-60 overflow-y-auto pr-2 custom-scrollbar">
                             {summary?.upcomingEvents && summary.upcomingEvents.length > 0 ? (
                                 summary.upcomingEvents.map((event: NotificationEvent) => (
                                     <div key={event.id} className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">

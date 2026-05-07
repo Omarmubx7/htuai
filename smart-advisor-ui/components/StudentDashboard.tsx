@@ -287,8 +287,8 @@ function StudentDashboard({
         >
             {/* ── Header: Student Status ────────────────── */}
             <div className="flex flex-col md:flex-row gap-4 items-stretch">
-                <div id="wt-student-status" className="flex-1 glass-card p-6 rounded-[32px] relative overflow-hidden group border-white/10 bg-white/[0.02] shadow-2xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-transparent to-blue-600/10 opacity-50" />
+                <div id="wt-student-status" className="flex-1 glass-card p-6 rounded-4xl relative overflow-hidden group border-white/10 bg-white/2 shadow-2xl">
+                    <div className="absolute inset-0 bg-linear-to-br from-violet-600/10 via-transparent to-blue-600/10 opacity-50" />
 
                     <div className="relative flex items-center gap-6">
                         <div className="w-16 h-16 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center shrink-0">
@@ -310,13 +310,13 @@ function StudentDashboard({
                 </div>
 
                 <div className="flex flex-col gap-3 md:w-64 shrink-0">
-                    <div className="flex-1 py-5 px-7 glass-card rounded-[32px] border-white/10 bg-white/[0.02] flex flex-col justify-center relative overflow-hidden border">
+                    <div className="flex-1 py-5 px-7 glass-card rounded-4xl border-white/10 bg-white/2 flex flex-col justify-center relative overflow-hidden border">
                         <span className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2"><Calendar className="w-3 h-3" /> Graduation</span>
                         <div className="flex items-baseline gap-2 relative z-10">
                             <span className="text-xl font-black text-white tracking-tighter">{graduationEstimate}</span>
                         </div>
                     </div>
-                    <Link id="wt-planner-btn" href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all active:scale-[0.98]">
+                    <Link id="wt-planner-btn" href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all active:scale-[0.98]">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             <span className="text-sm font-bold tracking-wide">Semester Planner</span>
@@ -422,7 +422,7 @@ function StudentDashboard({
                             <span className="text-white/30">Overall</span>
                             <span className="text-violet-400">{overallRoadmapPct}%</span>
                         </div>
-                        <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-[1px]">
+                        <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-px">
                             <motion.div
                                 className="h-full rounded-full relative"
                                 initial={{ width: 0 }}
@@ -651,7 +651,7 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText, isR
 
                 {/* Mini progress bar for Degree Progress card */}
                 {progress !== undefined && (
-                    <div className="mt-2.5 h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="mt-2.5 h-1 bg-white/4 rounded-full overflow-hidden">
                         <motion.div
                             className="h-full rounded-full"
                             initial={{ width: 0 }}

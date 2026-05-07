@@ -73,6 +73,12 @@ async function handleDailyGamificationXP(user: any, today: Date) {
     return gamification;
 }
 
+function formatJordanTimezoneOffset(offsetMatch: RegExpExecArray | null): string {
+    if (!offsetMatch) return '+03:00';
+    const matched = offsetMatch[1];
+    return matched.length <= 3 ? matched + ':00' : matched;
+}
+
 async function handleGpaImprovement(userId: number, cgpa: number, classification: string) {
     try {
         const lastHistory = await prisma.gPAHistory.findFirst({
@@ -151,7 +157,7 @@ export async function GET(_req: NextRequest) {
         const tzName = tzFormatter.formatToParts(new Date(jordanDateStr + 'T00:00:00'))
             .find(p => p.type === 'timeZoneName')?.value || 'GMT+03:00';
         const offsetMatch = /GMT([+-]\d{1,2})/.exec(tzName);
-        const offset = offsetMatch ? (offsetMatch[1].length <= 3 ? offsetMatch[1] + ':00' : offsetMatch[1]) : '+03:00';
+        const offset = formatJordanTimezoneOffset(offsetMatch);
         const todayStart = new Date(`${jordanDateStr}T00:00:00${offset}`);
 
         // 3. Parallel fetching
@@ -213,7 +219,7 @@ export async function GET(_req: NextRequest) {
             ? (semesters.find(s => {
                 if (!s.start_date || !s.end_date) return false;
                 return todayStart >= s.start_date && todayStart <= s.end_date;
-              }) || semesters[0])
+              }) ?? semesters[0])
             : null;
 
         // 5. GPA
@@ -254,7 +260,7 @@ export async function GET(_req: NextRequest) {
                 if (!code || plannerGradedCodes.has(code)) continue;
 
                 const credits = creditMap.get(code) ?? 3;
-                const grade = (typeof entry === 'object' && entry !== null && typeof (entry as any).grade === 'string') 
+const grade = typeof entry === 'object' && entry !== null && typeof (entry as any).grade === 'string'
                     ? (entry as any).grade 
                     : 'M';
                     

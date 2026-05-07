@@ -29,7 +29,7 @@ export default function MobileHeader({ title, showBack = false, backHref }: Read
 
     // Only show on small screens
     return (
-        <div className="sm:hidden fixed top-0 left-0 right-0 z-[60] bg-black/50 backdrop-blur-xl border-b border-white/5">
+        <div className="sm:hidden fixed top-0 left-0 right-0 z-60 bg-black/50 backdrop-blur-xl border-b border-white/5">
             <div className="px-4 py-3 flex items-center justify-between gap-3">
                 {showBack ? (
                     <button

@@ -158,7 +158,7 @@ export default function CourseNotesEditor({
   if (!editor) {
     if (initTimeout) {
       return (
-        <div className="h-[400px] w-full bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
+        <div className="h-100 w-full bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
           <div className="flex flex-col items-center gap-4">
             <span className="text-xs font-black uppercase tracking-widest text-red-400/50">Editor Failed to Load</span>
             <span className="text-[10px] text-white/40">Please refresh the page</span>
@@ -167,7 +167,7 @@ export default function CourseNotesEditor({
       );
     }
     return (
-      <div className="h-[400px] w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
+      <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
             <Sparkles className="w-6 h-6 animate-pulse text-violet-400/50" />
@@ -185,7 +185,7 @@ export default function CourseNotesEditor({
     setTimeout(() => linkInputRef.current?.focus(), 50);
   };
 
-  const submitLink = (e: React.FormEvent) => {
+  const submitLink = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (linkUrl === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -324,7 +324,7 @@ export default function CourseNotesEditor({
       <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex flex-col">
-            <h1 className="text-sm sm:text-lg font-black tracking-tight text-white italic truncate max-w-[180px] sm:max-w-md">
+            <h1 className="text-sm sm:text-lg font-black tracking-tight text-white italic truncate max-w-45 sm:max-w-md">
               {courseTitle}
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
@@ -373,7 +373,7 @@ export default function CourseNotesEditor({
       <main className="flex-1 w-full max-w-4xl mx-auto relative pt-4 pb-32 flex flex-col">
         {/* Desktop Static Toolbar */}
         {editor && (
-          <div className="hidden sm:flex items-center gap-1 p-2 bg-white/5 border border-white/10 rounded-2xl mb-4 self-start sticky top-[88px] z-30 backdrop-blur-xl">
+          <div className="hidden sm:flex items-center gap-1 p-2 bg-white/5 border border-white/10 rounded-2xl mb-4 self-start sticky top-22 z-30 backdrop-blur-xl">
             <button title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bold") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Bold className="w-4 h-4" /></button>
             <button title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("italic") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Italic className="w-4 h-4" /></button>
             <button title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("underline") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><UnderlineIcon className="w-4 h-4" /></button>
@@ -410,8 +410,17 @@ export default function CourseNotesEditor({
 
         {/* Custom Link Prompt Component */}
         {showLinkPrompt && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowLinkPrompt(false)}>
-            <div className="glass-panel p-6 rounded-3xl w-full max-w-sm flex flex-col gap-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div 
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" 
+            onClick={() => setShowLinkPrompt(false)}
+            role="presentation"
+          >
+            <div 
+              className="glass-panel p-6 rounded-3xl w-full max-w-sm flex flex-col gap-4 shadow-2xl" 
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
               <h3 className="text-white font-semibold">Insert Link</h3>
               <form onSubmit={submitLink} className="flex gap-2">
                 <input
@@ -436,8 +445,8 @@ export default function CourseNotesEditor({
       </main>
 
       {/* Mobile Toolbar (Bottom Floating) */}
-      <div className="sm:hidden fixed bottom-[100px] left-1/2 -translate-x-1/2 z-[65] w-[95%] max-w-md">
-        <div className="glass-card-premium p-1.5 rounded-[2rem] border border-white/10 flex items-center justify-between gap-1 shadow-2xl overflow-x-auto scrollbar-hide no-scrollbar scroll-smooth">
+      <div className="sm:hidden fixed bottom-25 left-1/2 -translate-x-1/2 z-65 w-[95%] max-w-md\">
+        <div className="glass-card-premium p-1.5 rounded-4xl border border-white/10 flex items-center justify-between gap-1 shadow-2xl overflow-x-auto scrollbar-hide no-scrollbar scroll-smooth\">
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("bold") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Bold className="w-5 h-5" /></button>
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("italic") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Italic className="w-5 h-5" /></button>
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 1 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Heading1 className="w-5 h-5" /></button>

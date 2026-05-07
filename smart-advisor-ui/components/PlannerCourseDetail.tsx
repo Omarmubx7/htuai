@@ -13,7 +13,7 @@ import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
-        <div className="h-[400px] w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
+        <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
             <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
         </div>
     ),
@@ -261,7 +261,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
         // Validate dates individually and against each other
         if (midtermDate) {
             const m = new Date(midtermDate);
-            if (isNaN(m.getTime())) {
+            if (Number.isNaN(m.getTime())) {
                 toast("Invalid midterm date format.", "error");
                 return;
             }
@@ -285,7 +285,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
 
         if (finalDate) {
             const f = new Date(finalDate);
-            if (isNaN(f.getTime())) {
+            if (Number.isNaN(f.getTime())) {
                 toast("Invalid final exam date format.", "error");
                 return;
             }
@@ -344,7 +344,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
     };
 
     const handleSaveInfo = async () => {
-        if (!course || !course.semester?.start_date || !course.semester?.end_date) {
+        if (!course?.semester?.start_date || !course?.semester?.end_date) {
             toast("Set semester start and end dates first, then edit course metadata.", "error");
             return;
         }
@@ -428,7 +428,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                     <div className="lg:col-span-1 space-y-6">
 
                         {/* Exam Dates - High Prominence */}
-                        <div className={`glass-panel p-6 rounded-[2rem] border transition-all duration-500 bg-white/[0.02] ${!midtermDate || !finalDate ? 'border-violet-500/40 shadow-[0_0_20px_rgba(139,92,246,0.1)]' : 'border-white/5'}`}>
+                        <div className={`glass-panel p-6 rounded-4xl border transition-all duration-500 bg-white/2 ${!midtermDate || !finalDate ? 'border-violet-500/40 shadow-[0_0_20px_rgba(139,92,246,0.1)]' : 'border-white/5'}`}>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-sm font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
                                     <CalendarIcon className="w-4 h-4" /> Exam Schedule
@@ -464,7 +464,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         </div>
 
                         {/* Course Info */}
-                        <div className={`glass-panel p-6 rounded-[2rem] border transition-all duration-500 bg-white/[0.02] ${!instructorName || !location || !(scheduleDays.length > 0 && scheduleTime) ? 'border-emerald-500/30' : 'border-white/5'}`}>
+                        <div className={`glass-panel p-6 rounded-4xl border transition-all duration-500 bg-white/2 ${!instructorName || !location || !(scheduleDays.length > 0 && scheduleTime) ? 'border-emerald-500/30' : 'border-white/5'}`}>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-sm font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
                                     <Info className="w-4 h-4" /> Course Details
@@ -568,7 +568,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         </div>
 
                         {/* Log Session */}
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
+                        <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2">
                             <h2 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
                                 <PlayCircle className="w-4 h-4" /> Log Session
                             </h2>
@@ -612,7 +612,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         </div>
 
                         {/* Recent Sessions */}
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
+                        <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2">
                             <h2 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 flex items-center gap-2">
                                 <History className="w-4 h-4" /> Recent Logs
                             </h2>
@@ -630,7 +630,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                     </div>
 
                     {/* Right Column - Notes Wrapper */}
-                    <div className="lg:col-span-2 glass-panel rounded-[2rem] border border-white/5 bg-white/[0.02] overflow-hidden flex flex-col min-h-[500px]">
+                    <div className="lg:col-span-2 glass-panel rounded-4xl border border-white/5 bg-white/2 overflow-hidden flex flex-col min-h-125">
                         <div className="p-4 border-b border-white/5 flex items-center justify-between">
                             <h2 className="text-sm font-bold uppercase tracking-widest text-white/50 flex items-center gap-2">
                                 <BookOpen className="w-4 h-4" /> Second Brain Notes

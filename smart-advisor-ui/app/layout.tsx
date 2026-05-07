@@ -149,7 +149,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.className} min-h-screen flex flex-col pb-[120px] sm:pb-0`}>
+      <body className={`${outfit.className} min-h-screen flex flex-col pb-30 sm:pb-0`}>
         <ThemeProvider>
           <Providers>
             {/* JSON-LD: SoftwareApplication */}

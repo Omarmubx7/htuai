@@ -100,7 +100,7 @@ export default function PlannerSettings() {
             } else {
                 toast("An error occurred while connecting to Google Calendar.", "error");
             }
-            const currentPath = typeof globalThis.location === 'undefined' ? '/' : globalThis.location.pathname;
+            const currentPath = globalThis.location !== undefined ? globalThis.location.pathname : '/';
             router.replace(currentPath, { scroll: false });
         }
     }, [searchParams, router, toast, checkIntegrationStatus, fetchUserProfile]);
@@ -228,7 +228,7 @@ export default function PlannerSettings() {
                             <User className="w-5 h-5 text-violet-400" /> My Profile
                         </h3>
 
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex flex-col md:flex-row gap-6">
+                        <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 flex flex-col md:flex-row gap-6">
                             <div className="w-20 h-20 rounded-full bg-linear-to-br from-violet-600 to-blue-600 p-1 shrink-0 self-center md:self-start">
                                 {userProfile.image ? (
                                     <img src={userProfile.image} alt="Profile" width={80} height={80} className="w-full h-full rounded-full object-cover border-2 border-black" />
@@ -271,7 +271,7 @@ export default function PlannerSettings() {
                         <Calendar className="w-5 h-5 text-blue-400" /> External Integrations
                     </h3>
 
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2">
@@ -308,7 +308,7 @@ export default function PlannerSettings() {
                     </div>
 
                     {/* Google Sheets - Reserved Future Feature */}
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.01] opacity-60">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/1 opacity-60">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2 text-white/60">
@@ -335,7 +335,7 @@ export default function PlannerSettings() {
                         <Bell className="w-5 h-5 text-amber-400" /> Notifications & Sync Rules
                     </h3>
 
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] space-y-4 text-sm text-white/80">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 space-y-4 text-sm text-white/80">
                         <div className="flex flex-col gap-2 border-b border-white/5 pb-4">
                             <div className="flex items-center justify-between gap-4">
                                 <span>Sync daily classes dynamically</span>
@@ -379,7 +379,7 @@ export default function PlannerSettings() {
                     <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4 flex items-center gap-2 text-red-500">
                         Danger Zone
                     </h3>
-                    <div className="glass-panel p-6 rounded-[2rem] border border-red-500/20 bg-red-500/[0.02]">
+                    <div className="glass-panel p-6 rounded-4xl border border-red-500/20 bg-red-500/2">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base text-red-400">Reset Semester Planner</h4>

@@ -498,7 +498,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             )}
                         </p>
                         <h2 className="text-4xl font-black mt-2 text-transparent bg-clip-text bg-linear-to-r from-violet-400 to-blue-400">
-                            {semester.semester_gpa === null ? liveGPA : semester.semester_gpa.toFixed(2)}
+                            {semester.semester_gpa == null ? liveGPA : semester.semester_gpa.toFixed(2)}
                         </h2>
                         {semester.semester_gpa != null && (
                             <p className="text-[10px] text-white/20 mt-2 font-medium italic">Calculated: {liveGPA}</p>
@@ -513,7 +513,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                     <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 flex items-center justify-center">
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="w-full h-full min-h-[100px] border-2 sm:border-dashed border-violet-500/30 sm:border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 bg-violet-600/10 sm:bg-transparent rounded-3xl transition-all flex flex-col items-center justify-center text-violet-400 sm:text-white/50 hover:text-white group"
+                            className="w-full h-full min-h-25 border-2 sm:border-dashed border-violet-500/30 sm:border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 bg-violet-600/10 sm:bg-transparent rounded-3xl transition-all flex flex-col items-center justify-center text-violet-400 sm:text-white/50 hover:text-white group"
                         >
                             <Plus className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
                             <span className="font-bold text-sm tracking-tight">Add Course</span>
@@ -691,15 +691,17 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-bold text-white/70">Start Date</label>
+                            <label htmlFor="start-date" className="text-xs font-bold text-white/70">Start Date</label>
                             <input
+                                id="start-date"
                                 type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
                                 className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-violet-500 transition-colors"
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-white/70">End Date</label>
+                            <label htmlFor="end-date" className="text-xs font-bold text-white/70">End Date</label>
                             <input
+                                id="end-date"
                                 type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
                                 className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-violet-500 transition-colors"
                             />
@@ -757,10 +759,11 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
                                     {showSuggestions && searchQuery && filteredSuggestions.length > 0 && (
                                         <div className="absolute z-50 w-full mt-2 bg-zinc-800 border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto">
-                                            {filteredSuggestions.map((c, i) => (
-                                                <div
-                                                    key={i}
-                                                    className="px-4 py-2 hover:bg-white/10 cursor-pointer text-sm flex justify-between items-center"
+                                            {filteredSuggestions.map((c) => (
+                                                <button
+                                                    key={c.code}
+                                                    type="button"
+                                                    className="w-full px-4 py-2 hover:bg-white/10 cursor-pointer text-sm flex justify-between items-center text-left"
                                                     onClick={() => {
                                                         setNewCourse({ code: c.code, name: c.name, credits: c.credits });
                                                         setSearchQuery(c.name);
@@ -768,11 +771,11 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                                     }}
                                                 >
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-white/90 truncate max-w-[200px]">{c.name}</span>
+                                                        <span className="font-bold text-white/90 truncate max-w-50">{c.name}</span>
                                                         <span className="text-[10px] text-white/40">{c.code}</span>
                                                     </div>
                                                     <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-md text-white/60">{c.credits} CH</span>
-                                                </div>
+                                                </button>
                                             ))}
                                         </div>
                                     )}

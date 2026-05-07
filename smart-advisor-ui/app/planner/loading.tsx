@@ -6,7 +6,7 @@ import BrandMark from "@/components/BrandMark";
 
 export default function Loading() {
     return (
-        <div className="min-h-[100dvh] flex flex-col items-center justify-center relative overflow-hidden bg-[var(--background)]">
+        <div className="min-h-dvh flex flex-col items-center justify-center relative overflow-hidden bg-[var(--background)]">
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none mesh-gradient" />
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}

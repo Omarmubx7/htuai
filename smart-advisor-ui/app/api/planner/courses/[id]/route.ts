@@ -22,7 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     try {
         const { id } = await params;
-        const courseId = parseInt(id, 10);
+        const courseId = Number.parseInt(id, 10);
 
         // Ensure course belongs to user via semester
         const existing = await prisma.course.findFirst({
@@ -123,7 +123,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     try {
         const { id } = await params;
-        const courseId = parseInt(id, 10);
+        const courseId = Number.parseInt(id, 10);
 
         const existing = await prisma.course.findFirst({
             where: { id: courseId },

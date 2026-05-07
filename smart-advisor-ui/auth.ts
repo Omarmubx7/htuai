@@ -9,7 +9,7 @@ import { getUserByStudentId, createUser, getUserByEmail, linkAccount, createAdmi
 const isProduction = process.env.NODE_ENV === "production";
 
 function requireEnv(name: string, value: string | undefined): string {
-    if (value && value.trim()) {
+    if (value?.trim()) {
         return value.trim();
     }
 
@@ -25,7 +25,7 @@ const googleClientId = requireEnv("GOOGLE_CLIENT_ID", process.env.GOOGLE_CLIENT_
 const googleClientSecret = requireEnv("GOOGLE_CLIENT_SECRET", process.env.GOOGLE_CLIENT_SECRET);
 const nextAuthSecret = (() => {
     const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
-    if (secret && secret.trim()) {
+    if (secret?.trim()) {
         return secret.trim();
     }
 
