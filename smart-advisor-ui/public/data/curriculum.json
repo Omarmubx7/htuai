@@ -12,21 +12,21 @@
                     "framework": "HNC",
                     "level": 1,
                     "prereq": "40303130"
-                },
                 {
-                    "code": "40201260",
-                    "name": "Website Design & Development",
-                    "ch": 3,
-                    "framework": "HNC",
-                    "level": 2,
-                    "prereq": "40201100"
+                    "code": "00201290",
+                    "name": "Apprenticeship 1",
+                    "ch": 6,
+                    "level": 3,
+                    "prereq": ">= 85 CH"
                 },
-                {
-                    "code": "40201201",
-                    "name": "Data Structures & Algorithms",
-                    "ch": 3,
-                    "level": 1,
                     "prereq": "40201100"
+                {
+                    "code": "00201293",
+                    "name": "Apprenticeship 2",
+                    "ch": 3,
+                    "level": 3,
+                    "prereq": "00201290"
+                },
                 },
                 {
                     "code": "00203280",
@@ -835,45 +835,45 @@
             ],
             "department_requirements": [
                 {
-                    "code": "201120",
+                    "code": "00201120",
                     "name": "Game Design",
                     "ch": 3,
                     "level": 1
                 },
                 {
-                    "code": "201160",
+                    "code": "00201160",
                     "name": "Creative Games Development",
                     "ch": 3,
                     "level": 1,
-                    "prereq": "201120"
+                    "prereq": "00201120"
                 },
                 {
-                    "code": "201262",
+                    "code": "00201262",
                     "name": "Games Engine",
                     "ch": 3,
                     "level": 2,
-                    "prereq": "201160"
+                    "prereq": "00201160"
                 },
                 {
-                    "code": "201263",
+                    "code": "00201263",
                     "name": "Advanced Scripting for Games",
                     "ch": 3,
                     "level": 2,
-                    "prereq": "201262"
+                    "prereq": "00201262"
                 },
                 {
-                    "code": "201264",
+                    "code": "00201264",
                     "name": "Immersive Technology Development",
                     "ch": 3,
                     "level": 2,
-                    "prereq": "201262"
+                    "prereq": "00201262"
                 },
                 {
-                    "code": "201270",
+                    "code": "00201270",
                     "name": "Special Topics in Game Development",
                     "ch": 3,
                     "level": 2,
-                    "prereq": "201262"
+                    "prereq": "00201262"
                 },
                 {
                     "code": "00203280",
@@ -934,18 +934,18 @@
                     "level": 1
                 },
                 {
-                    "code": "201290",
+                    "code": "00201290",
                     "name": "Apprenticeship 1 for Game Design and Development",
                     "ch": 6,
                     "level": 2,
-                    "prereq": "7102"
+                    "prereq": "00007102"
                 },
                 {
-                    "code": "201293",
+                    "code": "00201293",
                     "name": "Apprenticeship 2 for Game Design and Development",
                     "ch": 6,
                     "level": 2,
-                    "prereq": "201290"
+                    "prereq": "00201290"
                 }
             ]
         },
@@ -1154,7 +1154,7 @@
                     "name": "Programmable Logic Controllers",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103282, 00103250"
+                    "prereq": "00103282 & 00103250"
                 },
                 {
                     "code": "00102321",
@@ -1175,21 +1175,21 @@
                     "name": "Industrial Systems",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "00103250, 00103282"
+                    "prereq": "00103250 & 00103282"
                 },
                 {
                     "code": "00103232",
                     "name": "Further Electrical, Electronic and Digital Principles",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "00103230, 00103213"
+                    "prereq": "00103230 & 00103213"
                 },
                 {
                     "code": "00103352",
                     "name": "Further Control Systems",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "00103250, 00103213"
+                    "prereq": "00103250 & 00103213"
                 },
                 {
                     "code": "00103490",
@@ -1203,14 +1203,14 @@
                     "name": "Engineering Electromagnetics",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103230, 00103213"
+                    "prereq": "00103230 & 00103213"
                 },
                 {
                     "code": "00103367",
                     "name": "Telecommunication Principles",
                     "ch": 4,
                     "level": 3,
-                    "prereq": "00103282, 00103110"
+                    "prereq": "00103282 & 00103110"
                 },
                 {
                     "code": "00103333",
@@ -1252,14 +1252,14 @@
                     "name": "Speech and Image Processing",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103375, 00103213"
+                    "prereq": "00103375 & 00103213"
                 },
                 {
                     "code": "00103553",
                     "name": "Industry 4.0",
                     "ch": 1,
                     "level": 4,
-                    "prereq": "00103351, 00103367"
+                    "prereq": "00103351 & 00103367"
                 },
                 {
                     "code": "00102523",
@@ -1303,28 +1303,28 @@
                     "name": "Algorithms and Optimization",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103375, 00103213"
+                    "prereq": "00103375 & 00103213"
                 },
                 {
                     "code": "00103571",
                     "name": "Data Analytics",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103375, 00103213"
+                    "prereq": "00103375 & 00103213"
                 },
                 {
                     "code": "00103572",
                     "name": "Artificial Intelligence and Engineering Applications",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103375, 00103213"
+                    "prereq": "00103375 & 00103213"
                 },
                 {
                     "code": "00103573",
                     "name": "Machine Learning",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103375, 00103213"
+                    "prereq": "00103375 & 00103213"
                 },
                 {
                     "code": "00101535",
@@ -1387,7 +1387,7 @@
                     "name": "Power Electronics and Drives",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103333, 00103232"
+                    "prereq": "00103333 & 00103232"
                 },
                 {
                     "code": "00103535",
@@ -1673,7 +1673,7 @@
                     "name": "Further Electrical, Electronic and Digital Principles",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "00103230, 00103213"
+                    "prereq": "00103230 & 00103213"
                 },
                 {
                     "code": "00102490",
@@ -1780,7 +1780,7 @@
                     "name": "Solar Thermal Systems",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00101242"
+                    "prereq": "00101240"
                 },
                 {
                     "code": "00102543",
@@ -1815,7 +1815,7 @@
                     "name": "Smart Grids",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "00103331, 00103534"
+                    "prereq": "00103331 & 00103534"
                 },
                 {
                     "code": "00102552",
@@ -1999,193 +1999,193 @@
             ],
             "department_requirements": [
                 {
-                    "code": "103230",
+                    "code": "00103230",
                     "name": "Electrical and Electronics Principles",
                     "ch": 4,
                     "level": 3,
                     "prereq": "00102111"
                 },
                 {
-                    "code": "103250",
+                    "code": "00103250",
                     "name": "Instrumentation and Control",
                     "ch": 4,
                     "level": 3,
-                    "prereq": "103230"
+                    "prereq": "00103230"
                 },
                 {
-                    "code": "106231",
+                    "code": "00106231",
                     "name": "Quality and Process Improvement",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "106230"
+                    "prereq": "00106230"
                 },
                 {
-                    "code": "106230",
+                    "code": "00106230",
                     "name": "Statistical Process Control",
                     "ch": 4,
                     "level": 3,
                     "prereq": "00103110"
                 },
                 {
-                    "code": "106201",
+                    "code": "00106201",
                     "name": "Data Analytics",
                     "ch": 3,
                     "level": 3,
                     "prereq": "00106200"
                 },
                 {
-                    "code": "106502",
+                    "code": "00106502",
                     "name": "Business Process Support",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106201"
+                    "prereq": "00106201"
                 },
                 {
-                    "code": "106310",
+                    "code": "00106310",
                     "name": "Operations Research",
                     "ch": 3,
                     "level": 3,
-                    "prereq": "106201"
+                    "prereq": "00106201"
                 },
                 {
-                    "code": "103553",
+                    "code": "00103553",
                     "name": "Industry 4.0",
                     "ch": 1,
                     "level": 4,
-                    "prereq": "103250"
+                    "prereq": "00103250"
                 },
                 {
-                    "code": "106260",
+                    "code": "00106260",
                     "name": "Financial Analysis",
                     "ch": 3,
                     "level": 3,
                     "prereq": "00103110"
                 },
                 {
-                    "code": "106561",
+                    "code": "00106561",
                     "name": "Industrial Cost analysis",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106260"
+                    "prereq": "00106260"
                 },
                 {
-                    "code": "106321",
+                    "code": "00106321",
                     "name": "Supply Chain Management",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106320"
+                    "prereq": "00106320"
                 },
                 {
-                    "code": "106522",
+                    "code": "00106522",
                     "name": "Logistics",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106321"
+                    "prereq": "00106321"
                 },
                 {
-                    "code": "106511",
+                    "code": "00106511",
                     "name": "Facility and Asset Management",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106310"
+                    "prereq": "00106310"
                 },
                 {
-                    "code": "106591",
+                    "code": "00106591",
                     "name": "Capstone Project for IE I",
                     "ch": 1,
                     "level": 4,
-                    "prereq": "106490"
+                    "prereq": "00106490"
                 },
                 {
-                    "code": "106592",
+                    "code": "00106592",
                     "name": "Capstone Project for IE II",
                     "ch": 2,
                     "level": 4,
-                    "prereq": "106591"
+                    "prereq": "00106591"
                 },
                 {
-                    "code": "106512",
+                    "code": "00106512",
                     "name": "Decision Analysis and Strategy",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106511"
+                    "prereq": "00106511"
                 },
                 {
-                    "code": "106523",
+                    "code": "00106523",
                     "name": "ERP Systems",
                     "ch": 2,
                     "level": 4,
-                    "prereq": "106321"
+                    "prereq": "00106321"
                 },
                 {
-                    "code": "103213",
+                    "code": "00103213",
                     "name": "Further Math",
                     "ch": 4,
                     "level": 3,
                     "prereq": "00103110"
                 },
                 {
-                    "code": "102321",
+                    "code": "00102321",
                     "name": "Professional Engr. Management",
                     "ch": 4,
                     "level": 3,
                     "prereq": "00102220"
                 },
                 {
-                    "code": "106340",
+                    "code": "00106340",
                     "name": "Sustainability",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "102321"
+                    "prereq": "00102321"
                 },
                 {
-                    "code": "106332",
+                    "code": "00106332",
                     "name": "Lean Manufacturing",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "101362"
+                    "prereq": "00101362"
                 },
                 {
-                    "code": "101362",
+                    "code": "00101362",
                     "name": "Advanced Manufacturing Technology",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "106231"
+                    "prereq": "00106231"
                 },
                 {
-                    "code": "106320",
+                    "code": "00106320",
                     "name": "Manufacturing Systems Engineering",
                     "ch": 4,
                     "level": 4,
-                    "prereq": "106201"
+                    "prereq": "00106201"
                 },
                 {
-                    "code": "106490",
+                    "code": "00106490",
                     "name": "Research Project for IE",
                     "ch": 4,
                     "level": 4,
                     "prereq": "100 hrs completed"
                 },
                 {
-                    "code": "106493",
+                    "code": "00106493",
                     "name": "Apprenticeship for Industrial Engineering I",
                     "ch": 6,
                     "level": 3,
                     "prereq": "100 CH completed"
                 },
                 {
-                    "code": "106494",
+                    "code": "00106494",
                     "name": "Apprenticeship for Industrial Engineering II",
                     "ch": 6,
                     "level": 4,
-                    "prereq": "106493"
+                    "prereq": "00106493"
                 },
                 {
-                    "code": "106495",
+                    "code": "00106495",
                     "name": "Apprenticeship for Industrial Engineering III",
                     "ch": 6,
                     "level": 4,
-                    "prereq": "106494"
+                    "prereq": "00106494"
                 }
             ],
             "electives": [
@@ -2200,7 +2200,7 @@
                     "name": "Principles of Sales and Marketing",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106561"
+                    "prereq": "00106561"
                 },
                 {
                     "code": "00102522",
@@ -2213,7 +2213,7 @@
                     "name": "Special Topics in Optimization and Decision Making",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106310"
+                    "prereq": "00106310"
                 },
                 {
                     "code": "00106504",
@@ -2226,7 +2226,7 @@
                     "name": "Machine Learning Operations",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106502"
+                    "prereq": "00106502"
                 },
                 {
                     "code": "00102523",
@@ -2251,7 +2251,7 @@
                     "name": "Programming Logic Controllers",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "103250"
+                    "prereq": "00103250"
                 },
                 {
                     "code": "00106533",
@@ -2264,28 +2264,28 @@
                     "name": "Introduction to electronics manufacturing",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "101362"
+                    "prereq": "00101362"
                 },
                 {
                     "code": "00106524",
                     "name": "Supply Chain Risk, Disruption, and Resilience",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106321"
+                    "prereq": "00106321"
                 },
                 {
                     "code": "00106525",
                     "name": "Supply Chain Technologies",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106321"
+                    "prereq": "00106321"
                 },
                 {
                     "code": "00106526",
                     "name": "E-commerce and Omni-channel Logistics",
                     "ch": 3,
                     "level": 4,
-                    "prereq": "106321"
+                    "prereq": "00106321"
                 }
             ]
         },
@@ -2834,7 +2834,7 @@
         ],
         "university_electives": [
             {
-                "code": "UE-I",
+                "code": "00999901",
                 "name": "University Elective I",
                 "ch": 1,
                 "framework": "HTU",
@@ -2842,7 +2842,7 @@
                 "description": "Free-choice elective \u2014 any approved university course"
             },
             {
-                "code": "UE-II",
+                "code": "00999902",
                 "name": "University Elective II",
                 "ch": 1,
                 "framework": "HTU",
@@ -2850,7 +2850,7 @@
                 "description": "Free-choice elective \u2014 any approved university course"
             },
             {
-                "code": "UE-III",
+                "code": "00999903",
                 "name": "University Elective III",
                 "ch": 1,
                 "framework": "HTU",
