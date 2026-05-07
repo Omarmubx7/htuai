@@ -524,7 +524,16 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 <div className="space-y-4">
                     <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4">Enrolled Courses</h3>
 
-                    {courses.map(course => (
+                    {courses.map(course => {
+                        const gradeStyles: Record<string, string> = {
+                            D: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                            M: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                            P: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                            U: 'bg-red-500/10 text-red-400 border-red-500/20'
+                        };
+                        const gradeClassName = gradeStyles[course.grade_letter ?? ''] ?? 'bg-white/5 text-white/40 border-white/5';
+
+                        return (
                         <div key={course.id} className="group bg-white/2 border border-white/5 rounded-2xl p-4 sm:p-5 hover:border-white/10 transition-all flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center relative overflow-hidden">
                             <div className="flex items-start gap-4 z-10">
                                 <div className="w-12 h-12 shrink-0 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-black text-sm">
@@ -577,14 +586,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                             <option value="P" className="bg-black text-white">P</option>
                                             <option value="U" className="bg-black text-white">U</option>
                                         </select>
-                                        <div className={`px-4 py-2 flex items-center justify-center rounded-xl font-black text-sm transition-all border
-                                            ${course.grade_letter === 'D' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                course.grade_letter === 'M' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                    course.grade_letter === 'P' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                                                        course.grade_letter === 'U' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                            'bg-white/5 text-white/40 border-white/5'}
-                                            group-hover/select:border-white/20`}
-                                        >
+                                        <div className={`px-4 py-2 flex items-center justify-center rounded-xl font-black text-sm transition-all border ${gradeClassName} group-hover/select:border-white/20`}>
                                             {course.grade_letter || "-"}
                                         </div>
                                     </div>
@@ -597,7 +599,8 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                 </Link>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
 
                     {courses.length === 0 && (
                         <div className="py-16 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30">

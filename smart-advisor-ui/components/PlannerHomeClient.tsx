@@ -802,11 +802,12 @@ function PlannerHomeClient() {
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {summary?.studyTips?.map((tip: StudyTip) => {
-                                const tipBgColor = tip.color === 'orange' 
-                                    ? 'bg-orange-500/20' 
-                                    : tip.color === 'emerald' 
-                                        ? 'bg-emerald-500/20' 
-                                        : 'bg-indigo-500/20';
+                                const tipBgColors: Record<StudyTip['color'], string> = {
+                                    orange: 'bg-orange-500/20',
+                                    emerald: 'bg-emerald-500/20',
+                                    indigo: 'bg-indigo-500/20'
+                                };
+                                const tipBgColor = tipBgColors[tip.color] ?? tipBgColors.indigo;
                                 
                                 return (
                                     <div key={tip.title} className="p-4 rounded-2xl bg-white/3 border border-white/5 flex gap-3">
