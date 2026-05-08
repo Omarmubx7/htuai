@@ -22,6 +22,38 @@
                     "prereq": "40303130"
                 },
                 {
+                    "code": "40201201",
+                    "name": "Data Structures & Algorithms",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201260",
+                    "name": "Website Design & Development",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201150",
+                    "name": "Advanced Programming",
+                    "ch": 3,
+                    "framework": "HND",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
+                    "code": "40201220",
+                    "name": "Software Development Lifecycle",
+                    "ch": 3,
+                    "framework": "HNC",
+                    "level": 2,
+                    "prereq": "40201100"
+                },
+                {
                     "code": "40201261",
                     "name": "Prototyping",
                     "ch": 3,

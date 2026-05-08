@@ -357,8 +357,8 @@ function DashboardInner() {
                     <div>
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-600/10 border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.2)] overflow-hidden">
-                                <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="object-contain dark-logo" />
-                                <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="object-contain light-logo" />
+                                <Image src="/mubxai-dark-logo.png" alt="MUBXAI Logo" width={16} height={16} className="object-contain dark-logo" />
+                                <Image src="/mubxai-light-logo.png" alt="MUBXAI Logo" width={16} height={16} className="object-contain light-logo" />
                             </div>
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
                                 style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.2)' }}>

@@ -381,8 +381,8 @@ export default function HomeClient() {
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             <div id="wt-header-brand" className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                    <Image src="/mubxai-dark-logo.svg" alt="MUBXAI" width={20} height={20} className="dark-logo" />
-                                    <Image src="/mubxai-light-logo.svg" alt="MUBXAI" width={20} height={20} className="light-logo" />
+                                    <Image src="/mubxai-dark-logo.png" alt="MUBXAI" width={20} height={20} className="dark-logo" />
+                                    <Image src="/mubxai-light-logo.png" alt="MUBXAI" width={20} height={20} className="light-logo" />
                                 </div>
                                 <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic">MUBXAI</span>
                             </div>

@@ -76,8 +76,8 @@ export default function StudentLogin() {
                 {/* Badge */}
                 <div className="flex justify-center mb-6">
                     <span className="pill-badge-premium">
-                        <Image src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="dark-logo" />
-                        <Image src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="light-logo" />
+                        <Image src="/mubxai-dark-logo.png" alt="MUBXAI Logo" width={16} height={16} className="dark-logo" />
+                        <Image src="/mubxai-light-logo.png" alt="MUBXAI Logo" width={16} height={16} className="light-logo" />
                         MUBXAI
                     </span>
                 </div>

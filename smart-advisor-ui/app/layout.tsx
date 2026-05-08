@@ -267,7 +267,7 @@ export default async function RootLayout({
                   "@type": "Organization",
                   "name": "MUBXAI",
                   "url": "https://ai.mubx.dev",
-                  "logo": "https://ai.mubx.dev/mubxai-dark-logo.svg",
+                  "logo": "https://ai.mubx.dev/mubxai-dark-logo.png",
                   "description": "Free academic tools for MUBX University students in Jordan.",
                   "founder": {
                     "@type": "Person",

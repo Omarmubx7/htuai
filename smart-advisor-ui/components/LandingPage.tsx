@@ -52,8 +52,8 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     animate={{ opacity: 1, scale: 1 }}
                     className="pill-badge-premium mb-8 hover:border-violet-400/40 transition-colors cursor-default"
                 >
-                    <Image priority src="/mubxai-dark-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="animate-pulse dark-logo" />
-                    <Image priority src="/mubxai-light-logo.svg" alt="MUBXAI Logo" width={16} height={16} className="animate-pulse light-logo" />
+                    <Image priority src="/mubxai-dark-logo.png" alt="MUBXAI Logo" width={16} height={16} className="animate-pulse dark-logo" />
+                    <Image priority src="/mubxai-light-logo.png" alt="MUBXAI Logo" width={16} height={16} className="animate-pulse light-logo" />
                     Student Success Reimagined
                 </motion.div>
 
