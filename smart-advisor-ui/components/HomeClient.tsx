@@ -257,17 +257,18 @@ export default function HomeClient() {
 
     // ─── 3. Life Cycle Effects ──────────────────────────────────────────────
 
-    // Failsafe: if stuck in checking for >1.5s, force landing
-    // Guards against NextAuth hanging or DB latency during session resolution
+    // Failsafe: if auth resolution is still pending after a few seconds, fall back to landing.
+    // This avoids flashing the login screen during the first post-signup session bootstrap.
     useEffect(() => {
-        if (appState === "checking") {
-            const timer = setTimeout(() => {
-                console.warn("[HomeClient] Failsafe triggered: Forced to landing state");
-                setAppState("landing");
-            }, 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [appState]);
+        if (appState !== "checking" || status !== "loading") return;
+
+        const timer = setTimeout(() => {
+            console.warn("[HomeClient] Failsafe triggered: Forced to landing state");
+            setAppState("landing");
+        }, 5000);
+
+        return () => clearTimeout(timer);
+    }, [appState, status]);
 
     // Ensure we scroll to top after switching to the login view (scroll after render)
     useEffect(() => {
