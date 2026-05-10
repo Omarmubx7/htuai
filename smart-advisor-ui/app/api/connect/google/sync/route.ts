@@ -14,9 +14,16 @@ type SyncResult = {
     status?: "synced" | "skipped" | "failed"
 };
 
+interface GoogleTokenMetadata {
+    htu_calendar_id?: string;
+    exam_reminders_days?: number;
+    exam_reminders?: boolean;
+    [key: string]: unknown;
+}
+
 interface GoogleToken {
     accessToken: string;
-    metadata?: Record<string, unknown> | null;
+    metadata?: GoogleTokenMetadata | null;
     [key: string]: unknown;
 }
 
@@ -39,12 +46,12 @@ interface SyncCourse {
 }
 
 function getExamReminders(token: GoogleToken): { method: string; minutes: number }[] {
-    const metadata = token.metadata as Record<string, unknown> | null;
-    const prefDays = (metadata?.exam_reminders_days as number) ?? (metadata?.exam_reminders === false ? 0 : 7);
+    const metadata = token.metadata;
+    const prefDays = metadata?.exam_reminders_days ?? (metadata?.exam_reminders === false ? 0 : 7);
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function updateTokenMetadata(userId: number, metadata: Record<string, unknown>) {
+async function updateTokenMetadata(userId: number, metadata: GoogleTokenMetadata) {
     await prisma.integrationToken.update({
         where: { user_id_provider: { user_id: userId, provider: "google_calendar" } },
         data: { metadata: JSON.parse(JSON.stringify(metadata)) }
@@ -60,8 +67,8 @@ async function getOrCreateHtuCalendar(token: GoogleToken, userId: number): Promi
         });
 
         if (listRes.ok) {
-            const listData = await listRes.json();
-            const existing = listData.items?.find((c: { id: string; summary: string }) => c.summary === "HTU Smart Advisor");
+            const listData = await listRes.json() as { items?: { id: string; summary: string }[] };
+            const existing = listData.items?.find(c => c.summary === "HTU Smart Advisor");
             if (existing) {
                 await updateTokenMetadata(userId, { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
@@ -75,7 +82,7 @@ async function getOrCreateHtuCalendar(token: GoogleToken, userId: number): Promi
         });
 
         if (createRes.ok) {
-            const newCal = await createRes.json();
+            const newCal = await createRes.json() as { id: string };
             const newId = newCal.id;
 
             await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
@@ -192,7 +199,7 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: Go
                 continue;
             }
 
-            const data = await googleRes.json();
+            const data = await googleRes.json() as { id: string };
             const gEventId = data.id;
 
             await prisma.calendarEvent.upsert({
@@ -307,7 +314,7 @@ async function syncCourseSchedule(calendarId: string, course: SyncCourse, token:
             return;
         }
 
-        const gEventId = (await googleRes.json()).id;
+        const gEventId = (await googleRes.json() as { id: string }).id;
         await prisma.calendarEvent.upsert({
             where: { id: existingEvent?.id || -1 },
             update: { google_event_id: gEventId, start_datetime: start, end_datetime: end, updated_at: new Date() },
@@ -358,7 +365,7 @@ export async function POST() {
             headers: { Authorization: `Bearer ${token.accessToken}` }
         });
         if (checkRes.ok) {
-            const userData = await checkRes.json();
+            const userData = await checkRes.json() as { email: string };
             googleAccountEmail = userData.email;
         } else {
             return NextResponse.json({ error: "Unauthorized: Google connection expired. Please reconnect in settings." }, { status: 401 });
