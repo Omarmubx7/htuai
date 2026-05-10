@@ -178,8 +178,8 @@ function PlannerHomeClient() {
         start_date?: string | null;
         end_date?: string | null;
         courses: Array<{ code: string; name: string; credits: number; midterm_date?: string | null; final_date?: string | null }>;
-        study_schedule?: any[] | null;
-        ai_exam_tips?: any[] | null;
+        study_schedule?: Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }> | null;
+        ai_exam_tips?: string[] | null;
     } | null>(null);
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [showSetupWizard, setShowSetupWizard] = useState(false);
@@ -206,8 +206,9 @@ function PlannerHomeClient() {
 
                 setSummary(data as PlannerSummary);
 
-                const semData = (data.allSemesters || []) as any[];
-                console.log(`[fetchSummary] Got ${semData.length} semesters. allSemesters=${JSON.stringify(semData.map((s: any) => ({ id: s.id, name: s.name, courses: s.courses?.length ?? 0 })))}`);
+                interface SemesterSummary { id: number; name: string; courses?: { code: string; name: string; credits: number }[] }
+                const semData = (data.allSemesters || []) as SemesterSummary[];
+                console.log(`[fetchSummary] Got ${semData.length} semesters. allSemesters=${JSON.stringify(semData.map(s => ({ id: s.id, name: s.name, courses: s.courses?.length ?? 0 })))}`);
                 
                 // If we got semesters or this is our last attempt, use the result
                 if (semData.length > 0 || attempt === maxAttempts - 1) {
@@ -221,7 +222,7 @@ function PlannerHomeClient() {
                     } else {
                         justCompletedOnboardingRef.current = false;
                         // Set active semester and load cached schedule
-                        const sem = semData.find((s: any) => (s.courses?.length ?? 0) > 0) ?? semData[0];
+                        const sem = semData.find(s => (s.courses?.length ?? 0) > 0) ?? semData[0];
                         if (sem) {
                             setActiveSemester({
                                 id: sem.id,
@@ -257,10 +258,11 @@ function PlannerHomeClient() {
                 await new Promise(resolve => setTimeout(resolve, delay));
                 attempt++;
 
-            } catch (e: any) {
+            } catch (e: unknown) {
                 console.error("Fetch error:", e);
                 if (attempt === maxAttempts - 1) {
-                    toast(e.message || "Failed to load your dashboard. Please refresh.", "error");
+                    const msg = e instanceof Error ? e.message : "Failed to load your dashboard. Please refresh.";
+                    toast(msg, "error");
                     return;
                 }
                 const delay = baseDelay * Math.pow(2, attempt);
@@ -335,7 +337,7 @@ function PlannerHomeClient() {
                 })
             });
             
-            let data: any = {};
+            let data: { result?: { weeklyPlan?: Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>; examTips?: string[] } } = {};
             try {
                 data = await res.json();
             } catch (parseErr) {

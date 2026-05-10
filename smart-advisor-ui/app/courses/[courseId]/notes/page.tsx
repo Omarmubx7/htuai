@@ -30,13 +30,13 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
         // Fetch curriculum for name (don't fail entire flow if this fails)
         try {
           const curriculum = await fetchJSON<any[]>("/api/courses");
-          const course = curriculum.find((c: any) => c.code === courseId);
+          const course = curriculum.find((c: { code: string; name?: string }) => c.code === courseId);
           if (course) setCourseName(course.name);
         } catch (curriculumError) {
           console.error("Curriculum fetch error:", curriculumError);
         }
 
-        const data = await fetchJSON<{ notes: any; updatedAt?: string }>(
+        const data = await fetchJSON<{ notes: import('@tiptap/core').JSONContent | null; updatedAt?: string }>(
           `/api/courses/${courseId}/notes`,
           { retries: 2 }
         );
@@ -53,7 +53,7 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
   }, [courseId]);
 
   // Save notes handler (for non-autosave changes or immediate feedback)
-  const handleSave = async (val: any) => {
+  const handleSave = async (val: import('@tiptap/core').JSONContent) => {
     try {
       await fetchWithRetry(`/api/courses/${courseId}/notes`, {
         method: "POST",

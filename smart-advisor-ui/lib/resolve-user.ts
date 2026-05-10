@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import type { Session } from "next-auth";
 
 /**
  * Centrally resolves the authenticated user from the session.
  * Uses the database ID if available, otherwise falls back to email or student_id.
  */
-export async function resolveAuthenticatedUser(session: any) {
+export async function resolveAuthenticatedUser(session: Session | null) {
     if (!session || !session.user) return null;
 
     // 1. Primary lookup by database ID (fastest, most reliable)

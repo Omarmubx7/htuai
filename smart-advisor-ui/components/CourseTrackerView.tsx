@@ -177,9 +177,15 @@ function CourseTrackerView({
     // Fetch AI usage counters for the current user so we can show remaining counts
     useEffect(() => {
         let mounted = true;
+        interface AiUsageResponse {
+            usage?: {
+                suggestCourses?: { remaining?: number; resetAt?: string };
+                generateSchedule?: { remaining?: number; resetAt?: string };
+            };
+        }
         fetch('/api/ai/usage')
             .then(r => r.ok ? r.json() : null)
-            .then((data: any) => {
+            .then((data: AiUsageResponse | null) => {
                 if (!mounted || !data?.usage) return;
                 setSuggestRemaining(typeof data.usage.suggestCourses?.remaining === 'number' ? data.usage.suggestCourses.remaining : null);
                 setScheduleRemaining(typeof data.usage.generateSchedule?.remaining === 'number' ? data.usage.generateSchedule.remaining : null);
@@ -290,7 +296,7 @@ function CourseTrackerView({
         setAiLoading("suggestions");
         setAiError(null);
 
-        const enrolledCodes = new Set(activeSemester?.courses?.map((c: any) => c.code) || []);
+        const enrolledCodes = new Set(activeSemester?.courses?.map(c => c.code) || []);
         const eligibleCourses = allCourses.filter(course => {
             if (completedCodes.has(course.code)) return false;
             if (enrolledCodes.has(course.code)) return false;
@@ -372,9 +378,9 @@ function CourseTrackerView({
             }
             // Update local remaining counters (best-effort) after successful call
             setSuggestRemaining(prev => (typeof prev === 'number' ? Math.max(prev - 1, 0) : prev));
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("AI recommendations error", error);
-            setAiError(error?.message || "Could not generate recommendations right now.");
+            setAiError(error instanceof Error ? error.message : "Could not generate recommendations right now.");
         } finally {
             setAiLoading(null);
         }
@@ -471,9 +477,9 @@ function CourseTrackerView({
                 setAiError("No schedule generated yet. Please retry.");
             }
             setScheduleRemaining(prev => (typeof prev === 'number' ? Math.max(prev - 1, 0) : prev));
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("AI schedule error", error);
-            setAiError(error?.message || "Could not generate a schedule right now.");
+            setAiError(error instanceof Error ? error.message : "Could not generate a schedule right now.");
         } finally {
             setAiLoading(null);
         }

@@ -8,9 +8,13 @@ import { calculateSemesterGpa, getClassification, buildCourseCreditMap, getCompl
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-// --- In-memory cache for static curriculum data ---
+// Typed shape for degree_types from curriculum_rules.json
+interface DegreeTypeEntry { major_keys: string[]; total_credits: number }
+type CurriculumRulesRecord = Record<string, unknown> & { degree_types?: Record<string, DegreeTypeEntry> };
+
+// In-memory cache for static curriculum data
 let curriculumCache: Record<string, unknown> | null = null;
-let rulesCache: Record<string, unknown> | null = null;
+let rulesCache: CurriculumRulesRecord | null = null;
 
 async function getCurriculum() {
     if (!curriculumCache) {
@@ -51,7 +55,19 @@ function getJordanDayKey(date: Date): string {
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Amman' }).format(date);
 }
 
-async function handleDailyGamificationXP(user: any, today: Date) {
+type UserWithGamification = {
+    id: number;
+    gamification_profile: {
+        user_id: number;
+        xp: number | null;
+        level: number | null;
+        last_activity_date: Date | null;
+        current_streak_days?: number | null;
+        longest_streak_days?: number | null;
+    } | null;
+};
+
+async function handleDailyGamificationXP(user: UserWithGamification, today: Date) {
     let gamification = user.gamification_profile;
     if (gamification == null) {
         gamification = await prisma.gamificationProfile.create({
@@ -267,11 +283,12 @@ export async function GET(_req: NextRequest) {
 
         // Add from tracker (progress.completed)
         if (progress?.completed && curriculum) {
-            let completedList: any[] = [];
+            let completedList: (string | { code: string; grade?: string })[] = [];
             try {
-                completedList = typeof progress.completed === 'string'
-                    ? JSON.parse(progress.completed)
-                    : progress.completed as any[];
+                const raw = progress.completed;
+                completedList = typeof raw === 'string'
+                    ? (JSON.parse(raw) as (string | { code: string; grade?: string })[])
+                    : (raw as (string | { code: string; grade?: string })[]);
             } catch { /* ok */ }
 
             const creditMap = buildCourseCreditMap(curriculum);
@@ -345,11 +362,12 @@ export async function GET(_req: NextRequest) {
 
         // 7. Progress
         if (progress?.completed && curriculum) {
-            let completedList: any[] = [];
+            let completedList: (string | { code: string; grade?: string })[] = [];
             try {
-                completedList = typeof progress.completed === 'string'
-                    ? JSON.parse(progress.completed)
-                    : progress.completed as any[];
+                const raw = progress.completed;
+                completedList = typeof raw === 'string'
+                    ? (JSON.parse(raw) as (string | { code: string; grade?: string })[])
+                    : (raw as (string | { code: string; grade?: string })[]);
             } catch { /* ok */ }
 
             const creditMap = buildCourseCreditMap(curriculum);
@@ -393,10 +411,11 @@ export async function GET(_req: NextRequest) {
 
         // 9. Projections
         let TOTAL_DEGREE_CH = 135;
-        if (rules?.degree_types) {
-            for (const type in rules.degree_types) {
-                if ((rules.degree_types as any)[type].major_keys.includes(profile?.major || "")) {
-                    TOTAL_DEGREE_CH = (rules.degree_types as any)[type].total_credits;
+        const rulesWithTypes = rules as CurriculumRulesRecord | null;
+        if (rulesWithTypes?.degree_types) {
+            for (const type in rulesWithTypes.degree_types) {
+                if (rulesWithTypes.degree_types[type].major_keys.includes(profile?.major || "")) {
+                    TOTAL_DEGREE_CH = rulesWithTypes.degree_types[type].total_credits;
                     break;
                 }
             }
@@ -478,7 +497,7 @@ export async function GET(_req: NextRequest) {
                 role: user.role || "student"
             }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         const correlationId = crypto.randomUUID();
         console.error("[GET Planner Summary Error]", { correlationId, message: error?.message, stack: error?.stack, error });
         return NextResponse.json({

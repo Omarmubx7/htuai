@@ -236,8 +236,8 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
                     await prisma.semester.update({
                         where: { id: existingSemester.id },
                         data: {
-                            study_schedule: parsed.weeklyPlan || [],
-                            ai_exam_tips: parsed.examTips || []
+                            study_schedule: JSON.parse(JSON.stringify(parsed.weeklyPlan ?? [])),
+                            ai_exam_tips: JSON.parse(JSON.stringify(parsed.examTips ?? []))
                         }
                     });
                     console.log(`[AI] Persisted schedule to semester ${semesterId}`);

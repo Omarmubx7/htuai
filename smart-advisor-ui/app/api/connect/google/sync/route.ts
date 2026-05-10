@@ -14,6 +14,18 @@ type SyncResult = {
     status?: "synced" | "skipped" | "failed"
 };
 
+interface GoogleToken {
+    accessToken: string;
+    metadata?: Record<string, unknown> | null;
+    [key: string]: unknown;
+}
+
+interface SyncUser {
+    id: number;
+    email?: string | null;
+    [key: string]: unknown;
+}
+
 interface SyncCourse {
     id: number;
     code: string;
@@ -22,24 +34,24 @@ interface SyncCourse {
     midterm_date?: Date | string | null;
     final_date?: Date | string | null;
     location?: string | null;
-    class_schedule?: any;
+    class_schedule?: unknown;
     semester_object?: Record<string, unknown>;
 }
 
-function getExamReminders(token: any): { method: string; minutes: number }[] {
+function getExamReminders(token: GoogleToken): { method: string; minutes: number }[] {
     const metadata = token.metadata as Record<string, unknown> | null;
     const prefDays = (metadata?.exam_reminders_days as number) ?? (metadata?.exam_reminders === false ? 0 : 7);
     return prefDays > 0 ? [{ method: "popup", minutes: prefDays * 24 * 60 }] : [];
 }
 
-async function updateTokenMetadata(userId: number, metadata: any) {
+async function updateTokenMetadata(userId: number, metadata: Record<string, unknown>) {
     await prisma.integrationToken.update({
         where: { user_id_provider: { user_id: userId, provider: "google_calendar" } },
         data: { metadata }
     });
 }
 
-async function getOrCreateHtuCalendar(token: any, userId: number): Promise<string> {
+async function getOrCreateHtuCalendar(token: GoogleToken, userId: number): Promise<string> {
     try {
         if (token.metadata?.htu_calendar_id) return token.metadata.htu_calendar_id;
 
@@ -49,7 +61,7 @@ async function getOrCreateHtuCalendar(token: any, userId: number): Promise<strin
 
         if (listRes.ok) {
             const listData = await listRes.json();
-            const existing = listData.items?.find((c: any) => c.summary === "HTU Smart Advisor");
+            const existing = listData.items?.find((c: { id: string; summary: string }) => c.summary === "HTU Smart Advisor");
             if (existing) {
                 await updateTokenMetadata(userId, { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
@@ -81,7 +93,7 @@ async function getOrCreateHtuCalendar(token: any, userId: number): Promise<strin
     return "primary";
 }
 
-async function upsertGoogleEvent(calendarId: string, url: string, method: string, token: any, eventData: any): Promise<Response> {
+async function upsertGoogleEvent(calendarId: string, url: string, method: string, token: GoogleToken, eventData: Record<string, unknown>): Promise<Response> {
     const finalUrl = url.replace("primary", encodeURIComponent(calendarId));
     let res = await fetch(finalUrl, {
         method,
@@ -134,7 +146,7 @@ function formatAmmanTime(date: Date) {
     return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}${offset}`;
 }
 
-async function syncCourseExams(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+async function syncCourseExams(calendarId: string, course: SyncCourse, token: GoogleToken, user: SyncUser, results: SyncResult[]) {
     const examTypes = [
         { field: "midterm_date" as const, type: "Midterm" },
         { field: "final_date" as const, type: "Final" }
@@ -196,7 +208,7 @@ async function syncCourseExams(calendarId: string, course: SyncCourse, token: an
     }
 }
 
-function parseSchedule(schedule: any): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
+function parseSchedule(schedule: unknown): { days: string[]; startH: number; startM: number; endH: number; endM: number } | null {
     if (!schedule) return null;
     try {
         const parsed = typeof schedule === 'string' ? JSON.parse(schedule) : schedule;
@@ -254,7 +266,7 @@ function calculateScheduleDates(schedule: { days: string[]; startH: number; star
     return { start, end, untilStr };
 }
 
-async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: any, user: any, results: SyncResult[]) {
+async function syncCourseSchedule(calendarId: string, course: SyncCourse, token: GoogleToken, user: SyncUser, results: SyncResult[]) {
     const scheduleInfo = parseSchedule(course.class_schedule);
     if (!scheduleInfo) {
         results.push({ course: course.code, type: "Schedule", success: false, status: "skipped", error: "No valid class time set" });

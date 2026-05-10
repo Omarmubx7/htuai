@@ -56,7 +56,7 @@ export async function GET() {
         });
 
         return NextResponse.json(sortedCourses);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Failed to load courses for autocomplete:", error);
         return NextResponse.json({ error: "Failed to load courses" }, { status: 500 });
     }

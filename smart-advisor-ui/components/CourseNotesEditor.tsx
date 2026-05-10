@@ -39,7 +39,7 @@ const SlashCommand = Extension.create({
     return {
       suggestion: {
         char: '/',
-        command: ({ editor, range, props }: any) => {
+        command: ({ editor, range, props }: { editor: import('@tiptap/core').Editor; range: import('@tiptap/core').Range; props: { command: (args: { editor: import('@tiptap/core').Editor; range: import('@tiptap/core').Range }) => void } }) => {
           props.command({ editor, range });
         },
       },
@@ -56,9 +56,9 @@ const SlashCommand = Extension.create({
 });
 
 interface CourseNotesEditorProps {
-  value?: any;
-  onChange?: (val: any) => void;
-  onAutoSave?: (val: any) => void;
+  value?: import('@tiptap/core').JSONContent | null;
+  onChange?: (val: import('@tiptap/core').JSONContent) => void;
+  onAutoSave?: (val: import('@tiptap/core').JSONContent) => void;
   courseTitle?: string;
   updatedAt?: string;
 }
@@ -105,7 +105,7 @@ export default function CourseNotesEditor({
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-violet-400 underline underline-offset-4 cursor-pointer" } }),
       Image.configure({ allowBase64: true, HTMLAttributes: { class: "rounded-2xl border border-white/10 my-8 shadow-2xl max-w-full" } }),
       Placeholder.configure({
-        placeholder: ({ node }: any) => {
+        placeholder: ({ node }: { node: { type: { name: string }; attrs: { level?: number } } }) => {
           if (node.type.name === 'heading') return `Heading ${node.attrs.level}`;
           if (node.type.name === 'codeBlock') return "Paste your code here...";
           return "Type '/' for commands...";

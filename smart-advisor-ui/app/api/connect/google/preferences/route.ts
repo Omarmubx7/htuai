@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.integrationToken.update({
             where: { user_id_provider: { user_id: user.id, provider: "google_calendar" } },
-            data: { metadata: (preferences || {}) as any }
+            data: { metadata: JSON.parse(JSON.stringify(preferences ?? {})) }
         });
 
         return NextResponse.json({ success: true });

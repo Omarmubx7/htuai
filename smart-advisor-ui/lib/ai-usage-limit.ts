@@ -26,7 +26,7 @@ export function getStartOfToday(date = new Date()): Date {
 }
 
 export async function getDailyAiUsageCount(userId: number, resetAt = getResetTime(), endpoint?: string): Promise<number> {
-    const where: any = {
+    const where: import("@prisma/client").Prisma.AIUsageLogWhereInput = {
         user_id: userId,
         created_at: { gte: resetAt },
     };
