@@ -84,7 +84,7 @@ export const safeStorage = {
             // Mirror native storage event for other tabs and listeners
             try {
                 if (typeof StorageEvent !== 'undefined') {
-                    const event = new StorageEvent('storage', { key, newValue: value, oldValue: null, storageArea: window.localStorage });
+                    const event = new StorageEvent('storage', { key, newValue: value, oldValue: null });
                     window.dispatchEvent(event);
                 }
             } catch (_e) { /* ignore in non-window contexts */ }

@@ -83,12 +83,11 @@ async function awardBadge(userId: number, code: string, name: string, descriptio
         create: { code, name, description, icon }
     });
 
-    // Award to user
-    await prisma.userBadge.create({
-        data: {
-            user_id: userId,
-            badge_id: badge.id
-        }
+    // Award to user (upsert to avoid unique constraint violations on duplicate award attempts)
+    await prisma.userBadge.upsert({
+        where: { user_id_badge_id: { user_id: userId, badge_id: badge.id } },
+        update: {},
+        create: { user_id: userId, badge_id: badge.id }
     });
 
     createAdminLog({

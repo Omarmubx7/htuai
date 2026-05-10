@@ -75,7 +75,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     transition={{ delay: 0.2, duration: 0.8 }}
                     className="text-base md:text-xl text-white/40 max-w-2xl mb-6 font-medium leading-relaxed px-6 tracking-tight"
                 >
-                    The all-in-one AI platform for Al Hussein Technical University students to master their academic journey, from 0 to 160 CH.
+                    The all-in-one AI platform for Al Hussein Technical University students to master their academic journey, from enrollment to graduation.
                 </motion.p>
 
                 <motion.div

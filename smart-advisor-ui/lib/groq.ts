@@ -193,24 +193,39 @@ function buildStudySchedulePrompt(params: {
     courses: ScheduleCourse[];
     weeklyHours: number;
 }) {
-    const { major, semesterType, semesterName, semesterStartDate, semesterEndDate, courses, weeklyHours } = params;
-    const semesterParts = [semesterType, semesterName ? `(${semesterName})` : ""].filter(Boolean);
-    const semesterLabel = semesterParts.join("");
-    const coursesStr = courses.map((course) => `${course.code}(${course.credits}CH)`).join("|");
-    const dateRange = semesterStartDate || semesterEndDate
-        ? `Dates: ${semesterStartDate || "unknown"} -> ${semesterEndDate || "unknown"}`
-        : "";
+    const { major, semesterType, semesterName, courses, weeklyHours } = params;
 
-    return `HTU ${major} study plan. ${semesterLabel} ${weeklyHours}h/week
-${dateRange}
-Courses: ${coursesStr}
-W:|day|code|hours|focus
-Sun|CS101|2|arrays
-E:|exam_tip
-Oct 12 midterm`;
+    // TOON: name-only list — codes excluded so model never outputs them
+    const coursesStr = courses.map((c) => `${c.name}(${c.credits}CH)`).join("|");
+    const semLabel = semesterName || `${semesterType ?? "Fall"} 2026`;
+    // Use real course names in schema example so model mimics names, not codes
+    const ex1 = courses[0]?.name ?? "Course A";
+    const ex2 = courses[1]?.name ?? courses[0]?.name ?? "Course B";
+
+    // TOON compact prompt: ~120 tokens vs ~271 previously
+    return `HTU academic planner. JSON output only.
+PARAMS: major=${major}|sem=${semLabel}|hours/week=${weeklyHours}|courses=${coursesStr}
+RULES: "course" field=full name ONLY(no codes)|cover all ${courses.length} courses|"focus"=1 short sentence|7 days
+SCHEMA(follow exactly):
+{"weeklyPlan":[{"day":"Sunday","sessions":[{"course":"${ex1}","hours":2,"focus":"one sentence"}]},{"day":"Monday","sessions":[{"course":"${ex2}","hours":2,"focus":"one sentence"}]}],"examTips":["tip1","tip2"]}
+Output complete valid JSON. Stop after closing brace.`;
 }
 
 function parseStudyScheduleContent(content: string) {
+    try {
+        // Try direct JSON parsing first
+        const parsed = JSON.parse(content.trim());
+        if (parsed.weeklyPlan && parsed.examTips) {
+            return {
+                weeklyPlan: Array.isArray(parsed.weeklyPlan) ? parsed.weeklyPlan : [],
+                examTips: Array.isArray(parsed.examTips) ? parsed.examTips : [],
+            };
+        }
+    } catch (e) {
+        console.warn("[AI] Failed to parse JSON response, falling back to text parsing:", e);
+    }
+    
+    // Fallback to text parsing for backward compatibility
     const lines = content.split("\n").map((line) => line.trim()).filter(Boolean);
     return {
         weeklyPlan: collectWeeklyPlan(lines),
@@ -296,15 +311,15 @@ export async function getStudySchedule(params: {
 
     if (process.env.NODE_ENV === 'development') {
         console.log("--- Groq Request (getStudySchedule) ---");
-        console.log("Prompt:", prompt);
+        console.log("Prompt:", prompt.substring(0, 500) + "...");
     }
 
     const completion = await client.chat.completions.create({
         model: modelUsed,
         temperature: 0.1,
-        max_tokens: 400,
+        max_tokens: 1400,   // 800 was too low — a 7-day JSON schedule needs ~1000–1200 tokens
         messages: [
-            { role: "system", content: "TOON format. Only use given courses/dates." },
+            { role: "system", content: "You are an academic planning assistant. Respond with valid JSON only. Never use course codes — always use full course names." },
             { role: "user", content: prompt }
         ],
     });
@@ -315,11 +330,18 @@ export async function getStudySchedule(params: {
     }
     const content = completion.choices[0]?.message?.content ?? "";
     if (process.env.NODE_ENV === 'development') {
-        console.log("Raw Content:", content);
+        console.log("Raw Content:", content.substring(0, 500));
     }
-    const { weeklyPlan, examTips } = parseStudyScheduleContent(content);
+    
+    const parsed = parseStudyScheduleContent(content);
+    
+    if (process.env.NODE_ENV === 'development') {
+        console.log("Parsed weeklyPlan:", parsed.weeklyPlan?.length, "days");
+        console.log("Parsed examTips:", parsed.examTips?.length, "tips");
+    }
+    
     return {
-        content: JSON.stringify({ weeklyPlan, examTips }),
+        content: JSON.stringify(parsed),
         usage: {
             inputTokens: completion.usage?.prompt_tokens ?? 0,
             outputTokens: completion.usage?.completion_tokens ?? 0,

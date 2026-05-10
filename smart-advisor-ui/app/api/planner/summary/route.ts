@@ -53,7 +53,7 @@ function getJordanDayKey(date: Date): string {
 
 async function handleDailyGamificationXP(user: any, today: Date) {
     let gamification = user.gamification_profile;
-    if (!gamification) {
+    if (gamification == null) {
         gamification = await prisma.gamificationProfile.create({
             data: { user_id: user.id, xp: 10, level: 1, last_activity_date: today }
         });
@@ -106,6 +106,13 @@ async function handleGpaImprovement(userId: number, cgpa: number, classification
     }
 }
 
+function getCompletedEntryGrade(entry: unknown): string {
+    if (typeof entry !== 'object' || entry === null) return 'M';
+    const grade = (entry as { grade?: unknown }).grade;
+    return typeof grade === 'string' ? grade : 'M';
+}
+
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function GET(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -161,7 +168,7 @@ export async function GET(_req: NextRequest) {
             const offsetMatch = /GMT([+-]\d{1,2})/.exec(tzName);
             const offset = formatJordanTimezoneOffset(offsetMatch);
             todayStart = new Date(`${jordanDateStr}T00:00:00${offset}`);
-            if (isNaN(todayStart.getTime())) throw new Error('Invalid todayStart computed');
+            if (Number.isNaN(todayStart.getTime())) throw new Error('Invalid todayStart computed');
         } catch (e) {
             console.error('Timezone parsing failed, falling back to +03:00', e);
             todayStart = new Date(`${jordanDateStr}T00:00:00+03:00`);
@@ -219,7 +226,17 @@ export async function GET(_req: NextRequest) {
             })
         ]);
 
-        const gamification = await handleDailyGamificationXP(user, todayStart);
+        console.log(`[PlannerSummary] Fetched ${semesters.length} semesters for userId=${user.id}`);
+        if (semesters.length === 0) {
+            console.warn(`[PlannerSummary] WARNING: No semesters found for userId=${user.id}, email=${user.email}`);
+        }
+
+        let gamification = user.gamification_profile;
+        try {
+            gamification = await handleDailyGamificationXP(user, todayStart);
+        } catch (gamErr) {
+            console.error("[PlannerSummary] Gamification XP update failed (non-fatal):", gamErr);
+        }
 
         // 4. Active Semester
         const currentSemester = (semesters && semesters.length > 0) 
@@ -267,9 +284,7 @@ export async function GET(_req: NextRequest) {
                 if (!code || plannerGradedCodes.has(code)) continue;
 
                 const credits = creditMap.get(code) ?? 3;
-const grade = typeof entry === 'object' && entry !== null && typeof (entry as any).grade === 'string'
-                    ? (entry as any).grade 
-                    : 'M';
+                const grade = getCompletedEntryGrade(entry);
                     
                 const points = calculateSemesterGpa([{ grade, credits }]) * credits;
                 totalQualityPoints += points;

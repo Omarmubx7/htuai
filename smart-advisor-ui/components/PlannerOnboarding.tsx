@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, CalendarDays, Target, ArrowRight, ShieldCheck } from "lucide-react";
 import SemesterSetupWizard from "./SemesterSetupWizard";
 
-export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete: () => void }>) {
+export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete: (semesterId?: number) => void | Promise<void> }>) {
     const [step, setStep] = useState(1);
     const [showWizard, setShowWizard] = useState(false);
 
@@ -108,7 +108,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                 {showWizard && (
                     <SemesterSetupWizard
                         onClose={() => setShowWizard(false)}
-                        onComplete={() => { setShowWizard(false); onComplete(); }}
+                        onComplete={async (semesterId?: number) => { setShowWizard(false); await onComplete(semesterId); }}
                     />
                 )}
             </AnimatePresence>

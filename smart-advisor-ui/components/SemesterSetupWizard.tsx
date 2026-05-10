@@ -36,6 +36,39 @@ export interface SemesterSetupWizardProps {
 
 type SemType = "Fall" | "Spring" | "Summer";
 
+function extractCurriculumCourses(curriculum: {
+    shared?: Record<string, Array<{ code?: string; name?: string; ch?: number }>>;
+    majors?: Record<string, Record<string, Array<{ code?: string; name?: string; ch?: number }>>>;
+}) {
+    const map = new Map<string, CurriculumCourse>();
+
+    const addCourseList = (list?: Array<{ code?: string; name?: string; ch?: number }>) => {
+        if (!Array.isArray(list)) return;
+
+        for (const course of list) {
+            if (!course.code || !course.name) continue;
+            map.set(course.code, {
+                code: course.code,
+                name: course.name,
+                credits: course.ch ?? 3,
+            });
+        }
+    };
+
+    if (curriculum.shared) {
+        for (const list of Object.values(curriculum.shared)) addCourseList(list);
+    }
+
+    if (curriculum.majors) {
+        for (const major of Object.values(curriculum.majors)) {
+            if (!major || typeof major !== 'object') continue;
+            for (const list of Object.values(major)) addCourseList(list);
+        }
+    }
+
+    return Array.from(map.values());
+}
+
 function getPresetDates(type: SemType): { start: string; end: string; year: number } {
     const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Amman" }));
     const y = now.getFullYear();
@@ -49,15 +82,18 @@ function getPresetDates(type: SemType): { start: string; end: string; year: numb
 const STEPS = ["Semester", "Courses", "Exams", "Details", "Finish"];
 
 function StepBar({ current }: Readonly<{ current: number }>) {
+    const getStepDotClasses = (index: number) => {
+        if (index < current) return "bg-violet-500 text-white";
+        if (index === current) return "bg-violet-600 text-white ring-2 ring-violet-500/30";
+        return "bg-white/10 text-white/40";
+    };
+
     return (
         <div className="flex items-center gap-1 mb-6">
             {STEPS.map((label, i) => (
                 <div key={label} className="flex items-center gap-1 flex-1">
                     <div className={`flex flex-col items-center gap-1 flex-1 ${i <= current ? "opacity-100" : "opacity-30"}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-colors
-                            ${i < current ? "bg-violet-500 text-white" :
-                              i === current ? "bg-violet-600 text-white ring-2 ring-violet-500/30" :
-                              "bg-white/10 text-white/40"}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${getStepDotClasses(i)}`}>
                             {i < current ? <Check className="w-3 h-3" /> : i + 1}
                         </div>
                         <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 hidden sm:block">{label}</span>
@@ -103,31 +139,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                 shared?: Record<string, Array<{ code?: string; name?: string; ch?: number }>>;
                 majors?: Record<string, Record<string, Array<{ code?: string; name?: string; ch?: number }>>>;
             }) => {
-                const map = new Map<string, CurriculumCourse>();
-                const add = (list?: unknown) => {
-                    if (Array.isArray(list)) {
-                        list.forEach((c: any) => {
-                            if (c.code && c.name) {
-                                map.set(c.code, {
-                                    code: c.code,
-                                    name: c.name,
-                                    credits: c.ch ?? 3
-                                });
-                            }
-                        });
-                    }
-                };
-                if (curriculum.shared) {
-                    Object.values(curriculum.shared).forEach(add);
-                }
-                if (curriculum.majors) {
-                    Object.values(curriculum.majors).forEach(m => {
-                        if (m && typeof m === 'object') {
-                            Object.values(m).forEach(add);
-                        }
-                    });
-                }
-                setAllCurriculumCourses(Array.from(map.values()));
+                setAllCurriculumCourses(extractCurriculumCourses(curriculum));
             })
             .catch(() => {/* curriculum load failure is non-fatal */});
     }, []);
@@ -162,9 +174,16 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
     // ─── Step navigation with lazy semester creation ──────────────────────────
 
     const createSemester = useCallback(async (): Promise<number | null> => {
-        if (semesterId) return semesterId;
-        if (!semType) return null;
+        if (semesterId) {
+            console.log(`[createSemester] Semester already exists: id=${semesterId}`);
+            return semesterId;
+        }
+        if (!semType) {
+            console.warn(`[createSemester] No semester type selected`);
+            return null;
+        }
         try {
+            console.log(`[createSemester] Posting semester: type=${semType}, year=${semYear}`);
             const res = await fetchWithRetry("/api/planner/semesters", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -177,21 +196,34 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                 }),
                 retries: 2,
             });
-            if (!res.ok) { toast("Failed to create semester", "error"); return null; }
+            if (!res.ok) { 
+                console.error(`[createSemester] POST failed with status ${res.status}`);
+                toast("Failed to create semester", "error"); 
+                return null; 
+            }
             const data = await res.json() as { semester: { id: number } };
+            console.log(`[createSemester] Semester created successfully: id=${data.semester.id}`);
             setSemesterId(data.semester.id);
             return data.semester.id;
-        } catch {
+        } catch (e) {
+            console.error(`[createSemester] Caught exception:`, e);
             toast("Network error creating semester", "error");
             return null;
         }
     }, [semesterId, semType, semYear, startDate, endDate, toast]);
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     const handleFinish = async () => {
         setSaving(true);
         try {
+            console.log(`[SemesterSetupWizard.handleFinish] Starting semester setup...`);
             const sid = await createSemester();
-            if (!sid) { setSaving(false); return; }
+            console.log(`[SemesterSetupWizard.handleFinish] Semester created: id=${sid}`);
+            if (!sid) { 
+                console.error(`[SemesterSetupWizard.handleFinish] Failed to create semester, sid is null`);
+                setSaving(false); 
+                return; 
+            }
 
             // POST all courses sequentially
             for (const course of courses) {
@@ -201,9 +233,20 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                     body: JSON.stringify({ semester_id: sid, code: course.code, name: course.name, credits: course.credits }),
                     retries: 2,
                 });
-                if (!res.ok) { toast(`Failed to add ${course.code}`, "error"); continue; }
+                    if (!res.ok) {
+                        // Try to surface server-provided error message when possible
+                        let msg = `Failed to add ${course.code}`;
+                        try {
+                            const body = await res.json().catch(() => null);
+                            if (body?.error) msg = String(body.error);
+                        } catch {}
+                        toast(msg, "error");
+                        // If duplicate course, stop attempting further adds to avoid repeated 400s
+                        if (res.status === 400) break;
+                        continue;
+                    }
 
-                const { course: created } = await res.json() as { course: { id: number } };
+                    const { course: created } = await res.json() as { course: { id: number } };
 
                 // Update exam dates + details if provided
                 const hasMeta = course.midterm_date || course.final_date || course.instructor_name || course.location;
@@ -223,6 +266,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
             }
 
             toast("Semester set up successfully! 🎉", "success");
+            console.log(`[SemesterSetupWizard.handleFinish] Calling onComplete with sid=${sid}`);
             onComplete(sid);
         } catch {
             toast("Something went wrong. Please try again.", "error");
@@ -233,9 +277,41 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
     const goNext = async () => {
         if (step === 0 && !semType) { toast("Please choose a semester type", "error"); return; }
+        if (step === 0 && startDate && endDate && endDate <= startDate) {
+            toast("End date must be after the start date", "error"); return;
+        }
         if (step === 1 && courses.length === 0) { toast("Add at least one course to continue", "error"); return; }
         if (step === 4) { await handleFinish(); return; }
         setStep(s => s + 1);
+    };
+
+    const renderFinishButton = () => {
+        if (saving) {
+            return (
+                <>
+                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                    Saving...
+                </>
+            );
+        }
+
+        return (
+            <>
+                <Sparkles className="w-4 h-4" />
+                Create Semester
+            </>
+        );
+    };
+
+    const renderContinueButton = () => {
+        const label = step === 1 && courses.length === 0 ? "Add Courses First" : "Continue";
+
+        return (
+            <>
+                {label}
+                <ChevronRight className="w-4 h-4" />
+            </>
+        );
     };
 
     // ─── Render steps ─────────────────────────────────────────────────────────
@@ -299,14 +375,18 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                         {showSugg && searchQ && suggestions.length > 0 && (
                             <div className="absolute z-50 w-full mt-1 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-52 overflow-y-auto">
                                 {suggestions.map(c => (
-                                    <div key={c.code} onMouseDown={() => addCourse(c)}
-                                        className="px-4 py-2.5 hover:bg-white/10 cursor-pointer flex items-center justify-between gap-2">
+                                    <button
+                                        key={c.code}
+                                        type="button"
+                                        onClick={() => addCourse(c)}
+                                        className="w-full text-left px-4 py-2.5 hover:bg-white/10 cursor-pointer flex items-center justify-between gap-2"
+                                    >
                                         <div>
-                                            <p className="text-sm font-semibold text-white/90 truncate max-w-[220px]">{c.name}</p>
+                                            <p className="text-sm font-semibold text-white/90 truncate max-w-55">{c.name}</p>
                                             <p className="text-[10px] text-white/40">{c.code}</p>
                                         </div>
                                         <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-md text-white/50 shrink-0">{c.credits} CH</span>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         )}
@@ -412,7 +492,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                         <h3 className="text-xl font-black">Ready to go!</h3>
                         <p className="text-white/50 text-sm mt-2">
                             Setting up <span className="text-white font-bold">{semType} {semYear}</span> with{" "}
-                            <span className="text-violet-400 font-bold">{courses.length} course{courses.length !== 1 ? "s" : ""}</span>.
+                            <span className="text-violet-400 font-bold">{courses.length} course{courses.length === 1 ? "" : "s"}</span>.
                         </p>
                     </div>
                     <div className="bg-white/2 border border-white/5 rounded-2xl p-4 text-left space-y-1.5">
@@ -426,8 +506,8 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                     </div>
                     {saving && (
                         <div className="space-y-2">
-                            {[...new Array(3)].map((_, i) => (
-                                <div key={`skeleton-${i}`} className="h-3 rounded-full bg-white/10 animate-pulse" style={{ width: `${80 - i * 15}%`, margin: "0 auto" }} />
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <div key={`skeleton-${i + 1}`} className="h-3 rounded-full bg-white/10 animate-pulse" style={{ width: `${80 - i * 15}%`, margin: "0 auto" }} />
                             ))}
                         </div>
                     )}
@@ -497,10 +577,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                     )}
                     <button onClick={goNext} disabled={saving || (step === 0 && !semType)}
                         className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
-                        {step === 4
-                            ? (saving ? <><div className="w-2 h-2 rounded-full bg-white animate-pulse" /> Saving...</> : <><Sparkles className="w-4 h-4" /> Create Semester</>)
-                            : <>{step === 1 && courses.length === 0 ? "Add Courses First" : "Continue"} <ChevronRight className="w-4 h-4" /></>
-                        }
+                        {step === 4 ? renderFinishButton() : renderContinueButton()}
                     </button>
                 </div>
             </motion.div>

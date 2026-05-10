@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable sonarjs/cognitive-complexity */
+
 import { useState, useEffect, memo, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -184,53 +186,87 @@ function PlannerHomeClient() {
     const [generatingSchedule, setGeneratingSchedule] = useState(false);
     const [showStatusInfo, setShowStatusInfo] = useState(false);
     const { toast } = useToast();
+    // Guards against re-triggering the onboarding wizard immediately after
+    // the user completes it — DB propagation can lag behind the refetch.
+    const justCompletedOnboardingRef = useRef(false);
 
     const fetchSummary = useCallback(async () => {
-        try {
-            const res = await fetch("/api/planner/summary", { cache: "no-store" });
-            const data = await res.json();
-            
-            if (!res.ok) {
-                throw new Error(data.details || data.error || "Failed to fetch summary");
-            }
+        let attempt = 0;
+        const maxAttempts = 4;
+        const baseDelay = 100;
 
-            setSummary(data as PlannerSummary);
+        while (attempt < maxAttempts) {
+            try {
+                const res = await fetch("/api/planner/summary", { cache: "no-store" });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.details || data.error || "Failed to fetch summary");
+                }
 
-            const semData = (data.allSemesters || []) as any[];
-            if (semData.length === 0) {
-                setShowOnboarding(true);
-            } else {
-                // Set active semester and load cached schedule
-                const sem = semData.find((s: any) => (s.courses?.length ?? 0) > 0) ?? semData[0];
-                if (sem) {
-                    setActiveSemester({
-                        id: sem.id,
-                        name: sem.name,
-                        type: sem.type ?? null,
-                        start_date: sem.start_date ?? null,
-                        end_date: sem.end_date ?? null,
-                        courses: sem.courses ?? [],
-                        study_schedule: sem.study_schedule,
-                        ai_exam_tips: sem.ai_exam_tips,
-                    });
-                    
-                    // Prioritize DB schedule, fallback to safeStorage for legacy
-                    if (sem.study_schedule && sem.study_schedule.length > 0) {
-                        setWeeklyPlan(sem.study_schedule);
+                setSummary(data as PlannerSummary);
+
+                const semData = (data.allSemesters || []) as any[];
+                console.log(`[fetchSummary] Got ${semData.length} semesters. allSemesters=${JSON.stringify(semData.map((s: any) => ({ id: s.id, name: s.name, courses: s.courses?.length ?? 0 })))}`);
+                
+                // If we got semesters or this is our last attempt, use the result
+                if (semData.length > 0 || attempt === maxAttempts - 1) {
+                    if (semData.length === 0) {
+                        if (!justCompletedOnboardingRef.current) {
+                            console.warn(`[fetchSummary] No semesters returned, showing onboarding`);
+                            setShowOnboarding(true);
+                        } else {
+                            console.warn(`[fetchSummary] 0 semesters but onboarding just completed — waiting for DB`);
+                        }
                     } else {
-                        const cached = safeStorage.get(`schedule-sem-${sem.id}`);
-                        if (cached) {
-                            try {
-                                const parsed = JSON.parse(cached);
-                                if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
-                            } catch { /* ok */ }
+                        justCompletedOnboardingRef.current = false;
+                        // Set active semester and load cached schedule
+                        const sem = semData.find((s: any) => (s.courses?.length ?? 0) > 0) ?? semData[0];
+                        if (sem) {
+                            setActiveSemester({
+                                id: sem.id,
+                                name: sem.name,
+                                type: sem.type ?? null,
+                                start_date: sem.start_date ?? null,
+                                end_date: sem.end_date ?? null,
+                                courses: sem.courses ?? [],
+                                study_schedule: sem.study_schedule,
+                                ai_exam_tips: sem.ai_exam_tips,
+                            });
+                            
+                            // Prioritize DB schedule, fallback to safeStorage for legacy
+                            if (sem.study_schedule && sem.study_schedule.length > 0) {
+                                setWeeklyPlan(sem.study_schedule);
+                            } else {
+                                const cached = safeStorage.get(`schedule-sem-${sem.id}`);
+                                if (cached) {
+                                    try {
+                                        const parsed = JSON.parse(cached);
+                                        if (parsed.weeklyPlan) setWeeklyPlan(parsed.weeklyPlan);
+                                    } catch { /* ok */ }
+                                }
+                            }
                         }
                     }
+                    return;
                 }
+
+                // If empty but not last attempt, retry with exponential backoff
+                const delay = baseDelay * Math.pow(2, attempt);
+                console.log(`[fetchSummary] Empty result on attempt ${attempt + 1}, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                attempt++;
+
+            } catch (e: any) {
+                console.error("Fetch error:", e);
+                if (attempt === maxAttempts - 1) {
+                    toast(e.message || "Failed to load your dashboard. Please refresh.", "error");
+                    return;
+                }
+                const delay = baseDelay * Math.pow(2, attempt);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                attempt++;
             }
-        } catch (e: any) {
-            console.error("Fetch error:", e);
-            toast(e.message || "Failed to load your dashboard. Please refresh.", "error");
         }
     }, [toast]);
 
@@ -299,20 +335,53 @@ function PlannerHomeClient() {
                 })
             });
             
-            if (!res.ok) {
-                const payload = await res.json().catch(() => ({} as { error?: string; details?: string }));
-                throw new Error(payload.details || payload.error || "Failed to generate schedule");
+            let data: any = {};
+            try {
+                data = await res.json();
+            } catch (parseErr) {
+                console.error("Failed to parse API response:", parseErr);
+                throw new Error("Server returned invalid response. Please try again.");
             }
             
-            const data = await res.json();
-            if (data.result?.weeklyPlan) {
+            // Handle 503 (service unavailable) with fallback
+            if (res.status === 503 && data.fallback) {
+                setWeeklyPlan(data.fallback.weeklyPlan);
+                safeStorage.set(`schedule-sem-${activeSemester.id}`, JSON.stringify(data.fallback));
+                toast("Using AI-assisted schedule (service currently busy). Check back soon for full AI optimization!", "warning");
+                return;
+            }
+            
+            // Handle rate limiting (429)
+            if (res.status === 429) {
+                throw new Error(data.details || "Daily AI limit reached. You can use AI 2 times per 24 hours.");
+            }
+            
+            // Handle any other error status
+            if (!res.ok) {
+                const errorMsg = (data.details?.trim?.() || data.error?.trim?.() || `Server error (${res.status})`).trim();
+                throw new Error(errorMsg || "Failed to generate schedule");
+            }
+            
+            if (data.result?.weeklyPlan && Array.isArray(data.result.weeklyPlan) && data.result.weeklyPlan.length > 0) {
                 setWeeklyPlan(data.result.weeklyPlan);
                 safeStorage.set(`schedule-sem-${activeSemester.id}`, JSON.stringify(data.result));
-                toast("AI Schedule generated successfully!", "success");
+                toast("AI Schedule generated successfully! 🎉", "success");
+            } else if (data.result) {
+                // AI returned something but it's empty - still valid, just use fallback
+                setWeeklyPlan(data.result.weeklyPlan || []);
+                safeStorage.set(`schedule-sem-${activeSemester.id}`, JSON.stringify(data.result));
+                toast("Schedule created with default settings.", "info");
+            } else {
+                throw new Error("No schedule data received from server.");
             }
         } catch (e) {
-            console.error("Schedule error:", e);
-            toast("Failed to generate AI schedule. Try again later.", "error");
+            const errorMsg = e instanceof Error ? e.message : String(e);
+            console.error("Schedule generation error:", {
+                error: errorMsg,
+                semesterId: activeSemester?.id,
+                courseCount: activeSemester?.courses.length,
+            });
+            toast(errorMsg || "Failed to generate schedule. Please try again.", "error");
         } finally {
             setGeneratingSchedule(false);
         }
@@ -341,8 +410,14 @@ function PlannerHomeClient() {
     }
 
     if (showOnboarding) {
-        return <PlannerOnboarding onComplete={() => {
+        return <PlannerOnboarding onComplete={async (semesterId?: number) => {
             setShowOnboarding(false);
+            justCompletedOnboardingRef.current = true;  // prevent re-trigger on refetch
+            if (typeof semesterId === 'number') {
+                setActiveSemester({ id: semesterId, name: `Semester ${semesterId}`, type: null, start_date: null, end_date: null, courses: [] });
+                // Small delay to ensure DB persistence before refetch
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
             fetchSummary();
         }} />;
     }
@@ -941,7 +1016,14 @@ function PlannerHomeClient() {
                     <SemesterSetupWizard
                         onClose={() => setShowSetupWizard(false)}
                         onComplete={(semesterId) => {
+                            console.log(`[SetupWizard.onComplete] Semester created with id=${semesterId}`);
                             setShowSetupWizard(false);
+                            if (typeof semesterId === 'number') {
+                                console.log(`[SetupWizard.onComplete] Setting activeSemester and clearing onboarding`);
+                                setShowOnboarding(false);
+                                setActiveSemester(prev => prev?.id === semesterId ? prev : { id: semesterId, name: `Semester ${semesterId}`, type: null, start_date: null, end_date: null, courses: [] });
+                            }
+                            console.log(`[SetupWizard.onComplete] Calling fetchSummary...`);
                             fetchSummary();
                         }}
                     />

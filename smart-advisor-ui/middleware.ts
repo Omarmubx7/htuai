@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
 
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://www.googletagmanager.com https://cdn.vercel-insights.com https://va.vercel-scripts.com https://vercel.live;
+        script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://cdn.vercel-insights.com https://va.vercel-scripts.com https://vercel.live;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live;
         font-src 'self' https://fonts.gstatic.com https://r2cdn.perplexity.ai https://vercel.live;
         img-src 'self' data: https: https://vercel.live;

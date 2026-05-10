@@ -64,7 +64,7 @@ function buildFallbackStudySchedule(courses: ScheduleCourse[], weeklyHours: numb
             day,
             sessions: [
                 {
-                    course: course.code,
+                    course: course.name,
                     hours: hoursPerDay,
                     focus,
                 },
@@ -84,8 +84,24 @@ function buildFallbackStudySchedule(courses: ScheduleCourse[], weeklyHours: numb
 
 function parseScheduleResponse(raw: string) {
     try {
-        return JSON.parse(raw) as unknown;
-    } catch {
+        // First, try to extract JSON if it's embedded in text
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? jsonMatch[0] : raw;
+        
+        const parsed = JSON.parse(jsonStr) as unknown;
+        
+        // Validate structure
+        if (typeof parsed === 'object' && parsed !== null) {
+            const obj = parsed as Record<string, unknown>;
+            if (Array.isArray(obj.weeklyPlan) && Array.isArray(obj.examTips)) {
+                return parsed;
+            }
+        }
+        
+        console.warn("[AI] Response lacks weeklyPlan or examTips arrays, using fallback format");
+        return { weeklyPlan: [], examTips: [], raw };
+    } catch (e) {
+        console.warn("[AI] Failed to parse response as JSON:", e);
         return { weeklyPlan: [], examTips: [], raw };
     }
 }
@@ -169,10 +185,43 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
                 },
             });
         } catch (error) {
-            console.error("generate-schedule provider error", error);
             status = 'error';
             errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            parsed = buildFallbackStudySchedule(courses, weeklyHours);
+            console.error("[AI] Schedule generation provider failed:", {
+                error: errorMessage,
+                major,
+                coursesCount: courses.length,
+                weeklyHours,
+                timestamp: new Date().toISOString(),
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            
+            // Log the error to database
+            await logAIUsage({
+                userId,
+                endpoint: 'generate-schedule',
+                featureName: 'Study Schedule Generation',
+                status: 'error',
+                errorMessage,
+                responseTimeMs: Date.now() - startTime,
+                metadata: {
+                    major,
+                    coursesCount: courses.length,
+                    weeklyHours,
+                    semesterId
+                },
+            });
+            
+            // Return error response with fallback schedule
+            const userMessage = errorMessage.includes('API') || errorMessage.includes('rate') 
+                ? "AI service rate limited. Using standard schedule instead."
+                : "AI service temporarily unavailable. Using standard schedule instead.";
+            
+            return NextResponse.json({
+                error: "AI schedule generation failed",
+                details: userMessage,
+                fallback: buildFallbackStudySchedule(courses, weeklyHours)
+            }, { status: 503 });
         }
 
         // PERSIST TO DATABASE if semesterId is provided
@@ -200,6 +249,14 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
             }
         }
 
+        // Validate that we have actual schedule data
+        const hasValidSchedule = Array.isArray(parsed?.weeklyPlan) && parsed.weeklyPlan.length > 0;
+        
+        if (!hasValidSchedule) {
+            console.warn("[AI] AI returned empty/invalid schedule, using fallback");
+            parsed = buildFallbackStudySchedule(courses, weeklyHours);
+        }
+
         return NextResponse.json({ result: parsed });
     } catch (error: unknown) {
         status = 'error';
@@ -218,7 +275,7 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
 
         return NextResponse.json({ 
             error: "Failed to generate schedule",
-            details: errorMessage
+            details: errorMessage || "An unexpected error occurred. Please try again."
         }, { status: 500 });
     }
 }
