@@ -386,6 +386,7 @@ async function loadAiUsage() {
             totalTokens: { input: 0, output: 0, total: 0 },
             avgResponseTimeMs: 0,
             recentLogs: [],
+            userUsage: [],
         };
     } catch {
         return {
@@ -396,6 +397,7 @@ async function loadAiUsage() {
             totalTokens: { input: 0, output: 0, total: 0 },
             avgResponseTimeMs: 0,
             recentLogs: [],
+            userUsage: [],
         };
     }
 }

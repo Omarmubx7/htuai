@@ -717,6 +717,7 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
         totalTokens: { input: 0, output: 0, total: 0 },
         avgResponseTimeMs: 0,
         recentLogs: [],
+        userUsage: [],
     };
 
     const totalTokens = usage.totalTokens.total;
