@@ -47,7 +47,7 @@ function getExamReminders(token: GoogleToken): { method: string; minutes: number
 async function updateTokenMetadata(userId: number, metadata: Record<string, unknown>) {
     await prisma.integrationToken.update({
         where: { user_id_provider: { user_id: userId, provider: "google_calendar" } },
-        data: { metadata }
+        data: { metadata: JSON.parse(JSON.stringify(metadata)) }
     });
 }
 
