@@ -4,6 +4,8 @@ import { authOptions } from "@/auth";
 import { getStudySchedule } from "@/lib/groq";
 import { logAIUsage } from "@/lib/ai-logger";
 import { prisma } from "@/lib/prisma";
+import { checkDailyAiUsageLimit } from "@/lib/ai-usage-limit";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 type ScheduleCourse = {
     code: string;
@@ -113,17 +115,11 @@ function parseScheduleInput(body: ScheduleRequest & { semesterId?: number }) {
     return { semesterId, major, semesterType, semesterName, semesterStartDate, semesterEndDate, weeklyHours, courses };
 }
 
-async function handleScheduleRequest(request: NextRequest, session: Awaited<ReturnType<typeof getServerSession>>, startTime: number) {
-    let userId: number | null = null;
+async function handleScheduleRequest(request: NextRequest, userId: number, startTime: number) {
     let status: 'success' | 'error' | 'timeout' = 'success';
     let errorMessage: string | undefined;
 
     try {
-        const typedSession = session as { user?: { db_id?: number } } | null;
-        if (typedSession?.user?.db_id) {
-            userId = typedSession.user.db_id;
-        }
-
         const body = await request.json() as ScheduleRequest & { semesterId?: number };
         const { semesterId, major, semesterType, semesterName, semesterStartDate, semesterEndDate, weeklyHours, courses } = parseScheduleInput(body);
 
@@ -191,8 +187,8 @@ async function handleScheduleRequest(request: NextRequest, session: Awaited<Retu
                     await prisma.semester.update({
                         where: { id: existingSemester.id },
                         data: {
-                            study_schedule: JSON.parse(JSON.stringify(parsed.weeklyPlan || [])),
-                            ai_exam_tips: JSON.parse(JSON.stringify(parsed.examTips || []))
+                            study_schedule: parsed.weeklyPlan || [],
+                            ai_exam_tips: parsed.examTips || []
                         }
                     });
                     console.log(`[AI] Persisted schedule to semester ${semesterId}`);
@@ -233,5 +229,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    return handleScheduleRequest(request, session, Date.now());
+    const user = await resolveAuthenticatedUser(session);
+    if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const quota = await checkDailyAiUsageLimit(user.id, 'generate-schedule', 2, user.email || undefined);
+    if (!quota.allowed) {
+        return NextResponse.json({
+            error: "Daily AI limit reached",
+            details: "You can use AI 2 times per 24 hours. Try again after the timer resets.",
+            limit: quota.limit,
+            usedToday: quota.usedToday,
+            remaining: quota.remaining,
+            resetAt: quota.resetAt.toISOString(),
+        }, { status: 429 });
+    }
+
+    return handleScheduleRequest(request, user.id, Date.now());
 }

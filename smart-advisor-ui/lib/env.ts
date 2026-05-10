@@ -18,8 +18,8 @@ const ALLOWED_HOSTS = [
 
 export function getBaseUrl(req?: Request | NextRequest) {
     // 1. If on the client, always use window.location.origin
-    if (typeof window !== 'undefined') {
-        return window.location.origin;
+    if (globalThis.window !== undefined) {
+        return globalThis.window.location.origin;
     }
 
     // 2. If we have a request, extract origin from it (handles localhost ports correctly)
@@ -45,8 +45,8 @@ export function getBaseUrl(req?: Request | NextRequest) {
             // Fallback to the actual URL origin of the request
             const url = new URL(req.url);
             return url.origin;
-        } catch (_e) {
-            // Fallback
+        } catch {
+            return 'http://localhost:3000';
         }
     }
 

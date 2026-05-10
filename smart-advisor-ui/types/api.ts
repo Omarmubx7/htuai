@@ -1,4 +1,4 @@
-// NextRequest removed - unused
+import { NextRequest } from "next/server";
 
 /** Common API request/response types */
 
@@ -124,6 +124,11 @@ export interface IntegrationToken {
   refreshToken?: string;
   expiresAt?: number;
   scope: string;
+}
+
+/** Request Helper Types */
+export interface ApiRequest extends NextRequest {
+  body?: unknown;
 }
 
 /** Response data structures */

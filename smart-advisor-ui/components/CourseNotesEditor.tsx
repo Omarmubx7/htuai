@@ -63,6 +63,7 @@ interface CourseNotesEditorProps {
   updatedAt?: string;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export default function CourseNotesEditor({
   value,
   onChange,
@@ -195,25 +196,33 @@ export default function CourseNotesEditor({
     setShowLinkPrompt(false);
   };
 
-  const saveStatus = saveIndicator === "saving"
-    ? (
-      <div className="flex items-center gap-1.5">
-        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-        <span className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
-      </div>
-    )
-    : saveIndicator === "saved"
-      ? (
+  const renderSaveStatus = () => {
+    if (saveIndicator === "saving") {
+      return (
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+          <span className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
+        </div>
+      );
+    }
+
+    if (saveIndicator === "saved") {
+      return (
         <div className="flex items-center gap-1.5">
           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
           <span className="text-[10px] font-bold text-emerald-400/60 uppercase tracking-widest">Changes Saved</span>
         </div>
-      )
-      : (
-        <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
-          Last edited {updatedAt ? new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
-        </span>
       );
+    }
+
+    return (
+      <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
+        Last edited {updatedAt ? new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
+      </span>
+    );
+  };
+
+  const saveStatus = renderSaveStatus();
 
   return (
     <div className="relative flex flex-col min-h-screen bg-black overflow-x-hidden">
@@ -416,22 +425,15 @@ export default function CourseNotesEditor({
 
         {/* Custom Link Prompt Component */}
         {showLinkPrompt && (
-          <div 
-            className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" 
-            onClick={() => setShowLinkPrompt(false)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
-                setShowLinkPrompt(false);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Close link prompt"
-          >
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <button
+              type="button"
+              aria-label="Close link prompt"
+              className="absolute inset-0"
+              onClick={() => setShowLinkPrompt(false)}
+            />
             <dialog
-              open
-              className="glass-panel p-6 rounded-3xl w-full max-w-sm flex flex-col gap-4 shadow-2xl" 
-              onClick={(e) => e.stopPropagation()}
+              className="glass-panel p-6 rounded-3xl w-full max-w-sm flex flex-col gap-4 shadow-2xl"
               aria-modal="true"
             >
               <h3 className="text-white font-semibold">Insert Link</h3>

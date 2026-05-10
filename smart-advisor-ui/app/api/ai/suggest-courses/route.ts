@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { getSuggestedCourses } from "@/lib/groq";
 import { logAIUsage } from "@/lib/ai-logger";
+import { checkDailyAiUsageLimit } from "@/lib/ai-usage-limit";
+import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 type CandidateCourse = {
     code: string;
@@ -17,17 +19,29 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const user = await resolveAuthenticatedUser(session);
+    if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const quota = await checkDailyAiUsageLimit(user.id, 'suggest-courses', 2, user.email || undefined);
+    if (!quota.allowed) {
+        return NextResponse.json({
+            error: "Daily AI limit reached",
+            details: "You can use AI 2 times per 24 hours. Try again after the timer resets.",
+            limit: quota.limit,
+            usedToday: quota.usedToday,
+            remaining: quota.remaining,
+            resetAt: quota.resetAt.toISOString(),
+        }, { status: 429 });
+    }
+
     const startTime = Date.now();
-    let userId: number | null = null;
+    let userId: number | null = user.id;
     let status: 'success' | 'error' | 'timeout' = 'success';
     let errorMessage: string | undefined;
 
     try {
-        // Get user ID for logging
-        if (session.user?.db_id) {
-            userId = session.user.db_id;
-        }
-
         const body = await request.json();
         const major = typeof body.major === "string" ? body.major : "";
         const completedCourses = Array.isArray(body.completedCourses)

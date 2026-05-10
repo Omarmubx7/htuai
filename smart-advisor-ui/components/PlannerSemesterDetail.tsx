@@ -250,7 +250,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    semester_id: semesterId,
+                    semester_id: Number(semesterId),
                     ...newCourse
                 }),
                 retries: 2

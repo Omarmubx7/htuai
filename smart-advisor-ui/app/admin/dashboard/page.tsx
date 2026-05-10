@@ -46,6 +46,14 @@ interface AIUsageLog {
     responseTimeMs?: number;
     createdAt: string | Date;
 }
+interface AIUsageUserSummary {
+    userId: number | null;
+    studentId?: string | null;
+    email?: string | null;
+    usedToday: number;
+    remainingToday: number;
+    limit: number;
+}
 interface AIUsageStats {
     totalCalls: number;
     callsByEndpoint: { endpoint: string; count: number }[];
@@ -54,6 +62,7 @@ interface AIUsageStats {
     totalTokens: { input: number; output: number; total: number };
     avgResponseTimeMs: number;
     recentLogs: AIUsageLog[];
+    userUsage: AIUsageUserSummary[];
 }
 
 interface Stats {
@@ -253,6 +262,7 @@ function DashboardInner() {
     const [sortKey, setSortKey] = useState<SortKey>('count');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [majorFilter, setMajorFilter] = useState<string>('all');
+    const [resettingAiUsage, setResettingAiUsage] = useState(false);
 
     const fetchData = useCallback(async (silent = false) => {
         if (!adminSecret) return;
@@ -270,6 +280,30 @@ function DashboardInner() {
         setLoading(false);
         setRefreshing(false);
     }, [adminSecret]);
+
+    const resetAiUsage = useCallback(async () => {
+        if (!adminSecret) return;
+        if (!globalThis.confirm('Reset AI usage for all accounts? This clears the daily usage history for every user.')) return;
+
+        setResettingAiUsage(true);
+        try {
+            const res = await fetch('/api/admin/ai-usage/reset', {
+                method: 'POST',
+                headers: { 'x-admin-secret': adminSecret },
+                cache: 'no-store',
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to reset AI usage');
+            }
+
+            await fetchData(true);
+        } catch {
+            // Intentionally silent; dashboard refresh will reflect the latest state if the request succeeded.
+        } finally {
+            setResettingAiUsage(false);
+        }
+    }, [adminSecret, fetchData]);
 
     useEffect(() => {
         const timer = setTimeout(() => fetchData(), 0);
@@ -441,7 +475,7 @@ function DashboardInner() {
                     )}
                     {tab === 'ai-usage' && (
                         <motion.div key="ai-usage" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
-                            <AIUsageTab aiUsage={stats.aiUsage} />
+                            <AIUsageTab aiUsage={stats.aiUsage} onResetAll={resetAiUsage} resetting={resettingAiUsage} />
                         </motion.div>
                     )}
                     {tab === 'logs' && (
@@ -674,7 +708,7 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
    AI Usage Tab
    ═══════════════════════════════════════════════════════════════════ */
 
-function AIUsageTab({ aiUsage }: Readonly<{ aiUsage?: AIUsageStats }>) {
+function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIUsageStats; onResetAll?: () => void; resetting?: boolean }>) {
     const usage = aiUsage ?? {
         totalCalls: 0,
         callsByEndpoint: [],
@@ -705,6 +739,53 @@ function AIUsageTab({ aiUsage }: Readonly<{ aiUsage?: AIUsageStats }>) {
                 <StatCard icon={<Clock className="w-4 h-4" />} label="Avg Response" value={`${animAvgResponseTime}ms`} gradient="from-purple-500/20 to-pink-500/5" iconBg="#a855f7" delay={0.08} />
                 <StatCard icon={<Activity className="w-4 h-4" />} label="Success Rate" value={`${successPercentage}%`} gradient="from-emerald-500/20 to-teal-500/5" iconBg="#10b981" delay={0.12} />
             </div>
+
+            <GlassCard delay={0.03}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                        <CardHeader icon={<Zap className="w-4 h-4" />} title="Daily AI Usage Remaining" iconColor="#fbbf24" />
+                        <p className="text-[11px] text-white/25 mt-1">Each user has 2 AI uses per day. Reset clears today's AI usage for every account.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onResetAll}
+                        disabled={resetting}
+                        className="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
+                    >
+                        {resetting ? 'Resetting...' : 'Reset All AI Usage'}
+                    </button>
+                </div>
+
+                <div className="mt-5 overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-white/5 text-[10px] uppercase tracking-widest text-white/25">
+                                <th className="py-2 pr-4">User</th>
+                                <th className="py-2 pr-4">Used Today</th>
+                                <th className="py-2 pr-4">Remaining</th>
+                                <th className="py-2 pr-4">Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {usage.userUsage.length > 0 ? usage.userUsage.map((user) => (
+                                <tr key={String(user.userId ?? user.email ?? user.studentId)} className="border-b border-white/3">
+                                    <td className="py-3 pr-4 text-xs text-white/60">
+                                        <div className="font-medium text-white/75">{user.studentId || user.email || `User #${user.userId ?? 'unknown'}`}</div>
+                                        <div className="text-[10px] text-white/20">{user.email || user.studentId || 'No identifier'}</div>
+                                    </td>
+                                    <td className="py-3 pr-4 text-xs tabular-nums text-white/60">{user.usedToday}</td>
+                                    <td className={`py-3 pr-4 text-xs tabular-nums font-bold ${user.remainingToday === 0 ? 'text-rose-300' : 'text-emerald-300'}`}>{user.remainingToday}</td>
+                                    <td className="py-3 pr-4 text-xs tabular-nums text-white/35">{user.limit}</td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td className="py-4 text-xs text-white/30" colSpan={4}>No AI usage recorded today.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </GlassCard>
 
             {/* Main Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

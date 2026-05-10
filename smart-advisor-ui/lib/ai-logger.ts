@@ -15,6 +15,38 @@ interface AIUsageLogData {
   metadata?: Record<string, unknown>;
 }
 
+export interface AIUsageUserSummary {
+  userId: number | null;
+  studentId?: string | null;
+  email?: string | null;
+  usedToday: number;
+  remainingToday: number;
+  limit: number;
+}
+
+export interface AIUsageStatsSummary {
+  totalCalls: number;
+  callsByEndpoint: Array<{ endpoint: string; count: number }>;
+  callsByModel: Array<{ model: string; count: number }>;
+  callsByStatus: Array<{ status: string | null; count: number }>;
+  totalTokens: { input: number; output: number; total: number };
+  avgResponseTimeMs: number;
+  recentLogs: Array<{
+    id: number;
+    endpoint: string;
+    featureName?: string;
+    studentId?: string;
+    email?: string;
+    status: string;
+    totalTokens?: number;
+    responseTimeMs?: number;
+    createdAt: string | Date;
+  }>;
+  userUsage: AIUsageUserSummary[];
+}
+
+const DEFAULT_DAILY_AI_LIMIT = 2;
+
 /**
  * Log AI usage to the database
  */
@@ -65,7 +97,7 @@ export async function logAIUsage(data: AIUsageLogData): Promise<void> {
 /**
  * Get AI usage statistics for admin dashboard
  */
-export async function getAIUsageStats(days: number = 7) {
+export async function getAIUsageStats(days: number = 7): Promise<AIUsageStatsSummary> {
   const emptyStats = {
     totalCalls: 0,
     callsByEndpoint: [],
@@ -74,10 +106,13 @@ export async function getAIUsageStats(days: number = 7) {
     totalTokens: { input: 0, output: 0, total: 0 },
     avgResponseTimeMs: 0,
     recentLogs: [],
+    userUsage: [],
   };
 
   try {
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
     const [
       totalCalls,
@@ -87,6 +122,7 @@ export async function getAIUsageStats(days: number = 7) {
       totalTokens,
       avgResponseTime,
       recentLogs,
+      todayLogs,
     ] = await Promise.all([
       prisma.aIUsageLog.count({
         where: { created_at: { gte: cutoffDate } },
@@ -129,7 +165,31 @@ export async function getAIUsageStats(days: number = 7) {
         take: 50,
         include: { user: { select: { student_id: true, email: true } } },
       }),
+      prisma.aIUsageLog.findMany({
+        where: { created_at: { gte: todayStart } },
+        select: { user_id: true, user: { select: { student_id: true, email: true } } },
+      }),
     ]);
+
+    const userUsageMap = new Map<number | null, AIUsageUserSummary>();
+    for (const log of todayLogs) {
+      const userId = log.user_id ?? null;
+      const existing = userUsageMap.get(userId);
+      if (existing) {
+        existing.usedToday += 1;
+        existing.remainingToday = Math.max(existing.limit - existing.usedToday, 0);
+        continue;
+      }
+
+      userUsageMap.set(userId, {
+        userId,
+        studentId: log.user?.student_id ?? null,
+        email: log.user?.email ?? null,
+        usedToday: 1,
+        remainingToday: DEFAULT_DAILY_AI_LIMIT - 1,
+        limit: DEFAULT_DAILY_AI_LIMIT,
+      });
+    }
 
     const getCount = (item: { _count: unknown }) => {
       const c = item._count;
@@ -167,6 +227,7 @@ export async function getAIUsageStats(days: number = 7) {
         responseTimeMs: log.response_time_ms,
         createdAt: log.created_at,
       })),
+      userUsage: Array.from(userUsageMap.values()).sort((a, b) => b.usedToday - a.usedToday),
     };
   } catch (error) {
     console.error('Failed to get AI usage stats:', error);

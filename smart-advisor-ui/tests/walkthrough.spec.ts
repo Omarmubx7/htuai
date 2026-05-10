@@ -26,7 +26,7 @@ async function openTrackerWithFreshWalkthrough(page: Page, testInfo: TestInfo): 
         const target =
           buttons.find((b) => /Computer Science|Computer Engineering/i.test(b.textContent || "")) ||
           buttons.find((b) => /Select major/i.test(b.textContent || ""));
-        if (target) (target as HTMLButtonElement).click();
+        if (target) target.click();
       });
 
       if (await page.locator('[role="dialog"]').isVisible({ timeout: 3000 }).catch(() => false)) {

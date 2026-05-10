@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { getBaseUrl } from "@/lib/env";
-import { getIntegrationToken } from "@/lib/database";
 
 // GET /api/integrations/google-calendar — Generates an OAuth url to connect Calendar
 export async function GET(req: NextRequest): Promise<Response> {
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     // Generate secure state parameter to prevent CSRF using Web Crypto API
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    const state = btoa(String.fromCharCode(...array)).replace(/[=+/]/g, "").toLowerCase();
+    const state = btoa(String.fromCodePoint(...array)).replaceAll(/[=+/]/g, "").toLowerCase();
     const returnToEncoded = Buffer.from(returnTo).toString("base64url");
     const stateValue = `${state}.${returnToEncoded}`;
 

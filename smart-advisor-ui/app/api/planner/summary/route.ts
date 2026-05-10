@@ -153,12 +153,19 @@ export async function GET(_req: NextRequest) {
         const jordanDateStr = getJordanDayKey(today);
 
         // Calculate the Jordan timezone offset for midnight on this date
-        const tzFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Amman', timeZoneName: 'longOffset' });
-        const tzName = tzFormatter.formatToParts(new Date(jordanDateStr + 'T00:00:00'))
-            .find(p => p.type === 'timeZoneName')?.value || 'GMT+03:00';
-        const offsetMatch = /GMT([+-]\d{1,2})/.exec(tzName);
-        const offset = formatJordanTimezoneOffset(offsetMatch);
-        const todayStart = new Date(`${jordanDateStr}T00:00:00${offset}`);
+        let todayStart: Date;
+        try {
+            const tzFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Amman', timeZoneName: 'longOffset' });
+            const parts = tzFormatter.formatToParts(new Date(jordanDateStr + 'T00:00:00'));
+            const tzName = parts.find(p => p.type === 'timeZoneName')?.value || 'GMT+03:00';
+            const offsetMatch = /GMT([+-]\d{1,2})/.exec(tzName);
+            const offset = formatJordanTimezoneOffset(offsetMatch);
+            todayStart = new Date(`${jordanDateStr}T00:00:00${offset}`);
+            if (isNaN(todayStart.getTime())) throw new Error('Invalid todayStart computed');
+        } catch (e) {
+            console.error('Timezone parsing failed, falling back to +03:00', e);
+            todayStart = new Date(`${jordanDateStr}T00:00:00+03:00`);
+        }
 
         // 3. Parallel fetching
         const [

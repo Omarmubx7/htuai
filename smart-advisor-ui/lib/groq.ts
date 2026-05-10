@@ -1,5 +1,4 @@
 import Groq from "groq-sdk";
-import { requireEnv } from "@/lib/env";
 
 type GroqUsage = {
     inputTokens: number;
@@ -12,6 +11,212 @@ type GroqResult = {
     content: string;
     usage: GroqUsage;
 };
+
+type SuggestedCourse = { code: string; name: string; credits: number; prereq?: string };
+
+function buildSuggestedCoursesPrompt(major: string, candidateCourses: SuggestedCourse[], completedCourses: string[]) {
+    const candidatesStr = candidateCourses.map((course) => `${course.code}:${course.name}`).join("|");
+    const completedStr = completedCourses.slice(0, 20).join("|") || "none";
+
+    return `HTU ${major}. Recommend 5 from: ${candidatesStr}
+Completed: ${completedStr}
+Return exact course codes from the list only.
+Format:
+R:|code|reason
+code|reason
+T:|tip
+tip`;
+}
+
+function parseSuggestedRecommendationLine(line: string, candidateMap: Map<string, SuggestedCourse>, major: string) {
+    const cleaned = line.replace(/^[\d.\s•*-]+/, "");
+    const firstToken = cleaned.split("|")[0]?.trim() || cleaned.trim();
+    const directMatch = candidateMap.get(firstToken);
+
+    const codePattern = /\b([A-Z]{2,}[A-Z0-9_-]*\s?\d{2,}[A-Z0-9_-]*)\b/;
+    const codeMatch = codePattern.exec(cleaned);
+    const matchedCode = codeMatch?.[1]?.trim();
+    let resolvedCode: string | null = null;
+
+    if (directMatch) {
+        resolvedCode = firstToken;
+    } else if (matchedCode && candidateMap.has(matchedCode)) {
+        resolvedCode = matchedCode;
+    }
+
+    if (!resolvedCode) {
+        return null;
+    }
+
+    const course = candidateMap.get(resolvedCode);
+    const reason = line.split("|").slice(1).map((part) => part.trim()).filter(Boolean).join("|") || `Recommended next step for ${major}`;
+
+    return {
+        code: resolvedCode,
+        name: course ? course.name : resolvedCode,
+        reason,
+    };
+}
+
+function isSuggestedSectionMarker(line: string) {
+    return {
+        recommendation: /^R(?::|\b)/i.test(line) || /recommend/i.test(line),
+        tip: /^T(?::|\b)/i.test(line) || /tip/i.test(line),
+    };
+}
+
+function isScheduleSectionMarker(line: string) {
+    return {
+        weekly: /^W(?::|\b)/i.test(line) || /week/i.test(line),
+        exam: /^E(?::|\b)/i.test(line) || /exam/i.test(line),
+    };
+}
+
+function parseWeeklyScheduleLine(line: string) {
+    const parts = line.split("|");
+    if (parts.length < 4) return null;
+
+    const [day, course, hoursStr, ...focusParts] = parts;
+    const hours = Number.parseFloat(hoursStr) || 1;
+    return {
+        day,
+        session: {
+            course: course.trim(),
+            hours,
+            focus: focusParts.join("|").trim(),
+        },
+    };
+}
+
+function collectWeeklyPlan(lines: string[]) {
+    const weeklyPlanMap = new Map<string, Array<{ course: string; hours: number; focus: string }>>();
+    let mode: "" | "W" = "";
+
+    for (const line of lines) {
+        const markers = isScheduleSectionMarker(line);
+        if (markers.weekly) {
+            mode = "W";
+            continue;
+        }
+
+        if (markers.exam) {
+            mode = "";
+            continue;
+        }
+
+        if (mode !== "W") continue;
+
+        const parsed = parseWeeklyScheduleLine(line);
+        if (!parsed) continue;
+
+        if (!weeklyPlanMap.has(parsed.day)) weeklyPlanMap.set(parsed.day, []);
+        weeklyPlanMap.get(parsed.day)!.push(parsed.session);
+    }
+
+    return Array.from(weeklyPlanMap.entries()).map(([day, sessions]) => ({ day, sessions }));
+}
+
+function collectExamTips(lines: string[]) {
+    const examTips: string[] = [];
+    let mode: "" | "E" = "";
+
+    for (const line of lines) {
+        const markers = isScheduleSectionMarker(line);
+        if (markers.exam) {
+            mode = "E";
+            continue;
+        }
+
+        if (markers.weekly) {
+            mode = "";
+            continue;
+        }
+
+        if (mode === "E") {
+            examTips.push(line);
+        }
+    }
+
+    return examTips;
+}
+
+function parseSuggestedCoursesContent(content: string, candidateCourses: SuggestedCourse[], major: string) {
+    const lines = content.split("\n").map((line) => line.trim()).filter(Boolean);
+    const recommendations: Array<{ code: string; name: string; reason: string }> = [];
+    const tips: string[] = [];
+    const candidateMap = new Map(candidateCourses.map((course) => [course.code, course] as const));
+    let mode: "" | "R" | "T" = "";
+
+    for (const line of lines) {
+        const markers = isSuggestedSectionMarker(line);
+
+        if (markers.recommendation) {
+            mode = "R";
+            continue;
+        }
+
+        if (markers.tip) {
+            mode = "T";
+            continue;
+        }
+
+        if (mode === "R") {
+            const recommendation = parseSuggestedRecommendationLine(line, candidateMap, major);
+            if (recommendation) recommendations.push(recommendation);
+            continue;
+        }
+
+        if (mode === "T") {
+            tips.push(line);
+        }
+    }
+
+    if (recommendations.length === 0) {
+        for (const course of candidateCourses.slice(0, 5)) {
+            recommendations.push({
+                code: course.code,
+                name: course.name,
+                reason: "Suggested fallback based on your remaining HTU curriculum requirements.",
+            });
+        }
+    }
+
+    return { recommendations, tips };
+}
+
+function buildStudySchedulePrompt(params: {
+    major: string;
+    semesterType?: string;
+    semesterName?: string;
+    semesterStartDate?: string | null;
+    semesterEndDate?: string | null;
+    courses: ScheduleCourse[];
+    weeklyHours: number;
+}) {
+    const { major, semesterType, semesterName, semesterStartDate, semesterEndDate, courses, weeklyHours } = params;
+    const semesterParts = [semesterType, semesterName ? `(${semesterName})` : ""].filter(Boolean);
+    const semesterLabel = semesterParts.join("");
+    const coursesStr = courses.map((course) => `${course.code}(${course.credits}CH)`).join("|");
+    const dateRange = semesterStartDate || semesterEndDate
+        ? `Dates: ${semesterStartDate || "unknown"} -> ${semesterEndDate || "unknown"}`
+        : "";
+
+    return `HTU ${major} study plan. ${semesterLabel} ${weeklyHours}h/week
+${dateRange}
+Courses: ${coursesStr}
+W:|day|code|hours|focus
+Sun|CS101|2|arrays
+E:|exam_tip
+Oct 12 midterm`;
+}
+
+function parseStudyScheduleContent(content: string) {
+    const lines = content.split("\n").map((line) => line.trim()).filter(Boolean);
+    return {
+        weeklyPlan: collectWeeklyPlan(lines),
+        examTips: collectExamTips(lines),
+    };
+}
 
 type ScheduleCourse = {
     code: string;
@@ -32,21 +237,13 @@ function getGroqClient() {
 export async function getSuggestedCourses(params: {
     major: string;
     completedCourses: string[];
-    candidateCourses: Array<{ code: string; name: string; credits: number; prereq?: string }>;
+    candidateCourses: SuggestedCourse[];
 }): Promise<GroqResult> {
-    const { major, candidateCourses } = params;
+    const { major, completedCourses, candidateCourses } = params;
     const client = getGroqClient();
     const modelUsed = "llama-3.1-8b-instant";
-
-    // Limit candidates sent to AI to reduce tokens
     const topCandidates = candidateCourses.slice(0, 15);
-    const candidatesStr = topCandidates.map(c => `${c.code}:${c.name}`).join("|");
-
-    const prompt = `HTU ${major}. Recommend 5 from: ${candidatesStr}
-R:|code|reason
-code|reason  
-T:|tip
-tip`;
+    const prompt = buildSuggestedCoursesPrompt(major, topCandidates, completedCourses);
 
     if (process.env.NODE_ENV === 'development') {
         console.log("--- Groq Request (getSuggestedCourses) ---");
@@ -71,29 +268,7 @@ tip`;
     if (process.env.NODE_ENV === 'development') {
         console.log("Raw Content:", content);
     }
-    const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
-    const recommendations = [];
-    const tips = [];
-    let mode = '';
-
-    for (const line of lines) {
-        if (line === 'R:' || line.startsWith('R:|')) mode = 'R';
-        else if (line === 'T:' || line.startsWith('T:|')) mode = 'T';
-        else if (mode === 'R') {
-            const parts = line.split('|');
-            if (parts.length >= 2) {
-                const code = parts[0].trim();
-                const course = candidateCourses.find(c => c.code === code);
-                recommendations.push({ 
-                    code, 
-                    name: course ? course.name : code,
-                    reason: parts.slice(1).join('|').trim() 
-                });
-            }
-        } else if (mode === 'T') {
-            tips.push(line);
-        }
-    }
+    const { recommendations, tips } = parseSuggestedCoursesContent(content, topCandidates, major);
 
     return {
         content: JSON.stringify({ recommendations, tips }),
@@ -115,21 +290,9 @@ export async function getStudySchedule(params: {
     courses: ScheduleCourse[];
     weeklyHours: number;
 }): Promise<GroqResult> {
-    const { major, semesterType, semesterName, semesterStartDate, semesterEndDate, courses, weeklyHours } = params;
     const client = getGroqClient();
     const modelUsed = "llama-3.1-8b-instant";
-    
-    const semesterLabel = semesterType 
-        ? `${semesterType}${semesterName ? `(${semesterName})` : ''}`
-        : '';
-    const coursesStr = courses.map(c => `${c.code}(${c.credits}CH)`).join("|");
-
-    const prompt = `HTU ${major} study plan. ${semesterLabel} ${weeklyHours}h/week
-Courses: ${coursesStr}
-W:|day|code|hours|focus
-Sun|CS101|2|arrays
-E:|exam_tip
-Oct 12 midterm`;
+    const prompt = buildStudySchedulePrompt(params);
 
     if (process.env.NODE_ENV === 'development') {
         console.log("--- Groq Request (getStudySchedule) ---");
@@ -154,28 +317,7 @@ Oct 12 midterm`;
     if (process.env.NODE_ENV === 'development') {
         console.log("Raw Content:", content);
     }
-    const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
-    const weeklyPlanMap = new Map<string, Array<{course: string, hours: number, focus: string}>>();
-    const examTips = [];
-    let mode = '';
-
-    for (const line of lines) {
-        if (line === 'W:' || line.startsWith('W:|')) mode = 'W';
-        else if (line === 'E:' || line.startsWith('E:|')) mode = 'E';
-        else if (mode === 'W') {
-            const parts = line.split('|');
-            if (parts.length >= 4) {
-                const [day, course, hoursStr, ...focusParts] = parts;
-                const hours = Number.parseFloat(hoursStr) || 1;
-                if (!weeklyPlanMap.has(day)) weeklyPlanMap.set(day, []);
-                weeklyPlanMap.get(day)!.push({ course: course.trim(), hours, focus: focusParts.join('|').trim() });
-            }
-        } else if (mode === 'E') {
-            examTips.push(line);
-        }
-    }
-
-    const weeklyPlan = Array.from(weeklyPlanMap.entries()).map(([day, sessions]) => ({ day, sessions }));
+    const { weeklyPlan, examTips } = parseStudyScheduleContent(content);
     return {
         content: JSON.stringify({ weeklyPlan, examTips }),
         usage: {

@@ -299,7 +299,10 @@ function PlannerHomeClient() {
                 })
             });
             
-            if (!res.ok) throw new Error("Failed to generate schedule");
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({} as { error?: string; details?: string }));
+                throw new Error(payload.details || payload.error || "Failed to generate schedule");
+            }
             
             const data = await res.json();
             if (data.result?.weeklyPlan) {

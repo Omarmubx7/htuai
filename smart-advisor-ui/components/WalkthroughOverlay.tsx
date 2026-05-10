@@ -46,7 +46,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
     const tooltipRef = useRef<HTMLDivElement>(null);
 
     const activeSteps = steps.filter((s) => {
-        if (s.mobileOnly && typeof globalThis.window !== "undefined" && globalThis.innerWidth >= 640) return false;
+        if (s.mobileOnly && globalThis.window !== undefined && globalThis.innerWidth >= 640) return false;
         return true;
     });
 
@@ -173,16 +173,15 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[200]"
+                className="fixed inset-0 z-200"
                 style={{ pointerEvents: "auto" }}
             >
                 {/* Dark backdrop with spotlight cutout */}
-                <div
-                    role="button"
-                    tabIndex={0}
+                <button
+                    type="button"
+                    aria-label="Advance walkthrough"
                     className="absolute inset-0"
                     onClick={handleNext}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleNext(); }}
                     style={{
                         background: spotlight
                             ? undefined
@@ -231,7 +230,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                             }}
                         />
                     )}
-                </div>
+                </button>
 
                 {/* Tooltip */}
                 <motion.div
@@ -244,7 +243,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="fixed z-[201]"
+                    className="fixed z-201"
                     style={getTooltipStyle()}
                 >
                     <div className="bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_60px_rgba(139,92,246,0.15)] w-full">
@@ -329,7 +328,7 @@ export function WalkthroughHelpButton({ onClick }: Readonly<{ onClick: () => voi
     return (
         <button
             onClick={onClick}
-            className="p-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-white/40 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
+            className="p-2.5 rounded-2xl bg-white/3 border border-white/6 text-white/40 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
             title="App Walkthrough"
         >
             <HelpCircle className="w-4.5 h-4.5" />

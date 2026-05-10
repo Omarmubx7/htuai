@@ -103,10 +103,28 @@ function CourseTrackerView({
     } | null>(null);
     const [aiLoading, setAiLoading] = useState<"suggestions" | "schedule" | null>(null);
     const [aiError, setAiError] = useState<string | null>(null);
+    const [suggestRemaining, setSuggestRemaining] = useState<number | null>(null);
+    const [scheduleRemaining, setScheduleRemaining] = useState<number | null>(null);
+    const [suggestResetAt, setSuggestResetAt] = useState<string | null>(null);
+    const [scheduleResetAt, setScheduleResetAt] = useState<string | null>(null);
+    const [suggestCountdown, setSuggestCountdown] = useState<string | null>(null);
+    const [scheduleCountdown, setScheduleCountdown] = useState<string | null>(null);
     const [aiRecommendations, setAiRecommendations] = useState<Array<{ code: string; reason: string; name: string }>>([]);
     const [aiTips, setAiTips] = useState<string[]>([]);
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [examTips, setExamTips] = useState<string[]>([]);
+
+    const formatCountdown = (targetIso: string | null) => {
+        if (!targetIso) return null;
+        const target = new Date(targetIso).getTime();
+        if (Number.isNaN(target)) return null;
+
+        const remainingMs = Math.max(target - Date.now(), 0);
+        const hours = Math.floor(remainingMs / 3_600_000);
+        const minutes = Math.floor((remainingMs % 3_600_000) / 60_000);
+        const seconds = Math.floor((remainingMs % 60_000) / 1000);
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
 
     const jumpToCourseList = () => {
         setViewMode('level');
@@ -155,6 +173,34 @@ function CourseTrackerView({
             .catch(() => { /* non-fatal */ })
             .finally(() => setLoadingSemester(false));
     }, []);
+
+    // Fetch AI usage counters for the current user so we can show remaining counts
+    useEffect(() => {
+        let mounted = true;
+        fetch('/api/ai/usage')
+            .then(r => r.ok ? r.json() : null)
+            .then((data: any) => {
+                if (!mounted || !data?.usage) return;
+                setSuggestRemaining(typeof data.usage.suggestCourses?.remaining === 'number' ? data.usage.suggestCourses.remaining : null);
+                setScheduleRemaining(typeof data.usage.generateSchedule?.remaining === 'number' ? data.usage.generateSchedule.remaining : null);
+                setSuggestResetAt(typeof data.usage.suggestCourses?.resetAt === 'string' ? data.usage.suggestCourses.resetAt : null);
+                setScheduleResetAt(typeof data.usage.generateSchedule?.resetAt === 'string' ? data.usage.generateSchedule.resetAt : null);
+            })
+            .catch(() => {})
+            .finally(() => {});
+        return () => { mounted = false; };
+    }, []);
+
+    useEffect(() => {
+        const updateCountdowns = () => {
+            setSuggestCountdown(formatCountdown(suggestResetAt));
+            setScheduleCountdown(formatCountdown(scheduleResetAt));
+        };
+
+        updateCountdowns();
+        const interval = globalThis.setInterval(updateCountdowns, 1000);
+        return () => globalThis.clearInterval(interval);
+    }, [suggestResetAt, scheduleResetAt]);
 
     const allCourses = [
         ...data.university_requirements,
@@ -259,6 +305,18 @@ function CourseTrackerView({
         });
         const eligibleCourseCodes = new Set(eligibleCourses.map(course => course.code));
 
+        // If there are too few candidate courses, avoid calling AI and ask user to mark more
+        if (eligibleCourses.length <= 1) {
+            setAiError("Add more courses before asking for suggestions — mark at least 2 courses.");
+            return;
+        }
+
+        // Check remaining quota client-side (best-effort) and show friendly message
+        if (suggestRemaining === 0) {
+            setAiError("You've reached your AI suggestions limit (2 per 24 hours). Try again after the timer resets.");
+            return;
+        }
+
         try {
             const response = await fetch("/api/ai/suggest-courses", {
                 method: "POST",
@@ -274,6 +332,10 @@ function CourseTrackerView({
                 const errText = await response.text();
                 try {
                     const errJson = JSON.parse(errText);
+                    // Map server quota error to friendly message
+                    if (errJson?.error === 'Daily AI limit reached') {
+                        throw new Error(errJson.details || errJson.error);
+                    }
                     throw new Error(errJson.details || errJson.error || 'Failed to generate suggestions');
                 } catch {
                     throw new Error('Failed: ' + (errText.substring(0, 150) || response.statusText));
@@ -308,6 +370,8 @@ function CourseTrackerView({
             if (recommendations.length === 0) {
                 setAiError("No recommendations found yet. Try again after marking more courses.");
             }
+            // Update local remaining counters (best-effort) after successful call
+            setSuggestRemaining(prev => (typeof prev === 'number' ? Math.max(prev - 1, 0) : prev));
         } catch (error: any) {
             console.error("AI recommendations error", error);
             setAiError(error?.message || "Could not generate recommendations right now.");
@@ -330,6 +394,18 @@ function CourseTrackerView({
                 return;
             }
 
+            if (targetCourses.length === 1) {
+                setAiError("Add at least one more course to build a useful schedule.");
+                setAiLoading(null);
+                return;
+            }
+
+            if (scheduleRemaining === 0) {
+                setAiError("You've reached your AI schedule limit (2 per 24 hours). Try again after the timer resets.");
+                setAiLoading(null);
+                return;
+            }
+
             const response = await fetch("/api/ai/generate-schedule", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -341,7 +417,16 @@ function CourseTrackerView({
             });
 
             if (!response.ok) {
-                throw new Error("Failed to fetch AI schedule");
+                const errText = await response.text();
+                try {
+                    const errJson = JSON.parse(errText);
+                    if (errJson?.error === 'Daily AI limit reached') {
+                        throw new Error(errJson.details || errJson.error);
+                    }
+                    throw new Error(errJson.details || errJson.error || "Failed to fetch AI schedule");
+                } catch {
+                    throw new Error("Failed to fetch AI schedule");
+                }
             }
 
             const payload = await response.json() as {
@@ -385,6 +470,7 @@ function CourseTrackerView({
             if (normalizedPlan.length === 0) {
                 setAiError("No schedule generated yet. Please retry.");
             }
+            setScheduleRemaining(prev => (typeof prev === 'number' ? Math.max(prev - 1, 0) : prev));
         } catch (error: any) {
             console.error("AI schedule error", error);
             setAiError(error?.message || "Could not generate a schedule right now.");
@@ -587,14 +673,24 @@ function CourseTrackerView({
                         <p className="text-xs sm:text-sm text-cyan-100/60">Free AI-powered next-semester recommendations and study planning.</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            onClick={() => void generateAiSuggestions()}
-                            disabled={aiLoading !== null}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-xs font-black uppercase tracking-wider disabled:opacity-60"
-                        >
-                            {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                            Suggest Courses
-                        </button>
+                        <div className="flex flex-col gap-1">
+                            <button
+                                onClick={() => void generateAiSuggestions()}
+                                disabled={aiLoading !== null}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-xs font-black uppercase tracking-wider disabled:opacity-60"
+                            >
+                                {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                Suggest Courses
+                                {typeof suggestRemaining === 'number' && (
+                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-black rounded bg-red-500/30 text-red-200">AI trials: {suggestRemaining}</span>
+                                )}
+                            </button>
+                            {suggestCountdown && typeof suggestRemaining === 'number' && suggestRemaining > 0 && suggestRemaining <= 2 && (
+                                <span className="text-[10px] font-black uppercase tracking-wider text-red-300">
+                                    Resets in {suggestCountdown}
+                                </span>
+                            )}
+                        </div>
                         {loadingSemester && (
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 opacity-50">
                                 <div className="w-3 h-3 rounded-full bg-white/20 animate-pulse" />
@@ -602,23 +698,33 @@ function CourseTrackerView({
                             </div>
                         )}
                         {!loadingSemester && activeSemester && activeSemester.courses.length > 0 && (
-                            <button
-                                onClick={() => void generateWeeklySchedule()}
-                                disabled={aiLoading !== null}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-cyan-300/40 text-cyan-100 text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-cyan-500/10 transition-colors"
-                            >
-                                {aiLoading === "schedule" ? (
-                                    <>
-                                        <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping mr-1" />
-                                        <span>Generating...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="w-4 h-4" />
-                                        Build your schedule
-                                    </>
+                            <div className="flex flex-col gap-1">
+                                <button
+                                    onClick={() => void generateWeeklySchedule()}
+                                    disabled={aiLoading !== null}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-cyan-300/40 text-cyan-100 text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-cyan-500/10 transition-colors"
+                                >
+                                    {aiLoading === "schedule" ? (
+                                        <>
+                                            <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping mr-1" />
+                                            <span>Generating...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-4 h-4" />
+                                            Build your schedule
+                                            {typeof scheduleRemaining === 'number' && (
+                                                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-black rounded bg-red-500/30 text-red-200">AI trials: {scheduleRemaining}</span>
+                                            )}
+                                        </>
+                                    )}
+                                </button>
+                                {scheduleCountdown && typeof scheduleRemaining === 'number' && scheduleRemaining > 0 && scheduleRemaining <= 2 && (
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-red-300">
+                                        Resets in {scheduleCountdown}
+                                    </span>
                                 )}
-                            </button>
+                            </div>
                         )}
                         {!loadingSemester && (!activeSemester || activeSemester.courses.length === 0) && (
                             <button
@@ -671,7 +777,7 @@ function CourseTrackerView({
                 {aiTips.length > 0 && (
                     <div className="space-y-1">
                         <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Registration Tips</h3>
-                        {aiTips.map((tip) => (
+                        {Array.from(new Set(aiTips)).map((tip) => (
                             <p key={tip} className="text-xs text-white/70">- {tip}</p>
                         ))}
                     </div>
@@ -688,8 +794,8 @@ function CourseTrackerView({
                                 return (
                                     <div key={dayPlan.day} className="rounded-xl border border-white/10 bg-black/20 p-3">
                                         <div className="text-xs font-black text-cyan-200 mb-2">{dayLabel}</div>
-                                        {dayPlan.sessions.map((session) => (
-                                            <p key={`${dayPlan.day}-${session.course}-${session.focus}`} className="text-xs text-white/70 leading-relaxed">
+                                        {dayPlan.sessions.map((session, sessionIndex) => (
+                                            <p key={`${dayPlan.day}-session-${sessionIndex}`} className="text-xs text-white/70 leading-relaxed">
                                                 <span className="font-bold text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
                                             </p>
                                         ))}
@@ -725,7 +831,7 @@ function CourseTrackerView({
                     <div className="space-y-2">
                         <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Exam Tips</h3>
                         <div className="space-y-1.5">
-                            {examTips.map((tip) => (
+                            {Array.from(new Set(examTips)).map((tip) => (
                                 <ExamTipItem key={tip} tip={tip} />
                             ))}
                         </div>
