@@ -5,8 +5,8 @@ export const dateString = z.string().datetime({ offset: true }).or(z.string());
 
 // Student Profile
 export const studentProfileSchema = z.object({
-    previous_gpa: z.number().min(0).max(4).optional(),
-    previous_credits: z.number().min(0).max(200).optional(),
+    previous_gpa: z.number().min(0).max(4).optional().nullable(),
+    previous_credits: z.number().min(0).max(200).optional().nullable(),
 });
 
 // Study Sessions

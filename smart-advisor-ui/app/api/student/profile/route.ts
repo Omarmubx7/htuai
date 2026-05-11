@@ -6,6 +6,7 @@ import { createAdminLog } from "@/lib/database";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 import { studentProfileSchema } from "@/lib/schemas/api";
 import { validationErrorResponse } from "@/lib/validation";
+import { jsonResponse } from "@/lib/json-response";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
             target_id: resolvedStudentId,
         }).catch(() => {});
 
-        return NextResponse.json(
+        return jsonResponse(
             { success: true, profile: { ...updatedProfile, updated_at: Number(updatedProfile.updated_at) } },
             { status: 200 }
         );

@@ -536,7 +536,7 @@ function StudentDashboard({
                                                 newTerms[i].gpa = e.target.value;
                                                 setTerms(newTerms);
                                             }}
-                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                            className={`w-full bg-black border ${term.gpa && parseFloat(term.gpa) > 4.0 ? 'border-red-500 text-red-400 focus:border-red-500' : 'border-white/10 focus:border-violet-500'} rounded-xl px-4 py-3 text-sm focus:outline-hidden transition-colors`}
                                             placeholder="0.00"
                                         />
                                     </div>

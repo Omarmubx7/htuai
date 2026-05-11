@@ -200,27 +200,25 @@ export default function HomeClient() {
             return;
         }
         
-        setCompletedCourses(prev => {
-            const next = new Map(prev);
-            if (next.has(code)) next.delete(code);
-            else next.set(code, "M");
-            debouncedSave(next);
-            return next;
-        });
-    }, [studentId, session, major, debouncedSave]);
+        const next = new Map(completedCourses);
+        if (next.has(code)) next.delete(code);
+        else next.set(code, "M");
+        
+        setCompletedCourses(next);
+        debouncedSave(next);
+    }, [studentId, session, major, completedCourses, debouncedSave]);
 
     const updateCourseGrade = useCallback((code: string, grade: string) => {
         const sid = studentId || session?.user?.student_id || session?.user?.email;
         const maj = major || (session?.user as { major?: string })?.major;
         if (!sid || !maj) return;
         
-        setCompletedCourses(prev => {
-            const next = new Map(prev);
-            next.set(code, grade);
-            debouncedSave(next);
-            return next;
-        });
-    }, [studentId, session, major, debouncedSave]);
+        const next = new Map(completedCourses);
+        next.set(code, grade);
+        
+        setCompletedCourses(next);
+        debouncedSave(next);
+    }, [studentId, session, major, completedCourses, debouncedSave]);
 
     const handleMajorSelect = async (key: MajorKey) => {
         setAppState("changing-major");

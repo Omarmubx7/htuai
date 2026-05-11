@@ -300,7 +300,7 @@ function CourseCard({
                     data-testid="status-icon"
                     onClick={(e) => {
                         e.stopPropagation();
-                        if (isLocked) {
+                        if (isLocked || hasPrereqWarning) {
                             setShowLockInfo(!showLockInfo);
                         } else {
                             setIsExpanded(!isExpanded);
@@ -311,7 +311,7 @@ function CourseCard({
                 >
                     <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
                     <AnimatePresence>
-                        {showLockInfo && isLocked && (
+                        {showLockInfo && (isLocked || hasPrereqWarning) && (
                             <LockInfoPopover
                                 lockReason={lockReason}
                                 missingPrereqs={missingPrereqs}

@@ -33,7 +33,12 @@ export async function getDailyAiUsageCount(userId: number, resetAt = getResetTim
 
     if (endpoint) where.endpoint = endpoint;
 
-    return prisma.aIUsageLog.count({ where });
+    try {
+        return await prisma.aIUsageLog.count({ where });
+    } catch (error) {
+        console.error('[AI Usage Limit] Failed to check usage count. Defaulting to 0.', error);
+        return 0; // Graceful fallback if table is missing or DB fails
+    }
 }
 
 /**

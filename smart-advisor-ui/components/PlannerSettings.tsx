@@ -133,6 +133,8 @@ export default function PlannerSettings() {
     };
 
     const updatePreference = async (key: keyof GooglePreferences, val: GooglePreferences[keyof GooglePreferences]) => {
+        if (!calendarConnected) return;
+        
         const newPrefs: GooglePreferences = { ...preferences, [key]: val };
         setPreferences(newPrefs);
 
@@ -343,7 +345,7 @@ export default function PlannerSettings() {
                                     onClick={() => updatePreference('sync_daily', !preferences.sync_daily)}
                                     disabled={!calendarConnected}
                                     aria-pressed={preferences.sync_daily}
-                                    className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ${preferences.sync_daily ? 'bg-emerald-500' : 'bg-white/10'} ${calendarConnected ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed border border-white/10'}`}
+                                    className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ${preferences.sync_daily ? 'bg-emerald-500' : 'bg-white/10'} ${calendarConnected ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed border border-white/10 pointer-events-none'}`}
                                 >
                                     <div className={`w-4 h-4 rounded-full bg-white transition-transform ${preferences.sync_daily ? 'translate-x-6' : 'translate-x-0'}`} />
                                 </button>
