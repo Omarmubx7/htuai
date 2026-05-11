@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { ArrowLeft, Sparkles, Brain, ShieldCheck, Cpu, Info, MessageSquare, Zap } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "AI Transparency",
+    description: "How MUBXAI uses artificial intelligence responsibly. Learn about our Google Gemini integration, data privacy practices, and commitment to transparent AI in academic advising.",
+};
 import Image from "next/image";
 
 export default function AITransparencyPage() {

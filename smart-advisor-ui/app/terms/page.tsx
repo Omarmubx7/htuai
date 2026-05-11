@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, AlertCircle, HelpCircle } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Terms of Service",
+    description: "MUBXAI Terms of Service — rules for using the free academic tracking platform for Al Hussein Technical University students. Covers data ownership, Google integrations, and disclaimers.",
+};
 
 export default function TermsPage() {
     return (

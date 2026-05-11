@@ -68,7 +68,7 @@ async function getOrCreateHtuCalendar(token: GoogleToken, userId: number): Promi
 
         if (listRes.ok) {
             const listData = await listRes.json() as { items?: { id: string; summary: string }[] };
-            const existing = listData.items?.find(c => c.summary === "HTU Smart Advisor");
+            const existing = listData.items?.find(c => c.summary === "MUBXAI");
             if (existing) {
                 await updateTokenMetadata(userId, { ...token.metadata, htu_calendar_id: existing.id });
                 return existing.id;
@@ -78,7 +78,7 @@ async function getOrCreateHtuCalendar(token: GoogleToken, userId: number): Promi
         const createRes = await fetch("https://www.googleapis.com/calendar/v3/calendars", {
             method: "POST",
             headers: { Authorization: `Bearer ${token.accessToken}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ summary: "HTU Smart Advisor", timeZone: "Asia/Amman" })
+            body: JSON.stringify({ summary: "MUBXAI", timeZone: "Asia/Amman" })
         });
 
         if (createRes.ok) {
@@ -335,7 +335,7 @@ function buildSyncStatusMessage(
     googleAccountEmail: string
 ) {
     if (successCount > 0) {
-        const calendarName = calendarId === "primary" ? "Primary" : "HTU Smart Advisor";
+        const calendarName = calendarId === "primary" ? "Primary" : "MUBXAI";
         return `Successfully synced ${successCount} items to your '${calendarName}' calendar on ${googleAccountEmail}.`;
     }
 

@@ -23,6 +23,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.7,
         },
         {
+            url: `${baseUrl}/login`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${baseUrl}/planner/study-log`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.6,
+        },
+        {
+            url: `${baseUrl}/planner/settings`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.4,
+        },
+        {
+            url: `${baseUrl}/ai-transparency`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.4,
+        },
+        {
             url: `${baseUrl}/privacy`,
             lastModified: new Date(),
             changeFrequency: 'monthly',

@@ -275,13 +275,80 @@ export default async function RootLayout({
                     "url": "https://mubx.dev"
                   },
                   "sameAs": [
-                    "https://mubx.dev"
+                    "https://mubx.dev",
+                    "https://htu.edu.jo"
                   ],
                   "contactPoint": {
                     "@type": "ContactPoint",
                     "email": "omarmubaidincs@gmail.com",
                     "contactType": "customer support"
                   }
+                })
+              }}
+            />
+
+            {/* JSON-LD: WebSite — enables sitelinks searchbox in Google */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "WebSite",
+                  "name": "MUBXAI",
+                  "alternateName": ["MUBX AI", "HTU Academic Tracker"],
+                  "url": "https://ai.mubx.dev",
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                      "@type": "EntryPoint",
+                      "urlTemplate": "https://ai.mubx.dev/courses/{search_term_string}"
+                    },
+                    "query-input": "required name=search_term_string"
+                  },
+                  "inLanguage": ["en", "ar"],
+                })
+              }}
+            />
+
+            {/* JSON-LD: BreadcrumbList — shows breadcrumb trail in SERPs */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "BreadcrumbList",
+                  "itemListElement": [
+                    {
+                      "@type": "ListItem",
+                      "position": 1,
+                      "name": "Home",
+                      "item": "https://ai.mubx.dev"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 2,
+                      "name": "Semester Planner",
+                      "item": "https://ai.mubx.dev/planner"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 3,
+                      "name": "Privacy Policy",
+                      "item": "https://ai.mubx.dev/privacy"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 4,
+                      "name": "Terms of Service",
+                      "item": "https://ai.mubx.dev/terms"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 5,
+                      "name": "AI Transparency",
+                      "item": "https://ai.mubx.dev/ai-transparency"
+                    },
+                  ]
                 })
               }}
             />

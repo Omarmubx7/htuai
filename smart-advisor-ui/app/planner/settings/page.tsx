@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import PlannerSettings from "@/components/PlannerSettings";
 
 export const metadata: Metadata = {
-    title: "Semester Planner | MUBXAI",
-    description: "Configure your academic planner preferences and calendar sync.",
+    title: "Planner Settings",
+    description: "Configure your MUBXAI semester planner preferences, Google Calendar sync, and academic profile settings.",
 };
 
 export default function SettingsPage() {
