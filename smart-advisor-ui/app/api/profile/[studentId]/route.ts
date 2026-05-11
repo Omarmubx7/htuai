@@ -24,16 +24,21 @@ export async function GET(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const major = await loadMajor(targetId);
-    const profile = await prisma.studentProfile.findUnique({
-        where: { student_id: targetId },
-        select: { previous_gpa: true, previous_credits: true }
-    });
+    try {
+        const major = await loadMajor(targetId);
+        const profile = await prisma.studentProfile.findUnique({
+            where: { student_id: targetId },
+            select: { previous_gpa: true, previous_credits: true }
+        });
 
-    return NextResponse.json({
-        studentId: targetId,
-        major,
-        previous_gpa: profile?.previous_gpa || null,
-        previous_credits: profile?.previous_credits || null
-    });
+        return NextResponse.json({
+            studentId: targetId,
+            major,
+            previous_gpa: profile?.previous_gpa || null,
+            previous_credits: profile?.previous_credits || null
+        });
+    } catch (error) {
+        console.error("[Profile GET] Error:", error);
+        return NextResponse.json({ error: 'Server error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    }
 }

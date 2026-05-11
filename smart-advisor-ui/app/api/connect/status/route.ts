@@ -16,14 +16,19 @@ export async function GET(_req: NextRequest) {
         return NextResponse.json({ notion: false, google_calendar: false, error: "no_student_id" }, { status: 400 });
     }
 
-    const [notionToken, googleToken] = await Promise.all([
-        getIntegrationToken(studentId, "notion"),
-        getIntegrationToken(studentId, "google_calendar")
-    ]);
+    try {
+        const [notionToken, googleToken] = await Promise.all([
+            getIntegrationToken(studentId, "notion"),
+            getIntegrationToken(studentId, "google_calendar")
+        ]);
 
-    return NextResponse.json({
-        notion: !!notionToken,
-        google_calendar: !!googleToken,
-        google_account_email: googleToken?.accountEmail || null
-    });
+        return NextResponse.json({
+            notion: !!notionToken,
+            google_calendar: !!googleToken,
+            google_account_email: googleToken?.accountEmail || null
+        });
+    } catch (error) {
+        console.error("[Connect Status] Error:", error);
+        return NextResponse.json({ notion: false, google_calendar: false, error: "server_error" }, { status: 500 });
+    }
 }

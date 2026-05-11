@@ -26,6 +26,11 @@ export async function GET(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const completed = await loadProgress(targetId, major);
-    return NextResponse.json({ studentId: targetId, major, completed });
+    try {
+        const completed = await loadProgress(targetId, major);
+        return NextResponse.json({ studentId: targetId, major, completed });
+    } catch (error) {
+        console.error("[Progress GET] Error loading progress:", error);
+        return NextResponse.json({ error: 'Server error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    }
 }
