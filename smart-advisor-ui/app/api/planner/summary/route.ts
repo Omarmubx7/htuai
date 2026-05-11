@@ -57,14 +57,7 @@ function getJordanDayKey(date: Date): string {
 
 type UserWithGamification = {
     id: number;
-    gamification_profile: {
-        user_id: number;
-        xp: number | null;
-        level: number | null;
-        last_activity_date: Date | null;
-        current_streak_days?: number | null;
-        longest_streak_days?: number | null;
-    } | null;
+    gamification_profile: import('@prisma/client').GamificationProfile | null;
 };
 
 async function handleDailyGamificationXP(user: UserWithGamification, today: Date) {
@@ -499,7 +492,7 @@ export async function GET(_req: NextRequest) {
         });
     } catch (error: unknown) {
         const correlationId = crypto.randomUUID();
-        console.error("[GET Planner Summary Error]", { correlationId, message: error?.message, stack: error?.stack, error });
+        console.error("[GET Planner Summary Error]", { correlationId, message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, error });
         return NextResponse.json({
             error: "Internal Server Error",
             correlationId,

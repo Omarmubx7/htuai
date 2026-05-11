@@ -85,7 +85,7 @@ function buildFallbackStudySchedule(courses: ScheduleCourse[], weeklyHours: numb
 function parseScheduleResponse(raw: string) {
     try {
         // First, try to extract JSON if it's embedded in text
-        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        const jsonMatch = /\{[\s\S]*\}/.exec(raw);
         const jsonStr = jsonMatch ? jsonMatch[0] : raw;
         
         const parsed = JSON.parse(jsonStr) as unknown;
@@ -131,6 +131,30 @@ function parseScheduleInput(body: ScheduleRequest & { semesterId?: number }) {
     return { semesterId, major, semesterType, semesterName, semesterStartDate, semesterEndDate, weeklyHours, courses };
 }
 
+async function persistSchedule(semesterId: number, userId: number, parsed: { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown }) {
+    try {
+        const existingSemester = await prisma.semester.findFirst({
+            where: { id: semesterId, user_id: userId || -1 },
+            select: { id: true },
+        });
+
+        if (existingSemester) {
+            await prisma.semester.update({
+                where: { id: existingSemester.id },
+                data: {
+                    study_schedule: structuredClone(parsed.weeklyPlan ?? []) as import('@prisma/client').Prisma.InputJsonValue,
+                    ai_exam_tips: structuredClone(parsed.examTips ?? []) as import('@prisma/client').Prisma.InputJsonValue
+                }
+            });
+            console.log(`[AI] Persisted schedule to semester ${semesterId}`);
+        } else {
+            console.warn(`[AI] Skipped schedule persistence for unauthorized or missing semester ${semesterId}`);
+        }
+    } catch (dbError) {
+        console.error("[AI] Failed to persist schedule to DB", dbError);
+    }
+}
+
 async function handleScheduleRequest(request: NextRequest, userId: number, startTime: number) {
     let status: 'success' | 'error' | 'timeout' = 'success';
     let errorMessage: string | undefined;
@@ -153,7 +177,7 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        let parsed: { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown } = { weeklyPlan: [], examTips: [] };
+        let parsed: { weeklyPlan?: unknown[]; examTips?: unknown[]; raw?: unknown };
         try {
             const { content, usage } = await getStudySchedule({
                 major,
@@ -226,27 +250,7 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
 
         // PERSIST TO DATABASE if semesterId is provided
         if (semesterId && parsed && status === 'success') {
-            try {
-                const existingSemester = await prisma.semester.findFirst({
-                    where: { id: semesterId, user_id: userId || -1 },
-                    select: { id: true },
-                });
-
-                if (existingSemester) {
-                    await prisma.semester.update({
-                        where: { id: existingSemester.id },
-                        data: {
-                            study_schedule: JSON.parse(JSON.stringify(parsed.weeklyPlan ?? [])),
-                            ai_exam_tips: JSON.parse(JSON.stringify(parsed.examTips ?? []))
-                        }
-                    });
-                    console.log(`[AI] Persisted schedule to semester ${semesterId}`);
-                } else {
-                    console.warn(`[AI] Skipped schedule persistence for unauthorized or missing semester ${semesterId}`);
-                }
-            } catch (dbError) {
-                console.error("[AI] Failed to persist schedule to DB", dbError);
-            }
+            await persistSchedule(semesterId, userId, parsed);
         }
 
         // Validate that we have actual schedule data

@@ -206,7 +206,16 @@ function PlannerHomeClient() {
 
                 setSummary(data as PlannerSummary);
 
-                interface SemesterSummary { id: number; name: string; courses?: { code: string; name: string; credits: number }[] }
+                interface SemesterSummary { 
+                    id: number; 
+                    name: string; 
+                    type?: string | null; 
+                    start_date?: string | null; 
+                    end_date?: string | null; 
+                    courses?: { code: string; name: string; credits: number; midterm_date?: string | null; final_date?: string | null }[]; 
+                    study_schedule?: Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }> | null; 
+                    ai_exam_tips?: string[] | null; 
+                }
                 const semData = (data.allSemesters || []) as SemesterSummary[];
                 console.log(`[fetchSummary] Got ${semData.length} semesters. allSemesters=${JSON.stringify(semData.map(s => ({ id: s.id, name: s.name, courses: s.courses?.length ?? 0 })))}`);
                 
@@ -337,7 +346,12 @@ function PlannerHomeClient() {
                 })
             });
             
-            let data: { result?: { weeklyPlan?: Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>; examTips?: string[] } } = {};
+            let data: { 
+                result?: { weeklyPlan?: Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>; examTips?: string[] };
+                fallback?: { weeklyPlan?: Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>; examTips?: string[] };
+                details?: string;
+                error?: string;
+            } = {};
             try {
                 data = await res.json();
             } catch (parseErr) {
@@ -347,9 +361,9 @@ function PlannerHomeClient() {
             
             // Handle 503 (service unavailable) with fallback
             if (res.status === 503 && data.fallback) {
-                setWeeklyPlan(data.fallback.weeklyPlan);
+                setWeeklyPlan(data.fallback.weeklyPlan || []);
                 safeStorage.set(`schedule-sem-${activeSemester.id}`, JSON.stringify(data.fallback));
-                toast("Using AI-assisted schedule (service currently busy). Check back soon for full AI optimization!", "warning");
+                toast("Using AI-assisted schedule (service currently busy). Check back soon for full AI optimization!", "info");
                 return;
             }
             

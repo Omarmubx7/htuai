@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.redirect(errUrl);
         }
 
-        const tokens = await tokenRes.json();
+        const tokens = await tokenRes.json() as { access_token?: string; refresh_token?: string; expires_in?: number };
 
         // Fetch user profile to get the Google Account email
         const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
         let googleId: string | undefined = undefined;
         let googleName: string | undefined = undefined;
         if (profileRes.ok) {
-            const profile = await profileRes.json();
+            const profile = await profileRes.json() as { email?: string; id?: string; name?: string };
             googleEmail = profile.email;
             googleId = profile.id;
             googleName = profile.name;

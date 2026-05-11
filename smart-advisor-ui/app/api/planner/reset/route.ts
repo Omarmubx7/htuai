@@ -13,7 +13,7 @@ export async function DELETE(_req: NextRequest) {
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
         // Wipe planner-derived data so all planner widgets reflect fresh state.
-        const [calendarEvents, quests, studySessions, semesters, gpaHistory, gamificationReset] = await prisma.$transaction([
+        const [calendarEvents, quests, studySessions, semesters, gpaHistory] = await prisma.$transaction([
             prisma.calendarEvent.deleteMany({ where: { user_id: user.id } }),
             prisma.quest.deleteMany({ where: { user_id: user.id } }),
             prisma.studySession.deleteMany({ where: { user_id: user.id } }),

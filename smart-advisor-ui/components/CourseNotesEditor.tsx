@@ -56,7 +56,7 @@ const SlashCommand = Extension.create({
 });
 
 interface CourseNotesEditorProps {
-  value?: import('@tiptap/core').JSONContent | null;
+  value?: import('@tiptap/core').JSONContent | string | null;
   onChange?: (val: import('@tiptap/core').JSONContent) => void;
   onAutoSave?: (val: import('@tiptap/core').JSONContent) => void;
   courseTitle?: string;

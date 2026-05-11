@@ -168,7 +168,7 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                         <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50 whitespace-nowrap">
                             School of Computing & Informatics
                         </h2>
-                        <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
+                        <div className="h-px flex-1 bg-linear-to-r from-white/8 to-transparent" />
                     </motion.div>
                     <motion.div
                         variants={container}
@@ -190,7 +190,7 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                         <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50 whitespace-nowrap">
                             College of Engineering
                         </h2>
-                        <div className="h-px flex-1 bg-gradient-to-r from-white/8 to-transparent" />
+                        <div className="h-px flex-1 bg-linear-to-r from-white/8 to-transparent" />
                     </motion.div>
                     <motion.div
                         variants={container}

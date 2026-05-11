@@ -131,7 +131,7 @@ export default function PlannerSemesterList() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="group relative bg-white/[0.02] border border-white/5 hover:border-violet-500/30 rounded-3xl p-6 transition-colors overflow-hidden flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center"
+                                    className="group relative bg-white/2 border border-white/5 hover:border-violet-500/30 rounded-3xl p-6 transition-colors overflow-hidden flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center"
                                 >
                                     <div className="flex items-start gap-4 z-10">
                                         <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center border ${isPast ? 'bg-white/5 border-white/5 text-white/40' : 'bg-violet-600/20 border-violet-500/30 text-violet-400'}`}>

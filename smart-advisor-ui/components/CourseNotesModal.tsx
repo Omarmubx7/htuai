@@ -23,7 +23,7 @@ interface CourseNotesModalProps {
     courseTitle: string;
 }
 
-type NotesContent = Record<string, unknown> | string | null;
+type NotesContent = import('@tiptap/core').JSONContent | string | null;
 
 export default function CourseNotesModal({
     isOpen,
@@ -38,7 +38,7 @@ export default function CourseNotesModal({
     const loadNotes = async () => {
         setLoading(true);
         try {
-            const data = await fetchJSON<{ notes: Record<string, unknown> | string | null; updatedAt?: string }>(
+            const data = await fetchJSON<{ notes: import('@tiptap/core').JSONContent | string | null; updatedAt?: string }>(
                 `/api/courses/${courseId}/notes`,
                 { retries: 2 }
             );

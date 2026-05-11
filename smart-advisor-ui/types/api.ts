@@ -127,7 +127,7 @@ export interface IntegrationToken {
 }
 
 /** Request Helper Types */
-export interface ApiRequest extends NextRequest {
+export interface ApiRequest extends Omit<NextRequest, 'body'> {
   body?: unknown;
 }
 
