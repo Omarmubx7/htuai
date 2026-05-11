@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { jsonResponse } from "@/lib/json-response";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/database";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
 
         // Return both `semesters` and legacy `allSemesters` key to remain
         // compatible with clients expecting either shape.
-        return NextResponse.json({ semesters, allSemesters: semesters });
+        return jsonResponse({ semesters, allSemesters: semesters });
     } catch (error) {
         console.error("GET Semesters Error:", error);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
         }).catch(() => {});
 
         console.log(`[SemesterCreate] Created semester: id=${newSemester.id}, type=${type}, year=${year}, userId=${user.id}`);
-        return NextResponse.json({ semester: newSemester });
+        return jsonResponse({ semester: newSemester });
     } catch (error) {
         console.error("POST Semester Error:", error);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });

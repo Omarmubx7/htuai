@@ -453,8 +453,15 @@ export async function GET(_req: NextRequest) {
             });
         }
 
-        // 11. Response
-        return NextResponse.json({
+        // Safe-serialize the payload: convert BigInt → number, Date → ISO string
+        // to prevent "TypeError: Do not know how to serialize a BigInt" which
+        // truncates the response body and causes client-side JSON parse errors.
+        function safeReplacer(_key: string, value: unknown) {
+            if (typeof value === 'bigint') return Number(value);
+            return value;
+        }
+
+        const payload = {
             cgpa,
             classification,
             currentSemester,
@@ -481,7 +488,7 @@ export async function GET(_req: NextRequest) {
                 total_study_minutes: neglectedCourse.total
             } : null,
             google_calendar_connected: !!googleToken,
-            google_preferences: googleToken?.metadata || {},
+            google_preferences: googleToken?.metadata ?? {},
             user: {
                 name: user.name,
                 email: user.email,
@@ -489,6 +496,11 @@ export async function GET(_req: NextRequest) {
                 major: profile?.major || "undecided",
                 role: user.role || "student"
             }
+        };
+
+        return new Response(JSON.stringify(payload, safeReplacer), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
         });
     } catch (error: unknown) {
         const correlationId = crypto.randomUUID();

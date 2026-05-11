@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
+import { jsonResponse } from "@/lib/json-response";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/database";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             where: { semester_id: semesterId },
             orderBy: { created_at: "desc" }
         });
-        return NextResponse.json({ notes });
+        return jsonResponse({ notes });
     } catch (e) {
         console.error("Fetch notes error:", e);
         return NextResponse.json({ error: "Failed to fetch notes" }, { status: 500 });
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             target_id: String(newNote.id),
         }).catch(() => {});
 
-        return NextResponse.json({ note: newNote });
+        return jsonResponse({ note: newNote });
     } catch (e) {
         console.error("Create note error:", e);
         return NextResponse.json({ error: "Failed to create note" }, { status: 500 });
@@ -114,7 +115,7 @@ export async function PATCH(req: NextRequest) {
                 updated_at: new Date()
             }
         });
-        return NextResponse.json({ note: updated });
+        return jsonResponse({ note: updated });
     } catch (e) {
         console.error("Update note error:", e);
         return NextResponse.json({ error: "Failed to update note" }, { status: 500 });
@@ -148,7 +149,7 @@ export async function DELETE(req: NextRequest) {
         await prisma.semesterNote.delete({
             where: { id: Number(id) }
         });
-        return NextResponse.json({ success: true });
+        return jsonResponse({ success: true });
     } catch (e) {
         console.error("Delete note error:", e);
         return NextResponse.json({ error: "Failed to delete note" }, { status: 500 });

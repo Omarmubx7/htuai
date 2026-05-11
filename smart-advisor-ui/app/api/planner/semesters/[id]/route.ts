@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { jsonResponse } from "@/lib/json-response";
 import { prisma } from "@/lib/prisma";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 import { semesterSchema } from "@/lib/schemas/api";
@@ -58,7 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             target_id: String(semesterId),
         }).catch(() => {});
 
-        return NextResponse.json({ semester: updated });
+        return jsonResponse({ semester: updated });
     } catch (e) {
         console.error("PUT Semester Error:", e);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });
@@ -89,7 +90,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             target_id: String(semesterId),
         }).catch(() => {});
 
-        return NextResponse.json({ success: true });
+        return jsonResponse({ success: true });
     } catch (e) {
         console.error("DELETE Semester Error:", e);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { jsonResponse } from "@/lib/json-response";
 import { prisma } from "@/lib/prisma";
 import { evaluateAchievements } from "@/lib/gamification";
 import { createAdminLog } from "@/lib/database";
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
             target_id: user.student_id || String(user.id),
         }).catch(() => {});
 
-        return NextResponse.json({ session: newSession, earnedXP, newTotalXP: gamificationUpdate.xp });
+        return jsonResponse({ session: newSession, earnedXP, newTotalXP: gamificationUpdate.xp });
     } catch (error) {
         console.error("POST StudySession Error:", error);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });
@@ -136,7 +137,7 @@ export async function GET(req: NextRequest) {
             take: 50
         });
 
-        return NextResponse.json({ sessions });
+        return jsonResponse({ sessions });
     } catch (error) {
         console.error("GET StudySession Error:", error);
         return NextResponse.json({ error: "Server Error" }, { status: 500 });
