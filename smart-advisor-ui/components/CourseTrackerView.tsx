@@ -688,7 +688,7 @@ function CourseTrackerView({
                                 {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                 Suggest Courses
                                 {typeof suggestRemaining === 'number' && (
-                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-black rounded bg-red-500/30 text-red-200">AI trials: {suggestRemaining}</span>
+                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-black rounded bg-red-600 text-white">AI trials: {suggestRemaining}</span>
                                 )}
                             </button>
                             {suggestCountdown && typeof suggestRemaining === 'number' && suggestRemaining > 0 && suggestRemaining <= 2 && (
@@ -720,7 +720,7 @@ function CourseTrackerView({
                                             <Sparkles className="w-4 h-4" />
                                             Build your schedule
                                             {typeof scheduleRemaining === 'number' && (
-                                                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-black rounded bg-red-500/30 text-red-200">AI trials: {scheduleRemaining}</span>
+                                                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-black rounded bg-red-600 text-white">AI trials: {scheduleRemaining}</span>
                                             )}
                                         </>
                                     )}

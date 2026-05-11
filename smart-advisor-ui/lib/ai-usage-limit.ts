@@ -76,11 +76,15 @@ export async function checkDailyAiUsageLimit(
     const resetAt = getResetTime();
     const usedToday = await getDailyAiUsageCount(userId, resetAt, _endpoint);
 
+    // Next reset is tomorrow at midnight (the next time the counter resets to 0)
+    const nextResetAt = new Date(resetAt);
+    nextResetAt.setDate(nextResetAt.getDate() + 1);
+
     return {
         allowed: usedToday < _limit,
         usedToday,
         remaining: Math.max(_limit - usedToday, 0),
         limit: _limit,
-        resetAt,
+        resetAt: nextResetAt,
     };
 }
