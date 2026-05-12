@@ -86,7 +86,7 @@ export default function PlannerSettings() {
     useEffect(() => {
         if (searchParams.get("connected") === "google") {
             toast("Google Calendar connected successfully!", "success");
-            const currentPath = typeof globalThis.location === 'undefined' ? '/' : globalThis.location.pathname;
+            const currentPath = globalThis.location === undefined ? '/' : globalThis.location.pathname;
             router.replace(currentPath, { scroll: false });
             // Refresh integration status and profile to reflect connection immediately
             checkIntegrationStatus();
@@ -96,11 +96,15 @@ export default function PlannerSettings() {
             if (errCode === "google_denied") {
                 toast("Google Calendar connection was cancelled or denied.", "error");
             } else if (errCode === "google_token_failed") {
-                toast("Failed to connect to Google Calendar. Please try again.", "error");
+                toast("Google rejected the connection request. Please try again.", "error");
+            } else if (errCode === "oauth_failed") {
+                toast("Connection failed while saving your Google account. Please clear your browser cookies and try again.", "error");
+            } else if (errCode === "invalid_state") {
+                toast("Security check failed — your session may have expired. Please try connecting again.", "error");
             } else {
-                toast("An error occurred while connecting to Google Calendar.", "error");
+                toast("An unexpected error occurred while connecting to Google Calendar. Please try again.", "error");
             }
-            const currentPath = globalThis.location !== undefined ? globalThis.location.pathname : '/';
+            const currentPath = globalThis.location === undefined ? '/' : globalThis.location.pathname;
             router.replace(currentPath, { scroll: false });
         }
     }, [searchParams, router, toast, checkIntegrationStatus, fetchUserProfile]);

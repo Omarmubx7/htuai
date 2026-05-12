@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { Prisma } from '@prisma/client';
 import { requireEnv } from '@/lib/env';
 
 /**
@@ -408,7 +409,7 @@ export async function saveIntegrationToken({
     try {
         const finalMetadata: Record<string, unknown> = metadata ? { ...metadata } : {};
         if (studentName) finalMetadata.student_name = studentName;
-        // Always store email in metadata as a fallback for the "Unknown argument" error
+        // Store email in metadata as a fallback
         if (accountEmail) finalMetadata.account_email = accountEmail;
 
         const dataPayload = {
@@ -417,7 +418,8 @@ export async function saveIntegrationToken({
             refresh_token: refreshToken || null,
             expires_at: expiresAt ? BigInt(Math.floor(expiresAt)) : null,
             provider_account_id: providerAccountId || null,
-            metadata: JSON.parse(JSON.stringify(finalMetadata)),
+            account_email: accountEmail || null,
+            metadata: structuredClone(finalMetadata) as unknown as Prisma.InputJsonValue,
             updated_at: new Date()
         };
 
@@ -449,6 +451,77 @@ export async function saveIntegrationToken({
     }
 }
 
+type PrismaIntegrationToken = NonNullable<Awaited<ReturnType<typeof prisma.integrationToken.findFirst>>>;
+
+interface RefreshResult {
+    token: PrismaIntegrationToken;
+    accessToken: string;
+    expiresAt: number;
+}
+
+/**
+ * Attempts to refresh a Google OAuth token with retry logic.
+ * Returns the updated token data on success, or null if all attempts fail.
+ */
+async function refreshGoogleToken(
+    token: PrismaIntegrationToken,
+    now: number
+): Promise<RefreshResult | null> {
+    const MAX_RETRIES = 2;
+    const refreshToken = token.refresh_token;
+    if (!refreshToken) return null;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const res: Response = await fetch("https://oauth2.googleapis.com/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    client_id: requireEnv("GOOGLE_CLIENT_ID"),
+                    client_secret: requireEnv("GOOGLE_CLIENT_SECRET"),
+                    refresh_token: refreshToken,
+                    grant_type: "refresh_token",
+                }),
+            });
+
+            if (res.ok) {
+                const data: { access_token: string; expires_in: number } = await res.json();
+                const newExpiresAt = now + data.expires_in;
+
+                const updatedToken = await prisma.integrationToken.update({
+                    where: { id: token.id },
+                    data: {
+                        access_token: data.access_token,
+                        expires_at: BigInt(newExpiresAt),
+                        updated_at: new Date()
+                    }
+                });
+
+                return { token: updatedToken, accessToken: data.access_token, expiresAt: newExpiresAt };
+            }
+
+            const errText = await res.text();
+            console.error(`[DB] Token refresh attempt ${attempt}/${MAX_RETRIES} failed (${res.status}):`, errText);
+
+            // If Google says the refresh token is invalid/revoked, don't retry
+            if (res.status === 400 && errText.includes('invalid_grant')) {
+                console.error("[DB] Refresh token revoked or invalid — user must reconnect.");
+                return null;
+            }
+        } catch (error) {
+            console.error(`[DB] Token refresh attempt ${attempt}/${MAX_RETRIES} error:`, error);
+        }
+
+        // Wait 1 second before retrying
+        if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+
+    console.error("[DB] All token refresh attempts failed for user_id:", token.user_id);
+    return null;
+}
+
 export async function getIntegrationToken(studentId: string, provider: string) {
     const user = await resolveUserByString(studentId);
     if (!user) return null;
@@ -464,40 +537,14 @@ export async function getIntegrationToken(studentId: string, provider: string) {
 
     // Check if token is expired or expires in less than 5 minutes (300 seconds)
     const now = Math.floor(Date.now() / 1000);
-    if (expiresAt && (expiresAt - now < 300) && token.refresh_token && provider === 'google_calendar') {
-        try {
-            const res = await fetch("https://oauth2.googleapis.com/token", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({
-                    client_id: requireEnv("GOOGLE_CLIENT_ID"),
-                    client_secret: requireEnv("GOOGLE_CLIENT_SECRET"),
-                    refresh_token: token.refresh_token,
-                    grant_type: "refresh_token",
-                }),
-            });
+    const needsRefresh = expiresAt && (expiresAt - now < 300) && token.refresh_token && provider === 'google_calendar';
 
-            if (res.ok) {
-                const data = await res.json();
-                accessToken = data.access_token;
-                expiresAt = now + data.expires_in;
-
-                token = await prisma.integrationToken.update({
-                    where: { id: token.id },
-                    data: {
-                        access_token: accessToken,
-                        expires_at: BigInt(expiresAt || 0),
-                        updated_at: new Date()
-                    }
-                });
-            } else {
-                console.error("[DB] Failed to refresh Google token:", await res.text());
-                return null;
-            }
-        } catch (error) {
-            console.error("[DB] Error refreshing token:", error);
-            return null;
-        }
+    if (needsRefresh) {
+        const refreshResult = await refreshGoogleToken(token, now);
+        if (!refreshResult) return null;
+        token = refreshResult.token;
+        accessToken = refreshResult.accessToken;
+        expiresAt = refreshResult.expiresAt;
     } else if (expiresAt && (expiresAt - now < 0) && !token.refresh_token) {
         return null;
     }

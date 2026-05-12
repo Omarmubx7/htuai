@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest) {
         return NextResponse.json({ notion: false, google_calendar: false, error: "no_session" }, { status: 401 });
     }
 
-    const studentId = session.user.student_id || session.user.email;
+    const studentId = session.user.db_id?.toString() || session.user.student_id || session.user.email;
     if (!studentId) {
         return NextResponse.json({ notion: false, google_calendar: false, error: "no_student_id" }, { status: 400 });
     }

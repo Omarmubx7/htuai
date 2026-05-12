@@ -65,7 +65,7 @@ export default function AITransparencyPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
+                                <div className="p-5 rounded-2xl bg-white/2 border border-white/5 space-y-3">
                                     <div className="flex items-center gap-2 text-violet-300 font-bold text-xs uppercase tracking-wider">
                                         <Brain className="w-4 h-4" /> Academic Advisor
                                     </div>
@@ -73,7 +73,7 @@ export default function AITransparencyPage() {
                                         Analyzes your degree progress and curriculum rules to provide optimized course suggestions and prerequisite warnings.
                                     </p>
                                 </div>
-                                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
+                                <div className="p-5 rounded-2xl bg-white/2 border border-white/5 space-y-3">
                                     <div className="flex items-center gap-2 text-blue-300 font-bold text-xs uppercase tracking-wider">
                                         <Zap className="w-4 h-4" /> Smart Notes
                                     </div>

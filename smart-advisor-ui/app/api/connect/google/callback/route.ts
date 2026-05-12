@@ -4,6 +4,74 @@ import { authOptions } from "@/auth";
 import { saveIntegrationToken, initDB } from "@/lib/database";
 import { getBaseUrl, requireEnv } from "@/lib/env";
 
+interface GoogleTokenResponse {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+}
+
+interface GoogleProfile {
+    email?: string;
+    id?: string;
+    name?: string;
+}
+
+/** Exchange an authorization code for Google OAuth tokens. */
+async function exchangeCodeForTokens(code: string, redirectUri: string, clientId: string, clientSecret: string) {
+    console.log("[Google OAuth] Exchanging code for tokens, redirect_uri:", redirectUri);
+
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+            code,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+            grant_type: "authorization_code",
+        }),
+    });
+
+    if (!tokenRes.ok) {
+        const errBody = await tokenRes.text();
+        console.error("[Google OAuth] Token exchange failed:", tokenRes.status, errBody);
+        return null;
+    }
+
+    const tokens = await tokenRes.json() as GoogleTokenResponse;
+
+    if (!tokens.access_token) {
+        console.error("[Google OAuth] Token response missing access_token:", JSON.stringify(tokens));
+        return null;
+    }
+
+    return tokens;
+}
+
+/** Fetch the Google user profile using an access token. */
+async function fetchGoogleProfile(accessToken: string): Promise<GoogleProfile> {
+    const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (profileRes.ok) {
+        return await profileRes.json() as GoogleProfile;
+    }
+
+    console.warn("[Google OAuth] Profile fetch failed:", profileRes.status, await profileRes.text());
+    return {};
+}
+
+/** Decode the returnTo URL from the state parameter. */
+function decodeReturnTo(encoded?: string): string {
+    if (!encoded) return "/planner/settings";
+    try {
+        return Buffer.from(encoded, "base64url").toString();
+    } catch {
+        return "/planner/settings";
+    }
+}
+
 // GET /api/connect/google/callback?code=...
 // Google redirects here after the user authorizes
 export async function GET(req: NextRequest) {
@@ -20,11 +88,10 @@ export async function GET(req: NextRequest) {
     const studentId = userId.toString();
 
     const code = req.nextUrl.searchParams.get("code");
-    const error = req.nextUrl.searchParams.get("error");
-    const _errorDescription = req.nextUrl.searchParams.get("error_description");
+    const oauthError = req.nextUrl.searchParams.get("error");
     const stateParam = req.nextUrl.searchParams.get("state") || "";
 
-    if (error || !code) {
+    if (oauthError || !code) {
         const errUrl = new URL("/planner/settings", req.url);
         errUrl.searchParams.set("error", "google_denied");
         return NextResponse.redirect(errUrl);
@@ -38,15 +105,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/?error=invalid_state", req.url));
     }
 
-    // Decode returnTo URL
-    let returnTo = "/planner/settings";
-    if (returnToEncoded) {
-        try {
-            returnTo = Buffer.from(returnToEncoded, "base64url").toString();
-        } catch {
-            returnTo = "/planner/settings";
-        }
-    }
+    const returnTo = decodeReturnTo(returnToEncoded);
 
     // Clear state cookie
     const response = NextResponse.redirect(new URL(returnTo, req.url));
@@ -55,61 +114,39 @@ export async function GET(req: NextRequest) {
     try {
         await initDB();
 
-        // Exchange code for tokens
         const redirectUri = `${getBaseUrl(req)}/api/connect/google/callback`;
         const clientId = requireEnv("GOOGLE_CLIENT_ID");
         const clientSecret = requireEnv("GOOGLE_CLIENT_SECRET");
 
-        const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                code: code,
-                client_id: clientId,
-                client_secret: clientSecret,
-                redirect_uri: redirectUri,
-                grant_type: "authorization_code",
-            }),
-        });
-
-        if (!tokenRes.ok) {
+        const tokens = await exchangeCodeForTokens(code, redirectUri, clientId, clientSecret);
+        if (!tokens) {
             const errUrl = new URL(returnTo, req.url);
             errUrl.searchParams.set("error", "google_token_failed");
             return NextResponse.redirect(errUrl);
         }
 
-        const tokens = await tokenRes.json() as { access_token?: string; refresh_token?: string; expires_in?: number };
+        const profile = await fetchGoogleProfile(tokens.access_token!);
 
-        // Fetch user profile to get the Google Account email
-        const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-            headers: { Authorization: `Bearer ${tokens.access_token}` },
-        });
-
-        let googleEmail: string | undefined = undefined;
-        let googleId: string | undefined = undefined;
-        let googleName: string | undefined = undefined;
-        if (profileRes.ok) {
-            const profile = await profileRes.json() as { email?: string; id?: string; name?: string };
-            googleEmail = profile.email;
-            googleId = profile.id;
-            googleName = profile.name;
-        }
+        console.log("[Google OAuth] Saving token for user:", studentId, "email:", profile.email);
 
         await saveIntegrationToken({
             studentId,
             provider: "google_calendar",
-            accessToken: (tokens.access_token as string) || "",
-            refreshToken: (tokens.refresh_token as string) || "",
+            accessToken: tokens.access_token!,
+            refreshToken: tokens.refresh_token || "",
             expiresAt: tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : undefined,
-            providerAccountId: googleId,
-            accountEmail: googleEmail,
-            studentName: googleName
+            providerAccountId: profile.id,
+            accountEmail: profile.email,
+            studentName: profile.name
         });
+
+        console.log("[Google OAuth] Token saved successfully for user:", studentId);
 
         const redirectUrl = new URL(returnTo, req.url);
         redirectUrl.searchParams.set("connected", "google");
         return NextResponse.redirect(redirectUrl);
-    } catch (_e: unknown) {
+    } catch (e: unknown) {
+        console.error("[Google OAuth] Callback failed:", e instanceof Error ? e.message : String(e), e instanceof Error ? e.stack : "");
         const errUrl = new URL(returnTo, req.url);
         errUrl.searchParams.set("error", "oauth_failed");
         return NextResponse.redirect(errUrl);
