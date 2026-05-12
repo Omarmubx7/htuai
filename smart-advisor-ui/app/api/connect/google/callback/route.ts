@@ -81,11 +81,11 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
 
-    const userId = session.user.db_id;
-    if (!userId) {
+    const studentId = session.user.db_id?.toString() || session.user.student_id || session.user.email;
+    if (!studentId) {
+        console.error("[Google OAuth] No user identity found in session:", JSON.stringify(session.user));
         return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
     }
-    const studentId = userId.toString();
 
     const code = req.nextUrl.searchParams.get("code");
     const oauthError = req.nextUrl.searchParams.get("error");

@@ -197,9 +197,14 @@ export const authOptions: NextAuthOptions = {
          */
         async jwt({ token, user, account }) {
             try {
-                // Persist student_id from the Credentials authorize() return
+                // Persist student_id and db_id from the authorize() return
                 if (user) {
                     token.student_id = (user as { student_id?: string | null }).student_id;
+                    // user.id is always the DB id (as string) for credentials users
+                    const parsedId = Number(user.id);
+                    if (!Number.isNaN(parsedId)) {
+                        token.db_id = parsedId;
+                    }
                 }
                 if (account) {
                     token.provider = account.provider;
@@ -213,14 +218,12 @@ export const authOptions: NextAuthOptions = {
                             }
                         } catch (e) {
                             console.error("[JWT] Failed to look up Google user in DB:", e);
-                            // Non-fatal: session will still work, student_id just won't be set
                         }
                     }
                 }
                 return token;
             } catch (error) {
                 console.error("[jwt callback] Error:", error);
-                // Return token even if there's an error
                 return token;
             }
         }
