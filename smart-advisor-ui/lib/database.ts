@@ -59,6 +59,13 @@ export async function resolveUserByString(identity: string) {
 
     const idLower = identity.toLowerCase();
 
+    // 0. Try numeric DB primary key (e.g. db_id.toString() = "42")
+    const numericId = Number(identity);
+    if (Number.isInteger(numericId) && numericId > 0) {
+        const user = await prisma.user.findUnique({ where: { id: numericId } });
+        if (user) return user;
+    }
+
     // 1. Try Student ID exactly (preserve leading zeros)
     let user = await prisma.user.findUnique({ where: { student_id: identity } });
     if (user) return user;
