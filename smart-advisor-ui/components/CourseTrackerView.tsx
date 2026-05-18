@@ -308,6 +308,21 @@ function CourseTrackerView({
             const isUniversitySubject = uniReqCodes.has(course.code) || uniElectiveCodes.has(course.code);
             const { isLocked: prereqLocked } = checkPrerequisites(course, completedCourses, completedCredits, allCourseCodes, rules.logic_rules?.prerequisites);
             return isUniversitySubject ? false : !prereqLocked;
+        }).sort((a, b) => {
+            const aIsPearson = a.framework === 'HNC' || a.framework === 'HND' || (a.name || '').toLowerCase().includes('hnc') || (a.name || '').toLowerCase().includes('hnd');
+            const bIsPearson = b.framework === 'HNC' || b.framework === 'HND' || (b.name || '').toLowerCase().includes('hnc') || (b.name || '').toLowerCase().includes('hnd');
+            
+            if (aIsPearson && !bIsPearson) return -1;
+            if (!aIsPearson && bIsPearson) return 1;
+
+            const aLevel = typeof a.level === 'number' ? a.level : 99;
+            const bLevel = typeof b.level === 'number' ? b.level : 99;
+            
+            if (aLevel !== bLevel) {
+                return aLevel - bLevel;
+            }
+            
+            return 0;
         });
         const eligibleCourseCodes = new Set(eligibleCourses.map(course => course.code));
 

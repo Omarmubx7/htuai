@@ -20,6 +20,7 @@ function buildSuggestedCoursesPrompt(major: string, candidateCourses: SuggestedC
 
     return `HTU ${major}. Recommend 5 from: ${candidatesStr}
 Completed: ${completedStr}
+Prioritize Pearson (HNC/HND) subjects and foundational/unlocked courses.
 Return exact course codes from the list only.
 Format:
 R:|code|reason
