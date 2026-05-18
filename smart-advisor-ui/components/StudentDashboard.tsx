@@ -237,12 +237,25 @@ function StudentDashboard({
         const maxUniElec = actualRuleSet.max_uni_electives;
         const maxDeptElec = actualRuleSet.max_dept_electives;
 
+        const pearsonCourses = [
+            ...data.university_requirements,
+            ...(data.university_electives ?? []),
+            ...data.college_requirements,
+            ...data.department_requirements,
+            ...(data.work_market_requirements ?? []),
+            ...data.electives
+        ].filter((c, index, self) => 
+            (c.framework === 'HNC' || c.framework === 'HND' || c.name.toLowerCase().includes('hnc') || c.name.toLowerCase().includes('hnd')) &&
+            self.findIndex(x => x.code === c.code) === index
+        );
+
         const catData = [
             { label: "University Requirements", courses: data.university_requirements, color: "#a78bfa", icon: <GraduationCap className="w-3.5 h-3.5" /> },
             { label: "University Elective", courses: data.university_electives ?? [], color: "#34d399", icon: <Sparkles className="w-3.5 h-3.5" />, cap: maxUniElec },
             { label: "College Requirements", courses: data.college_requirements, color: "#60a5fa", icon: <BookOpen className="w-3.5 h-3.5" /> },
             { label: "Department Requirements", courses: [...data.department_requirements, ...(data.work_market_requirements ?? [])], color: "#f59e0b", icon: <Target className="w-3.5 h-3.5" /> },
             { label: "Department Elective", courses: data.electives, color: "#f472b6", icon: <Sparkles className="w-3.5 h-3.5" />, cap: maxDeptElec },
+            { label: "Pearson Progress", courses: pearsonCourses, color: "#ef4444", icon: <Award className="w-3.5 h-3.5" />, isCourseCount: true },
         ];
 
         return catData
@@ -269,10 +282,11 @@ function StudentDashboard({
                     totalCH,
                     doneCH: Math.min(doneCH, totalCH),
                     remaining: Math.max(0, totalCH - doneCH),
-                    displayDone: isElectiveCategory ? Math.min(doneCount, totalCount) : Math.min(doneCH, totalCH),
-                    displayTotal: isElectiveCategory ? totalCount : totalCH,
+                    displayDone: ("isCourseCount" in cat && cat.isCourseCount) ? Math.min(doneCount, totalCount) : (isElectiveCategory ? Math.min(doneCount, totalCount) : Math.min(doneCH, totalCH)),
+                    displayTotal: ("isCourseCount" in cat && cat.isCourseCount) ? totalCount : (isElectiveCategory ? totalCount : totalCH),
                     color: cat.color,
-                    icon: cat.icon
+                    icon: cat.icon,
+                    isCourseCount: "isCourseCount" in cat ? cat.isCourseCount : false
                 };
             });
     }, [data, completedCourses, totalCredits, rules]);
@@ -446,7 +460,7 @@ function StudentDashboard({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {categories.map((cat, i) => {
                         const pct = cat.displayTotal > 0 ? Math.round((cat.displayDone / cat.displayTotal) * 100) : 0;
-                        const isDone = cat.remaining === 0 && cat.totalCH > 0;
+                        const isDone = cat.isCourseCount ? (cat.displayDone === cat.displayTotal && cat.displayTotal > 0) : (cat.remaining === 0 && cat.totalCH > 0);
                         return (
                             <motion.button
                                 key={cat.label}
