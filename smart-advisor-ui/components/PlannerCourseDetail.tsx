@@ -14,7 +14,7 @@ const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
         <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center">
-            <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
+            <span className="text-xs font-black uppercase tracking-widest text-white/40">Loading Editor...</span>
         </div>
     ),
 });
@@ -405,7 +405,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                             <h1 className="font-bold text-lg leading-tight flex items-center gap-2">
                                 {course.name}
                             </h1>
-                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-none mt-1">
+                            <p className="text-xs text-white/40 font-bold uppercase tracking-widest leading-none mt-1">
                                 {course.code} • {course.credits} CH
                             </p>
                         </div>
@@ -429,7 +429,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                                     <CalendarIcon className="w-4 h-4" /> Exam Schedule
                                 </h2>
                                 {(!midtermDate || !finalDate) && (
-                                    <span className="text-[10px] bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full font-bold animate-pulse">Needs Setup</span>
+                                    <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full font-bold animate-pulse">Needs Setup</span>
                                 )}
                             </div>
 
@@ -613,7 +613,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                             </h2>
                             <div className="space-y-3">
                                 {sessions.length > 0 ? sessions.map((s) => (
-                                    <div key={s.id || crypto.randomUUID()} className="flex justify-between items-center bg-white/5 p-3 rounded-xl text-sm">
+                                    <div key={s.id || `schedule-item-${Date.now()}-${Math.random().toString(36).substring(7)}`} className="flex justify-between items-center bg-white/5 p-3 rounded-xl text-sm">
                                         <span className="capitalize font-semibold text-white/80">{s.type}</span>
                                         <span className="text-white/50 font-medium font-mono">{s.duration_minutes}m</span>
                                     </div>

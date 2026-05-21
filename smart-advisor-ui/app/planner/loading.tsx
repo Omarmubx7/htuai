@@ -20,7 +20,7 @@ export default function Loading() {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center gap-2 text-[var(--foreground)]/40 text-[10px] font-black tracking-widest uppercase">
+                    <div className="flex items-center gap-2 text-[var(--foreground)]/40 text-xs font-black tracking-widest uppercase">
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
                         <span>Loading Planner...</span>
                     </div>

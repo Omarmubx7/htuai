@@ -264,7 +264,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                             </div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleSkip(); }}
-                                className="p-1.5 rounded-lg hover:bg-white/10 text-white/30 hover:text-white transition-all"
+                                className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-all"
                                 title="Close walkthrough"
                             >
                                 <X className="w-4 h-4" />
@@ -295,7 +295,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                                 )}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleSkip(); }}
-                                    className="px-5 py-3 sm:px-4 sm:py-2.5 rounded-xl text-white/30 hover:text-white/60 active:text-white/80 text-sm sm:text-xs font-bold transition-all"
+                                    className="px-5 py-3 sm:px-4 sm:py-2.5 rounded-xl text-white/50 hover:text-white/60 active:text-white/80 text-sm sm:text-xs font-bold transition-all"
                                 >
                                     Skip Tour
                                 </button>
@@ -310,7 +310,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                             </button>
                         </div>
 
-                        <p className="text-[10px] text-white/20 font-medium mt-3 text-center">
+                        <p className="text-xs text-white/40 font-medium mt-3 text-center">
                             Step {currentStep + 1} of {activeSteps.length} · Press → to advance
                         </p>
                     </div>

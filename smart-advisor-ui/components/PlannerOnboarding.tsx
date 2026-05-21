@@ -96,7 +96,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
 
                         <button
                             onClick={() => setShowWizard(true)}
-                            className={`text-xs text-white/30 hover:text-white/60 font-bold uppercase tracking-widest transition-colors ${step === steps.length ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                            className={`text-xs text-white/50 hover:text-white/60 font-bold uppercase tracking-widest transition-colors ${step === steps.length ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
                             Skip Tutorial
                         </button>

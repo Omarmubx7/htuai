@@ -109,7 +109,7 @@ export default function PlannerGamification() {
                     </div>
 
                     <div className="w-32 h-32 rounded-full border-4 border-violet-500 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(139,92,246,0.3)] bg-black/50 z-10 shrink-0">
-                        <span className="text-[10px] text-white/60 uppercase tracking-widest font-bold">Level</span>
+                        <span className="text-xs text-white/60 uppercase tracking-widest font-bold">Level</span>
                         <span className="text-5xl font-black font-display tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white to-white/60">{profile.level}</span>
                     </div>
 
@@ -177,14 +177,14 @@ export default function PlannerGamification() {
                                     </div>
                                     <h4 className="font-bold text-sm leading-tight">{badge.name}</h4>
                                     {badge.description && (
-                                        <p className="text-[10px] text-white/40 mt-2 leading-tight">{badge.description}</p>
+                                        <p className="text-xs text-white/40 mt-2 leading-tight">{badge.description}</p>
                                     )}
                                 </div>
                             ))}
                         </div>
                     ) : (
                         <div className="py-12 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center text-center opacity-60">
-                            <Star className="w-8 h-8 text-white/20 mb-3" />
+                            <Star className="w-8 h-8 text-white/40 mb-3" />
                             <p className="text-sm font-bold">No badges yet.</p>
                             <p className="text-xs font-medium text-white/40 max-w-xs mt-1">Keep studying and logging sessions to unlock achievements!</p>
                         </div>

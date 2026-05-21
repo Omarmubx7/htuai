@@ -10,7 +10,7 @@ const CourseNotesEditor = dynamic(() => import("@/components/CourseNotesEditor")
   ssr: false,
   loading: () => (
     <div className="h-100 w-full bg-white/5 animate-pulse rounded-4xl border border-white/10 flex items-center justify-center">
-      <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
+      <span className="text-xs font-black uppercase tracking-widest text-white/40">Loading Editor...</span>
     </div>
   ),
 });
@@ -83,7 +83,7 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
           <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
             <div className="w-6 h-6 rounded-full bg-violet-500/20 border border-violet-500/40 animate-ping" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/20 animate-pulse">Loading Workspace...</span>
+          <span className="text-xs font-black uppercase tracking-widest text-white/40 animate-pulse">Loading Workspace...</span>
         </div>
       ) : (
         <CourseNotesEditor

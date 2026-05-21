@@ -9,9 +9,7 @@ import MobileNav from "@/components/MobileNav";
 import MobileHeader from "@/components/MobileHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import SiteFooter from "@/components/SiteFooter";
-
-const outfit = Outfit({ subsets: ["latin"] });
-
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   metadataBase: new URL('https://ai.mubx.dev'),
   title: {
@@ -149,7 +147,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.className} min-h-screen flex flex-col pb-30 sm:pb-0`}>
+      <body className={`${outfit.variable} font-sans min-h-screen flex flex-col pb-30 sm:pb-0`}>
         <ThemeProvider>
           <Providers>
             {/* JSON-LD: SoftwareApplication */}

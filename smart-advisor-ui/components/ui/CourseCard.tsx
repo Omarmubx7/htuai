@@ -81,15 +81,15 @@ function PrerequisiteSection({
             {isMobile ? (
                 <button
                     onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-                    className="w-full flex items-center justify-between text-[10px] text-white/40 hover:text-white/60 transition-colors uppercase font-black tracking-[0.2em] mb-2"
+                    className="w-full flex items-center justify-between text-xs text-white/40 hover:text-white/60 transition-colors uppercase font-black tracking-[0.2em] mb-2"
                 >
                     <span>Prerequisites ({prereqCodes.length + (hasCHRule ? 1 : 0) + (hasOtherText ? 1 : 0)})</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
             ) : (
                 <div className="flex items-center justify-between mb-3">
-                    <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-black">Prerequisites</p>
-                    {hasCHRule && <span className="text-[8px] font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
+                    <p className="text-xs text-white/40 uppercase tracking-[0.2em] font-black">Prerequisites</p>
+                    {hasCHRule && <span className="text-xs font-bold text-white/40">{completedCredits}/{requiredCH} CH</span>}
                 </div>
             )}
 
@@ -104,8 +104,8 @@ function PrerequisiteSection({
                     >
                         {isMobile && hasCHRule && requiredCH !== null && (
                             <div className="flex items-center justify-between mb-1.5 mt-2">
-                                <span className="text-[9px] text-white/40 font-bold tracking-widest uppercase">Credit Req</span>
-                                <span className="text-[9px] font-bold text-white/60">{completedCredits}/{requiredCH} CH</span>
+                                <span className="text-[11px] text-white/40 font-bold tracking-widest uppercase">Credit Req</span>
+                                <span className="text-[11px] font-bold text-white/60">{completedCredits}/{requiredCH} CH</span>
                             </div>
                         )}
 
@@ -128,7 +128,7 @@ function PrerequisiteSection({
                                         key={code}
                                         type="button"
                                         title={`${name ?? code} - Click for details`}
-                                        className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer hover:shadow-[0_0_12px_rgba(${isMissing ? '239,68,68' : '16,185,129'},0.2)] ${isMobile ? "w-full" : ""}
+                                        className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer hover:shadow-[0_0_12px_rgba(${isMissing ? '239,68,68' : '16,185,129'},0.2)] ${isMobile ? "w-full" : ""}
                                             ${isMissing
                                                 ? "bg-red-500/10 border-red-500/20 text-red-400/60 hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400"
                                                 : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/60 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400"
@@ -152,7 +152,7 @@ function PrerequisiteSection({
                                 );
                             })}
                             {hasOtherText && (
-                                <span className={`inline-flex items-center gap-1.5 text-[9px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60 ${isMobile ? "w-full" : ""}`}>
+                                <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-400/60 ${isMobile ? "w-full" : ""}`}>
                                     <AlertCircle className="w-2.5 h-2.5 opacity-50 shrink-0" />
                                     <span className="truncate">{fullPrereq}</span>
                                 </span>
@@ -292,24 +292,26 @@ function CourseCard({
 
             {/* Top Row */}
             <div className="flex justify-between items-start mb-4 relative z-10">
-                <span className={`inline-flex items-center gap-2 text-[9px] font-black px-2.5 py-1 rounded-full border tracking-[0.15em] uppercase transition-colors ${accent.badge}`}>
+                <span className={`inline-flex items-center gap-2 text-[11px] font-black px-2.5 py-1 rounded-full border tracking-[0.15em] uppercase transition-colors ${accent.badge}`}>
                     <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
                     {course.framework}
                 </span>
-                <button
-                    data-testid="status-icon"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (isLocked || hasPrereqWarning) {
-                            setShowLockInfo(!showLockInfo);
-                        } else {
-                            setIsExpanded(!isExpanded);
-                        }
-                    }}
-                    title={isLocked ? "Course Requirements" : "Course Prerequisites & Status"}
-                    className="relative flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"
-                >
-                    <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
+                <div className="relative">
+                    <button
+                        data-testid="status-icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (isLocked || hasPrereqWarning) {
+                                setShowLockInfo(!showLockInfo);
+                            } else {
+                                setIsExpanded(!isExpanded);
+                            }
+                        }}
+                        title={isLocked ? "Course Requirements" : "Course Prerequisites & Status"}
+                        className="relative flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"
+                    >
+                        <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
+                    </button>
                     <AnimatePresence>
                         {showLockInfo && (isLocked || hasPrereqWarning) && (
                             <LockInfoPopover
@@ -320,7 +322,7 @@ function CourseCard({
                             />
                         )}
                     </AnimatePresence>
-                </button>
+                </div>
             </div>
 
             {/* Course Name */}
@@ -331,21 +333,21 @@ function CourseCard({
             {/* Code + Credits + Notes */}
             <div className="flex flex-wrap items-center justify-between gap-y-3 mt-3 sm:mt-5 relative z-10">
                 <div className="flex flex-wrap items-center gap-3">
-                    <span data-testid="course-code" className="text-[10px] text-white/20 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors mt-0.5">{course.code}</span>
+                    <span data-testid="course-code" className="text-xs text-white/40 font-mono font-bold tracking-[0.2em] group-hover/card:text-white/40 transition-colors mt-0.5">{course.code}</span>
                     <button
                         onClick={(e) => { e.stopPropagation(); onOpenNotes?.(); }}
                         className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-white/5 border border-white/10 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all group/notes min-h-8"
                         title="Course Notes"
                     >
                         <Sparkles className="w-3.5 h-3.5 text-white/40 group-hover/notes:text-violet-400 transition-colors" />
-                        <span className="text-[10px] font-bold text-white/60 group-hover/notes:text-violet-300 transition-colors">Notes</span>
+                        <span className="text-xs font-bold text-white/60 group-hover/notes:text-violet-300 transition-colors">Notes</span>
                     </button>
                 </div>
 
-                <span className={`text-[10px] font-black tracking-widest px-3 py-1.5 rounded-xl border transition-all duration-500
+                <span className={`text-xs font-black tracking-widest px-3 py-1.5 rounded-xl border transition-all duration-500
                     ${isCompleted
                         ? "bg-white/5 border-white/10 text-white/80"
-                        : "bg-white/3 border-white/10 text-white/30 group-hover/card:border-white/20 group-hover/card:text-white/60"
+                        : "bg-white/3 border-white/10 text-white/50 group-hover/card:border-white/20 group-hover/card:text-white/60"
                     }`}>
                     {course.ch} CH
                 </span>
@@ -362,7 +364,7 @@ function CourseCard({
             {/* No prerequisites */}
             {!course.prereq && (
                 <div className="mt-3 pt-3 border-t border-white/5 relative z-10 transition-colors">
-                    <span className="text-[10px] text-white/20 italic group-hover/card:text-white/40">No prerequisites</span>
+                    <span className="text-xs text-white/40 italic group-hover/card:text-white/40">No prerequisites</span>
                 </div>
             )}
         </motion.div>

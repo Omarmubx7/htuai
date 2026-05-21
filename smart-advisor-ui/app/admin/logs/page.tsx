@@ -37,7 +37,7 @@ function LogsInner() {
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0f' }}>
-            <Loader2 className="w-6 h-6 text-white/30 animate-spin" />
+            <Loader2 className="w-6 h-6 text-white/50 animate-spin" />
         </div>
     );
 

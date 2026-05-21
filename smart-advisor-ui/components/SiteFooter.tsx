@@ -12,13 +12,13 @@ export default function SiteFooter() {
     }
 
     return (
-        <footer className="relative w-full px-6 py-8 mt-auto flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] font-bold uppercase tracking-widest text-white/50 border-t border-white/5 bg-black/20 backdrop-blur-sm z-50">
+        <footer className="relative w-full px-6 py-8 mt-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs font-bold uppercase tracking-widest text-white/50 border-t border-white/5 bg-black/20 backdrop-blur-sm z-50">
             {/* Left: Brand & Description */}
             <div className="flex flex-col items-center md:items-start gap-2">
                 <div className="flex items-center gap-2">
                     <BrandMark size="sm" showWordmark={true} />
                 </div>
-                <p className="text-[9px] text-white/30 font-normal tracking-normal">Smart Academic Planning for MUBX Students</p>
+                <p className="text-[11px] text-white/50 font-normal tracking-normal">Smart Academic Planning for MUBX Students</p>
             </div>
 
             {/* Center: Links */}

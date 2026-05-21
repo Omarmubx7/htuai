@@ -8,6 +8,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
 import { fetchJSON } from "@/lib/fetch-retry";
+import LogSessionModal from "./modals/LogSessionModal";
 
 interface StudySessionItem {
     id: number;
@@ -34,6 +35,9 @@ interface StudyLogStats {
 
 interface PlannerSummaryResponse {
     studyLogStats?: StudyLogStats;
+    currentSemester?: {
+        courses: Array<{ id: number; code: string; name: string }>;
+    };
 }
 
 export default function PlannerStudyLogClient() {
@@ -42,6 +46,7 @@ export default function PlannerStudyLogClient() {
 
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<PlannerSummaryResponse | null>(null);
+    const [isLogSessionOpen, setIsLogSessionOpen] = useState(false);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -80,9 +85,15 @@ export default function PlannerStudyLogClient() {
 
     return (
         <div className="min-h-screen pb-24 bg-black text-white selection:bg-violet-500/30 overflow-hidden">
+            <LogSessionModal
+                isOpen={isLogSessionOpen}
+                onClose={() => setIsLogSessionOpen(false)}
+                courses={stats?.currentSemester?.courses || []}
+                onSuccess={() => fetchStudyLogInfo()}
+            />
             <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
                 <div className="flex flex-col">
-                    <Link href="/planner" className="text-[10px] text-white/40 uppercase tracking-widest font-bold hover:text-white transition-colors mb-1 flex items-center gap-1">
+                    <Link href="/planner" className="text-xs text-white/40 uppercase tracking-widest font-bold hover:text-white transition-colors mb-1 flex items-center gap-1">
                         ← Dashboard
                     </Link>
                     <h1 className="font-bold text-lg flex items-center gap-2">
@@ -148,9 +159,17 @@ export default function PlannerStudyLogClient() {
 
                 {/* Session History */}
                 <div>
-                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4 flex items-center gap-2 mt-8">
-                        <CalendarIcon className="w-5 h-5 text-violet-400" /> Session History
-                    </h3>
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4 mt-8">
+                        <h3 className="text-lg font-bold font-display tracking-tight flex items-center gap-2">
+                            <CalendarIcon className="w-5 h-5 text-violet-400" /> Session History
+                        </h3>
+                        <button
+                            onClick={() => setIsLogSessionOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold transition-colors shadow-[0_0_10px_rgba(37,99,235,0.3)] text-white"
+                        >
+                            <PlayCircle className="w-4 h-4" /> Log Time
+                        </button>
+                    </div>
 
                     <div className="space-y-3">
                         {study_sessions.length > 0 ? (
@@ -164,7 +183,7 @@ export default function PlannerStudyLogClient() {
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-xl bg-white/5 flex flex-col items-center justify-center text-white/40 font-bold">
-                                            <span className="text-[10px] uppercase leading-none">{new Date(session.created_at).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                            <span className="text-xs uppercase leading-none">{new Date(session.created_at).toLocaleDateString('en-US', { month: 'short' })}</span>
                                             <span className="text-sm leading-none mt-0.5">{new Date(session.created_at).getDate()}</span>
                                         </div>
                                         <div>
@@ -183,9 +202,14 @@ export default function PlannerStudyLogClient() {
                             ))
                         ) : (
                             <div className="py-12 text-center rounded-3xl border border-dashed border-white/5">
-                                <BookOpen className="w-8 h-8 text-white/20 mx-auto mb-3" />
+                                <BookOpen className="w-8 h-8 text-white/40 mx-auto mb-3" />
                                 <p className="text-sm font-semibold text-white/50">No study sessions recorded yet.</p>
-                                <p className="text-xs text-white/30 mt-1">Visit a course page to log your first session.</p>
+                                <button
+                                    onClick={() => setIsLogSessionOpen(true)}
+                                    className="px-6 py-2.5 mt-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-sm text-white transition-colors inline-block shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+                                >
+                                    Log your first session
+                                </button>
                             </div>
                         )}
                     </div>

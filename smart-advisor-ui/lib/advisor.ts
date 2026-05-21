@@ -137,8 +137,8 @@ export function checkPrerequisites(
 
     const prereqStr = course.prereq.toUpperCase().trim();
 
-    const approvalResult = checkDepartmentApproval(prereqStr);
-    if (approvalResult) return approvalResult;
+    // const approvalResult = checkDepartmentApproval(prereqStr);
+    // if (approvalResult) return approvalResult;
 
     const hoursResult = checkCreditHours(prereqStr, completedCredits);
     if (hoursResult) return hoursResult;

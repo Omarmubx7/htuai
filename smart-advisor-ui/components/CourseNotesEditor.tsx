@@ -156,16 +156,16 @@ export default function CourseNotesEditor({
   if (!editor) {
     if (initTimeout) {
       return (
-        <div className="h-100 w-full bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
+        <div className="h-100 w-full bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/40">
           <div className="flex flex-col items-center gap-4">
             <span className="text-xs font-black uppercase tracking-widest text-red-400/50">Editor Failed to Load</span>
-            <span className="text-[10px] text-white/40">Please refresh the page</span>
+            <span className="text-xs text-white/40">Please refresh the page</span>
           </div>
         </div>
       );
     }
     return (
-      <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/20">
+      <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/40">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
             <Sparkles className="w-6 h-6 animate-pulse text-violet-400/50" />
@@ -198,7 +198,7 @@ export default function CourseNotesEditor({
       return (
         <div className="flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-          <span className="text-[10px] font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
+          <span className="text-xs font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
         </div>
       );
     }
@@ -207,13 +207,13 @@ export default function CourseNotesEditor({
       return (
         <div className="flex items-center gap-1.5">
           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-          <span className="text-[10px] font-bold text-emerald-400/60 uppercase tracking-widest">Changes Saved</span>
+          <span className="text-xs font-bold text-emerald-400/60 uppercase tracking-widest">Changes Saved</span>
         </div>
       );
     }
 
     return (
-      <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
+      <span className="text-xs font-bold text-white/40 uppercase tracking-widest">
         Last edited {updatedAt ? new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
       </span>
     );

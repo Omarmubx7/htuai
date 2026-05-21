@@ -93,10 +93,10 @@ function StepBar({ current }: Readonly<{ current: number }>) {
             {STEPS.map((label, i) => (
                 <div key={label} className="flex items-center gap-1 flex-1">
                     <div className={`flex flex-col items-center gap-1 flex-1 ${i <= current ? "opacity-100" : "opacity-30"}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-colors ${getStepDotClasses(i)}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-colors ${getStepDotClasses(i)}`}>
                             {i < current ? <Check className="w-3 h-3" /> : i + 1}
                         </div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-white/40 hidden sm:block">{label}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-white/40 hidden sm:block">{label}</span>
                     </div>
                     {i < STEPS.length - 1 && (
                         <div className={`h-px flex-1 mb-4 transition-colors ${i < current ? "bg-violet-500/50" : "bg-white/10"}`} />
@@ -345,12 +345,12 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                     {semType && (
                         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 gap-3 pt-2">
                             <div>
-                                <label htmlFor="start-date" className="text-[10px] uppercase font-bold text-white/40 tracking-widest pl-1">Start Date</label>
+                                <label htmlFor="start-date" className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">Start Date</label>
                                 <input id="start-date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
                                     className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
                             </div>
                             <div>
-                                <label htmlFor="end-date" className="text-[10px] uppercase font-bold text-white/40 tracking-widest pl-1">End Date</label>
+                                <label htmlFor="end-date" className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">End Date</label>
                                 <input id="end-date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
                                     className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
                             </div>
@@ -363,7 +363,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                 <div className="space-y-4">
                     <p className="text-white/50 text-sm">Search and add your courses. You need at least one.</p>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                         <input
                             type="text" placeholder="Search by code or name..."
                             value={searchQ}
@@ -383,9 +383,9 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                                     >
                                         <div>
                                             <p className="text-sm font-semibold text-white/90 truncate max-w-55">{c.name}</p>
-                                            <p className="text-[10px] text-white/40">{c.code}</p>
+                                            <p className="text-xs text-white/40">{c.code}</p>
                                         </div>
-                                        <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-md text-white/50 shrink-0">{c.credits} CH</span>
+                                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded-md text-white/50 shrink-0">{c.credits} CH</span>
                                     </button>
                                 ))}
                             </div>
@@ -394,7 +394,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
                     <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                         {courses.length === 0 ? (
-                            <div className="py-8 text-center text-white/20 border border-dashed border-white/10 rounded-2xl">
+                            <div className="py-8 text-center text-white/40 border border-dashed border-white/10 rounded-2xl">
                                 <BookOpen className="w-6 h-6 mx-auto mb-2 opacity-40" />
                                 <p className="text-xs">No courses added yet</p>
                             </div>
@@ -402,9 +402,9 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                             <div key={c.code} className="flex items-center justify-between bg-white/3 border border-white/5 rounded-xl px-4 py-2.5">
                                 <div>
                                     <p className="text-sm font-semibold">{c.name}</p>
-                                    <p className="text-[10px] text-white/40">{c.code} · {c.credits} CH</p>
+                                    <p className="text-xs text-white/40">{c.code} · {c.credits} CH</p>
                                 </div>
-                                <button onClick={() => removeCourse(c.code)} className="p-1.5 hover:bg-red-500/10 hover:text-red-400 text-white/30 rounded-lg transition-colors">
+                                <button onClick={() => removeCourse(c.code)} className="p-1.5 hover:bg-red-500/10 hover:text-red-400 text-white/50 rounded-lg transition-colors">
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -439,14 +439,14 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                                 <div className="grid grid-cols-2 gap-3">
                                     {hasMidterms && (
                                         <div>
-                                            <label htmlFor={`midterm-${c.code}`} className="text-[10px] uppercase font-bold text-white/40 tracking-widest pl-1">Midterm</label>
+                                            <label htmlFor={`midterm-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">Midterm</label>
                                             <input id={`midterm-${c.code}`} type="date" value={c.midterm_date} onChange={e => updateCourse(c.code, "midterm_date", e.target.value)}
                                                 className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
                                         </div>
                                     )}
                                     {hasFinals && (
                                         <div>
-                                            <label htmlFor={`final-${c.code}`} className="text-[10px] uppercase font-bold text-white/40 tracking-widest pl-1">Final</label>
+                                            <label htmlFor={`final-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">Final</label>
                                             <input id={`final-${c.code}`} type="date" value={c.final_date} onChange={e => updateCourse(c.code, "final_date", e.target.value)}
                                                 className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
                                         </div>
@@ -467,12 +467,12 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                                 <p className="text-sm font-bold mb-3">{c.code}</p>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label htmlFor={`instructor-${c.code}`} className="text-[10px] uppercase font-bold text-white/40 tracking-widest pl-1 flex items-center gap-1"><User className="w-3 h-3" /> Instructor</label>
+                                        <label htmlFor={`instructor-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1 flex items-center gap-1"><User className="w-3 h-3" /> Instructor</label>
                                         <input id={`instructor-${c.code}`} type="text" placeholder="Dr. ..." value={c.instructor_name} onChange={e => updateCourse(c.code, "instructor_name", e.target.value)}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
                                     </div>
                                     <div>
-                                        <label htmlFor={`location-${c.code}`} className="text-[10px] uppercase font-bold text-white/40 tracking-widest pl-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Room</label>
+                                        <label htmlFor={`location-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Room</label>
                                         <input id={`location-${c.code}`} type="text" placeholder="e.g. B201" value={c.location} onChange={e => updateCourse(c.code, "location", e.target.value)}
                                             className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
                                     </div>

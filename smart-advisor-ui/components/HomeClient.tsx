@@ -388,11 +388,11 @@ export default function HomeClient() {
 
                             <div id="wt-profile" className="flex items-center gap-3">
                                     <div className="flex flex-col items-end">
-                                        <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">{studentId}</span>
+                                        <span className="text-xs font-bold text-white/50 uppercase tracking-widest">{studentId}</span>
                                         {majorInfo && (
                                             <button onClick={() => setAppState("major-select")} className="group flex items-center gap-2 px-2 py-1 rounded-xl bg-white/5 border border-white/5">
                                                 <Settings2 className="w-3 h-3 text-white/40" />
-                                                <span className="text-[10px] font-bold text-white/80">{majorInfo.label}</span>
+                                                <span className="text-xs font-bold text-white/80">{majorInfo.label}</span>
                                                 <span>{majorInfo.icon}</span>
                                             </button>
                                         )}
@@ -405,7 +405,7 @@ export default function HomeClient() {
                                         title="Open mubxbot"
                                     >
                                         <Bot className="w-4 h-4" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">mubxbot</span>
+                                        <span className="text-xs font-bold uppercase tracking-wider">mubxbot</span>
                                     </a>
                                     <div className="relative">
                                         <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} aria-haspopup="true" aria-expanded={profileMenuOpen}

@@ -13,7 +13,7 @@ export default function BrandMark({ className = "", size = "md", showWordmark = 
         return "w-10 h-10";
     };
     const getTextSize = (s: string) => {
-        if (s === "sm") return "text-[10px]";
+        if (s === "sm") return "text-xs";
         if (s === "lg") return "text-base";
         return "text-sm";
     };

@@ -173,7 +173,7 @@ export default function StudentLogin() {
 
                     <div className="relative my-10 px-4">
                         <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-white/5" /></div>
-                        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                        <div className="relative flex justify-center text-xs font-black uppercase tracking-[0.2em] text-white/40">
                             <span className="bg-[#030303] px-4 py-1.5 rounded-full border border-white/10">Universal Login</span>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ export default function StudentLogin() {
                             <button
                                 type="button"
                                 onClick={() => { setIsClaiming(!isClaiming); setId(""); setPassword(""); setError(""); }}
-                                className="text-[11px] sm:text-[10px] uppercase tracking-wider font-bold text-violet-400/80 hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
+                                className="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-violet-400/80 hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
                             >
                                 {isClaiming
                                     ? "Already have an account? Login"

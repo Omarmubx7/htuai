@@ -6,7 +6,7 @@ import { useState, useEffect, memo, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock, HelpCircle } from "lucide-react";
+import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock, HelpCircle, Brain, Search, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
@@ -14,6 +14,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { safeStorage } from "@/lib/safe-storage";
 import SemesterSetupWizard from "@/components/SemesterSetupWizard";
 import BrandMark from "@/components/BrandMark";
+import LogSessionModal from "./modals/LogSessionModal";
+import AddCourseModal from "./modals/AddCourseModal";
 
 interface NotificationEvent {
     id: number;
@@ -185,6 +187,8 @@ function PlannerHomeClient() {
     const [showSetupWizard, setShowSetupWizard] = useState(false);
     const [generatingSchedule, setGeneratingSchedule] = useState(false);
     const [showStatusInfo, setShowStatusInfo] = useState(false);
+    const [isLogSessionOpen, setIsLogSessionOpen] = useState(false);
+    const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
     const { toast } = useToast();
     // Guards against re-triggering the onboarding wizard immediately after
     // the user completes it — DB propagation can lag behind the refetch.
@@ -416,8 +420,8 @@ function PlannerHomeClient() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {Array.from({ length: 4 }).map(() => (
-                        <div key={crypto.randomUUID()} className="premium-card h-32 animate-pulse bg-white/5" />
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={`skeleton-${i}`} className="premium-card h-32 animate-pulse bg-white/5" />
                     ))}
                 </div>
                 <div className="premium-card h-64 animate-pulse bg-white/5" />
@@ -440,6 +444,19 @@ function PlannerHomeClient() {
 
     return (
         <div className="min-h-screen pb-24 selection:bg-violet-500/30">
+            <LogSessionModal
+                isOpen={isLogSessionOpen}
+                onClose={() => setIsLogSessionOpen(false)}
+                courses={(activeSemester?.courses as any) || []}
+                onSuccess={() => fetchSummary()}
+            />
+            <AddCourseModal
+                isOpen={isAddCourseOpen}
+                onClose={() => setIsAddCourseOpen(false)}
+                semesterId={activeSemester?.id || null}
+                existingCourses={(activeSemester?.courses as any) || []}
+                onSuccess={() => fetchSummary()}
+            />
             {/* Header */}
             <header className="hidden sm:flex sticky top-0 z-50 bg-white/2 backdrop-blur-2xl border-b border-white/6 px-6 py-4 items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -450,7 +467,7 @@ function PlannerHomeClient() {
                         <h1 className="font-bold text-lg leading-tight">Semester Planner</h1>
                         <div className="flex items-center gap-1.5 mt-0.5">
                             <BrandMark size="sm" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">MUBXAI Hub</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-white/40">MUBXAI Hub</p>
                         </div>
                     </div>
                 </div>
@@ -494,7 +511,7 @@ function PlannerHomeClient() {
                                                             </div>
                                                             <div>
                                                                 <p className="text-[11px] font-bold text-white/90 leading-tight">{ev.title}</p>
-                                                                <p className="text-[10px] text-white/40 mt-1">
+                                                                <p className="text-xs text-white/40 mt-1">
                                                                     {ev.type?.toLowerCase().includes("exam")
                                                                         ? new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'Asia/Amman' })
                                                                         : new Date(ev.start_datetime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' })}
@@ -505,7 +522,7 @@ function PlannerHomeClient() {
                                                 ))
                                             ) : (
                                                 <div className="py-8 text-center">
-                                                    <p className="text-xs text-white/20 italic">No urgent notifications</p>
+                                                    <p className="text-xs text-white/40 italic">No urgent notifications</p>
                                                 </div>
                                             )}
                                         </div>
@@ -553,11 +570,11 @@ function PlannerHomeClient() {
                         <div className="flex gap-4 w-full sm:w-auto mt-2 sm:mt-0">
                             <div className="flex-1 sm:flex-none glass-panel rounded-2xl p-4 flex flex-col items-center justify-center min-w-24">
                                 <span className="text-xl font-black text-orange-400">{summary.gamification.current_streak_days}🔥</span>
-                                <span className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Streak</span>
+                                <span className="text-xs text-white/40 uppercase tracking-widest mt-1">Streak</span>
                             </div>
                             <div className="flex-1 sm:flex-none glass-panel rounded-2xl p-4 flex flex-col items-center justify-center min-w-24 relative">
                                 <span className="text-xl font-black text-blue-400">{summary.classification === 'N/A' ? '-' : summary.classification}</span>
-                                <span className="text-[10px] text-white/40 uppercase tracking-widest mt-1">Status</span>
+                                <span className="text-xs text-white/40 uppercase tracking-widest mt-1">Status</span>
                                 {summary.classification && summary.classification !== 'N/A' && (
                                     <button
                                         onClick={() => setShowStatusInfo(!showStatusInfo)}
@@ -630,13 +647,29 @@ function PlannerHomeClient() {
                         </div>
 
                         {summary?.currentSemester ? (
-                            <Link
-                                href="/planner/semesters"
-                                className="mt-6 flex items-center justify-between px-5 py-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group w-full relative z-10"
-                            >
-                                <span className="font-semibold text-sm">Manage Semesters</span>
-                                <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                            </Link>
+                            <div className="mt-6 flex flex-col gap-2 relative z-10">
+                                <button
+                                    onClick={() => setIsAddCourseOpen(true)}
+                                    className="flex items-center justify-between px-5 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 transition-colors group w-full text-white shadow-[0_0_20px_rgba(124,58,237,0.3)]"
+                                >
+                                    <span className="font-semibold text-sm">Quick Add Course</span>
+                                    <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                </button>
+                                <button
+                                    onClick={() => setIsLogSessionOpen(true)}
+                                    className="flex items-center justify-between px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 transition-colors group w-full text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+                                >
+                                    <span className="font-semibold text-sm">Log Study Time</span>
+                                    <Clock className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                </button>
+                                <Link
+                                    href="/planner/semesters"
+                                    className="flex items-center justify-between px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group w-full text-white mt-2"
+                                >
+                                    <span className="font-semibold text-sm">Manage Semesters</span>
+                                    <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                                </Link>
+                            </div>
                         ) : (
                             <button
                                 onClick={() => setShowSetupWizard(true)}
@@ -678,8 +711,8 @@ function PlannerHomeClient() {
                     {weeklyPlan.length > 0 || generatingSchedule ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {generatingSchedule ? (
-                                Array.from({ length: 4 }).map(() => (
-                                    <div key={crypto.randomUUID()} className="bg-white/3 border border-white/5 rounded-2xl p-4 animate-pulse space-y-3">
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={`skeleton-trend-${i}`} className="bg-white/3 border border-white/5 rounded-2xl p-4 animate-pulse space-y-3">
                                         <div className="h-2 w-12 bg-white/10 rounded" />
                                         <div className="space-y-2">
                                             <div className="h-3 w-full bg-white/5 rounded" />
@@ -691,7 +724,7 @@ function PlannerHomeClient() {
                                 weeklyPlan.slice(0, 4).map((dayPlan, _i) => (
                                     <div key={dayPlan.day} className="bg-white/3 border border-white/5 rounded-2xl p-4 hover:bg-white/5 transition-colors">
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{dayPlan.day}</span>
+                                            <span className="text-xs font-black uppercase tracking-widest text-emerald-400">{dayPlan.day}</span>
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                         </div>
                                         <div className="space-y-3">
@@ -699,9 +732,9 @@ function PlannerHomeClient() {
                                                 <div key={`session-${dayPlan.day}-${j}`} className="space-y-1">
                                                     <div className="flex items-center justify-between gap-2">
                                                         <span className="text-xs font-bold truncate text-white/90">{session.course}</span>
-                                                        <span className="text-[10px] font-bold text-emerald-400/80 shrink-0">{session.hours}h</span>
+                                                        <span className="text-xs font-bold text-emerald-400/80 shrink-0">{session.hours}h</span>
                                                     </div>
-                                                    <p className="text-[10px] text-white/40 line-clamp-1 italic">&quot;{session.focus}&quot;</p>
+                                                    <p className="text-xs text-white/40 line-clamp-1 italic">&quot;{session.focus}&quot;</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -758,7 +791,7 @@ function PlannerHomeClient() {
                             <h2 className="text-lg font-bold flex items-center gap-2">
                                 <Sparkles className="w-5 h-5 text-violet-400" /> Active Quests
                             </h2>
-                            <Link href="/planner/gamification" className="px-2 py-1 bg-violet-600/20 text-violet-400 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-violet-600/30 transition-colors">
+                            <Link href="/planner/gamification" className="px-2 py-1 bg-violet-600/20 text-violet-400 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-violet-600/30 transition-colors">
                                 View All
                             </Link>
                         </div>
@@ -783,7 +816,7 @@ function PlannerHomeClient() {
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="font-bold text-sm text-white/90 group-hover:text-white transition-colors truncate capitalize">{quest.type.replace('_', ' ')}</h3>
                                                 <p className="text-[11px] text-white/50 mt-1 line-clamp-1">{quest.target_value} {quest.type.includes('minutes') ? 'min' : 'sessions'} target</p>
-                                                <div className="mt-3 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-widest">
+                                                <div className="mt-3 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-widest">
                                                     <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
                                                         <div
                                                             className={`h-full transition-all duration-1000 ${isStudy ? 'bg-blue-500' : 'bg-orange-500'}`}
@@ -833,12 +866,12 @@ function PlannerHomeClient() {
                                 You have an upcoming exam in less than 14 days, but only <span className="text-amber-400 font-bold">{summary.neglectedCourse.total_study_minutes} minutes</span> logged so far. Focus more time here!
                             </p>
                         </div>
-                        <Link
-                            href={`/planner/courses/${summary.neglectedCourse.id}`}
+                        <button
+                            onClick={() => setIsLogSessionOpen(true)}
                             className="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm transition-all whitespace-nowrap"
                         >
                             Log Study Session
-                        </Link>
+                        </button>
                     </motion.div>
                 )}
 
@@ -859,7 +892,7 @@ function PlannerHomeClient() {
                             </div>
                             <p className="text-xs text-white/50 mb-4">Estimate your future standing if you maintain current performance.</p>
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-white/30">
+                                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-white/50">
                                     <span>Target Grade</span>
                                     <span>Projected CGPA</span>
                                 </div>
@@ -877,7 +910,7 @@ function PlannerHomeClient() {
                                 </div>
                             </div>
                         </div>
-                        <p className="text-[9px] text-white/20 mt-4 italic">* Based on {summary?.projections?.remainingCH || 0} remaining CH.</p>
+                        <p className="text-[11px] text-white/40 mt-4 italic">* Based on {summary?.projections?.remainingCH || 0} remaining CH.</p>
                     </motion.div>
 
                     {/* Pro Study Tips Card */}
@@ -891,7 +924,7 @@ function PlannerHomeClient() {
                             <h2 className="text-sm font-bold flex items-center gap-2 text-indigo-400">
                                 <Flame className="w-4 h-4" /> Smart Study Tips
                             </h2>
-                            <span className="text-[9px] font-black bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">Personalized</span>
+                            <span className="text-[11px] font-black bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">Personalized</span>
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -912,7 +945,7 @@ function PlannerHomeClient() {
                                         </div>
                                         <div>
                                             <h4 className="text-xs font-bold text-white/90">{tip.title}</h4>
-                                            <p className="text-[10px] text-white/40 mt-1 leading-relaxed">{tip.text}</p>
+                                            <p className="text-xs text-white/40 mt-1 leading-relaxed">{tip.text}</p>
                                         </div>
                                     </div>
                                 );
@@ -933,7 +966,7 @@ function PlannerHomeClient() {
                             <h2 className="text-lg font-bold flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5 text-violet-400" /> Weekly Study Habits
                             </h2>
-                            <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Last 7 Days (Mins)</span>
+                            <span className="text-xs text-white/50 font-bold uppercase tracking-widest">Last 7 Days (Mins)</span>
                         </div>
 
                         <div className="flex items-end justify-between h-48 gap-2 px-2">
@@ -948,12 +981,12 @@ function PlannerHomeClient() {
                                                 style={{ height: `${Math.max(height, 10)}%` }}
                                             />
                                             {day.minutes > 0 && (
-                                                <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 border border-white/10 px-2 py-1 rounded text-[10px] font-bold z-10">
+                                                <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 border border-white/10 px-2 py-1 rounded text-xs font-bold z-10">
                                                     {day.minutes}m
                                                 </div>
                                             )}
                                         </div>
-                                        <span className="text-[9px] font-bold text-white/20 uppercase">
+                                        <span className="text-[11px] font-bold text-white/40 uppercase">
                                             {new Date(day.date).toLocaleDateString([], { weekday: 'short' })}
                                         </span>
                                     </div>
@@ -976,7 +1009,7 @@ function PlannerHomeClient() {
                             <button
                                 onClick={handleSync}
                                 disabled={syncing}
-                                className={`text-[10px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all
+                                className={`text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all
                                     ${summary?.google_calendar_connected
                                         ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
                                         : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'}`}
@@ -996,28 +1029,28 @@ function PlannerHomeClient() {
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <div className="w-10 h-10 rounded-xl bg-black/50 border border-white/5 flex flex-col items-center justify-center shrink-0">
-                                                    <span className="text-[9px] uppercase text-white/40 font-bold">{new Date(event.start_datetime).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                                    <span className="text-[11px] uppercase text-white/40 font-bold">{new Date(event.start_datetime).toLocaleDateString('en-US', { month: 'short' })}</span>
                                                     <span className="text-base font-black leading-none">{new Date(event.start_datetime).getDate()}</span>
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-bold text-sm truncate">{event.title}</p>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-white/40 tracking-wider">
+                                                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-white/40 tracking-wider">
                                                             {event.type.replace('_', ' ').toUpperCase()}
                                                         </span>
-                                                        <span className="text-[10px] text-white/20 tabular-nums">
+                                                        <span className="text-xs text-white/40 tabular-nums">
                                                             {new Date(event.start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Amman' })}
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-white/20 shrink-0" />
+                                            <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
                                         </div>
                                     </div>
                                 ))
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-2xl bg-white/1">
-                                    <Calendar className="w-8 h-8 text-white/20 mb-3" />
+                                    <Calendar className="w-8 h-8 text-white/40 mb-3" />
                                     <p className="text-white/40 text-xs font-medium">No upcoming deadlines found.</p>
                                 </div>
                             )}

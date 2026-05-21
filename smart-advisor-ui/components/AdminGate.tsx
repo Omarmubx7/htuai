@@ -66,7 +66,7 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                         <KeyRound className="w-5 h-5 text-violet-400" />
                     </div>
                     <h1 className="text-lg font-bold text-white/80">Admin Access</h1>
-                    <p className="text-xs text-white/25 text-center">Enter the admin secret to continue</p>
+                    <p className="text-xs text-white/50 text-center">Enter the admin secret to continue</p>
                 </div>
 
                 <input
@@ -89,7 +89,7 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                 )}
 
                 {!error && attempted && !verifying && (
-                    <p className="text-[11px] text-white/30 leading-relaxed">
+                    <p className="text-[11px] text-white/50 leading-relaxed">
                         Forgot the secret? Contact your system admin.
                     </p>
                 )}

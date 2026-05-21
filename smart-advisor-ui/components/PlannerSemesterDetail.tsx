@@ -11,6 +11,8 @@ import ConfirmDialog from "./ui/ConfirmDialog";
 import ThemeToggle from "@/components/ThemeToggle";
 import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 import { GRADE_MAP } from "@/lib/grading";
+import AddCourseModal from "./modals/AddCourseModal";
+import CourseSettingsModal from "./modals/CourseSettingsModal";
 
 interface PlannerSemesterDetailProps {
     semesterId: string;
@@ -87,13 +89,13 @@ function GradeLegendPopover({ onClose }: Readonly<{ onClose: () => void }>) {
                 {Object.entries(GRADE_MAP).slice(0, 4).map(([grade, info]) => (
                     <div key={grade} className="flex items-center justify-between text-xs">
                         <span className="font-bold text-white/80">{grade} = {info.label}</span>
-                        <span className="text-white/50 text-[10px]">{info.points} pts</span>
+                        <span className="text-white/50 text-xs">{info.points} pts</span>
                     </div>
                 ))}
             </div>
             <button
                 onClick={onClose}
-                className="mt-3 w-full py-1.5 text-[10px] font-bold text-white/60 hover:text-white/80 transition-colors"
+                className="mt-3 w-full py-1.5 text-xs font-bold text-white/60 hover:text-white/80 transition-colors"
             >
                 Close
             </button>
@@ -111,17 +113,11 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
     const [courses, setCourses] = useState<PlannerCourseItem[]>([]);
 
     // Add manual course modal
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newCourse, setNewCourse] = useState({ code: "", name: "", credits: 3 });
+    const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
 
-    // Edit course modal
-    const [showEditModal, setShowEditModal] = useState(false);
+    // Edit course settings modal
+    const [isCourseSettingsOpen, setIsCourseSettingsOpen] = useState(false);
     const [editingCourse, setEditingCourse] = useState<PlannerCourseItem | null>(null);
-
-    // Autocomplete state
-    const [availableCourses, setAvailableCourses] = useState<Array<{ code: string; name: string; credits: number }>>([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [showSuggestions, setShowSuggestions] = useState(false);
 
     // Semester Dates State
     const [startDate, setStartDate] = useState("");
@@ -161,41 +157,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
 
             if (!res.ok) throw new Error("Failed fetching semesters");
 
-            // Handle curriculum logic for autocomplete
-            if (currRes.ok) {
-                const curriculum = await currRes.json() as {
-                    shared?: Record<string, Array<{ code?: string; name?: string; ch?: number }>>;
-                    majors?: Record<string, Record<string, Array<{ code?: string; name?: string; ch?: number }>>>;
-                };
-                const uniqueCourses = new Map<string, { code: string; name: string; credits: number }>();
-
-                const processList = (list?: Array<{ code?: string; name?: string; ch?: number }>) => {
-                    if (!list) return;
-                    list.forEach(c => {
-                        if (c.code && c.name) {
-                            uniqueCourses.set(c.code, { code: c.code, name: c.name, credits: c.ch || 3 });
-                        }
-                    });
-                };
-
-                if (curriculum.shared) {
-                    processList(curriculum.shared.university_requirements);
-                    processList(curriculum.shared.college_requirements);
-                    processList(curriculum.shared.university_electives);
-                }
-
-                if (curriculum.majors) {
-                    Object.values(curriculum.majors).forEach((m) => {
-                        processList(m.university_requirements);
-                        processList(m.college_requirements);
-                        processList(m.department_requirements);
-                        processList(m.electives);
-                        processList(m.work_market_requirements);
-                        processList(m.university_electives);
-                    });
-                }
-                setAvailableCourses(Array.from(uniqueCourses.values()));
-            }
+            if (!res.ok) throw new Error("Failed fetching semesters");
 
             const data = await res.json() as { semesters: SemesterDetail[] };
             const found = data.semesters.find((s) => s.id.toString() === semesterId);
@@ -226,51 +188,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         }
     }, [status, router, fetchSemester, fetchNotes]);
 
-    const [addCourseError, setAddCourseError] = useState<string | null>(null);
 
-    const handleAddCourse = async () => {
-        setAddCourseError(null);
-        if (!newCourse.code || !newCourse.name) {
-            setAddCourseError("Please provide both Course Code and Course Name.");
-            return;
-        }
-        
-        // Check if course already exists in this semester
-        const isDuplicate = courses.some(c => 
-            c.code.toUpperCase() === newCourse.code.toUpperCase()
-        );
-        
-        if (isDuplicate) {
-            toast("This course is already added to the semester.", "error");
-            return;
-        }
-        
-        try {
-            const res = await fetchWithRetry("/api/planner/courses", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    semester_id: Number(semesterId),
-                    ...newCourse
-                }),
-                retries: 2
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setCourses([...courses, data.course]);
-                setShowAddModal(false);
-                setNewCourse({ code: "", name: "", credits: 3 });
-                setSearchQuery("");
-                setAddCourseError(null);
-                toast("Course added successfully!", "success");
-            } else {
-                const errorData = await res.json();
-                toast(errorData.error || "Failed to add course.", "error");
-            }
-        } catch (error) {
-            toast(`Failed to add course: ${error instanceof Error ? error.message : 'Network error'}`, "error");
-        }
-    };
 
     const handleSaveNote = async () => {
         if (!noteDraft.title) return;
@@ -347,30 +265,6 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         }
     };
 
-    const handleEditCourse = async () => {
-        if (!editingCourse) return;
-        try {
-            const res = await fetchWithRetry(`/api/planner/courses/${editingCourse.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    code: editingCourse.code,
-                    name: editingCourse.name,
-                    credits: editingCourse.credits
-                }),
-                retries: 2
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setCourses(courses.map(c => c.id === editingCourse.id ? data.course : c));
-                setShowEditModal(false);
-                toast("Course updated!", "success");
-            }
-        } catch (error) {
-            toast(`Failed to update course: ${error instanceof Error ? error.message : 'Network error'}`, "error");
-        }
-    };
-
     const _confirmDeleteCourse = (courseId: number) => {
         setCourseToDelete(courseId);
         setShowDeleteCourseConfirm(true);
@@ -432,21 +326,6 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
         return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '-.--';
     };
 
-    const filteredSuggestions = availableCourses.filter(c => {
-        // Filter out courses already in the semester
-        const alreadyAdded = courses.some(existingCourse => 
-            existingCourse.code.toUpperCase() === c.code.toUpperCase()
-        );
-        if (alreadyAdded) return false;
-        
-        // Filter by search query
-        return c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-               c.name.toLowerCase().includes(searchQuery.toLowerCase());
-    }).slice(0, 10); // Show max 10 suggestions
-
-    // Note: Due to time constraints, the Course Detail Page (Notes/StudyLog/Quests) is built inside 
-    // the semantic modal or separate route `/planner/courses/[id]`. We will link there.
-
     if (loading || !semester) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
@@ -470,7 +349,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             <h1 className="font-bold text-lg leading-tight flex items-center gap-2">
                                 {semester.name}
                             </h1>
-                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-none mt-1">
+                            <p className="text-xs text-white/40 font-bold uppercase tracking-widest leading-none mt-1">
                                 {semester.type} {semester.year}
                             </p>
                         </div>
@@ -494,25 +373,25 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                         <p className="text-white/50 text-xs font-bold uppercase tracking-widest font-display flex items-center justify-between">
                             <span>Term GPA</span>
                             {semester.semester_gpa !== null && (
-                                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/10">Official</span>
+                                <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/10">Official</span>
                             )}
                         </p>
                         <h2 className="text-4xl font-black mt-2 text-transparent bg-clip-text bg-linear-to-r from-violet-400 to-blue-400">
                             {semester.semester_gpa == null ? liveGPA : semester.semester_gpa.toFixed(2)}
                         </h2>
                         {semester.semester_gpa != null && (
-                            <p className="text-[10px] text-white/20 mt-2 font-medium italic">Calculated: {liveGPA}</p>
+                            <p className="text-xs text-white/40 mt-2 font-medium italic">Calculated: {liveGPA}</p>
                         )}
                     </div>
                     <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2">
                         <p className="text-white/50 text-xs font-bold uppercase tracking-widest font-display">Hours Registered</p>
                         <h2 className="text-4xl font-black mt-2 text-white/90">
-                            {courses.reduce((acc, c) => acc + c.credits, 0)} <span className="text-lg text-white/30">CH</span>
+                            {courses.reduce((acc, c) => acc + c.credits, 0)} <span className="text-lg text-white/50">CH</span>
                         </h2>
                     </div>
                     <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 flex items-center justify-center">
                         <button
-                            onClick={() => setShowAddModal(true)}
+                            onClick={() => setIsAddCourseOpen(true)}
                             className="w-full h-full min-h-25 border-2 sm:border-dashed border-violet-500/30 sm:border-white/10 hover:border-violet-500/50 hover:bg-violet-500/5 bg-violet-600/10 sm:bg-transparent rounded-3xl transition-all flex flex-col items-center justify-center text-violet-400 sm:text-white/50 hover:text-white group"
                         >
                             <Plus className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
@@ -543,7 +422,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                     <h4 className="font-bold text-base hover:text-blue-400 transition-colors">
                                         <Link href={`/planner/courses/${course.id}`}>{course.name}</Link>
                                     </h4>
-                                    <p className="text-[11px] font-bold tracking-wider text-white/30 uppercase mt-0.5">{course.code} • {course.credits} CH</p>
+                                    <p className="text-[11px] font-bold tracking-wider text-white/50 uppercase mt-0.5">{course.code} • {course.credits} CH</p>
 
                                     <div className="flex gap-4 mt-3">
                                         {course.instructor_name && (
@@ -559,7 +438,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4 z-10 pt-4 sm:pt-0 border-t border-white/5 sm:border-0 mt-2 sm:mt-0">
                                 <div className="flex flex-col items-start sm:items-end relative">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <label htmlFor={`grade-${course.id}`} className="text-[10px] uppercase font-bold text-white/30 tracking-widest pl-1">Grade</label>
+                                        <label htmlFor={`grade-${course.id}`} className="text-xs uppercase font-bold text-white/50 tracking-widest pl-1">Grade</label>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setGradeLegendCourseId((current) => current === course.id ? null : course.id); }}
                                             className="p-0.5 hover:bg-white/10 rounded-full transition-colors"
@@ -591,26 +470,40 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                         </div>
                                     </div>
                                 </div>
-                                <Link
-                                    href={`/planner/courses/${course.id}`}
-                                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
-                                >
-                                    <ArrowRight className="w-4 h-4 text-white/60" />
-                                </Link>
+                                <div className="flex gap-2 items-center">
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setEditingCourse(course);
+                                            setIsCourseSettingsOpen(true);
+                                        }}
+                                        className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+                                        title="Course Settings"
+                                    >
+                                        <Settings2 className="w-4 h-4 text-white/60" />
+                                    </button>
+                                    <Link
+                                        href={`/planner/courses/${course.id}`}
+                                        className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+                                    >
+                                        <ArrowRight className="w-4 h-4 text-white/60" />
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                         );
                     })}
 
                     {courses.length === 0 && (
-                        <div className="py-16 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30">
+                        <div className="py-16 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/50">
                             <BookOpen className="w-8 h-8 mb-3 opacity-50" />
                             <p className="text-sm font-semibold">No courses logged for this semester.</p>
                             <button
-                                onClick={() => setShowAddModal(true)}
-                                className="mt-6 px-6 py-3 bg-violet-600/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-400 font-bold rounded-xl text-sm transition-all"
+                                onClick={() => setIsAddCourseOpen(true)}
+                                className="p-2 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-xs sm:text-sm text-white transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
                             >
-                                Add Your First Course
+                                <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Course</span>
                             </button>
                         </div>
                     )}
@@ -664,7 +557,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                     </p>
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                                    <span className="text-xs font-bold text-white/40 uppercase tracking-widest">
                                         Last edited: {note.updated_at ? new Date(note.updated_at).toLocaleDateString() : 'N/A'}
                                     </span>
                                     <ChevronRight className="w-4 h-4 text-white/10" />
@@ -673,7 +566,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                         ))}
 
                         {notes.length === 0 && (
-                            <div className="sm:col-span-2 py-12 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/20">
+                            <div className="sm:col-span-2 py-12 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/40">
                                 <FileText className="w-8 h-8 mb-3 opacity-30" />
                                 <p className="text-sm font-semibold">No generic pages created for this term.</p>
                                 <button
@@ -722,175 +615,24 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
             </main>
 
             {/* Add Course Modal */}
-            <AnimatePresence>
-                {showAddModal && (
-                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => {
-                                setAddCourseError(null);
-                                setShowAddModal(false);
-                            }}
-                        />
-                        <motion.div
-                            initial={{ scale: 0.95, y: 20, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            exit={{ scale: 0.95, y: 20, opacity: 0 }}
-                            className="relative w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl"
-                        >
-                            <h3 className="text-xl font-bold mb-4">Add Course</h3>
-                            <div className="space-y-4">
-                                <div className="relative">
-                                    <label htmlFor="search-db" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Search Course (Database)</label>
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                        <input
-                                            id="search-db"
-                                            type="text"
-                                            placeholder="Search by code or name..."
-                                            value={searchQuery}
-                                            onChange={e => {
-                                                setSearchQuery(e.target.value);
-                                                setShowSuggestions(true);
-                                            }}
-                                            onFocus={() => setShowSuggestions(true)}
-                                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                                        />
-                                    </div>
+            <AddCourseModal
+                isOpen={isAddCourseOpen}
+                onClose={() => setIsAddCourseOpen(false)}
+                semesterId={Number(semesterId)}
+                existingCourses={courses}
+                onSuccess={() => fetchSemester()}
+            />
 
-                                    {showSuggestions && searchQuery && filteredSuggestions.length > 0 && (
-                                        <div className="absolute z-50 w-full mt-2 bg-zinc-800 border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto">
-                                            {filteredSuggestions.map((c) => (
-                                                <button
-                                                    key={c.code}
-                                                    type="button"
-                                                    className="w-full px-4 py-2 hover:bg-white/10 cursor-pointer text-sm flex justify-between items-center text-left"
-                                                    onClick={() => {
-                                                        setNewCourse({ code: c.code, name: c.name, credits: c.credits });
-                                                        setSearchQuery(c.name);
-                                                        setShowSuggestions(false);
-                                                    }}
-                                                >
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-white/90 truncate max-w-50">{c.name}</span>
-                                                        <span className="text-[10px] text-white/40">{c.code}</span>
-                                                    </div>
-                                                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-md text-white/60">{c.credits} CH</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <div className="flex-1">
-                                        <label htmlFor="new-code" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Code</label>
-                                        <input
-                                            id="new-code"
-                                            type="text" placeholder="e.g. CS101"
-                                            value={newCourse.code} onChange={e => setNewCourse({ ...newCourse, code: e.target.value })}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors uppercase"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label htmlFor="new-credits" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Credits</label>
-                                        <select
-                                            id="new-credits"
-                                            value={newCourse.credits} onChange={e => setNewCourse({ ...newCourse, credits: Number(e.target.value) })}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors appearance-none"
-                                        >
-                                            <option value={1} className="bg-zinc-900 text-white">1 CH</option>
-                                            <option value={2} className="bg-zinc-900 text-white">2 CH</option>
-                                            <option value={3} className="bg-zinc-900 text-white">3 CH</option>
-                                            <option value={4} className="bg-zinc-900 text-white">4 CH</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label htmlFor="new-name" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Name</label>
-                                    <input
-                                        id="new-name"
-                                        type="text" placeholder="e.g. Intro to Computer Science"
-                                        value={newCourse.name} onChange={e => setNewCourse({ ...newCourse, name: e.target.value })}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
-                                    />
-                                </div>
-                                {addCourseError && (
-                                    <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center font-bold">
-                                        {addCourseError}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex gap-3 mt-8">
-                                <button onClick={() => { setAddCourseError(null); setShowAddModal(false); }} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">Cancel</button>
-                                <button onClick={handleAddCourse} className="flex-1 py-3 bg-blue-600 focus:outline-[3px] outline-blue-500/30 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">Add</button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* Edit Course Modal */}
-            <AnimatePresence>
-                {showEditModal && editingCourse && (
-                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setShowEditModal(false)}
-                        />
-                        <motion.div
-                            initial={{ scale: 0.95, y: 20, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            exit={{ scale: 0.95, y: 20, opacity: 0 }}
-                            className="relative w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl"
-                        >
-                            <h3 className="text-xl font-bold mb-4">Edit Course</h3>
-                            <div className="space-y-4">
-                                <div className="flex gap-3">
-                                    <div className="flex-1">
-                                        <label htmlFor="edit-code" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Code</label>
-                                        <input
-                                            id="edit-code"
-                                            type="text"
-                                            value={editingCourse.code} onChange={e => setEditingCourse({ ...editingCourse, code: e.target.value })}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors uppercase"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label htmlFor="edit-credits" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Credits</label>
-                                        <select
-                                            id="edit-credits"
-                                            value={editingCourse.credits} onChange={e => setEditingCourse({ ...editingCourse, credits: Number(e.target.value) })}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors appearance-none"
-                                        >
-                                            <option value={1} className="bg-zinc-900 text-white">1 CH</option>
-                                            <option value={2} className="bg-zinc-900 text-white">2 CH</option>
-                                            <option value={3} className="bg-zinc-900 text-white">3 CH</option>
-                                            <option value={4} className="bg-zinc-900 text-white">4 CH</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label htmlFor="edit-name" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Course Name</label>
-                                    <input
-                                        id="edit-name"
-                                        type="text"
-                                        value={editingCourse.name} onChange={e => setEditingCourse({ ...editingCourse, name: e.target.value })}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex gap-3 mt-8">
-                                <button onClick={() => setShowEditModal(false)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">Cancel</button>
-                                <button onClick={handleEditCourse} className="flex-1 py-3 bg-blue-600 focus:outline-[3px] outline-blue-500/30 hover:bg-blue-500 text-white font-bold rounded-xl transition-colors">Save</button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            {/* Edit Course Settings Modal */}
+            <CourseSettingsModal
+                isOpen={isCourseSettingsOpen}
+                onClose={() => setIsCourseSettingsOpen(false)}
+                course={editingCourse as any}
+                semesterMeta={{ start_date: startDate, end_date: endDate }}
+                onSuccess={(updatedCourse) => {
+                    setCourses(courses.map(c => c.id === updatedCourse.id ? (updatedCourse as any) : c));
+                }}
+            />
 
             {/* Semester Note Modal */}
             <AnimatePresence>
@@ -913,7 +655,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label htmlFor="note-title" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Page Title</label>
+                                    <label htmlFor="note-title" className="text-xs uppercase text-white/50 tracking-widest font-bold pl-1">Page Title</label>
                                     <input
                                         id="note-title"
                                         type="text" placeholder="e.g. Internship Ideas, Degree Plan..."
@@ -922,7 +664,7 @@ function PlannerSemesterDetail({ semesterId }: Readonly<PlannerSemesterDetailPro
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="note-content" className="text-[10px] uppercase text-white/50 tracking-widest font-bold pl-1">Content / Thoughts</label>
+                                    <label htmlFor="note-content" className="text-xs uppercase text-white/50 tracking-widest font-bold pl-1">Content / Thoughts</label>
                                     <textarea
                                         id="note-content"
                                         placeholder="Write anything you want to keep track of this semester..."

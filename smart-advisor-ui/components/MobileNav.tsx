@@ -43,7 +43,7 @@ export default function MobileNav() {
                                 />
                             )}
 
-                            <span className={`relative z-10 text-[8px] font-black uppercase tracking-widest transition-all ${isActive ? "text-violet-500" : "text-white/40 group-hover:text-white/60"}`}>
+                            <span className={`relative z-10 text-xs font-black uppercase tracking-widest transition-all ${isActive ? "text-violet-500" : "text-white/40 group-hover:text-white/60"}`}>
                                 {item.label}
                             </span>
                             <div className={`relative z-10 p-1 rounded-xl transition-all ${isActive ? "text-violet-500 scale-110" : "text-white/50 group-hover:text-white/70"}`}>

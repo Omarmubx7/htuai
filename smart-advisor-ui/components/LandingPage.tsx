@@ -82,7 +82,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    className="flex items-center gap-2 mb-14 px-4 py-1.5 rounded-full bg-white/3 border border-white/5 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] select-none"
+                    className="flex items-center gap-2 mb-14 px-4 py-1.5 rounded-full bg-white/3 border border-white/5 text-xs font-bold text-white/40 uppercase tracking-[0.2em] select-none"
                 >
                     <div className="w-1 h-1 rounded-full bg-violet-500 animate-pulse" />
                     Powered by Google Gemini
@@ -111,7 +111,7 @@ export default function LandingPage({ onGetStarted }: Readonly<LandingPageProps>
                             <h3 className="text-2xl font-bold text-white mb-3 tracking-tight group-hover:text-violet-300 transition-colors">
                                 {feature.title}
                             </h3>
-                            <p className="text-sm text-white/30 leading-relaxed font-medium group-hover:text-white/50 transition-colors">
+                            <p className="text-sm text-white/50 leading-relaxed font-medium group-hover:text-white/50 transition-colors">
                                 {feature.description}
                             </p>
                         </motion.button>

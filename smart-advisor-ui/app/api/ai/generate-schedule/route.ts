@@ -51,25 +51,39 @@ function buildFallbackStudySchedule(courses: ScheduleCourse[], weeklyHours: numb
         return { weeklyPlan: [], examTips: ["Add at least one course to generate a study plan."] };
     }
 
-    const weightedCourses = courses.flatMap((course) =>
-        Array.from({ length: Math.max(1, course.credits) }, () => course)
-    );
     const hoursPerDay = Math.max(0.5, Number((weeklyHours / 7).toFixed(1)));
-
+    
+    // Sort courses by credits (highest first) to prioritize them
+    const sortedCourses = [...courses].sort((a, b) => b.credits - a.credits);
+    
+    // Distribute courses across the week to avoid cyclical repetition
     const weeklyPlan: ScheduleDay[] = DAY_NAMES.map((day, index) => {
-        const course = weightedCourses[index % weightedCourses.length] ?? courses[index % courses.length];
-        const focus = FOCUS_TEMPLATES[index % FOCUS_TEMPLATES.length];
+        // Pick 1-2 courses per day depending on hours
+        const sessions = [];
+        
+        // Primary course for the day (rotates through courses, heavily weighted to high credits)
+        const primaryCourse = sortedCourses[index % sortedCourses.length];
+        const focusPrimary = FOCUS_TEMPLATES[(index * 2) % FOCUS_TEMPLATES.length];
+        
+        sessions.push({
+            course: primaryCourse.name,
+            hours: hoursPerDay > 2 ? Math.round(hoursPerDay * 0.7) : hoursPerDay,
+            focus: focusPrimary,
+        });
+        
+        // If they study more than 2 hours a day and have multiple courses, add a secondary course
+        if (hoursPerDay > 2 && sortedCourses.length > 1) {
+            const secondaryCourse = sortedCourses[(index + 1) % sortedCourses.length];
+            const focusSecondary = FOCUS_TEMPLATES[(index * 2 + 1) % FOCUS_TEMPLATES.length];
+            
+            sessions.push({
+                course: secondaryCourse.name,
+                hours: Number((hoursPerDay - Math.round(hoursPerDay * 0.7)).toFixed(1)),
+                focus: focusSecondary,
+            });
+        }
 
-        return {
-            day,
-            sessions: [
-                {
-                    course: course.name,
-                    hours: hoursPerDay,
-                    focus,
-                },
-            ],
-        };
+        return { day, sessions };
     });
 
     return {
@@ -77,7 +91,7 @@ function buildFallbackStudySchedule(courses: ScheduleCourse[], weeklyHours: numb
         examTips: [
             "Start with the course that has the highest credit load.",
             "Keep one day light for revision and catch-up.",
-            `Focus extra review on ${courses[0].name} before exams.`,
+            `Focus extra review on ${sortedCourses[0].name} before exams.`,
         ],
     };
 }

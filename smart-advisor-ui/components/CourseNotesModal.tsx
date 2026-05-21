@@ -11,7 +11,7 @@ const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
         <div className="h-100 w-full bg-white/5 animate-pulse rounded-4xl border border-white/10 flex items-center justify-center">
-            <span className="text-xs font-black uppercase tracking-widest text-white/20">Loading Editor...</span>
+            <span className="text-xs font-black uppercase tracking-widest text-white/40">Loading Editor...</span>
         </div>
     ),
 });
@@ -103,7 +103,7 @@ export default function CourseNotesModal({
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                             {loading ? (
-                                <div className="h-full flex flex-col items-center justify-center gap-4 text-white/20">
+                                <div className="h-full flex flex-col items-center justify-center gap-4 text-white/40">
                                     <div className="w-12 h-12 rounded-2xl border-2 border-white/5 border-t-violet-500 animate-spin" />
                                     <span className="text-xs font-black uppercase tracking-widest">Loading your notes...</span>
                                 </div>

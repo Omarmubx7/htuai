@@ -67,7 +67,7 @@ export default function PlannerSemesterList() {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between gap-2">
                 <div className="flex flex-col min-w-0">
-                    <Link href="/planner" className="text-[10px] text-white/40 uppercase tracking-widest font-bold hover:text-white transition-colors mb-1 flex items-center gap-1">
+                    <Link href="/planner" className="text-xs text-white/40 uppercase tracking-widest font-bold hover:text-white transition-colors mb-1 flex items-center gap-1">
                         ← Dashboard
                     </Link>
                     <h1 className="font-bold text-base sm:text-lg flex items-center gap-2 truncate">
@@ -78,7 +78,7 @@ export default function PlannerSemesterList() {
                     <Link href="/planner/settings" className="hidden sm:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors" title="Settings">
                         <Settings2 className="w-4 h-4" />
                     </Link>
-                    <Link href="/" className="hidden sm:flex px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[10px] font-semibold text-white/70 transition-colors whitespace-nowrap">
+                    <Link href="/" className="hidden sm:flex px-3 sm:px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 transition-colors whitespace-nowrap">
                         Course Tracker
                     </Link>
                 </div>
@@ -135,13 +135,13 @@ export default function PlannerSemesterList() {
                                 >
                                     <div className="flex items-start gap-4 z-10">
                                         <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center border ${isPast ? 'bg-white/5 border-white/5 text-white/40' : 'bg-violet-600/20 border-violet-500/30 text-violet-400'}`}>
-                                            <span className="text-[10px] font-bold uppercase">{sem.type.substring(0, 3)}</span>
+                                            <span className="text-xs font-bold uppercase">{sem.type.substring(0, 3)}</span>
                                             <span className="text-lg font-black leading-none">{sem.year}</span>
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h3 className="text-xl font-bold">{sem.name}</h3>
-                                                {isPast && <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] text-white/40 font-bold uppercase">Completed</span>}
+                                                {isPast && <span className="px-2 py-0.5 rounded-md bg-white/5 text-xs text-white/40 font-bold uppercase">Completed</span>}
                                             </div>
                                             <div className="flex items-center gap-4 text-sm text-white/50">
                                                 <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> {courseCount} Courses</span>
@@ -168,7 +168,7 @@ export default function PlannerSemesterList() {
 
                     {semesters.length === 0 && (
                         <div className="py-20 text-center flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-white/1">
-                            <Clock className="w-10 h-10 text-white/20 mb-4" />
+                            <Clock className="w-10 h-10 text-white/40 mb-4" />
                             <h3 className="text-lg font-bold mb-1">No Semesters Found</h3>
                             <p className="text-white/40 text-sm">Create your first term to begin tracking.</p>
                         </div>

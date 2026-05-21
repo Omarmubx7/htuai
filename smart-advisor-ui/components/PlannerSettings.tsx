@@ -208,7 +208,7 @@ export default function PlannerSettings() {
                             <ArrowLeft className="w-5 h-5 text-white/60 group-hover:text-white" />
                         </Link>
                         <div>
-                            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-0.5">
+                            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/40 mb-0.5">
                                 <Link href="/planner" className="hover:text-white/80 transition-colors">Planner</Link>
                                 <span>/</span>
                                 <span className="text-violet-400">Settings</span>
@@ -248,21 +248,21 @@ export default function PlannerSettings() {
                             <div className="flex-1 space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><User className="w-3 h-3" /> Full Name</p>
+                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><User className="w-3 h-3" /> Full Name</p>
                                         <p className="text-sm font-bold text-white/90">{userProfile.name || "HTU Student"}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><Mail className="w-3 h-3" /> Email Address</p>
+                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><Mail className="w-3 h-3" /> Email Address</p>
                                         <p className="text-sm font-bold text-white/90">{userProfile.email || 'Not connected'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Student ID / Major</p>
+                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Student ID / Major</p>
                                         <p className="text-sm font-bold text-white/90">
                                             {displayStudentId} • <span className="text-violet-400 capitalize">{displayMajor}</span>
                                         </p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Account Role</p>
+                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Account Role</p>
                                         <p className="text-sm font-bold text-emerald-400 capitalize">{displayRole}</p>
                                     </div>
                                 </div>
@@ -282,12 +282,12 @@ export default function PlannerSettings() {
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2">
                                     <span>Google Calendar</span>
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${calendarConnected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-widest ${calendarConnected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
                                         {calendarConnected ? 'Connected' : 'Disconnected'}
                                     </span>
                                 </h4>
                                 {calendarConnected && connectedEmail && (
-                                    <p className="text-[10px] font-mono text-blue-400/60 mt-0.5">Account: {connectedEmail}</p>
+                                    <p className="text-xs font-mono text-blue-400/60 mt-0.5">Account: {connectedEmail}</p>
                                 )}
                                 <p className="text-sm text-white/50 mt-1 max-w-sm">
                                     Automatically push your course schedules and exam dates securely to your external Google Calendar agenda.
@@ -319,15 +319,15 @@ export default function PlannerSettings() {
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2 text-white/60">
                                     <span>Google Sheets</span>
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-white/5 text-white/40">Coming Soon</span>
+                                    <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-widest bg-white/5 text-white/40">Coming Soon</span>
                                 </h4>
-                                <p className="text-sm text-white/30 mt-1 max-w-sm">
+                                <p className="text-sm text-white/50 mt-1 max-w-sm">
                                     Export your academic transcript and semester plans directly to a personal spreadsheet for custom analysis.
                                 </p>
                             </div>
                             <button
                                 disabled
-                                className="px-6 py-3 bg-white/5 text-white/20 font-bold rounded-xl text-sm cursor-not-allowed w-full sm:w-auto"
+                                className="px-6 py-3 bg-white/5 text-white/40 font-bold rounded-xl text-sm cursor-not-allowed w-full sm:w-auto"
                             >
                                 Available Soon
                             </button>

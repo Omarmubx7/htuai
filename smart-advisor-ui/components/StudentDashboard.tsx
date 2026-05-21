@@ -5,11 +5,13 @@ import { motion } from "framer-motion";
 import { Course, CourseData, CurriculumRules } from "@/types";
 import {
     GraduationCap, Target, BookOpen, TrendingUp as GpaIcon,
-    Sparkles, Calendar, Award, Star, Clock, CheckCircle, ArrowRight, Settings
+    Sparkles, Calendar, Award, Star, Clock, CheckCircle, ArrowRight, Settings, Calculator
 } from "lucide-react";
 import Link from "next/link";
 import { getClassification, calculateCGPA } from "@/lib/grading";
 import { fetchWithRetry } from "@/lib/fetch-retry";
+import { safeStorage } from "@/lib/safe-storage";
+import GpaCalculatorModal from "./GpaCalculatorModal";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Props
@@ -54,9 +56,10 @@ function StudentDashboard({
 }: Readonly<StudentDashboardProps>) {
     const [isEditingGpa, setIsEditingGpa] = useState(false);
     const [terms, setTerms] = useState<GpaTerm[]>([
-        { id: crypto.randomUUID(), gpa: previousGpaHistory?.gpa?.toString() || "", credits: previousGpaHistory?.credits?.toString() || "" }
+        { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: previousGpaHistory?.gpa?.toString() || "", credits: previousGpaHistory?.credits?.toString() || "" }
     ]);
     const [savingGpa, setSavingGpa] = useState(false);
+    const [isGpaCalculatorOpen, setIsGpaCalculatorOpen] = useState(false);
     const gpaDialogRef = useRef<HTMLDivElement | null>(null);
     const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
     const completedCount = completedCourses.size;
@@ -202,6 +205,22 @@ function StudentDashboard({
         };
     }, [isEditingGpa]);
 
+    // ── Auto-Prompt for True CGPA ─────────────────────────────────────────
+    useEffect(() => {
+        // Wait until previousGpaHistory is explicitly provided and is null
+        if (previousGpaHistory && previousGpaHistory.gpa === null) {
+            // Only prompt if they haven't been prompted yet in this browser
+            const hasPrompted = safeStorage.get("mubxai-gpa-prompted");
+            if (!hasPrompted) {
+                // Ensure they have completed at least one course so it makes sense to ask
+                if (completedCourses.size > 0) {
+                    setIsEditingGpa(true);
+                    safeStorage.set("mubxai-gpa-prompted", "true");
+                }
+            }
+        }
+    }, [previousGpaHistory, completedCourses.size]);
+
     // ── Category CH breakdown for "What's Next" ──────────────────────
     const categories = useMemo(() => {
         const calculateTotalCH = (courses: Course[], cap?: number) => {
@@ -329,7 +348,7 @@ function StudentDashboard({
 
                 <div className="flex flex-col gap-3 md:w-64 shrink-0">
                     <div className="flex-1 py-5 px-7 glass-card rounded-4xl border-white/10 bg-white/2 flex flex-col justify-center relative overflow-hidden border">
-                        <span className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2"><Calendar className="w-3 h-3" /> Graduation</span>
+                        <span className="text-xs text-white/40 font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2"><Calendar className="w-3 h-3" /> Graduation</span>
                         <div className="flex items-baseline gap-2 relative z-10">
                             <span className="text-xl font-black text-white tracking-tighter">{graduationEstimate}</span>
                         </div>
@@ -343,6 +362,12 @@ function StudentDashboard({
                             <ArrowRight className="w-3 h-3 text-white" />
                         </div>
                     </Link>
+                    <button onClick={() => setIsGpaCalculatorOpen(true)} className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-black/40 border border-white/10 hover:bg-white/5 hover:border-white/20 text-white transition-all active:scale-[0.98]">
+                        <div className="flex items-center gap-2">
+                            <Calculator className="w-4 h-4 text-emerald-400" />
+                            <span className="text-sm font-bold tracking-wide">GPA Calculator</span>
+                        </div>
+                    </button>
                 </div>
             </div>
 
@@ -432,12 +457,12 @@ function StudentDashboard({
                         </div>
                         <div>
                             <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.25em]">Critical Roadmap</h3>
-                            <p className="text-[10px] text-white/20 font-bold">{totalRemaining} Credit Hours to go</p>
+                            <p className="text-xs text-white/40 font-bold">{totalRemaining} Credit Hours to go</p>
                         </div>
                     </div>
                     <div className="w-full sm:flex-1 sm:max-w-xs flex flex-col gap-1.5 transition-opacity mt-4 sm:mt-0">
-                        <div className="flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
-                            <span className="text-white/30">Overall</span>
+                        <div className="flex justify-between items-center text-xs font-bold tracking-widest uppercase">
+                            <span className="text-white/50">Overall</span>
                             <span className="text-violet-400">{overallRoadmapPct}%</span>
                         </div>
                         <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-px">
@@ -476,8 +501,8 @@ function StudentDashboard({
                                     </div>
                                     <span className="text-[11px] text-white/60 font-bold flex-1 truncate uppercase tracking-widest">{cat.label}</span>
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-xs font-black text-white">{cat.displayDone}</span>
-                                        <span className="text-[10px] text-white/20">/ {cat.displayTotal}</span>
+                                        <span className="text-sm font-black text-white/90">{cat.displayDone}</span>
+                                        <span className="text-xs font-bold text-white/50">/ {cat.displayTotal}</span>
                                     </div>
                                 </div>
                                 <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-px">
@@ -541,7 +566,7 @@ function StudentDashboard({
                             {terms.map((term, i) => (
                                 <div key={term.id} className="flex items-center gap-3">
                                     <div className="flex-1">
-                                        <label htmlFor={`gpa-${i}`} className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
+                                        <label htmlFor={`gpa-${i}`} className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
                                         <input
                                             id={`gpa-${i}`}
                                             type="number" step="0.01" min="0" max="4.0"
@@ -555,7 +580,7 @@ function StudentDashboard({
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label htmlFor={`credits-${i}`} className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
+                                        <label htmlFor={`credits-${i}`} className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
                                         <input
                                             id={`credits-${i}`}
                                             type="number" step="1" min="0"
@@ -575,8 +600,8 @@ function StudentDashboard({
                                     )}
                                 </div>
                             ))}
-                            <button onClick={() => setTerms([...terms, { id: crypto.randomUUID(), gpa: "", credits: "" }])} className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors mt-2">
-                                + Add Another Term
+                            <button onClick={() => setTerms([...terms, { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: "", credits: "" }])} className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors mt-2">
+                                + Add Term
                             </button>
                         </div>
 
@@ -600,6 +625,14 @@ function StudentDashboard({
                     </motion.div>
                 </div>
             )}
+
+            {/* GPA Calculator Modal */}
+            <GpaCalculatorModal
+                isOpen={isGpaCalculatorOpen}
+                onClose={() => setIsGpaCalculatorOpen(false)}
+                initialPreviousGpa={trueCGPA > 0 ? trueCGPA : null}
+                initialPreviousCredits={completedCredits}
+            />
         </motion.div>
     );
 }
@@ -645,22 +678,22 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText, isR
                         style={{ background: `${color}15`, border: `1px solid ${color}20`, color }}>
                         {icon}
                     </div>
-                    <span className="text-[9px] text-white/25 uppercase font-bold tracking-widest">{label}</span>
+                    <span className="text-xs text-white/50 uppercase font-bold tracking-widest">{label}</span>
                 </div>
                 <div className="flex items-baseline gap-1.5 min-w-0">
                     <span className={`font-bold text-white ${isText ? "text-[12px] sm:text-sm" : "text-xl"} tabular-nums tracking-tight truncate`}>
                         {value}
                     </span>
-                    {sub && <span className="text-[10px] text-white/20 font-medium truncate">{sub}</span>}
+                    {sub && <span className="text-xs text-white/40 font-medium truncate">{sub}</span>}
                 </div>
 
                 {isRating && ratingLabel && (
                     <div className="mt-1 flex flex-col">
-                        <span className="text-[9px] font-black uppercase tracking-tighter" style={{ color }}>
+                        <span className="text-xs font-black uppercase tracking-tighter" style={{ color }}>
                             {ratingLabel}
                         </span>
                         {motivation && (
-                            <span className="text-[8px] font-medium text-white/40 italic leading-tight mt-0.5">
+                            <span className="text-xs font-medium text-white/40 italic leading-tight mt-0.5">
                                 &ldquo;{motivation}&rdquo;
                             </span>
                         )}
