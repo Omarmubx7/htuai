@@ -44,20 +44,20 @@ function ExamTipItem({ tip }: ExamTipItemProps) {
     if (parsed.day || parsed.course || parsed.hours) {
         // Structured format
         return (
-            <div className="text-xs text-white/70 space-y-0.5">
-                <p className="font-semibold text-white/90">
+            <div className="text-xs text-gray-700 dark:text-white/70 space-y-0.5">
+                <p className="font-semibold text-gray-900 dark:text-white/90">
                     {parsed.day && `${parsed.day}`}
                     {parsed.day && parsed.course && ' • '}
                     {parsed.course && `${parsed.course}`}
                 </p>
-                {parsed.hours && <p className="text-white/60">⏱️ {parsed.hours} hours</p>}
-                <p className="text-white/70">{parsed.text}</p>
+                {parsed.hours && <p className="text-gray-600 dark:text-white/60">⏱️ {parsed.hours} hours</p>}
+                <p className="text-gray-700 dark:text-white/70">{parsed.text}</p>
             </div>
         );
     }
     
     // Plain text format
-    return <p className="text-xs text-white/70">✓ {parsed.text}</p>;
+    return <p className="text-xs text-gray-700 dark:text-white/70">✓ {parsed.text}</p>;
 }
 
 export interface CourseTrackerViewProps {
@@ -93,6 +93,7 @@ function CourseTrackerView({
     const { toast } = useToast();
     const [isMobile, setIsMobile] = useState(false);
     const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+    const [plannerCourseCodes, setPlannerCourseCodes] = useState<Set<string>>(new Set());
     const [activeSemester, setActiveSemester] = useState<{
         id: number;
         name: string;
@@ -159,6 +160,13 @@ function CourseTrackerView({
                     // Find most recent semester with courses
                     const sem = data.semesters.find(s => (s.courses?.length ?? 0) > 0) ?? data.semesters[0];
                     setActiveSemester({ id: sem.id, name: sem.name, courses: sem.courses ?? [] });
+                    
+                    const allCodes = new Set<string>();
+                    data.semesters.forEach(s => {
+                        s.courses?.forEach(c => allCodes.add(c.code));
+                    });
+                    setPlannerCourseCodes(allCodes);
+                    
                     // Restore cached schedule for this semester
                     const cached = safeStorage.get(`schedule-sem-${sem.id}`);
                     if (cached) {
@@ -375,26 +383,26 @@ function CourseTrackerView({
                 })
             });
 
+            let payload;
             if (!response.ok) {
                 const errText = await response.text();
                 try {
                     const errJson = JSON.parse(errText);
-                    // Map server quota error to friendly message
-                    if (errJson?.error === 'Daily AI limit reached') {
+                    if (response.status === 503 && errJson?.fallback) {
+                        payload = { result: errJson.fallback };
+                    } else if (errJson?.error === 'Daily AI limit reached') {
                         throw new Error(errJson.details || errJson.error);
+                    } else {
+                        throw new Error(errJson.details || errJson.error || 'Failed to generate suggestions');
                     }
-                    throw new Error(errJson.details || errJson.error || 'Failed to generate suggestions');
-                } catch {
-                    throw new Error('Failed: ' + (errText.substring(0, 150) || response.statusText));
+                } catch (parseError) {
+                    if (!payload) {
+                        throw new Error('Failed: ' + (errText.substring(0, 150) || response.statusText));
+                    }
                 }
+            } else {
+                payload = await response.json();
             }
-
-            const payload = await response.json() as {
-                result?: {
-                    recommendations?: Array<{ code?: string; reason?: string; name?: string }>;
-                    tips?: string[];
-                }
-            };
 
             const recommendations = Array.isArray(payload.result?.recommendations)
                 ? payload.result.recommendations
@@ -463,25 +471,24 @@ function CourseTrackerView({
                 })
             });
 
+            let payload;
             if (!response.ok) {
                 const errText = await response.text();
                 try {
                     const errJson = JSON.parse(errText);
-                    if (errJson?.error === 'Daily AI limit reached') {
+                    if (response.status === 503 && errJson?.fallback) {
+                        payload = { result: errJson.fallback };
+                    } else if (errJson?.error === 'Daily AI limit reached') {
                         throw new Error(errJson.details || errJson.error);
+                    } else {
+                        throw new Error(errJson.details || errJson.error || "Failed to fetch AI schedule");
                     }
-                    throw new Error(errJson.details || errJson.error || "Failed to fetch AI schedule");
-                } catch {
-                    throw new Error("Failed to fetch AI schedule");
+                } catch (parseError) {
+                    if (!payload) throw new Error("Failed to fetch AI schedule");
                 }
+            } else {
+                payload = await response.json();
             }
-
-            const payload = await response.json() as {
-                result?: {
-                    weeklyPlan?: Array<{ day?: string; sessions?: Array<{ course?: string; hours?: number; focus?: string }> }>;
-                    examTips?: string[];
-                }
-            };
 
             const normalizedPlan = Array.isArray(payload.result?.weeklyPlan)
                 ? payload.result.weeklyPlan
@@ -561,6 +568,7 @@ function CourseTrackerView({
                 key={course.code}
                 course={course}
                 isCompleted={completedCourses.has(course.code)}
+                isInProgress={plannerCourseCodes.has(course.code) && !completedCourses.has(course.code)}
                 grade={completedCourses.get(course.code) || "M"}
                 isLocked={isLocked}
                 hasPrereqWarning={hasPrereqWarning}
@@ -806,14 +814,14 @@ function CourseTrackerView({
 
                 {aiRecommendations.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Recommended Next Courses</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Recommended Next Courses</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {aiRecommendations.map((item) => (
-                                <Link key={item.code} href={`/courses/${item.code}`} className="rounded-xl border border-white/10 bg-white/5 p-3 hover:scale-[1.01] transition-transform">
+                                <Link key={item.code} href={`/courses/${item.code}`} className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/5 p-3 hover:scale-[1.01] transition-transform">
                                     <div>
-                                        <div className="text-xs font-black text-cyan-200">{courseMap[item.code] || item.code}</div>
-                                        <p className="text-xs text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
-                                        <p className="text-xs text-white/70 mt-1">{item.reason}</p>
+                                        <div className="text-xs font-black text-cyan-700 dark:text-cyan-200">{courseMap[item.code] || item.code}</div>
+                                        <p className="text-xs text-cyan-800/70 dark:text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
+                                        <p className="text-xs text-gray-700 dark:text-white/70 mt-1">{item.reason}</p>
                                     </div>
                                 </Link>
                             ))}
@@ -823,27 +831,27 @@ function CourseTrackerView({
 
                 {aiTips.length > 0 && (
                     <div className="space-y-1">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Registration Tips</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Registration Tips</h3>
                         {Array.from(new Set(aiTips)).map((tip) => (
-                            <p key={tip} className="text-xs text-white/70">- {tip}</p>
+                            <p key={tip} className="text-xs text-gray-700 dark:text-white/70">- {tip}</p>
                         ))}
                     </div>
                 )}
 
                 {weeklyPlan.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Weekly Schedule</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Weekly Schedule</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
                             {weeklyPlan.map((dayPlan) => {
                                 // If day looks like ISO date, format it for display
                                 const isoLike = /^\d{4}-\d{2}-\d{2}$/;
                                 const dayLabel = isoLike.test(dayPlan.day) ? new Date(dayPlan.day).toLocaleDateString() : dayPlan.day;
                                 return (
-                                    <div key={dayPlan.day} className="rounded-xl border border-white/10 bg-black/20 p-3">
-                                        <div className="text-xs font-black text-cyan-200 mb-2">{dayLabel}</div>
+                                    <div key={dayPlan.day} className="rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 p-3">
+                                        <div className="text-xs font-black text-cyan-700 dark:text-cyan-200 mb-2">{dayLabel}</div>
                                         {dayPlan.sessions.map((session, sessionIndex) => (
-                                            <p key={`${dayPlan.day}-session-${sessionIndex}`} className="text-xs text-white/70 leading-relaxed">
-                                                <span className="font-bold text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
+                                            <p key={`${dayPlan.day}-session-${sessionIndex}`} className="text-xs text-gray-700 dark:text-white/70 leading-relaxed">
+                                                <span className="font-bold text-cyan-800 dark:text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
                                             </p>
                                         ))}
                                     </div>
@@ -876,7 +884,7 @@ function CourseTrackerView({
 
                 {examTips.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Exam Tips</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Exam Tips</h3>
                         <div className="space-y-1.5">
                             {Array.from(new Set(examTips)).map((tip) => (
                                 <ExamTipItem key={tip} tip={tip} />
@@ -1003,6 +1011,12 @@ function CourseTrackerView({
                             .then((data: { semesters?: Array<{ id: number; name: string; courses?: Array<{ code: string; name: string; credits: number }> }> }) => {
                                 const sem = data.semesters?.find(s => s.id === sid);
                                 if (sem) setActiveSemester({ id: sem.id, name: sem.name, courses: sem.courses ?? [] });
+                                
+                                const allCodes = new Set<string>();
+                                data.semesters?.forEach(s => {
+                                    s.courses?.forEach(c => allCodes.add(c.code));
+                                });
+                                setPlannerCourseCodes(allCodes);
                             })
                             .catch(() => {});
                     }}

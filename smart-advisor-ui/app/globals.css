@@ -288,3 +288,18 @@ input[type="range"]::-webkit-slider-runnable-track {
   border-color: rgba(0, 0, 0, 0.1) !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05) !important;
 }
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--htu-violet);
+}
+
+.light-theme input:focus,
+.light-theme textarea:focus {
+  border-color: rgba(139, 92, 246, 0.5) !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+  background: rgba(0, 0, 0, 0.02) !important;
+}

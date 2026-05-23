@@ -8,6 +8,7 @@ import { Course } from "../../types";
 interface CourseCardProps {
     course: Course;
     isCompleted: boolean;
+    isInProgress?: boolean;
     grade?: string;
     isLocked: boolean;
     hasPrereqWarning?: boolean;
@@ -40,10 +41,11 @@ function extractRequiredCH(prereq: string): number | null {
     return m ? Number.parseInt(m[1], 10) : null;
 }
 
-function StatusIcon({ isLocked, hasPrereqWarning, isCompleted }: Readonly<{ isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean }>) {
+function StatusIcon({ isLocked, hasPrereqWarning, isCompleted, isInProgress }: Readonly<{ isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean; isInProgress?: boolean }>) {
+    if (isCompleted) return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+    if (isInProgress) return <Circle className="w-4 h-4 text-orange-400 fill-orange-400/20" />;
     if (isLocked) return <Lock className="w-4 h-4 text-white/10" />;
     if (hasPrereqWarning) return <AlertCircle className="w-4 h-4 text-amber-500/60" />;
-    if (isCompleted) return <CheckCircle className="w-4 h-4 text-emerald-400" />;
     return <Circle className="w-4 h-4 text-white/10" />;
 }
 
@@ -229,6 +231,7 @@ function LockInfoPopover({ lockReason, missingPrereqs, courseMap, onClose }: Rea
 function CourseCard({
     course,
     isCompleted,
+    isInProgress,
     isLocked,
     hasPrereqWarning,
     lockReason,
@@ -262,6 +265,8 @@ function CourseCard({
     let cardBorder = "border-white/10 bg-white/2 hover:border-white/20 hover:bg-white/4";
     if (isCompleted) {
         cardBorder = "border-emerald-500/30 bg-emerald-500/4 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.2)]";
+    } else if (isInProgress) {
+        cardBorder = "border-orange-500/30 bg-orange-500/4 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.2)] hover:border-orange-500/50";
     } else if (isLocked) {
         cardBorder = "border-white/5 bg-white/1 opacity-40";
     } else if (hasPrereqWarning) {
@@ -310,7 +315,7 @@ function CourseCard({
                         title={isLocked ? "Course Requirements" : "Course Prerequisites & Status"}
                         className="relative flex items-center justify-center w-8 h-8 rounded-full bg-white/3 border border-white/5 group-hover/card:bg-white/10 transition-colors cursor-help"
                     >
-                        <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} />
+                        <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} isInProgress={isInProgress} />
                     </button>
                     <AnimatePresence>
                         {showLockInfo && (isLocked || hasPrereqWarning) && (
@@ -378,6 +383,7 @@ const CourseCardMemoized = memo(CourseCard, (prevProps, nextProps) => {
     return (
         prevProps.course.code === nextProps.course.code &&
         prevProps.isCompleted === nextProps.isCompleted &&
+        prevProps.isInProgress === nextProps.isInProgress &&
         prevProps.grade === nextProps.grade &&
         prevProps.isLocked === nextProps.isLocked &&
         prevProps.hasPrereqWarning === nextProps.hasPrereqWarning &&

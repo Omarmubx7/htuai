@@ -58,6 +58,24 @@ function StudentDashboard({
     const [terms, setTerms] = useState<GpaTerm[]>([
         { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: previousGpaHistory?.gpa?.toString() || "", credits: previousGpaHistory?.credits?.toString() || "" }
     ]);
+    
+    useEffect(() => {
+        setTerms([{
+            id: Date.now().toString(),
+            gpa: previousGpaHistory?.gpa?.toString() || "",
+            credits: previousGpaHistory?.credits?.toString() || ""
+        }]);
+    }, [previousGpaHistory?.gpa, previousGpaHistory?.credits]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isEditingGpa) {
+                setIsEditingGpa(false);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isEditingGpa]);
     const [savingGpa, setSavingGpa] = useState(false);
     const [isGpaCalculatorOpen, setIsGpaCalculatorOpen] = useState(false);
     const gpaDialogRef = useRef<HTMLDivElement | null>(null);
@@ -544,17 +562,17 @@ function StudentDashboard({
                         tabIndex={-1}
                         ref={gpaDialogRef}
                     >
-                        <div className="bg-[#111] border border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative">
+                        <div className="bg-white dark:bg-[#111] border border-black/10 dark:border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative">
                         <button 
                             onClick={() => setIsEditingGpa(false)} 
-                            className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1"
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:text-white/50 dark:hover:text-white transition-colors p-1"
                             title="Close"
                             aria-label="Close previous academic history modal"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
-                        <h3 id="previous-academic-history-title" className="text-lg font-bold text-white mb-2 pr-6">Previous Academic History</h3>
-                        <p className="text-xs text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
+                        <h3 id="previous-academic-history-title" className="text-lg font-bold text-gray-900 dark:text-white mb-2 pr-6">Previous Academic History</h3>
+                        <p className="text-xs text-gray-500 dark:text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
                         
                         {errorMsg && (
                             <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center">
@@ -566,7 +584,7 @@ function StudentDashboard({
                             {terms.map((term, i) => (
                                 <div key={term.id} className="flex items-center gap-3">
                                     <div className="flex-1">
-                                        <label htmlFor={`gpa-${i}`} className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
+                                        <label htmlFor={`gpa-${i}`} className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
                                         <input
                                             id={`gpa-${i}`}
                                             type="number" step="0.01" min="0" max="4.0"
@@ -575,12 +593,12 @@ function StudentDashboard({
                                                 newTerms[i].gpa = e.target.value;
                                                 setTerms(newTerms);
                                             }}
-                                            className={`w-full bg-black border ${term.gpa && parseFloat(term.gpa) > 4.0 ? 'border-red-500 text-red-400 focus:border-red-500' : 'border-white/10 focus:border-violet-500'} rounded-xl px-4 py-3 text-sm focus:outline-hidden transition-colors`}
+                                            className={`w-full bg-white dark:bg-black border ${term.gpa && parseFloat(term.gpa) > 4.0 ? 'border-red-500 text-red-600 dark:text-red-400 focus:border-red-500' : 'border-gray-200 dark:border-white/10 focus:border-violet-500'} rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-hidden transition-colors`}
                                             placeholder="0.00"
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label htmlFor={`credits-${i}`} className="block text-xs font-bold uppercase tracking-widest text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
+                                        <label htmlFor={`credits-${i}`} className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
                                         <input
                                             id={`credits-${i}`}
                                             type="number" step="1" min="0"
@@ -589,18 +607,18 @@ function StudentDashboard({
                                                 newTerms[i].credits = e.target.value;
                                                 setTerms(newTerms);
                                             }}
-                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                            className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
                                             placeholder="0"
                                         />
                                     </div>
                                     {terms.length > 1 && (
-                                        <button onClick={() => setTerms(terms.filter((_, idx) => idx !== i))} className="mt-5 p-2 bg-white/5 hover:bg-white/10 rounded-xl text-white/50 hover:text-red-400 transition-colors">
+                                        <button onClick={() => setTerms(terms.filter((_, idx) => idx !== i))} className="mt-5 p-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-gray-500 dark:text-white/50 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                                             ×
                                         </button>
                                     )}
                                 </div>
                             ))}
-                            <button onClick={() => setTerms([...terms, { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: "", credits: "" }])} className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors mt-2">
+                            <button onClick={() => setTerms([...terms, { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: "", credits: "" }])} className="w-full py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-gray-600 dark:text-white/60 transition-colors mt-2">
                                 + Add Term
                             </button>
                         </div>
@@ -608,7 +626,7 @@ function StudentDashboard({
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setIsEditingGpa(false)}
-                                className="flex-1 py-3 text-sm font-bold text-white/60 hover:text-white transition-colors"
+                                className="flex-1 py-3 text-sm font-bold text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 aria-label="Cancel previous academic history"
                             >
                                 Cancel

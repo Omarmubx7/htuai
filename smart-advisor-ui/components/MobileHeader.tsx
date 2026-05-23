@@ -58,7 +58,7 @@ export default function MobileHeader({ title, showBack = false, backHref }: Read
 
                 {!showBack && !title && (
                     <div className="flex-1 flex items-center justify-center">
-                        <span className="text-xs font-black tracking-[0.2em] uppercase text-white/60">MUBXAI</span>
+                        <span className="text-xs font-black tracking-[0.2em] uppercase text-gray-900 dark:text-white/60">MUBXAI</span>
                     </div>
                 )}
 

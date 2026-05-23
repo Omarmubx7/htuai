@@ -108,7 +108,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <meta
           name="google-site-verification"
@@ -147,7 +147,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.variable} font-sans min-h-screen flex flex-col pb-30 sm:pb-0`}>
+      <body className={`${outfit.variable} font-sans min-h-screen flex flex-col pb-30 sm:pb-0`} suppressHydrationWarning>
         <ThemeProvider>
           <Providers>
             {/* JSON-LD: SoftwareApplication */}

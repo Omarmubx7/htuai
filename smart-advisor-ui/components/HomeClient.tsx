@@ -401,7 +401,7 @@ export default function HomeClient() {
                                         href="https://bot.mubx.dev"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-600/10 dark:bg-cyan-500/10 border border-cyan-600/20 dark:border-cyan-400/20 text-cyan-700 dark:text-cyan-200 hover:text-cyan-800 dark:hover:text-cyan-100 hover:border-cyan-600/40 dark:hover:border-cyan-300/40 transition-all"
+                                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-100 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-400/30 text-cyan-800 dark:text-cyan-100 hover:bg-cyan-200 dark:hover:bg-cyan-500/30 transition-all"
                                         title="Open mubxbot"
                                     >
                                         <Bot className="w-4 h-4" />

@@ -267,11 +267,13 @@ export async function GET(_req: NextRequest) {
         );
 
         let totalQualityPoints = 0;
-        let totalCredits = 0;
+        let gpaCredits = 0;
+        let completedCredits = 0;
         for (const course of allCompletedCourses) {
             const points = calculateSemesterGpa([course]) * course.credits;
             totalQualityPoints += points;
-            totalCredits += course.credits;
+            gpaCredits += course.credits;
+            completedCredits += course.credits;
         }
 
         // Add from tracker (progress.completed)
@@ -295,10 +297,17 @@ export async function GET(_req: NextRequest) {
 
                 const credits = creditMap.get(code) ?? 3;
                 const grade = getCompletedEntryGrade(entry);
+                
+                // Exclude 'X' from completed CH
+                if (grade !== 'X') {
+                    completedCredits += credits;
+                }
                     
-                const points = calculateSemesterGpa([{ grade, credits }]) * credits;
-                totalQualityPoints += points;
-                totalCredits += credits;
+                if (['D', 'M', 'P', 'U'].includes(grade)) {
+                    const points = calculateSemesterGpa([{ grade, credits }]) * credits;
+                    totalQualityPoints += points;
+                    gpaCredits += credits;
+                }
                 
                 // Track this so it isn't double counted
                 plannerGradedCodes.add(code);
@@ -307,10 +316,11 @@ export async function GET(_req: NextRequest) {
 
         if (profile?.previous_gpa && profile?.previous_credits) {
             totalQualityPoints += (Number(profile.previous_gpa) * Number(profile.previous_credits));
-            totalCredits += Number(profile.previous_credits);
+            gpaCredits += Number(profile.previous_credits);
+            completedCredits += Number(profile.previous_credits);
         }
 
-        const cgpa = totalCredits > 0 ? Math.round((totalQualityPoints / totalCredits) * 100) / 100 : 0;
+        const cgpa = gpaCredits > 0 ? Math.round((totalQualityPoints / gpaCredits) * 100) / 100 : 0;
         const classificationObj = getClassification(cgpa);
         const classification = classificationObj.label;
 
@@ -391,10 +401,16 @@ export async function GET(_req: NextRequest) {
             }
         }
 
-        const studyTrends = Array.from(dayTrend.entries())
-            .map(([date, minutes]) => ({ date, minutes }))
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .slice(-7);
+        const studyTrends = [];
+        const now = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+            const dateStr = getJordanDayKey(d);
+            studyTrends.push({
+                date: dateStr,
+                minutes: dayTrend.get(dateStr) || 0
+            });
+        }
 
         const neglectedCourse = (currentSemester?.courses && currentSemester.courses.length > 0)
             ? (Array.from(courseMap.values()).sort((a, b) => a.total - b.total)[0] || null)
@@ -414,7 +430,7 @@ export async function GET(_req: NextRequest) {
             }
         }
 
-        const currentCompletedCH = totalCredits;
+        const currentCompletedCH = completedCredits;
         const remainingCH = Math.max(0, TOTAL_DEGREE_CH - currentCompletedCH);
         const currentTotalPoints = (cgpa * currentCompletedCH);
         

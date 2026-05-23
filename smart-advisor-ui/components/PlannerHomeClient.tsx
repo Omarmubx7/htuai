@@ -3,10 +3,10 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 
 import { useState, useEffect, memo, useCallback, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock, HelpCircle, Brain, Search, CalendarDays } from "lucide-react";
+import { BookOpen, Trophy, Calendar, Sparkles, ChevronRight, LayoutDashboard, Target, ArrowRight, RefreshCcw, ExternalLink, Bell, AlertTriangle, TrendingUp, Settings, Plus, Flame, Clock, HelpCircle, Brain, Search, CalendarDays, Bot } from "lucide-react";
 import Link from "next/link";
 import PlannerOnboarding from "@/components/PlannerOnboarding";
 import { useToast } from "./ui/Toast";
@@ -166,7 +166,7 @@ function StatusExplanationPopover({ classification, onClose }: Readonly<{ classi
 }
 
 function PlannerHomeClient() {
-    const { status } = useSession();
+    const { data: session, status } = useSession();
     const router = useRouter();
 
     const [summary, setSummary] = useState<PlannerSummary | null>(null);
@@ -189,6 +189,7 @@ function PlannerHomeClient() {
     const [showStatusInfo, setShowStatusInfo] = useState(false);
     const [isLogSessionOpen, setIsLogSessionOpen] = useState(false);
     const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const { toast } = useToast();
     // Guards against re-triggering the onboarding wizard immediately after
     // the user completes it — DB propagation can lag behind the refetch.
@@ -532,18 +533,42 @@ function PlannerHomeClient() {
                         </AnimatePresence>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="hidden sm:block">
-                            <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors flex items-center justify-center">
-                                <Settings className="w-4 h-4" />
-                            </Link>
-                        </div>
-                        <Link href="/" className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold sm:text-sm text-white/70 transition-colors">
-                            Course Tracker
-                        </Link>
-                        <div className="hidden sm:block">
-                            <ThemeToggle />
-                        </div>
+                    <a
+                        href="https://bot.mubx.dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-100 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-400/30 text-cyan-800 dark:text-cyan-100 hover:bg-cyan-200 dark:hover:bg-cyan-500/30 transition-all"
+                        title="Open mubxbot"
+                    >
+                        <Bot className="w-4 h-4" />
+                        <span className="text-xs font-bold uppercase tracking-wider">mubxbot</span>
+                    </a>
+
+                    <div className="relative">
+                        <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} aria-haspopup="true" aria-expanded={profileMenuOpen}
+                            className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                            {(() => {
+                                const name = session?.user?.name || session?.user?.email || '';
+                                const parts = name.trim().split(/\s+/).filter(Boolean);
+                                if (parts.length === 0) return 'HT';
+                                if (parts.length === 1) return parts[0].substring(0,2).toUpperCase();
+                                return (parts[0][0] + (parts.at(-1)?.[0] ?? '')).toUpperCase();
+                            })()}
+                        </button>
+
+                        {profileMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-black/90 border border-black/5 dark:border-white/6 rounded-xl p-2 shadow-xl z-50">
+                                <Link href="/" className="block w-full text-left px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Course Tracker</Link>
+                                <Link href="/planner" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Semester Planner</Link>
+                                <Link href="/planner/settings" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Profile & Settings</Link>
+                                <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
+                                <button onClick={() => void signOut({ callbackUrl: '/' })} className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">Sign out</button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="hidden sm:block">
+                        <ThemeToggle />
                     </div>
                 </div>
             </header>
@@ -987,7 +1012,7 @@ function PlannerHomeClient() {
                                             )}
                                         </div>
                                         <span className="text-[11px] font-bold text-white/40 uppercase">
-                                            {new Date(day.date).toLocaleDateString([], { weekday: 'short' })}
+                                            {new Date(day.date).toLocaleDateString([], { weekday: 'short', timeZone: 'Asia/Amman' })}
                                         </span>
                                     </div>
                                 );
