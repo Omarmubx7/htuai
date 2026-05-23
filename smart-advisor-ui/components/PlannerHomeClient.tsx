@@ -203,12 +203,13 @@ function PlannerHomeClient() {
         while (attempt < maxAttempts) {
             try {
                 const res = await fetch("/api/planner/summary", { cache: "no-store" });
-                const data = await res.json();
                 
                 if (!res.ok) {
-                    throw new Error(data.details || data.error || "Failed to fetch summary");
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.details || data.error || `Failed to fetch summary (${res.status})`);
                 }
 
+                const data = await res.json();
                 setSummary(data as PlannerSummary);
 
                 interface SemesterSummary { 
@@ -303,9 +304,9 @@ function PlannerHomeClient() {
         setSyncing(true);
         try {
             const res = await fetch("/api/connect/google/sync", { method: "POST" });
-            const data = await res.json();
             
             if (res.ok) {
+                const data = await res.json();
                 const successes = data.syncedItems || 0;
                 if (successes > 0) {
                     toast(data.message || `Successfully synced ${successes} items to ${data.googleAccount || 'your calendar'}.`, "success");
@@ -318,6 +319,7 @@ function PlannerHomeClient() {
                 toast("Google Calendar disconnected. Please reconnect in settings.", "error");
                 setSummary({ ...summary, google_calendar_connected: false });
             } else {
+                const data = await res.json().catch(() => ({}));
                 throw new Error(data.error || "Sync failed");
             }
         } catch (e) {

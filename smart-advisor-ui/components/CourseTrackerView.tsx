@@ -405,8 +405,8 @@ function CourseTrackerView({
             }
 
             const recommendations = Array.isArray(payload.result?.recommendations)
-                ? payload.result.recommendations
-                    .filter((item): item is { code: string; reason: string; name?: string } => !!item?.code && !!item?.reason)
+                ? (payload.result.recommendations as any[])
+                    .filter((item: any): item is { code: string; reason: string; name?: string } => !!item?.code && !!item?.reason)
                     .filter(item => eligibleCourseCodes.has(item.code))
                     .map(item => ({
                         code: item.code,
@@ -417,7 +417,7 @@ function CourseTrackerView({
                 : [];
 
             const tips = Array.isArray(payload.result?.tips)
-                ? payload.result.tips.filter((tip): tip is string => typeof tip === "string").slice(0, 3)
+                ? (payload.result.tips as any[]).filter((tip: any): tip is string => typeof tip === "string").slice(0, 3)
                 : [];
 
             setAiRecommendations(recommendations);
@@ -491,15 +491,15 @@ function CourseTrackerView({
             }
 
             const normalizedPlan = Array.isArray(payload.result?.weeklyPlan)
-                ? payload.result.weeklyPlan
-                    .filter((entry): entry is { day: string; sessions: Array<{ course: string; hours: number; focus: string }> } => {
+                ? (payload.result.weeklyPlan as any[])
+                    .filter((entry: any): entry is { day: string; sessions: Array<{ course: string; hours: number; focus: string }> } => {
                         if (!entry || typeof entry.day !== "string" || !Array.isArray(entry.sessions)) return false;
                         return true;
                     })
                     .map((entry) => ({
                         day: entry.day,
                         sessions: entry.sessions
-                            .filter((session): session is { course: string; hours: number; focus: string } =>
+                            .filter((session: any): session is { course: string; hours: number; focus: string } =>
                                 typeof session?.course === "string" &&
                                 typeof session?.hours === "number" &&
                                 typeof session?.focus === "string")
@@ -510,7 +510,7 @@ function CourseTrackerView({
                 : [];
 
             const normalizedExamTips = Array.isArray(payload.result?.examTips)
-                ? payload.result.examTips.filter((tip): tip is string => typeof tip === "string").slice(0, 3)
+                ? (payload.result.examTips as any[]).filter((tip: any): tip is string => typeof tip === "string").slice(0, 3)
                 : [];
 
             setWeeklyPlan(normalizedPlan);
