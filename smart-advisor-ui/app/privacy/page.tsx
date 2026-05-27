@@ -7,6 +7,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "Privacy Policy",
     description: "MUBXAI Privacy Policy — how we collect, use, store, and protect your academic data and Google user data. Compliant with Google API Services User Data Policy.",
+    alternates: {
+        canonical: "https://ai.mubx.dev/privacy",
+    },
     openGraph: {
         title: "Privacy Policy | MUBXAI",
         description: "Learn how MUBXAI protects your academic data and Google integrations. No selling, no training, no third-party sharing.",

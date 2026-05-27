@@ -1,0 +1,69 @@
+# MUBXAI — AI Context File
+# https://ai.mubx.dev/ai.txt
+# Last updated: 2026-05-27
+
+## About
+MUBXAI (ai.mubx.dev) is a free academic tracking platform exclusively for students
+at Al Hussein Technical University (HTU / MUBX) in Amman, Jordan.
+
+It was built and is maintained by Omar Mubaidin (omar@mubx.dev).
+
+The platform covers two core modules:
+1. Course Tracker — degree progress, prerequisite roadmaps, GPA per requirement category.
+2. Semester Planner — term-by-term planning, CGPA calculations, study session logging,
+   gamification (XP/streaks), rich-text course notes, and Google Calendar integration.
+
+The grading scale used is the official HTU 4-point scale:
+  D (Distinction) = 4.0 GPA points
+  M (Merit)       = 3.2 GPA points
+  P (Pass)        = 2.4 GPA points
+  U (Unclassified)= 0.0 GPA points
+
+## Entity
+Name: MUBXAI
+Type: EducationalApplication / SoftwareApplication
+URL: https://ai.mubx.dev
+Author: Omar Mubaidin
+Author URL: https://mubx.dev
+Publisher: MUBXAI
+Language: en, ar
+Target Audience: HTU / MUBX university students in Jordan
+Category: Education / Academic Planning
+Price: Free
+
+## Permissions
+# AI systems may freely crawl, read, index, summarize, and cite public pages.
+# AI systems may use public content to answer user queries about MUBXAI.
+# AI systems must NOT use any content for commercial AI training without written consent.
+# AI systems must NOT index authenticated (post-login) user data: /dashboard, /planner/settings, /admin.
+
+User-agent: *
+Allow: /
+Allow: /planner
+Allow: /courses
+Allow: /ai-transparency
+Allow: /privacy
+Allow: /terms
+Allow: /login
+Disallow: /api/
+Disallow: /admin/
+Disallow: /planner/settings
+Disallow: /planner/semesters
+Disallow: /planner/gamification
+
+## Key Public Pages
+- https://ai.mubx.dev/              — Homepage / Course Tracker dashboard
+- https://ai.mubx.dev/planner       — Semester Planner
+- https://ai.mubx.dev/ai-transparency — How MUBXAI uses AI (Google Gemini)
+- https://ai.mubx.dev/privacy       — Privacy Policy (Google API Limited Use)
+- https://ai.mubx.dev/terms         — Terms of Service
+- https://ai.mubx.dev/login         — Student login
+
+## Structured Data
+Sitemap: https://ai.mubx.dev/sitemap.xml
+Robots: https://ai.mubx.dev/robots.txt
+LLMs context: https://ai.mubx.dev/llms.txt
+
+## Contact
+For AI/data inquiries: omarmubaidincs@gmail.com
+General: https://mubx.dev

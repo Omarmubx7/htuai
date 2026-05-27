@@ -20,6 +20,12 @@
       "sizes": "any",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/mubxai-dark-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

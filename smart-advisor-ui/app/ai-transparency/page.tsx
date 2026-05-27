@@ -5,6 +5,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "AI Transparency",
     description: "How MUBXAI uses artificial intelligence responsibly. Learn about our Google Gemini integration, data privacy practices, and commitment to transparent AI in academic advising.",
+    alternates: {
+        canonical: "https://ai.mubx.dev/ai-transparency",
+    },
 };
 import Image from "next/image";
 

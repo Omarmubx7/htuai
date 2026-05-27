@@ -5,6 +5,14 @@ import PlannerSettings from "@/components/PlannerSettings";
 export const metadata: Metadata = {
     title: "Planner Settings",
     description: "Configure your MUBXAI semester planner preferences, Google Calendar sync, and academic profile settings.",
+    alternates: {
+        canonical: "https://ai.mubx.dev/planner/settings",
+    },
+    // Settings is a user-specific, auth-gated page — no indexing value
+    robots: {
+        index: false,
+        follow: false,
+    },
 };
 
 export default function SettingsPage() {

@@ -78,7 +78,7 @@ export const metadata: Metadata = {
       { url: "/mubxai-light-favicon.ico", media: "(prefers-color-scheme: light)" },
       { url: "/mubxai-dark-favicon.ico", media: "(prefers-color-scheme: dark)" }
     ],
-    apple: "/mubxai-dark-favicon.ico",
+    apple: "/mubxai-dark-logo.png",
   },
   manifest: "/manifest.json",
   robots: {
@@ -93,7 +93,9 @@ export const metadata: Metadata = {
     },
   },
   category: "education",
-  verification: {},
+  verification: {
+    google: "AwC38xmOqbq4byFRJWpR_VackCRoayOpOIJe_cQV6GM",
+  },
 };
 
 export default async function RootLayout({
@@ -114,6 +116,9 @@ export default async function RootLayout({
           name="google-site-verification"
           content="AwC38xmOqbq4byFRJWpR_VackCRoayOpOIJe_cQV6GM"
         />
+        {/* AI discovery — helps GPTBot, ClaudeBot, Perplexity find structured context */}
+        <link rel="prefetch" href="/ai.txt" />
+        <link rel="prefetch" href="/llms.txt" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
@@ -183,12 +188,6 @@ export default async function RootLayout({
                     "@type": "Person",
                     "name": "Omar Mubaidin",
                     "url": "https://mubx.dev"
-                  },
-                  "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "4.8",
-                    "ratingCount": "50",
-                    "bestRating": "5"
                   },
                   "inLanguage": ["en", "ar"],
                 })
