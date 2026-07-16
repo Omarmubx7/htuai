@@ -22,8 +22,8 @@ export default function BrandMark({ className = "", size = "md", showWordmark = 
 
     return (
         <div className={`inline-flex items-center gap-2 ${className}`}>
-            <div className={`${boxSize} rounded-2xl bg-linear-to-br from-violet-500 via-fuchsia-500 to-cyan-400 shadow-[0_0_20px_rgba(139,92,246,0.2)] flex items-center justify-center text-white font-black`}>M</div>
-            {showWordmark && <span className={`${textSize} font-black tracking-[0.2em] uppercase text-gray-900 dark:text-white/80`}>MUBXAI</span>}
+            <div className={`${boxSize} rounded-lg bg-[#dc4835] flex items-center justify-center text-white font-black`} style={{ boxShadow: '0 2px 6px rgba(220,72,53,0.2)' }}>M</div>
+            {showWordmark && <span className={`${textSize} font-black tracking-[0.2em] uppercase text-[#222d32]`}>MUBXAI</span>}
         </div>
     );
 }

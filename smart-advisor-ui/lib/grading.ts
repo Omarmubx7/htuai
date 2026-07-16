@@ -12,7 +12,7 @@ export const GRADE_MAP: Record<string, GradeInfo> = {
     D: { label: "Distinction", points: 4, colorKey: "emerald" },
     M: { label: "Merit", points: 3.2, colorKey: "blue" },
     P: { label: "Pass", points: 2.4, colorKey: "amber" },
-    U: { label: "Unclassified", points: 1.6, colorKey: "red" },
+    U: { label: "Unclassified", points: 0, colorKey: "red" },
     WF: { label: "Withdrawal with Failure", points: 0, colorKey: "red" },
     TC: { label: "Transfer Credits", points: 0, colorKey: "gray" },
     X: { label: "Course not Included in the Study Plan", points: 0, colorKey: "gray" },

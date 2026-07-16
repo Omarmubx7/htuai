@@ -10,8 +10,8 @@ import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
 const CourseNotesEditor = dynamic(() => import("./CourseNotesEditor"), {
     ssr: false,
     loading: () => (
-        <div className="h-100 w-full bg-white/5 animate-pulse rounded-4xl border border-white/10 flex items-center justify-center">
-            <span className="text-xs font-black uppercase tracking-widest text-white/40">Loading Editor...</span>
+        <div className="h-100 w-full bg-[#edf1f6] animate-pulse rounded-4xl border border-[#dde3ec] flex items-center justify-center">
+            <span className="text-xs font-black uppercase tracking-widest text-[#5a6472]">Loading Editor...</span>
         </div>
     ),
 });
@@ -80,22 +80,22 @@ export default function CourseNotesModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                        className="absolute inset-0 bg-[#222d32]/80 backdrop-blur-xl"
                     />
 
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full h-dvh sm:h-[90vh] sm:max-w-5xl bg-black sm:border sm:border-white/10 rounded-none sm:rounded-[2.5rem] overflow-hidden sm:shadow-2xl flex flex-col"
+                        className="relative w-full h-dvh sm:h-[90vh] sm:max-w-5xl bg-white sm:border sm:border-[#dde3ec] rounded-none sm:rounded-[2.5rem] overflow-hidden sm:shadow-2xl flex flex-col"
                     >
                         <div className="absolute top-6 right-8 z-50 flex items-center gap-2">
-                            <Link href="/" className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/40 hover:text-white" title="Back to Dashboard">
+                            <Link href="/" className="p-2 rounded-xl bg-[#edf1f6] border border-[#dde3ec] hover:bg-[#edf1f6] transition-colors text-[#5a6472] hover:text-[#222d32]" title="Back to Dashboard">
                                 <ArrowLeft className="w-4 h-4" />
                             </Link>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/40 hover:text-white"
+                                className="p-2 rounded-xl bg-[#edf1f6] border border-[#dde3ec] hover:bg-[#edf1f6] transition-colors text-[#5a6472] hover:text-[#222d32]"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -103,8 +103,8 @@ export default function CourseNotesModal({
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                             {loading ? (
-                                <div className="h-full flex flex-col items-center justify-center gap-4 text-white/40">
-                                    <div className="w-12 h-12 rounded-2xl border-2 border-white/5 border-t-violet-500 animate-spin" />
+                                <div className="h-full flex flex-col items-center justify-center gap-4 text-[#5a6472]">
+                                    <div className="w-12 h-12 rounded-2xl border-2 border-[#dde3ec] border-t-[#dc4835] animate-spin" />
                                     <span className="text-xs font-black uppercase tracking-widest">Loading your notes...</span>
                                 </div>
                             ) : (

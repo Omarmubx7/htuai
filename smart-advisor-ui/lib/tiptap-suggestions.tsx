@@ -219,16 +219,16 @@ const CommandList = React.forwardRef<CommandListRef, { items: SlashCommandItem[]
     }));
 
     return (
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-2 shadow-2xl w-64 overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="bg-[#edf1f6] border border-[#dde3ec] rounded-2xl p-2 shadow-2xl w-64 overflow-hidden animate-in fade-in zoom-in duration-200">
             {items.length > 0 ? (
                 items.map((item: SlashCommandItem, index: number) => (
                     <button
                         key={index}
                         onClick={() => selectItem(index)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left outline-none ${index === selectedIndex ? 'bg-violet-600/20 text-white' : 'hover:bg-white/5 text-white/50'
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left outline-none ${index === selectedIndex ? 'bg-[#dc4835]/20 text-[#222d32]' : 'hover:bg-[#edf1f6] text-[#5a6472]'
                             }`}
                     >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${index === selectedIndex ? 'bg-violet-600/20 text-violet-400' : 'bg-white/5 text-white/30'
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${index === selectedIndex ? 'bg-[#dc4835]/20 text-[#dc4835]' : 'bg-[#edf1f6] text-[#5a6472]'
                             }`}>
                             <item.icon className="w-4 h-4" />
                         </div>
@@ -239,7 +239,7 @@ const CommandList = React.forwardRef<CommandListRef, { items: SlashCommandItem[]
                     </button>
                 ))
             ) : (
-                <div className="px-3 py-2 text-xs text-white/30 italic">No results</div>
+                <div className="px-3 py-2 text-xs text-[#5a6472] italic">No results</div>
             )}
         </div>
     );

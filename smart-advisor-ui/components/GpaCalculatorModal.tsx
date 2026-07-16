@@ -118,8 +118,8 @@ export default function GpaCalculatorModal({
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 sm:p-6 border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 shrink-0 gap-4">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shrink-0">
-                            <Calculator className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                        <div className="w-10 h-10 rounded-xl bg-[#dc4835]/10 border border-[#dc4835]/30 flex items-center justify-center shrink-0">
+                            <Calculator className="w-5 h-5 text-[#dc4835] dark:text-violet-400" />
                         </div>
                         <div className="min-w-0">
                             <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight truncate">GPA Calculator</h2>
@@ -140,7 +140,7 @@ export default function GpaCalculatorModal({
                     {/* Previous GPA Section */}
                     <section className="space-y-3">
                         <div className="flex items-center gap-2 mb-2">
-                            <GraduationCap className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+                            <GraduationCap className="w-4 h-4 text-[#dc4835] dark:text-violet-400" />
                             <h3 className="text-sm font-bold text-gray-800 dark:text-white/80 uppercase tracking-widest">Previous Academic History</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -149,7 +149,7 @@ export default function GpaCalculatorModal({
                                 <input
                                     type="number" step="0.01" min="0" max="4.0"
                                     value={prevGpa} onChange={e => setPrevGpa(e.target.value)}
-                                    className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-violet-500 transition-colors"
+                                    className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-[#dc4835] transition-colors"
                                     placeholder="e.g. 3.45"
                                 />
                             </div>
@@ -158,7 +158,7 @@ export default function GpaCalculatorModal({
                                 <input
                                     type="number" step="1" min="0"
                                     value={prevCredits} onChange={e => setPrevCredits(e.target.value)}
-                                    className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-violet-500 transition-colors"
+                                    className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-[#dc4835] transition-colors"
                                     placeholder="e.g. 45"
                                 />
                             </div>
@@ -195,7 +195,7 @@ export default function GpaCalculatorModal({
                                             <input
                                                 type="text"
                                                 value={course.name} onChange={e => updateRow(course.id, "name", e.target.value)}
-                                                className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-violet-500 transition-colors"
+                                                className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-[#dc4835] transition-colors"
                                                 placeholder="Course Name..."
                                             />
                                         </div>
@@ -203,7 +203,7 @@ export default function GpaCalculatorModal({
                                             <label className="sm:hidden block text-[10px] font-bold text-gray-500 dark:text-white/40 uppercase mb-1 mt-2">Credits</label>
                                             <select
                                                 value={course.credits} onChange={e => updateRow(course.id, "credits", e.target.value)}
-                                                className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-violet-500 transition-colors"
+                                                className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-[#dc4835] transition-colors"
                                             >
                                                 <option value="" disabled>Select CH...</option>
                                                 {[1, 2, 3, 4, 5, 6].map(num => (
@@ -215,7 +215,7 @@ export default function GpaCalculatorModal({
                                             <label className="sm:hidden block text-[10px] font-bold text-gray-500 dark:text-white/40 uppercase mb-1 mt-2">Grade</label>
                                             <select
                                                 value={course.grade} onChange={e => updateRow(course.id, "grade", e.target.value)}
-                                                className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-violet-500 transition-colors"
+                                                className="w-full bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-hidden focus:border-[#dc4835] transition-colors"
                                             >
                                                 <option value="" disabled>Grade...</option>
                                                 <option value="D">D (4.0)</option>
@@ -258,19 +258,19 @@ export default function GpaCalculatorModal({
                         </div>
                         <div className="text-[11px] text-gray-500 dark:text-white/40 mt-1">{semesterCredits} Credits this term</div>
                     </div>
-                    <div className="glass-card p-4 rounded-2xl bg-violet-600/5 dark:bg-violet-600/10 border border-violet-500/20 dark:border-violet-500/30 shadow-[0_0_15px_rgba(139,92,246,0.1)] dark:shadow-[0_0_30px_rgba(139,92,246,0.15)] relative overflow-hidden">
+                    <div className="glass-card p-4 rounded-2xl bg-[#dc4835]/5 dark:bg-violet-600/10 border border-[#dc4835]/20 dark:border-violet-500/30 shadow-[0_0_15px_rgba(220,72,53,0.1)] dark:shadow-[0_0_30px_rgba(139,92,246,0.15)] relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <TrendingUp className="w-12 h-12 text-violet-600 dark:text-violet-400" />
+                            <TrendingUp className="w-12 h-12 text-[#dc4835] dark:text-violet-400" />
                         </div>
                         <div className="relative z-10">
-                            <div className="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <div className="text-[10px] font-bold text-[#dc4835] dark:text-violet-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                                 <TrendingUp className="w-3 h-3" /> Cumulative GPA
                             </div>
                             <div className="flex items-baseline gap-2">
                                 <span className="text-3xl font-black text-gray-900 dark:text-white">{cumulativeGpa.toFixed(2)}</span>
                                 <span className="text-xs text-gray-500 dark:text-white/40 font-medium">/ 4.0</span>
                             </div>
-                            <div className="text-[11px] text-violet-700/60 dark:text-violet-300/50 mt-1">{cumulativeCredits} Total Credits</div>
+                            <div className="text-[11px] text-[#dc4835]/60 dark:text-violet-300/50 mt-1">{cumulativeCredits} Total Credits</div>
                         </div>
                     </div>
                 </div>

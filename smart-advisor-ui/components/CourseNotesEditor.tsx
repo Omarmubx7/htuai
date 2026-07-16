@@ -102,8 +102,8 @@ export default function CourseNotesEditor({
       Highlight.configure({ multicolor: true }),
       CodeBlockLowlight.configure({ lowlight }),
       Callout,
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-violet-400 underline underline-offset-4 cursor-pointer" } }),
-      Image.configure({ allowBase64: true, HTMLAttributes: { class: "rounded-2xl border border-white/10 my-8 shadow-2xl max-w-full" } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-[#dc4835] underline underline-offset-4 cursor-pointer" } }),
+      Image.configure({ allowBase64: true, HTMLAttributes: { class: "rounded-2xl border border-[#dde3ec] my-8 shadow-sm max-w-full" } }),
       Placeholder.configure({
         placeholder: ({ node }: { node: { type: { name: string }; attrs: { level?: number } } }) => {
           if (node.type.name === 'heading') return `Heading ${node.attrs.level}`;
@@ -130,7 +130,7 @@ export default function CourseNotesEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: "prose prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-xl focus:outline-none max-w-none min-h-[500px] px-4 sm:px-12 py-10",
+        class: "prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl focus:outline-none max-w-none min-h-[500px] px-4 sm:px-12 py-10",
       },
     },
   });
@@ -156,19 +156,19 @@ export default function CourseNotesEditor({
   if (!editor) {
     if (initTimeout) {
       return (
-        <div className="h-100 w-full bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/40">
+        <div className="h-100 w-full bg-white rounded-[2.5rem] border border-[#dde3ec] flex items-center justify-center text-[#5a6472]">
           <div className="flex flex-col items-center gap-4">
-            <span className="text-xs font-black uppercase tracking-widest text-red-400/50">Editor Failed to Load</span>
-            <span className="text-xs text-white/40">Please refresh the page</span>
+            <span className="text-xs font-black uppercase tracking-widest text-[#dc4835]/50">Editor Failed to Load</span>
+            <span className="text-xs text-[#5a6472]">Please refresh the page</span>
           </div>
         </div>
       );
     }
     return (
-      <div className="h-100 w-full bg-white/5 animate-pulse rounded-[2.5rem] border border-white/10 flex items-center justify-center text-white/40">
+      <div className="h-100 w-full bg-white animate-pulse rounded-[2.5rem] border border-[#dde3ec] flex items-center justify-center text-[#5a6472]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 animate-pulse text-violet-400/50" />
+          <div className="w-12 h-12 rounded-2xl bg-[#edf1f6] border border-[#dde3ec] flex items-center justify-center">
+            <Sparkles className="w-6 h-6 animate-pulse text-[#dc4835]/50" />
           </div>
           <span className="text-xs font-black uppercase tracking-widest opacity-50">Initializing Editor Engine...</span>
         </div>
@@ -197,8 +197,8 @@ export default function CourseNotesEditor({
     if (saveIndicator === "saving") {
       return (
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-          <span className="text-xs font-bold text-violet-400/60 uppercase tracking-widest">Saving...</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-[#dc4835] animate-pulse" />
+          <span className="text-xs font-bold text-[#dc4835]/60 uppercase tracking-widest">Saving...</span>
         </div>
       );
     }
@@ -206,14 +206,14 @@ export default function CourseNotesEditor({
     if (saveIndicator === "saved") {
       return (
         <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-          <span className="text-xs font-bold text-emerald-400/60 uppercase tracking-widest">Changes Saved</span>
+          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          <span className="text-xs font-bold text-emerald-600/60 uppercase tracking-widest">Changes Saved</span>
         </div>
       );
     }
 
     return (
-      <span className="text-xs font-bold text-white/40 uppercase tracking-widest">
+      <span className="text-xs font-bold text-[#5a6472] uppercase tracking-widest">
         Last edited {updatedAt ? new Date(updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
       </span>
     );
@@ -222,12 +222,12 @@ export default function CourseNotesEditor({
   const saveStatus = renderSaveStatus();
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-black overflow-x-hidden">
+    <div className="relative flex flex-col min-h-screen bg-[#edf1f6] overflow-x-hidden">
       <style jsx global>{`
         .tiptap p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);
           float: left;
-          color: rgba(255, 255, 255, 0.15);
+          color: rgba(90, 100, 114, 0.4);
           pointer-events: none;
           height: 0;
         }
@@ -242,7 +242,7 @@ export default function CourseNotesEditor({
           width: 1.1rem;
           height: 1.1rem;
           border-radius: 4px;
-          border: 2px solid rgba(255, 255, 255, 0.2);
+          border: 2px solid rgba(221, 227, 236, 1);
           background: transparent;
           cursor: pointer;
           position: relative;
@@ -255,8 +255,8 @@ export default function CourseNotesEditor({
           height: 0.65rem;
           transform: scale(0);
           transition: 120ms transform ease-in-out;
-          box-shadow: inset 1em 1em var(--htu-violet);
-          background-color: var(--htu-violet);
+          box-shadow: inset 1em 1em var(--htu-red, #dc4835);
+          background-color: var(--htu-red, #dc4835);
           transform-origin: center;
           clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
@@ -264,17 +264,17 @@ export default function CourseNotesEditor({
           transform: scale(1);
         }
         .notion-task-item input[type="checkbox"]:checked {
-          border-color: var(--htu-violet);
+          border-color: var(--htu-red, #dc4835);
         }
-        .notion-table { border-collapse: collapse; table-layout: fixed; width: 100%; margin: 2rem 0; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .notion-table td, .notion-table th { border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px; vertical-align: top; }
-        .notion-table th { background-color: rgba(255, 255, 255, 0.03); font-weight: bold; }
+        .notion-table { border-collapse: collapse; table-layout: fixed; width: 100%; margin: 2rem 0; border: 1px solid #dde3ec; }
+        .notion-table td, .notion-table th { border: 1px solid #dde3ec; padding: 10px; vertical-align: top; }
+        .notion-table th { background-color: #edf1f6; font-weight: bold; }
         .callout-block {
           padding: 1.5rem;
           margin: 2rem 0;
           border-radius: 1.5rem;
-          background: rgba(139, 92, 246, 0.05);
-          border: 1px solid rgba(139, 92, 246, 0.1);
+          background: rgba(220, 72, 53, 0.05);
+          border: 1px solid rgba(220, 72, 53, 0.15);
           display: flex;
           gap: 1rem;
         }
@@ -287,12 +287,12 @@ export default function CourseNotesEditor({
           padding: 0.5rem;
           border-radius: 0.75rem;
           transition: all 0.2s ease-in-out;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(90, 100, 114, 0.7);
         }
-        .bubble-menu-btn:hover { background-color: rgba(255, 255, 255, 0.08); color: white; }
-        .bubble-menu-btn.is-active { color: #a78bfa; background-color: rgba(167, 139, 250, 0.1); }
+        .bubble-menu-btn:hover { background-color: rgba(221, 227, 236, 0.5); color: #222d32; }
+        .bubble-menu-btn.is-active { color: #dc4835; background-color: rgba(220, 72, 53, 0.08); }
 
-        /* Syntax highlighting */
+        /* Syntax highlighting — light theme */
         .hljs-comment, .hljs-quote { color: #5c6370; font-style: italic; }
         .hljs-keyword, .hljs-selector-tag { color: #c678dd; }
         .hljs-string, .hljs-attr, .hljs-type { color: #98c379; }
@@ -300,11 +300,12 @@ export default function CourseNotesEditor({
         .hljs-function, .hljs-title { color: #61afef; }
 
         /* Notion-style Typography Overrides */
-        .prose h1 { font-size: 2.25rem !important; font-weight: 800 !important; margin-top: 1.5em !important; margin-bottom: 0.5em !important; line-height: 1.2 !important; letter-spacing: -0.02em !important; color: #fff !important; }
-        .prose h2 { font-size: 1.875rem !important; font-weight: 700 !important; margin-top: 1.4em !important; margin-bottom: 0.5em !important; line-height: 1.3 !important; letter-spacing: -0.01em !important; color: rgba(255,255,255,0.95) !important;}
-        .prose h3 { font-size: 1.5rem !important; font-weight: 600 !important; margin-top: 1.2em !important; margin-bottom: 0.4em !important; line-height: 1.4 !important; color: rgba(255,255,255,0.9) !important;}
-        .prose h4 { font-size: 1.25rem !important; font-weight: 600 !important; margin-top: 1.1em !important; margin-bottom: 0.4em !important; line-height: 1.5 !important; color: rgba(255,255,255,0.8) !important;}
-        .prose p { margin-top: 0.5em !important; margin-bottom: 0.5em !important; line-height: 1.6 !important; }
+        .prose h1 { font-size: 2.25rem !important; font-weight: 800 !important; margin-top: 1.5em !important; margin-bottom: 0.5em !important; line-height: 1.2 !important; letter-spacing: -0.02em !important; color: #222d32 !important; }
+        .prose h2 { font-size: 1.875rem !important; font-weight: 700 !important; margin-top: 1.4em !important; margin-bottom: 0.5em !important; line-height: 1.3 !important; letter-spacing: -0.01em !important; color: #222d32 !important;}
+        .prose h3 { font-size: 1.5rem !important; font-weight: 600 !important; margin-top: 1.2em !important; margin-bottom: 0.4em !important; line-height: 1.4 !important; color: #222d32 !important;}
+        .prose h4 { font-size: 1.25rem !important; font-weight: 600 !important; margin-top: 1.1em !important; margin-bottom: 0.4em !important; line-height: 1.5 !important; color: #222d32 !important;}
+        .prose p { margin-top: 0.5em !important; margin-bottom: 0.5em !important; line-height: 1.6 !important; color: #222d32 !important; }
+        .prose li, .prose li p { color: #222d32 !important; }
 
         /* Lists Overrides */
         .prose ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin: 0.5rem 0 !important; }
@@ -313,26 +314,26 @@ export default function CourseNotesEditor({
 
         /* Blockquote Override */
         .prose blockquote {
-            border-left: 4px solid var(--htu-violet) !important;
-            background: rgba(139, 92, 246, 0.05) !important;
+            border-left: 4px solid var(--htu-red, #dc4835) !important;
+            background: rgba(220, 72, 53, 0.04) !important;
             padding: 0.5rem 1rem !important;
             margin: 1rem 0 !important;
             font-style: italic !important;
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: #5a6472 !important;
             border-radius: 0 0.5rem 0.5rem 0 !important;
         }
 
         .prose code {
-            color: #ff7b72 !important;
-            background: rgba(135,131,120,0.15) !important;
+            color: #dc4835 !important;
+            background: rgba(221,227,236,0.5) !important;
             padding: 0.2em 0.4em !important;
             border-radius: 4px !important;
             font-size: 85% !important;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
         }
         .prose pre {
-            background: #111111 !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
+            background: #f8f9fb !important;
+            border: 1px solid #dde3ec !important;
             padding: 1.25rem !important;
             border-radius: 0.75rem !important;
             overflow-x: auto !important;
@@ -347,10 +348,10 @@ export default function CourseNotesEditor({
       `}</style>
 
       {/* Header Sticky Bar */}
-      <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4 px-6">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-2xl border-b border-[#dde3ec] py-4 px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex flex-col">
-            <h1 className="text-sm sm:text-lg font-black tracking-tight text-white italic truncate max-w-45 sm:max-w-md">
+            <h1 className="text-sm sm:text-lg font-black tracking-tight text-[#222d32] italic truncate max-w-45 sm:max-w-md">
               {courseTitle}
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
@@ -364,7 +365,7 @@ export default function CourseNotesEditor({
               whileTap={{ scale: 0.9 }}
               onClick={() => editor.chain().focus().undo().run()}
               disabled={!editor.can().undo()}
-              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all disabled:opacity-20"
+              className="p-2 sm:p-2.5 rounded-2xl bg-[#edf1f6] border border-[#dde3ec] text-[#5a6472] hover:text-[#222d32] transition-all disabled:opacity-20"
             >
               <Undo className="w-4 h-4" />
             </motion.button>
@@ -373,7 +374,7 @@ export default function CourseNotesEditor({
               whileTap={{ scale: 0.9 }}
               onClick={() => editor.chain().focus().redo().run()}
               disabled={!editor.can().redo()}
-              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-all disabled:opacity-20"
+              className="p-2 sm:p-2.5 rounded-2xl bg-[#edf1f6] border border-[#dde3ec] text-[#5a6472] hover:text-[#222d32] transition-all disabled:opacity-20"
             >
               <Redo className="w-4 h-4" />
             </motion.button>
@@ -385,44 +386,44 @@ export default function CourseNotesEditor({
       <main className="flex-1 w-full max-w-4xl mx-auto relative pt-4 pb-32 flex flex-col">
         {/* Desktop Static Toolbar */}
         {editor && (
-          <div className="hidden sm:flex items-center gap-1 p-2 bg-white/5 border border-white/10 rounded-2xl mb-4 self-start sticky top-22 z-30 backdrop-blur-xl">
-            <button title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bold") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Bold className="w-4 h-4" /></button>
-            <button title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("italic") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Italic className="w-4 h-4" /></button>
-            <button title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("underline") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><UnderlineIcon className="w-4 h-4" /></button>
-            <button title="Strikethrough" onClick={() => editor.chain().focus().toggleStrike().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("strike") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Strikethrough className="w-4 h-4" /></button>
-            <button title="Highlight" onClick={() => editor.chain().focus().toggleHighlight().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("highlight") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Highlighter className="w-4 h-4" /></button>
-            <div className="w-px h-6 bg-white/10 mx-1" />
-            <button title="Heading 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 1 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Heading1 className="w-4 h-4" /></button>
-            <button title="Heading 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 2 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Heading2 className="w-4 h-4" /></button>
-            <button title="Heading 3" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 3 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Heading3 className="w-4 h-4" /></button>
-            <button title="Heading 4" onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 4 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Heading4 className="w-4 h-4" /></button>
-            <button title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bulletList") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><List className="w-4 h-4" /></button>
-            <button title="Task List" onClick={() => editor.chain().focus().toggleTaskList().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("taskList") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><CheckSquare className="w-4 h-4" /></button>
-            <button title="Quote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("blockquote") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Quote className="w-4 h-4" /></button>
-            <button title="Inline Code" onClick={() => editor.chain().focus().toggleCode().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("code") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Code className="w-4 h-4" /></button>
-            <button title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("codeBlock") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><Terminal className="w-4 h-4" /></button>
-            <div className="w-px h-6 bg-white/10 mx-1" />
-            <button title="Link" onClick={setLink} className={`p-2 rounded-xl transition-all ${editor.isActive("link") ? "bg-violet-600/20 text-violet-400" : "text-white/40 hover:bg-white/10 hover:text-white"}`}><LinkIcon className="w-4 h-4" /></button>
+          <div className="hidden sm:flex items-center gap-1 p-2 bg-white border border-[#dde3ec] rounded-2xl mb-4 self-start sticky top-22 z-30 shadow-sm">
+            <button title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bold") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Bold className="w-4 h-4" /></button>
+            <button title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("italic") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Italic className="w-4 h-4" /></button>
+            <button title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("underline") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><UnderlineIcon className="w-4 h-4" /></button>
+            <button title="Strikethrough" onClick={() => editor.chain().focus().toggleStrike().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("strike") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Strikethrough className="w-4 h-4" /></button>
+            <button title="Highlight" onClick={() => editor.chain().focus().toggleHighlight().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("highlight") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Highlighter className="w-4 h-4" /></button>
+            <div className="w-px h-6 bg-[#dde3ec] mx-1" />
+            <button title="Heading 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 1 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Heading1 className="w-4 h-4" /></button>
+            <button title="Heading 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 2 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Heading2 className="w-4 h-4" /></button>
+            <button title="Heading 3" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 3 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Heading3 className="w-4 h-4" /></button>
+            <button title="Heading 4" onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className={`p-2 rounded-xl transition-all ${editor.isActive("heading", { level: 4 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Heading4 className="w-4 h-4" /></button>
+            <button title="Bullet List" onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("bulletList") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><List className="w-4 h-4" /></button>
+            <button title="Task List" onClick={() => editor.chain().focus().toggleTaskList().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("taskList") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><CheckSquare className="w-4 h-4" /></button>
+            <button title="Quote" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("blockquote") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Quote className="w-4 h-4" /></button>
+            <button title="Inline Code" onClick={() => editor.chain().focus().toggleCode().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("code") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Code className="w-4 h-4" /></button>
+            <button title="Code Block" onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={`p-2 rounded-xl transition-all ${editor.isActive("codeBlock") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><Terminal className="w-4 h-4" /></button>
+            <div className="w-px h-6 bg-[#dde3ec] mx-1" />
+            <button title="Link" onClick={setLink} className={`p-2 rounded-xl transition-all ${editor.isActive("link") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"}`}><LinkIcon className="w-4 h-4" /></button>
           </div>
         )}
 
         {/* Bubble Menu (Still useful for quick formatting on selection) */}
         {editor && (
-          <BubbleMenu editor={editor} className="flex items-center gap-1 p-1.5 bg-[#121212]/95 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl z-50">
+          <BubbleMenu editor={editor} className="flex items-center gap-1 p-1.5 bg-white/95 backdrop-blur-3xl border border-[#dde3ec] rounded-2xl shadow-2xl z-50">
             <button onClick={() => editor.chain().focus().toggleBold().run()} className={`bubble-menu-btn ${editor.isActive("bold") ? "is-active" : ""}`}><Bold className="w-4 h-4" /></button>
             <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`bubble-menu-btn ${editor.isActive("italic") ? "is-active" : ""}`}><Italic className="w-4 h-4" /></button>
             <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`bubble-menu-btn ${editor.isActive("underline") ? "is-active" : ""}`}><UnderlineIcon className="w-4 h-4" /></button>
             <button onClick={() => editor.chain().focus().toggleStrike().run()} className={`bubble-menu-btn ${editor.isActive("strike") ? "is-active" : ""}`}><Strikethrough className="w-4 h-4" /></button>
             <button onClick={() => editor.chain().focus().toggleHighlight().run()} className={`bubble-menu-btn ${editor.isActive("highlight") ? "is-active" : ""}`}><Highlighter className="w-4 h-4" /></button>
             <button onClick={() => editor.chain().focus().toggleCode().run()} className={`bubble-menu-btn ${editor.isActive("code") ? "is-active" : ""}`}><Code className="w-4 h-4" /></button>
-            <div className="w-px h-4 bg-white/10 mx-1" />
+            <div className="w-px h-4 bg-[#dde3ec] mx-1" />
             <button onClick={setLink} className={`bubble-menu-btn ${editor.isActive("link") ? "is-active" : ""}`}><LinkIcon className="w-4 h-4" /></button>
           </BubbleMenu>
         )}
 
         {/* Custom Link Prompt Component */}
         {showLinkPrompt && (
-          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-[#222d32]/20 backdrop-blur-sm">
             <button
               type="button"
               aria-label="Close link prompt"
@@ -433,7 +434,7 @@ export default function CourseNotesEditor({
               className="glass-panel p-6 rounded-3xl w-full max-w-sm flex flex-col gap-4 shadow-2xl"
               aria-modal="true"
             >
-              <h3 className="text-white font-semibold">Insert Link</h3>
+              <h3 className="text-[#222d32] font-semibold">Insert Link</h3>
               <form onSubmit={submitLink} className="flex gap-2">
                 <input
                   ref={linkInputRef}
@@ -441,9 +442,9 @@ export default function CourseNotesEditor({
                   placeholder="https://example.com"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
-                  className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none"
+                  className="flex-1 bg-[#edf1f6] border border-[#dde3ec] rounded-xl px-4 py-2 text-[#222d32] focus:border-[#dc4835] focus:ring-1 focus:ring-[#dc4835] outline-none"
                 />
-                <button type="submit" className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-xl font-medium transition-colors">
+                <button type="submit" className="bg-[#dc4835] hover:bg-[#fe1f11] text-white px-4 py-2 rounded-xl font-medium transition-colors">
                   Save
                 </button>
               </form>
@@ -458,20 +459,20 @@ export default function CourseNotesEditor({
 
       {/* Mobile Toolbar (Bottom Floating) */}
       <div className="sm:hidden fixed bottom-25 left-1/2 -translate-x-1/2 z-65 w-[95%] max-w-md">
-        <div className="glass-card-premium p-1.5 rounded-4xl border border-white/10 flex items-center justify-between gap-1 shadow-2xl overflow-x-auto scrollbar-hide no-scrollbar scroll-smooth">
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("bold") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Bold className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("italic") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Italic className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 1 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Heading1 className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 2 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Heading2 className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 3 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Heading3 className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 4 }) ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Heading4 className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("bulletList") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><List className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleTaskList().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("taskList") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><CheckSquare className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBlockquote().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("blockquote") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Quote className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleCode().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("code") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Code className="w-5 h-5" /></button>
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("codeBlock") ? "bg-violet-600/20 text-violet-400" : "text-white/40"}`}><Terminal className="w-5 h-5" /></button>
-          <div className="w-px h-6 bg-white/10 mx-1 shrink-0" />
-          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().insertContent('/').run()} className="p-3 rounded-2xl text-white/40 hover:text-white bg-white/5 shrink-0"><Plus className="w-5 h-5" /></button>
+        <div className="bg-white p-1.5 rounded-4xl border border-[#dde3ec] flex items-center justify-between gap-1 shadow-lg overflow-x-auto scrollbar-hide no-scrollbar scroll-smooth">
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("bold") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Bold className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("italic") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Italic className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 1 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Heading1 className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 2 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Heading2 className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 3 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Heading3 className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("heading", { level: 4 }) ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Heading4 className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBulletList().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("bulletList") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><List className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleTaskList().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("taskList") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><CheckSquare className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleBlockquote().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("blockquote") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Quote className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleCode().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("code") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Code className="w-5 h-5" /></button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().toggleCodeBlock().run()} className={`p-3 rounded-2xl transition-all shrink-0 ${editor.isActive("codeBlock") ? "bg-[#dc4835]/8 text-[#dc4835]" : "text-[#5a6472]"}`}><Terminal className="w-5 h-5" /></button>
+          <div className="w-px h-6 bg-[#dde3ec] mx-1 shrink-0" />
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().insertContent('/').run()} className="p-3 rounded-2xl text-[#5a6472] hover:text-[#222d32] bg-[#edf1f6] shrink-0"><Plus className="w-5 h-5" /></button>
         </div>
       </div>
     </div>

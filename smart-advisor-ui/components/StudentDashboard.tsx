@@ -342,22 +342,20 @@ function StudentDashboard({
         >
             {/* ── Header: Student Status ────────────────── */}
             <div className="flex flex-col md:flex-row gap-4 items-stretch">
-                <div id="wt-student-status" className="flex-1 glass-card p-6 rounded-4xl relative overflow-hidden group border-white/10 bg-white/2 shadow-2xl">
-                    <div className="absolute inset-0 bg-linear-to-br from-violet-600/10 via-transparent to-blue-600/10 opacity-50" />
-
+                <div id="wt-student-status" className="flex-1 bg-white border border-[#dde3ec] p-6 rounded-xl relative overflow-hidden group" style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}>
                     <div className="relative flex items-center gap-6">
-                        <div className="w-16 h-16 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center shrink-0">
-                            <GraduationCap className="w-8 h-8 text-violet-400" />
+                        <div className="w-16 h-16 rounded-lg bg-[#edf1f6] border border-[#dde3ec] flex items-center justify-center shrink-0">
+                            <GraduationCap className="w-8 h-8" style={{ color: '#c249a8' }} />
                         </div>
 
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                                <h2 className="text-xl font-black text-white tracking-tight leading-none uppercase italic">{studentTitle}</h2>
-                                <div className="px-2 py-0.5 rounded-full bg-violet-600/20 border border-violet-500/30">
-                                    <Sparkles className="w-3 h-3 text-violet-400" />
+                                <h2 className="text-xl font-black text-[#222d32] tracking-tight leading-none uppercase">{studentTitle}</h2>
+                                <div className="px-2 py-0.5 rounded" style={{ background: '#edf1f6', border: '1px solid #dde3ec' }}>
+                                    <Sparkles className="w-3 h-3" style={{ color: '#c249a8' }} />
                                 </div>
                             </div>
-                            <p className="text-xs text-white/40 font-medium">
+                            <p className="text-xs text-[#5a6472] font-medium">
                                 Academic status based on degree completion progress.
                             </p>
                         </div>
@@ -365,24 +363,24 @@ function StudentDashboard({
                 </div>
 
                 <div className="flex flex-col gap-3 md:w-64 shrink-0">
-                    <div className="flex-1 py-5 px-7 glass-card rounded-4xl border-white/10 bg-white/2 flex flex-col justify-center relative overflow-hidden border">
-                        <span className="text-xs text-white/40 font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2"><Calendar className="w-3 h-3" /> Graduation</span>
+                    <div className="flex-1 py-5 px-7 bg-white border border-[#dde3ec] rounded-xl flex flex-col justify-center relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}>
+                        <span className="text-xs text-[#5a6472] font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2"><Calendar className="w-3 h-3" /> Graduation</span>
                         <div className="flex items-baseline gap-2 relative z-10">
-                            <span className="text-xl font-black text-white tracking-tighter">{graduationEstimate}</span>
+                            <span className="text-xl font-black text-[#222d32] tracking-tighter">{graduationEstimate}</span>
                         </div>
                     </div>
-                    <Link id="wt-planner-btn" href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25 transition-all active:scale-[0.98]">
+                    <Link id="wt-planner-btn" href="/planner" className="group flex items-center justify-between py-3 px-6 rounded-lg hover:bg-[#fe1f11] text-white transition-all active:scale-[0.98]" style={{ background: '#dc4835' }}>
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
                             <span className="text-sm font-bold tracking-wide">Semester Planner</span>
                         </div>
-                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                        <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                             <ArrowRight className="w-3 h-3 text-white" />
                         </div>
                     </Link>
-                    <button onClick={() => setIsGpaCalculatorOpen(true)} className="group flex items-center justify-between py-3 px-6 rounded-2xl bg-black/40 border border-white/10 hover:bg-white/5 hover:border-white/20 text-white transition-all active:scale-[0.98]">
+                    <button onClick={() => setIsGpaCalculatorOpen(true)} className="group flex items-center justify-between py-3 px-6 rounded-lg bg-white border border-[#dde3ec] hover:border-[#dc4835] text-[#222d32] transition-all active:scale-[0.98]">
                         <div className="flex items-center gap-2">
-                            <Calculator className="w-4 h-4 text-emerald-400" />
+                            <Calculator className="w-4 h-4" style={{ color: '#dc4835' }} />
                             <span className="text-sm font-bold tracking-wide">GPA Calculator</span>
                         </div>
                     </button>
@@ -407,10 +405,10 @@ function StudentDashboard({
                         value={trueCGPA > 0 ? trueCGPA.toFixed(2) : "-.--"}
                         sub="/ 4.00"
                         color={(() => {
-                            if (classification.colorKey === 'emerald') return '#10b981';
-                            if (classification.colorKey === 'violet') return '#8b5cf6';
-                            if (classification.colorKey === 'amber') return '#f59e0b';
-                            return '#3b82f6';
+                            if (classification.colorKey === 'emerald') return '#0da55a';
+                            if (classification.colorKey === 'violet') return '#dc4835';
+                            if (classification.colorKey === 'amber') return '#f39c14';
+                            return '#43aad7';
                         })()}
                         delay={0.15}
                         isRating
@@ -419,7 +417,7 @@ function StudentDashboard({
                     />
                     <button
                         onClick={() => setIsEditingGpa(true)}
-                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 opacity-0 group-hover/gpa:opacity-100 transition-all text-white/40 hover:text-white/80"
+                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-[#edf1f6] hover:bg-[#dde3ec] opacity-0 group-hover/gpa:opacity-100 transition-all text-[#5a6472] hover:text-[#222d32]"
                         title="Edit Previous Academic History"
                     >
                         <Settings className="w-3.5 h-3.5" />
@@ -466,36 +464,31 @@ function StudentDashboard({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
                 id="wt-roadmap"
-                className="rounded-[40px] p-8 glass-card-premium group/next"
+                className="rounded-xl p-6 sm:p-8 bg-white border border-[#dde3ec] group/next" style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}
             >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 justify-between w-full relative z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-violet-600/10 flex items-center justify-center border border-violet-500/20 shrink-0 group-hover/next:scale-110 transition-transform">
-                            <Target className="w-5 h-5 text-violet-400" />
+                        <div className="w-10 h-10 rounded-lg bg-[#edf1f6] flex items-center justify-center border border-[#dde3ec] shrink-0 group-hover/next:scale-110 transition-transform">
+                            <Target className="w-5 h-5" style={{ color: '#dc4835' }} />
                         </div>
                         <div>
-                            <h3 className="text-xs font-black text-white/40 uppercase tracking-[0.25em]">Critical Roadmap</h3>
-                            <p className="text-xs text-white/40 font-bold">{totalRemaining} Credit Hours to go</p>
+                            <h3 className="htu-label">Critical Roadmap</h3>
+                            <p className="text-xs text-[#5a6472] font-bold">{totalRemaining} Credit Hours to go</p>
                         </div>
                     </div>
                     <div className="w-full sm:flex-1 sm:max-w-xs flex flex-col gap-1.5 transition-opacity mt-4 sm:mt-0">
                         <div className="flex justify-between items-center text-xs font-bold tracking-widest uppercase">
-                            <span className="text-white/50">Overall</span>
-                            <span className="text-violet-400">{overallRoadmapPct}%</span>
+                            <span className="text-[#5a6472]">Overall</span>
+                            <span style={{ color: '#dc4835' }}>{overallRoadmapPct}%</span>
                         </div>
-                        <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-px">
+                        <div className="h-2.5 bg-[#dde3ec] rounded-full overflow-hidden">
                             <motion.div
-                                className="h-full rounded-full relative"
+                                className="h-full rounded-full"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${overallRoadmapPct}%` }}
                                 transition={{ duration: 1.5, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                style={{
-                                    background: `linear-gradient(90deg, #8b5cf680, #c084fc)`,
-                                    boxShadow: `0 0 15px #8b5cf630`,
-                                }}
-                            >
-                                <div className="absolute inset-x-0 bottom-0 h-[20%] bg-white/20" />
-                            </motion.div>
+                                style={{ background: '#dc4835' }}
+                            />
                         </div>
                     </div>
                 </div>
@@ -511,31 +504,37 @@ function StudentDashboard({
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.4 + i * 0.08 }}
-                                className={`text-left w-full group/cat ${isDone ? "opacity-30 grayscale" : "hover:scale-[1.01] transition-transform"}`}
+                                className={`text-left w-full group/cat rounded-xl border-2 p-4 transition-all duration-300 ${
+                                    isDone
+                                        ? "border-[#0da55a]/50 bg-[#0da55a]/10 hover:bg-[#0da55a]/15 hover:scale-[1.01]"
+                                        : "border-[#dde3ec] bg-white hover:border-[#bec7d4] hover:scale-[1.01] hover:shadow-[0_4px_12px_rgba(34,45,50,0.08)]"
+                                }`}
                             >
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: `${cat.color}15`, color: cat.color }}>
-                                        {cat.icon}
+                                    <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
+                                        isDone ? "bg-[#0da55a]/20 text-[#0da55a]" : ""
+                                    }`} style={isDone ? {} : { background: `${cat.color}15`, color: cat.color }}>
+                                        {isDone ? <CheckCircle className="w-4 h-4" /> : cat.icon}
                                     </div>
-                                    <span className="text-[11px] text-white/60 font-bold flex-1 truncate uppercase tracking-widest">{cat.label}</span>
+                                    <span className={`text-[11px] font-bold flex-1 truncate uppercase tracking-widest ${isDone ? "text-[#0da55a]" : "text-[#5a6472]"}`}>{cat.label}</span>
+                                    {isDone && (
+                                        <span className="px-2 py-0.5 rounded-full bg-[#0da55a]/20 text-[#0da55a] text-[10px] font-black uppercase tracking-widest border border-[#0da55a]/30">
+                                            Done
+                                        </span>
+                                    )}
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-black text-white/90">{cat.displayDone}</span>
-                                        <span className="text-xs font-bold text-white/50">/ {cat.displayTotal}</span>
+                                        <span className={`text-sm font-black ${isDone ? "text-[#0da55a]" : "text-[#222d32]"}`}>{cat.displayDone}</span>
+                                        <span className={`text-xs font-bold ${isDone ? "text-[#0da55a]/60" : "text-[#92604c]"}`}>/ {cat.displayTotal}</span>
                                     </div>
                                 </div>
-                                <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/10 p-px">
+                                <div className={`h-2.5 rounded-full overflow-hidden ${isDone ? "bg-[#0da55a]/15" : "bg-[#dde3ec]"}`}>
                                     <motion.div
-                                        className="h-full rounded-full relative"
+                                        className="h-full rounded-full"
                                         initial={{ width: 0 }}
                                         animate={{ width: `${pct}%` }}
                                         transition={{ duration: 1.5, delay: 0.5 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                                        style={{
-                                            background: `linear-gradient(90deg, ${cat.color}40, ${cat.color})`,
-                                            boxShadow: `0 0 15px ${cat.color}30`,
-                                        }}
-                                    >
-                                        <div className="absolute inset-x-0 bottom-0 h-[20%] bg-white/20" />
-                                    </motion.div>
+                                        style={{ background: isDone ? '#0da55a' : cat.color }}
+                                    />
                                 </div>
                             </motion.button>
                         );
@@ -548,7 +547,7 @@ function StudentDashboard({
                 <div className="fixed inset-0 z-50">
                     <button
                         type="button"
-                        className="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 z-40 bg-[#222d32]/40 backdrop-blur-sm"
                         onClick={() => setIsEditingGpa(false)}
                         aria-label="Close previous academic history modal"
                     />
@@ -562,20 +561,20 @@ function StudentDashboard({
                         tabIndex={-1}
                         ref={gpaDialogRef}
                     >
-                        <div className="bg-white dark:bg-[#111] border border-black/10 dark:border-white/10 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative">
+                        <div className="bg-white border border-[#dde3ec] p-6 rounded-xl w-full max-w-sm shadow-[0_8px_30px_rgba(34,45,50,0.15)] relative">
                         <button 
                             onClick={() => setIsEditingGpa(false)} 
-                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:text-white/50 dark:hover:text-white transition-colors p-1"
+                            className="absolute top-4 right-4 text-[#5a6472] hover:text-[#222d32] transition-colors p-1"
                             title="Close"
                             aria-label="Close previous academic history modal"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
-                        <h3 id="previous-academic-history-title" className="text-lg font-bold text-gray-900 dark:text-white mb-2 pr-6">Previous Academic History</h3>
-                        <p className="text-xs text-gray-500 dark:text-white/50 mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
+                        <h3 id="previous-academic-history-title" className="text-lg font-bold text-[#222d32] mb-2 pr-6">Previous Academic History</h3>
+                        <p className="text-xs text-[#5a6472] mb-6">Enter your cumulative GPA and earned credits prior to what you have logged in the tracker. We will combine them for a true CGPA.</p>
                         
                         {errorMsg && (
-                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center">
+                            <div className="mb-4 p-3 rounded-lg text-xs text-center" style={{ background: 'rgba(220,72,53,0.08)', border: '1px solid rgba(220,72,53,0.2)', color: '#dc4835' }}>
                                 {errorMsg}
                             </div>
                         )}
@@ -584,7 +583,7 @@ function StudentDashboard({
                             {terms.map((term, i) => (
                                 <div key={term.id} className="flex items-center gap-3">
                                     <div className="flex-1">
-                                        <label htmlFor={`gpa-${i}`} className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40 mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
+                                        <label htmlFor={`gpa-${i}`} className="block text-xs font-bold uppercase tracking-widest text-[#5a6472] mb-1.5">{i === 0 ? "Cumulative GPA" : `Term ${i + 1} GPA`}</label>
                                         <input
                                             id={`gpa-${i}`}
                                             type="number" step="0.01" min="0" max="4.0"
@@ -593,12 +592,12 @@ function StudentDashboard({
                                                 newTerms[i].gpa = e.target.value;
                                                 setTerms(newTerms);
                                             }}
-                                            className={`w-full bg-white dark:bg-black border ${term.gpa && parseFloat(term.gpa) > 4.0 ? 'border-red-500 text-red-600 dark:text-red-400 focus:border-red-500' : 'border-gray-200 dark:border-white/10 focus:border-violet-500'} rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-hidden transition-colors`}
+                                            className={`w-full bg-white border ${term.gpa && parseFloat(term.gpa) > 4.0 ? 'border-[#dc4835]' : 'border-[#dde3ec]'} rounded-lg px-4 py-3 text-[#222d32] text-sm focus:outline-hidden transition-colors`}
                                             placeholder="0.00"
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label htmlFor={`credits-${i}`} className="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40 mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
+                                        <label htmlFor={`credits-${i}`} className="block text-xs font-bold uppercase tracking-widest text-[#5a6472] mb-1.5">{i === 0 ? "Earned Credits" : `Term ${i + 1} Credits`}</label>
                                         <input
                                             id={`credits-${i}`}
                                             type="number" step="1" min="0"
@@ -607,18 +606,18 @@ function StudentDashboard({
                                                 newTerms[i].credits = e.target.value;
                                                 setTerms(newTerms);
                                             }}
-                                            className="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-hidden focus:border-violet-500 transition-colors"
+                                            className="w-full bg-white border border-[#dde3ec] rounded-lg px-4 py-3 text-[#222d32] text-sm focus:outline-hidden transition-colors"
                                             placeholder="0"
                                         />
                                     </div>
                                     {terms.length > 1 && (
-                                        <button onClick={() => setTerms(terms.filter((_, idx) => idx !== i))} className="mt-5 p-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-gray-500 dark:text-white/50 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                        <button onClick={() => setTerms(terms.filter((_, idx) => idx !== i))} className="mt-5 p-2 bg-[#edf1f6] hover:bg-[#dde3ec] rounded-lg text-[#5a6472] hover:text-[#dc4835] transition-colors">
                                             ×
                                         </button>
                                     )}
                                 </div>
                             ))}
-                            <button onClick={() => setTerms([...terms, { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: "", credits: "" }])} className="w-full py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[11px] font-bold uppercase tracking-widest text-gray-600 dark:text-white/60 transition-colors mt-2">
+                            <button onClick={() => setTerms([...terms, { id: Date.now().toString() + Math.random().toString(36).substring(7), gpa: "", credits: "" }])} className="w-full py-2 bg-[#edf1f6] hover:bg-[#dde3ec] rounded-lg text-[11px] font-bold uppercase tracking-widest text-[#5a6472] transition-colors mt-2">
                                 + Add Term
                             </button>
                         </div>
@@ -626,7 +625,7 @@ function StudentDashboard({
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setIsEditingGpa(false)}
-                                className="flex-1 py-3 text-sm font-bold text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                className="flex-1 py-3 text-sm font-bold text-[#5a6472] hover:text-[#222d32] transition-colors"
                                 aria-label="Cancel previous academic history"
                             >
                                 Cancel
@@ -634,7 +633,8 @@ function StudentDashboard({
                             <button
                                 onClick={handleSavePreviousGpa}
                                 disabled={savingGpa}
-                                className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-50"
+                                className="flex-1 py-3 rounded-lg text-white text-sm font-bold transition-all disabled:opacity-50"
+                                style={{ background: '#dc4835' }}
                             >
                                 {savingGpa ? "Saving..." : "Save History"}
                             </button>
@@ -680,29 +680,22 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText, isR
             initial={{ opacity: 0, y: 12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay, duration: 0.35 }}
-            className="relative rounded-2xl p-4 overflow-hidden group cursor-default hover:scale-[1.02] transition-transform duration-200"
-            style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-                border: "1px solid rgba(255,255,255,0.06)",
-            }}
+            className="relative rounded-xl p-4 overflow-hidden group cursor-default hover:scale-[1.02] transition-transform duration-200 bg-white border border-[#dde3ec]"
+            style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}
         >
-            {/* Accent glow on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${color}15, transparent)` }} />
-
             <div className="relative">
                 <div className="flex items-center gap-2 mb-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                    <div className="w-7 h-7 rounded-md flex items-center justify-center"
                         style={{ background: `${color}15`, border: `1px solid ${color}20`, color }}>
                         {icon}
                     </div>
-                    <span className="text-xs text-white/50 uppercase font-bold tracking-widest">{label}</span>
+                    <span className="text-xs text-[#5a6472] uppercase font-bold tracking-widest">{label}</span>
                 </div>
                 <div className="flex items-baseline gap-1.5 min-w-0">
-                    <span className={`font-bold text-white ${isText ? "text-[12px] sm:text-sm" : "text-xl"} tabular-nums tracking-tight truncate`}>
+                    <span className={`font-bold text-[#222d32] ${isText ? "text-[12px] sm:text-sm" : "text-xl"} tabular-nums tracking-tight truncate`}>
                         {value}
                     </span>
-                    {sub && <span className="text-xs text-white/40 font-medium truncate">{sub}</span>}
+                    {sub && <span className="text-xs text-[#92604c] font-medium truncate">{sub}</span>}
                 </div>
 
                 {isRating && ratingLabel && (
@@ -711,25 +704,21 @@ function StatCard({ icon, label, value, sub, color, delay, progress, isText, isR
                             {ratingLabel}
                         </span>
                         {motivation && (
-                            <span className="text-xs font-medium text-white/40 italic leading-tight mt-0.5">
+                            <span className="text-xs font-medium text-[#92604c] italic leading-tight mt-0.5">
                                 &ldquo;{motivation}&rdquo;
                             </span>
                         )}
                     </div>
                 )}
 
-                {/* Mini progress bar for Degree Progress card */}
                 {progress !== undefined && (
-                    <div className="mt-2.5 h-1 bg-white/4 rounded-full overflow-hidden">
+                    <div className="mt-2.5 h-1 bg-[#dde3ec] rounded-full overflow-hidden">
                         <motion.div
                             className="h-full rounded-full"
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.round(progress * 100)}%` }}
                             transition={{ duration: 1, delay: delay + 0.3, ease: "easeOut" }}
-                            style={{
-                                background: `linear-gradient(90deg, ${color}, ${color}aa)`,
-                                boxShadow: `0 0 8px ${color}30`,
-                            }}
+                            style={{ background: color }}
                         />
                     </div>
                 )}

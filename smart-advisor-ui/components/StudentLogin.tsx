@@ -61,11 +61,8 @@ export default function StudentLogin() {
 
     return (
         <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
-            {/* Animated Background Orbs */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-500/10 rounded-full blur-[120px] animate-slow-glow" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/10 rounded-full blur-[120px] animate-slow-glow" style={{ animationDelay: "-4s" }} />
-            </div>
+            {/* Clean solid page background */}
+            <div className="absolute inset-0 bg-[#edf1f6] pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -82,9 +79,9 @@ export default function StudentLogin() {
                     </span>
                 </div>
 
-                <div className="premium-card p-8 md:p-10 relative overflow-hidden">
-                    {/* Subtle inner flare */}
-                    <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-violet-400/20 to-transparent" />
+                <div className="premium-card p-8 md:p-10 relative overflow-hidden bg-white border border-[#dde3ec] rounded-xl" style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}>
+                    {/* Solid border instead of gradient flare */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-[#dc4835]" />
 
                     <div className="text-center mb-10">
                         <AnimatePresence>
@@ -93,12 +90,12 @@ export default function StudentLogin() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight leading-none"
+                                className="text-2xl sm:text-3xl font-extrabold text-[#222d32] mb-2 tracking-tight leading-none"
                             >
                                 {isClaiming ? "Start Your HTU Journey" : "MUBXAI Login"}
                             </motion.h1>
                         </AnimatePresence>
-                        <p className="text-sm text-white/50 font-semibold">
+                        <p className="text-sm text-[#92604c] font-semibold">
                             {isClaiming
                                 ? "Link your university ID to start tracking."
                                 : "Sign in to access your MUBXAI dashboard."}
@@ -109,7 +106,7 @@ export default function StudentLogin() {
                         <div className="space-y-4">
                             <div className="relative group">
                                 <label htmlFor="student_id" className="sr-only">University ID</label>
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-violet-400/70 transition-colors">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#92604c] group-focus-within:text-[#c249a8] transition-colors">
                                     <User className="w-4.5 h-4.5" aria-hidden="true" />
                                 </div>
                                 <input
@@ -122,13 +119,13 @@ export default function StudentLogin() {
                                     aria-required="true"
                                     aria-invalid={!!error}
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/60 outline-none transition-all focus:bg-white/8 focus:border-violet-500/50 text-sm font-medium"
+                                    className="w-full bg-[#edf1f6] border border-[#dde3ec] rounded-lg py-4 pl-12 pr-4 text-[#222d32] placeholder-gray-500 outline-none transition-all focus:bg-white focus:border-[#dc4835] text-sm font-medium"
                                 />
                             </div>
 
                             <div className="relative group">
                                 <label htmlFor="password" className="sr-only">Password</label>
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-violet-400/70 transition-colors">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#92604c] group-focus-within:text-[#c249a8] transition-colors">
                                     <Lock className="w-4.5 h-4.5" aria-hidden="true" />
                                 </div>
                                 <input
@@ -141,7 +138,7 @@ export default function StudentLogin() {
                                     aria-required="true"
                                     aria-invalid={!!error}
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/60 outline-none transition-all focus:bg-white/8 focus:border-violet-500/50 text-sm font-medium"
+                                    className="w-full bg-[#edf1f6] border border-[#dde3ec] rounded-lg py-4 pl-12 pr-4 text-[#222d32] placeholder-gray-500 outline-none transition-all focus:bg-white focus:border-[#dc4835] text-sm font-medium"
                                 />
                             </div>
                         </div>
@@ -152,7 +149,7 @@ export default function StudentLogin() {
                                 role="alert"
                                 initial={{ opacity: 0, x: -4 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="text-[11px] font-semibold text-red-400/90 text-center"
+                                className="text-[11px] font-semibold text-red-600 text-center"
                             >
                                 {error}
                             </motion.p>
@@ -164,7 +161,7 @@ export default function StudentLogin() {
                             whileTap={{ scale: 0.98 }}
                             type="submit"
                             aria-label={isClaiming ? "Verify and Claim Account" : "Sign into Dashboard"}
-                            className="w-full relative group overflow-hidden py-4 rounded-2xl bg-white/10 text-white/90 font-bold text-sm transition-all hover:bg-white/15 hover:shadow-[0_0_30px_rgba(139,92,246,0.15)] disabled:opacity-50 mt-4 flex items-center justify-center gap-2 border border-white/10"
+                            className="w-full relative group overflow-hidden py-4 rounded-lg bg-[#dc4835] text-white font-bold text-sm transition-all hover:bg-[#fe1f11] disabled:opacity-50 mt-4 flex items-center justify-center gap-2 border border-[#dc4835]"
                         >
                             {submitLabel}
                             {!loading && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />}
@@ -172,9 +169,9 @@ export default function StudentLogin() {
                     </form>
 
                     <div className="relative my-10 px-4">
-                        <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-white/5" /></div>
-                        <div className="relative flex justify-center text-xs font-black uppercase tracking-[0.2em] text-white/40">
-                            <span className="bg-[#030303] px-4 py-1.5 rounded-full border border-white/10">Universal Login</span>
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-[#dde3ec]" /></div>
+                        <div className="relative flex justify-center text-xs font-black uppercase tracking-[0.2em] text-[#92604c]">
+                            <span className="bg-white px-4 py-1.5 rounded-full border border-[#dde3ec]">Universal Login</span>
                         </div>
                     </div>
 
@@ -184,9 +181,9 @@ export default function StudentLogin() {
                             whileTap={{ scale: 0.99 }}
                             onClick={() => signIn('google', { callbackUrl: '/' })}
                             aria-label="Continue with Google"
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/3 border border-white/5 text-white text-sm font-semibold transition-all hover:bg-white/5 group"
+                            className="w-full flex items-center justify-center gap-3 py-4 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-[#222d32] text-sm font-semibold transition-all hover:bg-[#dde3ec] group"
                         >
-                            <div className="w-6 h-6 flex items-center justify-center bg-white/5 rounded-full group-hover:bg-white/10 transition-colors" aria-hidden="true">
+                            <div className="w-6 h-6 flex items-center justify-center bg-[#dde3ec] rounded-full group-hover:bg-gray-300 transition-colors" aria-hidden="true">
                                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                     <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -201,7 +198,7 @@ export default function StudentLogin() {
                             <button
                                 type="button"
                                 onClick={() => { setIsClaiming(!isClaiming); setId(""); setPassword(""); setError(""); }}
-                                className="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-violet-400/80 hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-violet-400/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
+                                className="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-[#c249a8] hover:text-[#a83692] transition-colors focus:outline-none focus:ring-1 focus:ring-[#c249a8]/40 rounded px-3 py-2 sm:px-2 sm:py-0.5"
                             >
                                 {isClaiming
                                     ? "Already have an account? Login"

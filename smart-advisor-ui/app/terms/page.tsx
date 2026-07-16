@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Terms of Service",
-    description: "MUBXAI Terms of Service — rules for using the free academic tracking platform for Al Hussein Technical University students. Covers data ownership, Google integrations, and disclaimers.",
+    description: "MUBXAI Terms of Service — rules for using the free academic tracking platform for MUBX University students. Covers data ownership, Google integrations, and disclaimers.",
     alternates: {
         canonical: "https://ai.mubx.dev/terms",
     },
@@ -13,14 +13,13 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans">
-            {/* Mesh Gradient Background */}
+        <div className="min-h-screen bg-[#edf1f6] text-[#222d32] selection:bg-[#dc4835]/20 font-sans">
             <div className="fixed inset-0 z-0 opacity-20 pointer-events-none mesh-gradient" />
 
             <main className="max-w-4xl mx-auto px-6 py-20 relative z-10">
                 <Link
                     href="/"
-                    className="inline-flex items-center gap-2 text-xs font-bold text-white/40 hover:text-white transition-colors mb-12 group"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-[#5a6472] hover:text-[#222d32] transition-colors mb-12 group"
                 >
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Back to Tracker
@@ -29,17 +28,17 @@ export default function TermsPage() {
                 <header className="space-y-4 mb-16">
                     <div className="flex items-center gap-4">
                         <BrandMark size="lg" />
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gradient">
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-[#222d32]">
                             Terms of Service
                         </h1>
                     </div>
-                    <p className="text-white/40 font-medium">Last updated: February 21, 2026</p>
+                    <p className="text-[#5a6472] font-medium">Last updated: February 21, 2026</p>
                 </header>
 
-                <div className="space-y-12 text-white/70 leading-relaxed">
+                <div className="space-y-12 text-[#222d32]/80 leading-relaxed">
                     <section className="space-y-4">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-violet-400" /> Acceptance of Terms
+                        <h2 className="text-xl font-bold text-[#222d32] flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-[#dc4835]" /> Acceptance of Terms
                         </h2>
                         <p>
                             By using MUBXAI (the &quot;Service&quot;), you agree to be bound by these Terms of Service. This Service is provided for educational organization purposes for students.
@@ -47,14 +46,14 @@ export default function TermsPage() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <AlertCircle className="w-5 h-5 text-violet-400" /> Use of Service
+                        <h2 className="text-xl font-bold text-[#222d32] flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 text-[#dc4835]" /> Use of Service
                         </h2>
                         <p>
                             You agree to use the Service only for lawful purposes. You are responsible for maintaining the confidentiality of your academic data and any integration tokens you choose to generate.
                         </p>
-                        <div className="glass-card-premium p-6 rounded-3xl border border-white/5 space-y-4">
-                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Disclaimer</h3>
+                        <div className="bg-white p-6 rounded-3xl border border-[#dde3ec] space-y-4 shadow-sm">
+                            <h3 className="text-sm font-bold text-[#222d32] uppercase tracking-wider">Disclaimer</h3>
                             <p className="text-sm">
                                 While we strive for 100% accuracy, the course data and graduation requirements are provided &quot;as is.&quot; Users should always cross-reference their progress with official University records.
                             </p>
@@ -62,23 +61,23 @@ export default function TermsPage() {
                     </section>
 
                     <section className="space-y-4">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <HelpCircle className="w-5 h-5 text-violet-400" /> External Integrations
+                        <h2 className="text-xl font-bold text-[#222d32] flex items-center gap-2">
+                            <HelpCircle className="w-5 h-5 text-[#dc4835]" /> External Integrations
                         </h2>
                         <p>
                             Our integrations with Google Calendar are optional features designed to sync your academic schedule and data. Your use of these features is governed by these Terms and Google&apos;s Terms of Service.
                         </p>
-                        <ul className="list-disc pl-6 space-y-2 text-sm text-white/50">
+                        <ul className="list-disc pl-6 space-y-2 text-sm text-[#5a6472]">
                             <li>You maintain full ownership of your Google data.</li>
                             <li>The Service only accesses the specific scopes you authorize during the OAuth consent process.</li>
                             <li>You can revoke access at any time through your Google Account security settings.</li>
                         </ul>
                     </section>
 
-                    <footer className="pt-12 border-t border-white/5">
+                    <footer className="pt-12 border-t border-[#dde3ec]">
                         <p className="text-sm">
                             For any inquiries regarding these terms, please contact our support team at{" "}
-                            <a href="mailto:omarmubaidincs@gmail.com" className="text-violet-400 hover:text-violet-300 font-bold transition-colors">
+                            <a href="mailto:omarmubaidincs@gmail.com" className="text-[#dc4835] hover:text-[#c03d2e] font-bold transition-colors">
                                 omarmubaidincs@gmail.com
                             </a>
                         </p>

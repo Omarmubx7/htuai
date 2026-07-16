@@ -376,23 +376,22 @@ export default function HomeClient() {
 
             {appState === "course-tracker" && courseData && rules && (
                 <div className="min-h-screen flex flex-col pt-14 sm:pt-20">
-                    <header className="hidden sm:flex fixed top-0 left-0 right-0 z-60 h-20 bg-white/2 backdrop-blur-2xl border-b border-white/6">
+                    <header className="hidden sm:flex fixed top-0 left-0 right-0 z-60 h-20 bg-white border-b border-[#dde3ec]" style={{ boxShadow: '0 1px 4px rgba(34,45,50,0.08)' }}>
                         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                             <div id="wt-header-brand" className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.1)] overflow-hidden">
-                                    <Image src="/mubxai-dark-logo.png" alt="MUBXAI" width={20} height={20} className="dark-logo" />
-                                    <Image src="/mubxai-light-logo.png" alt="MUBXAI" width={20} height={20} className="light-logo" />
+                                <div className="w-8 h-8 rounded-lg bg-[#edf1f6] flex items-center justify-center overflow-hidden border border-[#dde3ec]">
+                                    <Image src="/mubxai-light-logo.png" alt="MUBXAI" width={20} height={20} />
                                 </div>
-                                <span className="text-xs sm:text-sm font-black tracking-tight text-white uppercase italic">MUBXAI</span>
+                                <span className="text-xs sm:text-sm font-black tracking-tight text-[#222d32] uppercase">MUBXAI</span>
                             </div>
 
                             <div id="wt-profile" className="flex items-center gap-3">
                                     <div className="flex flex-col items-end">
-                                        <span className="text-xs font-bold text-white/50 uppercase tracking-widest">{studentId}</span>
+                                        <span className="text-xs font-bold text-[#5a6472] uppercase tracking-widest">{studentId}</span>
                                         {majorInfo && (
-                                            <button onClick={() => setAppState("major-select")} className="group flex items-center gap-2 px-2 py-1 rounded-xl bg-white/5 border border-white/5">
-                                                <Settings2 className="w-3 h-3 text-white/40" />
-                                                <span className="text-xs font-bold text-white/80">{majorInfo.label}</span>
+                                            <button onClick={() => setAppState("major-select")} className="group flex items-center gap-2 px-2 py-1 rounded-md bg-[#edf1f6] border border-[#dde3ec] hover:border-[#dc4835] transition-colors">
+                                                <Settings2 className="w-3 h-3 text-[#5a6472]" />
+                                                <span className="text-xs font-bold text-[#222d32]">{majorInfo.label}</span>
                                                 <span>{majorInfo.icon}</span>
                                             </button>
                                         )}
@@ -401,7 +400,7 @@ export default function HomeClient() {
                                         href="https://bot.mubx.dev"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-cyan-100 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-400/30 text-cyan-800 dark:text-cyan-100 hover:bg-cyan-200 dark:hover:bg-cyan-500/30 transition-all"
+                                        className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#dc4835] hover:bg-[#fe1f11] text-white transition-colors"
                                         title="Open mubxbot"
                                     >
                                         <Bot className="w-4 h-4" />
@@ -409,7 +408,7 @@ export default function HomeClient() {
                                     </a>
                                     <div className="relative">
                                         <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} aria-haspopup="true" aria-expanded={profileMenuOpen}
-                                            className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+                                            className="w-10 h-10 rounded-md bg-[#dc4835] hover:bg-[#fe1f11] flex items-center justify-center text-white font-black text-sm transition-colors">
                                             {(() => {
                                                 const name = session?.user?.name || studentId || '';
                                                 const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -420,16 +419,15 @@ export default function HomeClient() {
                                         </button>
 
                                         {profileMenuOpen && (
-                                            <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-black/90 border border-black/5 dark:border-white/6 rounded-xl p-2 shadow-xl z-50">
-                                                <button type="button" onClick={() => { setAppState("course-tracker"); setProfileMenuOpen(false); }} className="block w-full text-left px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors">Course Tracker</button>
-                                                <Link href="/planner" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Semester Planner</Link>
-                                                <Link href="/planner/settings" className="block px-3 py-2 text-sm text-black/80 dark:text-white/90 hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Profile & Settings</Link>
-                                                <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
-                                                <button onClick={() => void signOut({ callbackUrl: '/' })} className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">Sign out</button>
+                                            <div className="absolute right-0 mt-2 w-48 bg-white border border-[#dde3ec] rounded-lg p-2 shadow-[0_4px_14px_rgba(34,45,50,0.12)] z-50">
+                                                <button type="button" onClick={() => { setAppState("course-tracker"); setProfileMenuOpen(false); }} className="block w-full text-left px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors">Course Tracker</button>
+                                                <Link href="/planner" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Semester Planner</Link>
+                                                <Link href="/planner/settings" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Profile & Settings</Link>
+                                                <div className="h-px bg-[#dde3ec] my-1" />
+                                                <button onClick={() => void signOut({ callbackUrl: '/' })} className="w-full text-left px-3 py-2 text-sm text-[#dc4835] hover:bg-[#edf1f6] rounded transition-colors">Sign out</button>
                                             </div>
                                         )}
                                     </div>
-                                    <ThemeToggle />
                             </div>
                         </div>
                     </header>
@@ -464,37 +462,36 @@ export default function HomeClient() {
 
 function Spinner({ message = "Syncing data..." }: Readonly<{ message?: string }>) {
     return (
-        <div className="min-h-screen bg-black px-5 py-8 sm:px-8 sm:py-10">
-            <div className="absolute inset-0 opacity-20 pointer-events-none mesh-gradient" />
+        <div className="min-h-screen bg-[#edf1f6] px-5 py-8 sm:px-8 sm:py-10">
             <output className="relative z-10 mx-auto block w-full max-w-6xl space-y-6 animate-pulse" aria-label={message} aria-live="polite">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8">
-                    <div className="h-4 w-28 rounded-full bg-white/10 mb-4" />
-                    <div className="h-10 w-2/3 rounded-xl bg-white/10 mb-3" />
-                    <div className="h-4 w-1/2 rounded-lg bg-white/10" />
+                <div className="rounded-xl border border-[#dde3ec] bg-white p-6 sm:p-8">
+                    <div className="h-4 w-28 rounded-full bg-[#dde3ec] mb-4" />
+                    <div className="h-10 w-2/3 rounded-xl bg-[#dde3ec] mb-3" />
+                    <div className="h-4 w-1/2 rounded-lg bg-[#dde3ec]" />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 animate-shimmer">
-                        <div className="h-4 w-20 rounded-full bg-white/10 mb-4" />
-                        <div className="h-7 w-16 rounded-lg bg-white/10 mb-4" />
-                        <div className="h-3 w-full rounded-lg bg-white/10 mb-2" />
-                        <div className="h-3 w-4/5 rounded-lg bg-white/10" />
+                    <div className="rounded-xl border border-[#dde3ec] bg-white p-5">
+                        <div className="h-4 w-20 rounded-full bg-[#dde3ec] mb-4" />
+                        <div className="h-7 w-16 rounded-lg bg-[#dde3ec] mb-4" />
+                        <div className="h-3 w-full rounded-lg bg-[#dde3ec] mb-2" />
+                        <div className="h-3 w-4/5 rounded-lg bg-[#dde3ec]" />
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 animate-shimmer">
-                        <div className="h-4 w-20 rounded-full bg-white/10 mb-4" />
-                        <div className="h-7 w-16 rounded-lg bg-white/10 mb-4" />
-                        <div className="h-3 w-full rounded-lg bg-white/10 mb-2" />
-                        <div className="h-3 w-4/5 rounded-lg bg-white/10" />
+                    <div className="rounded-xl border border-[#dde3ec] bg-white p-5">
+                        <div className="h-4 w-20 rounded-full bg-[#dde3ec] mb-4" />
+                        <div className="h-7 w-16 rounded-lg bg-[#dde3ec] mb-4" />
+                        <div className="h-3 w-full rounded-lg bg-[#dde3ec] mb-2" />
+                        <div className="h-3 w-4/5 rounded-lg bg-[#dde3ec]" />
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 animate-shimmer">
-                        <div className="h-4 w-20 rounded-full bg-white/10 mb-4" />
-                        <div className="h-7 w-16 rounded-lg bg-white/10 mb-4" />
-                        <div className="h-3 w-full rounded-lg bg-white/10 mb-2" />
-                        <div className="h-3 w-4/5 rounded-lg bg-white/10" />
+                    <div className="rounded-xl border border-[#dde3ec] bg-white p-5">
+                        <div className="h-4 w-20 rounded-full bg-[#dde3ec] mb-4" />
+                        <div className="h-7 w-16 rounded-lg bg-[#dde3ec] mb-4" />
+                        <div className="h-3 w-full rounded-lg bg-[#dde3ec] mb-2" />
+                        <div className="h-3 w-4/5 rounded-lg bg-[#dde3ec]" />
                     </div>
                 </div>
 
-                <div className="text-center text-white/35 text-sm font-semibold tracking-wide">{message}</div>
+                <div className="text-center text-[#5a6472] text-sm font-semibold tracking-wide">{message}</div>
                 <span className="sr-only">{message}</span>
             </output>
         </div>

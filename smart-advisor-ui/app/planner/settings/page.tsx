@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function SettingsPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><div className="w-8 h-8 rounded-xl bg-white/5 animate-pulse" /></div>}>
+        <Suspense fallback={<div className="min-h-screen bg-[#edf1f6] flex items-center justify-center"><div className="w-8 h-8 rounded-xl bg-[#edf1f6] animate-pulse" /></div>}>
             <PlannerSettings />
         </Suspense>
     );

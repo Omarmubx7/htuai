@@ -83,9 +83,9 @@ const STEPS = ["Semester", "Courses", "Exams", "Details", "Finish"];
 
 function StepBar({ current }: Readonly<{ current: number }>) {
     const getStepDotClasses = (index: number) => {
-        if (index < current) return "bg-violet-500 text-white";
-        if (index === current) return "bg-violet-600 text-white ring-2 ring-violet-500/30";
-        return "bg-white/10 text-white/40";
+        if (index < current) return "bg-[#dc4835] text-white";
+        if (index === current) return "bg-[#dc4835] text-white ring-2 ring-[#dc4835]/30";
+        return "bg-[#edf1f6] text-[#5a6472]";
     };
 
     return (
@@ -96,10 +96,10 @@ function StepBar({ current }: Readonly<{ current: number }>) {
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black transition-colors ${getStepDotClasses(i)}`}>
                             {i < current ? <Check className="w-3 h-3" /> : i + 1}
                         </div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-white/40 hidden sm:block">{label}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#5a6472] hidden sm:block">{label}</span>
                     </div>
                     {i < STEPS.length - 1 && (
-                        <div className={`h-px flex-1 mb-4 transition-colors ${i < current ? "bg-violet-500/50" : "bg-white/10"}`} />
+                        <div className={`h-px flex-1 mb-4 transition-colors ${i < current ? "bg-[#dc4835]/50" : "bg-[#edf1f6]"}`} />
                     )}
                 </div>
             ))}
@@ -320,7 +320,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
         switch (step) {
             case 0: return (
                 <div className="space-y-4">
-                    <p className="text-white/50 text-sm">Choose the semester type — dates will be pre-filled for you.</p>
+                    <p className="text-[#5a6472] text-sm">Choose the semester type — dates will be pre-filled for you.</p>
                     <div className="grid grid-cols-3 gap-3">
                         {(["Fall", "Spring", "Summer"] as SemType[]).map(t => (
                             <button
@@ -328,8 +328,8 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                                 onClick={() => pickSemType(t)}
                                 className={`py-5 rounded-2xl border-2 font-bold text-sm transition-all flex flex-col items-center gap-2
                                     ${semType === t
-                                        ? "border-violet-500 bg-violet-500/15 text-white"
-                                        : "border-white/10 bg-white/2 text-white/50 hover:border-white/20 hover:text-white"}`}
+                                        ? "border-[#dc4835] bg-[#dc4835]/15 text-[#222d32]"
+                                        : "border-[#dde3ec] bg-[#edf1f6] text-[#5a6472] hover:border-[#dc4835] hover:text-[#222d32]"}`}
                             >
                                 <span className="text-2xl">
                                     {(() => {
@@ -345,14 +345,14 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                     {semType && (
                         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 gap-3 pt-2">
                             <div>
-                                <label htmlFor="start-date" className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">Start Date</label>
+                                <label htmlFor="start-date" className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Start Date</label>
                                 <input id="start-date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                                    className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
+                                    className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-3 py-2.5 text-sm focus:border-[#dc4835] focus:outline-none transition-colors" />
                             </div>
                             <div>
-                                <label htmlFor="end-date" className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">End Date</label>
+                                <label htmlFor="end-date" className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">End Date</label>
                                 <input id="end-date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-                                    className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
+                                    className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-3 py-2.5 text-sm focus:border-[#dc4835] focus:outline-none transition-colors" />
                             </div>
                         </motion.div>
                     )}
@@ -361,31 +361,31 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
             case 1: return (
                 <div className="space-y-4">
-                    <p className="text-white/50 text-sm">Search and add your courses. You need at least one.</p>
+                    <p className="text-[#5a6472] text-sm">Search and add your courses. You need at least one.</p>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6472] pointer-events-none" />
                         <input
                             type="text" placeholder="Search by code or name..."
                             value={searchQ}
                             onChange={e => { setSearchQ(e.target.value); setShowSugg(true); }}
                             onFocus={() => setShowSugg(true)}
                             onBlur={() => setTimeout(() => setShowSugg(false), 200)}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-violet-500 focus:outline-none transition-colors"
+                            className="w-full bg-white border border-[#dde3ec] rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#dc4835] focus:outline-none transition-colors"
                         />
                         {showSugg && searchQ && suggestions.length > 0 && (
-                            <div className="absolute z-50 w-full mt-1 bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-52 overflow-y-auto">
+                            <div className="absolute z-50 w-full mt-1 bg-white border border-[#dde3ec] rounded-xl overflow-hidden shadow-2xl max-h-52 overflow-y-auto">
                                 {suggestions.map(c => (
                                     <button
                                         key={c.code}
                                         type="button"
                                         onClick={() => addCourse(c)}
-                                        className="w-full text-left px-4 py-2.5 hover:bg-white/10 cursor-pointer flex items-center justify-between gap-2"
+                                        className="w-full text-left px-4 py-2.5 hover:bg-[#edf1f6] cursor-pointer flex items-center justify-between gap-2"
                                     >
                                         <div>
-                                            <p className="text-sm font-semibold text-white/90 truncate max-w-55">{c.name}</p>
-                                            <p className="text-xs text-white/40">{c.code}</p>
+                                            <p className="text-sm font-semibold text-[#222d32] truncate max-w-55">{c.name}</p>
+                                            <p className="text-xs text-[#5a6472]">{c.code}</p>
                                         </div>
-                                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded-md text-white/50 shrink-0">{c.credits} CH</span>
+                                        <span className="text-xs bg-[#edf1f6] px-2 py-0.5 rounded-md text-[#5a6472] shrink-0">{c.credits} CH</span>
                                     </button>
                                 ))}
                             </div>
@@ -394,17 +394,17 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
                     <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                         {courses.length === 0 ? (
-                            <div className="py-8 text-center text-white/40 border border-dashed border-white/10 rounded-2xl">
+                            <div className="py-8 text-center text-[#5a6472] border border-dashed border-[#dde3ec] rounded-2xl">
                                 <BookOpen className="w-6 h-6 mx-auto mb-2 opacity-40" />
                                 <p className="text-xs">No courses added yet</p>
                             </div>
                         ) : courses.map(c => (
-                            <div key={c.code} className="flex items-center justify-between bg-white/3 border border-white/5 rounded-xl px-4 py-2.5">
+                            <div key={c.code} className="flex items-center justify-between bg-[#edf1f6] border border-[#dde3ec] rounded-xl px-4 py-2.5">
                                 <div>
                                     <p className="text-sm font-semibold">{c.name}</p>
-                                    <p className="text-xs text-white/40">{c.code} · {c.credits} CH</p>
+                                    <p className="text-xs text-[#5a6472]">{c.code} · {c.credits} CH</p>
                                 </div>
-                                <button onClick={() => removeCourse(c.code)} className="p-1.5 hover:bg-red-500/10 hover:text-red-400 text-white/50 rounded-lg transition-colors">
+                                <button onClick={() => removeCourse(c.code)} className="p-1.5 hover:bg-red-500/10 hover:text-red-400 text-[#5a6472] rounded-lg transition-colors">
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -415,40 +415,40 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
             case 2: return (
                 <div className="space-y-3">
-                    <p className="text-white/50 text-sm">Tell us whether you have midterms or finals, then add dates only where needed.</p>
+                    <p className="text-[#5a6472] text-sm">Tell us whether you have midterms or finals, then add dates only where needed.</p>
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             type="button"
                             onClick={() => setHasMidterms(v => !v)}
-                            className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${hasMidterms ? "border-violet-500 bg-violet-500/15 text-white" : "border-white/10 bg-white/5 text-white/50"}`}
+                            className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${hasMidterms ? "border-[#dc4835] bg-[#dc4835]/15 text-[#222d32]" : "border-[#dde3ec] bg-[#edf1f6] text-[#5a6472]"}`}
                         >
                             Midterms {hasMidterms ? "On" : "Off"}
                         </button>
                         <button
                             type="button"
                             onClick={() => setHasFinals(v => !v)}
-                            className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${hasFinals ? "border-violet-500 bg-violet-500/15 text-white" : "border-white/10 bg-white/5 text-white/50"}`}
+                            className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${hasFinals ? "border-[#dc4835] bg-[#dc4835]/15 text-[#222d32]" : "border-[#dde3ec] bg-[#edf1f6] text-[#5a6472]"}`}
                         >
                             Finals {hasFinals ? "On" : "Off"}
                         </button>
                     </div>
                     <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
                         {courses.map(c => (
-                            <div key={c.code} className="bg-white/2 border border-white/5 rounded-2xl p-4">
-                                <p className="text-sm font-bold mb-3">{c.code} <span className="text-white/40 font-normal">— {c.name}</span></p>
+                            <div key={c.code} className="bg-[#edf1f6] border border-[#dde3ec] rounded-2xl p-4">
+                                <p className="text-sm font-bold mb-3">{c.code} <span className="text-[#5a6472] font-normal">— {c.name}</span></p>
                                 <div className="grid grid-cols-2 gap-3">
                                     {hasMidterms && (
                                         <div>
-                                            <label htmlFor={`midterm-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">Midterm</label>
+                                            <label htmlFor={`midterm-${c.code}`} className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Midterm</label>
                                             <input id={`midterm-${c.code}`} type="date" value={c.midterm_date} onChange={e => updateCourse(c.code, "midterm_date", e.target.value)}
-                                                className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
+                                                className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-3 py-2 text-sm focus:border-[#dc4835] focus:outline-none transition-colors" />
                                         </div>
                                     )}
                                     {hasFinals && (
                                         <div>
-                                            <label htmlFor={`final-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1">Final</label>
+                                            <label htmlFor={`final-${c.code}`} className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Final</label>
                                             <input id={`final-${c.code}`} type="date" value={c.final_date} onChange={e => updateCourse(c.code, "final_date", e.target.value)}
-                                                className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
+                                                className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-3 py-2 text-sm focus:border-[#dc4835] focus:outline-none transition-colors" />
                                         </div>
                                     )}
                                 </div>
@@ -460,21 +460,21 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
             case 3: return (
                 <div className="space-y-3">
-                    <p className="text-white/50 text-sm">Add instructor and room details (optional — you can skip).</p>
+                    <p className="text-[#5a6472] text-sm">Add instructor and room details (optional — you can skip).</p>
                     <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
                         {courses.map(c => (
-                            <div key={c.code} className="bg-white/2 border border-white/5 rounded-2xl p-4">
+                            <div key={c.code} className="bg-[#edf1f6] border border-[#dde3ec] rounded-2xl p-4">
                                 <p className="text-sm font-bold mb-3">{c.code}</p>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label htmlFor={`instructor-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1 flex items-center gap-1"><User className="w-3 h-3" /> Instructor</label>
+                                        <label htmlFor={`instructor-${c.code}`} className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1 flex items-center gap-1"><User className="w-3 h-3" /> Instructor</label>
                                         <input id={`instructor-${c.code}`} type="text" placeholder="Dr. ..." value={c.instructor_name} onChange={e => updateCourse(c.code, "instructor_name", e.target.value)}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
+                                            className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-3 py-2 text-sm focus:border-[#dc4835] focus:outline-none transition-colors" />
                                     </div>
                                     <div>
-                                        <label htmlFor={`location-${c.code}`} className="text-xs uppercase font-bold text-white/40 tracking-widest pl-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Room</label>
+                                        <label htmlFor={`location-${c.code}`} className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Room</label>
                                         <input id={`location-${c.code}`} type="text" placeholder="e.g. B201" value={c.location} onChange={e => updateCourse(c.code, "location", e.target.value)}
-                                            className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm focus:border-violet-500 focus:outline-none transition-colors" />
+                                            className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-3 py-2 text-sm focus:border-[#dc4835] focus:outline-none transition-colors" />
                                     </div>
                                 </div>
                             </div>
@@ -485,29 +485,29 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
 
             case 4: return (
                 <div className="space-y-4 text-center py-4">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-                        <GraduationCap className="w-8 h-8 text-violet-400" />
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-[#dc4835]/20 border border-[#dc4835]/30 flex items-center justify-center">
+                        <GraduationCap className="w-8 h-8 text-[#dc4835]" />
                     </div>
                     <div>
                         <h3 className="text-xl font-black">Ready to go!</h3>
-                        <p className="text-white/50 text-sm mt-2">
-                            Setting up <span className="text-white font-bold">{semType} {semYear}</span> with{" "}
-                            <span className="text-violet-400 font-bold">{courses.length} course{courses.length === 1 ? "" : "s"}</span>.
+                        <p className="text-[#5a6472] text-sm mt-2">
+                            Setting up <span className="text-[#222d32] font-bold">{semType} {semYear}</span> with{" "}
+                            <span className="text-[#dc4835] font-bold">{courses.length} course{courses.length === 1 ? "" : "s"}</span>.
                         </p>
                     </div>
-                    <div className="bg-white/2 border border-white/5 rounded-2xl p-4 text-left space-y-1.5">
+                    <div className="bg-[#edf1f6] border border-[#dde3ec] rounded-2xl p-4 text-left space-y-1.5">
                         {courses.map(c => (
                             <div key={c.code} className="flex items-center gap-2 text-sm">
-                                <Check className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-                                <span className="text-white/80">{c.code}</span>
-                                <span className="text-white/40 truncate">{c.name}</span>
+                                <Check className="w-3.5 h-3.5 text-[#dc4835] shrink-0" />
+                                <span className="text-[#222d32]">{c.code}</span>
+                                <span className="text-[#5a6472] truncate">{c.name}</span>
                             </div>
                         ))}
                     </div>
                     {saving && (
                         <div className="space-y-2">
                             {Array.from({ length: 3 }).map((_, i) => (
-                                <div key={`skeleton-${i + 1}`} className="h-3 rounded-full bg-white/10 animate-pulse" style={{ width: `${80 - i * 15}%`, margin: "0 auto" }} />
+                                <div key={`skeleton-${i + 1}`} className="h-3 rounded-full bg-[#edf1f6] animate-pulse" style={{ width: `${80 - i * 15}%`, margin: "0 auto" }} />
                             ))}
                         </div>
                     )}
@@ -530,16 +530,16 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 exit={{ scale: 0.95, y: 24, opacity: 0 }}
                 transition={{ type: "spring", damping: 22, stiffness: 300 }}
-                className="relative w-full max-w-md bg-zinc-950 border border-white/10 rounded-3xl p-6 shadow-2xl"
+                className="relative w-full max-w-md bg-white border border-[#dde3ec] rounded-3xl p-6 shadow-2xl"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                        <CalendarDays className="w-4 h-4 text-violet-400" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-white/50">Semester Setup</span>
+                        <CalendarDays className="w-4 h-4 text-[#dc4835]" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#5a6472]">Semester Setup</span>
                     </div>
-                    <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg text-white/40 transition-colors">
+                    <button onClick={onClose} className="p-1.5 hover:bg-[#edf1f6] rounded-lg text-[#5a6472] transition-colors">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
@@ -565,18 +565,18 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
                 <div className="flex gap-3 mt-6">
                     {step > 0 && (
                         <button onClick={() => setStep(s => s - 1)} disabled={saving}
-                            className="flex items-center gap-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+                            className="flex items-center gap-1 px-4 py-2.5 bg-[#edf1f6] hover:bg-[#edf1f6] rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
                             <ChevronLeft className="w-4 h-4" /> Back
                         </button>
                     )}
                     {(step === 2 || step === 3) && (
                         <button onClick={() => setStep(s => s + 1)} disabled={saving}
-                            className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+                            className="flex-1 py-2.5 bg-[#edf1f6] hover:bg-[#edf1f6] rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
                             Skip
                         </button>
                     )}
                     <button onClick={goNext} disabled={saving || (step === 0 && !semType)}
-                        className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                        className="flex-1 py-2.5 bg-[#dc4835] hover:bg-[#dc4835] disabled:opacity-40 text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
                         {step === 4 ? renderFinishButton() : renderContinueButton()}
                     </button>
                 </div>

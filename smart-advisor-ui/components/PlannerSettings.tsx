@@ -200,18 +200,18 @@ export default function PlannerSettings() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-violet-500/30 font-sans pb-24">
-            <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+        <div className="min-h-screen bg-[#edf1f6] text-[#222d32] selection:bg-[#dc4835]/30 font-sans pb-24">
+            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec] px-6 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/planner" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-all group">
-                            <ArrowLeft className="w-5 h-5 text-white/60 group-hover:text-white" />
+                        <Link href="/planner" className="p-2 -ml-2 hover:bg-[#edf1f6] rounded-xl transition-all group">
+                            <ArrowLeft className="w-5 h-5 text-[#5a6472] group-hover:text-[#222d32]" />
                         </Link>
                         <div>
-                            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/40 mb-0.5">
-                                <Link href="/planner" className="hover:text-white/80 transition-colors">Planner</Link>
+                            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[#5a6472] mb-0.5">
+                                <Link href="/planner" className="hover:text-[#222d32] transition-colors">Planner</Link>
                                 <span>/</span>
-                                <span className="text-violet-400">Settings</span>
+                                <span className="text-[#dc4835]">Settings</span>
                             </div>
                             <h1 className="font-bold text-lg flex items-center gap-2 leading-none">
                                 <Settings2 className="w-5 h-5 text-zinc-400" />
@@ -230,16 +230,16 @@ export default function PlannerSettings() {
                 {/* Profile Card */}
                 {userProfile && (
                     <div className="space-y-4">
-                        <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4 flex items-center gap-2">
-                            <User className="w-5 h-5 text-violet-400" /> My Profile
+                        <h3 className="text-lg font-bold font-display tracking-tight border-b border-[#dde3ec] pb-2 mb-4 flex items-center gap-2">
+                            <User className="w-5 h-5 text-[#dc4835]" /> My Profile
                         </h3>
 
-                        <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 flex flex-col md:flex-row gap-6">
-                            <div className="w-20 h-20 rounded-full bg-linear-to-br from-violet-600 to-blue-600 p-1 shrink-0 self-center md:self-start">
+                        <div className="glass-panel p-6 rounded-4xl border border-[#dde3ec] bg-white flex flex-col md:flex-row gap-6">
+                            <div className="w-20 h-20 rounded-full bg-linear-to-br from-[#dc4835] to-blue-600 p-1 shrink-0 self-center md:self-start">
                                 {userProfile.image ? (
                                     <img src={userProfile.image} alt="Profile" width={80} height={80} className="w-full h-full rounded-full object-cover border-2 border-black" />
                                 ) : (
-                                    <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-2xl font-black">
+                                    <div className="w-full h-full rounded-full bg-[#edf1f6] flex items-center justify-center text-2xl font-black">
                                         {getInitials(userProfile.name)}
                                     </div>
                                 )}
@@ -248,21 +248,21 @@ export default function PlannerSettings() {
                             <div className="flex-1 space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><User className="w-3 h-3" /> Full Name</p>
-                                        <p className="text-sm font-bold text-white/90">{userProfile.name || "HTU Student"}</p>
+                                        <p className="text-xs text-[#5a6472] uppercase font-bold tracking-widest flex items-center gap-1.5"><User className="w-3 h-3" /> Full Name</p>
+                                        <p className="text-sm font-bold text-[#222d32]">{userProfile.name || "HTU Student"}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><Mail className="w-3 h-3" /> Email Address</p>
-                                        <p className="text-sm font-bold text-white/90">{userProfile.email || 'Not connected'}</p>
+                                        <p className="text-xs text-[#5a6472] uppercase font-bold tracking-widest flex items-center gap-1.5"><Mail className="w-3 h-3" /> Email Address</p>
+                                        <p className="text-sm font-bold text-[#222d32]">{userProfile.email || 'Not connected'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Student ID / Major</p>
-                                        <p className="text-sm font-bold text-white/90">
-                                            {displayStudentId} • <span className="text-violet-400 capitalize">{displayMajor}</span>
+                                        <p className="text-xs text-[#5a6472] uppercase font-bold tracking-widest flex items-center gap-1.5"><GraduationCap className="w-3 h-3" /> Student ID / Major</p>
+                                        <p className="text-sm font-bold text-[#222d32]">
+                                            {displayStudentId} • <span className="text-[#dc4835] capitalize">{displayMajor}</span>
                                         </p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-xs text-white/50 uppercase font-bold tracking-widest flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Account Role</p>
+                                        <p className="text-xs text-[#5a6472] uppercase font-bold tracking-widest flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Account Role</p>
                                         <p className="text-sm font-bold text-emerald-400 capitalize">{displayRole}</p>
                                     </div>
                                 </div>
@@ -273,11 +273,11 @@ export default function PlannerSettings() {
 
                 {/* Integration Card */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-[#dde3ec] pb-2 mb-4 flex items-center gap-2">
                         <Calendar className="w-5 h-5 text-blue-400" /> External Integrations
                     </h3>
 
-                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2">
+                    <div className="glass-panel p-6 rounded-4xl border border-[#dde3ec] bg-white">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base flex items-center gap-2">
@@ -289,7 +289,7 @@ export default function PlannerSettings() {
                                 {calendarConnected && connectedEmail && (
                                     <p className="text-xs font-mono text-blue-400/60 mt-0.5">Account: {connectedEmail}</p>
                                 )}
-                                <p className="text-sm text-white/50 mt-1 max-w-sm">
+                                <p className="text-sm text-[#5a6472] mt-1 max-w-sm">
                                     Automatically push your course schedules and exam dates securely to your external Google Calendar agenda.
                                 </p>
                             </div>
@@ -314,20 +314,20 @@ export default function PlannerSettings() {
                     </div>
 
                     {/* Google Sheets - Reserved Future Feature */}
-                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/1 opacity-60">
+                    <div className="glass-panel p-6 rounded-4xl border border-[#dde3ec] bg-[#edf1f6] opacity-60">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
-                                <h4 className="font-bold text-base flex items-center gap-2 text-white/60">
+                                <h4 className="font-bold text-base flex items-center gap-2 text-[#5a6472]">
                                     <span>Google Sheets</span>
-                                    <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-widest bg-white/5 text-white/40">Coming Soon</span>
+                                    <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-widest bg-[#edf1f6] text-[#5a6472]">Coming Soon</span>
                                 </h4>
-                                <p className="text-sm text-white/50 mt-1 max-w-sm">
+                                <p className="text-sm text-[#5a6472] mt-1 max-w-sm">
                                     Export your academic transcript and semester plans directly to a personal spreadsheet for custom analysis.
                                 </p>
                             </div>
                             <button
                                 disabled
-                                className="px-6 py-3 bg-white/5 text-white/40 font-bold rounded-xl text-sm cursor-not-allowed w-full sm:w-auto"
+                                className="px-6 py-3 bg-[#edf1f6] text-[#5a6472] font-bold rounded-xl text-sm cursor-not-allowed w-full sm:w-auto"
                             >
                                 Available Soon
                             </button>
@@ -337,25 +337,25 @@ export default function PlannerSettings() {
 
                 {/* Notification Preferences */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-[#dde3ec] pb-2 mb-4 flex items-center gap-2">
                         <Bell className="w-5 h-5 text-amber-400" /> Notifications & Sync Rules
                     </h3>
 
-                    <div className="glass-panel p-6 rounded-4xl border border-white/5 bg-white/2 space-y-4 text-sm text-white/80">
-                        <div className="flex flex-col gap-2 border-b border-white/5 pb-4">
+                    <div className="glass-panel p-6 rounded-4xl border border-[#dde3ec] bg-white space-y-4 text-sm text-[#222d32]">
+                        <div className="flex flex-col gap-2 border-b border-[#dde3ec] pb-4">
                             <div className="flex items-center justify-between gap-4">
                                 <span>Sync daily classes dynamically</span>
                                 <button
                                     onClick={() => updatePreference('sync_daily', !preferences.sync_daily)}
                                     disabled={!calendarConnected}
                                     aria-pressed={preferences.sync_daily}
-                                    className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ${preferences.sync_daily ? 'bg-emerald-500' : 'bg-white/10'} ${calendarConnected ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed border border-white/10 pointer-events-none'}`}
+                                    className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ${preferences.sync_daily ? 'bg-emerald-500' : 'bg-[#dde3ec]'} ${calendarConnected ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed border border-[#dde3ec] pointer-events-none'}`}
                                 >
                                     <div className={`w-4 h-4 rounded-full bg-white transition-transform ${preferences.sync_daily ? 'translate-x-6' : 'translate-x-0'}`} />
                                 </button>
                             </div>
                             {!calendarConnected && (
-                                <p className="text-[11px] text-white/35">Connect Google Calendar to enable automatic daily sync.</p>
+                                <p className="text-[11px] text-[#5a6472]">Connect Google Calendar to enable automatic daily sync.</p>
                             )}
                         </div>
                         <div className="flex flex-col gap-2 pt-2">
@@ -365,7 +365,7 @@ export default function PlannerSettings() {
                                     value={currentExamReminderDays}
                                     onChange={(e) => updatePreference('exam_reminders_days', Number.parseInt(e.target.value))}
                                     disabled={!calendarConnected}
-                                    className={`bg-black border border-white/10 rounded-xl px-2 py-1 text-white text-xs focus:outline-none ${!calendarConnected && 'opacity-50 cursor-not-allowed'}`}
+                                    className={`bg-[#edf1f6] border border-[#dde3ec] rounded-xl px-2 py-1 text-[#222d32] text-xs focus:outline-none ${!calendarConnected && 'opacity-50 cursor-not-allowed'}`}
                                 >
                                     <option value={7}>7 Days</option>
                                     <option value={3}>3 Days</option>
@@ -374,7 +374,7 @@ export default function PlannerSettings() {
                                 </select>
                             </div>
                             {!calendarConnected && (
-                                <p className="text-[11px] text-white/35">Connect Google Calendar to change exam reminder timing.</p>
+                                <p className="text-[11px] text-[#5a6472]">Connect Google Calendar to change exam reminder timing.</p>
                             )}
                         </div>
                     </div>
@@ -382,14 +382,14 @@ export default function PlannerSettings() {
 
                 {/* Danger Zone */}
                 <div className="space-y-4 pt-8">
-                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-white/5 pb-2 mb-4 flex items-center gap-2 text-red-500">
+                    <h3 className="text-lg font-bold font-display tracking-tight border-b border-[#dde3ec] pb-2 mb-4 flex items-center gap-2 text-red-500">
                         Danger Zone
                     </h3>
                     <div className="glass-panel p-6 rounded-4xl border border-red-500/20 bg-red-500/2">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div className="flex-1">
                                 <h4 className="font-bold text-base text-red-400">Reset Semester Planner</h4>
-                                <p className="text-sm text-white/50 mt-1 max-w-sm">
+                                <p className="text-sm text-[#5a6472] mt-1 max-w-sm">
                                     Permanently wipe all planned semesters, grades, study sessions, and notes inside this application. (Course Tracker sync is unaffected).
                                 </p>
                             </div>

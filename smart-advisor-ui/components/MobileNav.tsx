@@ -2,11 +2,10 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Home, CalendarDays, Settings2, LogOut, Moon, Sun, Bot } from "lucide-react";
+import { Home, CalendarDays, Settings2, LogOut, Bot } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { useTheme } from "./ThemeProvider";
 
 const NAV_ITEMS = [
     { label: "Tracker", icon: Home, href: "/" },
@@ -17,15 +16,14 @@ const NAV_ITEMS = [
 export default function MobileNav() {
     const pathname = usePathname();
     const { status } = useSession();
-    const { isLightMode, toggleTheme } = useTheme();
 
     if (status !== "authenticated") {
         return null;
     }
 
     return (
-        <nav id="wt-mobile-nav" className="sm:hidden fixed bottom-0 left-0 right-0 z-70 px-4 pb-6 pt-3 bg-zinc-950/80 dark:bg-black/80 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.7)] flex justify-center">
-            <div className="w-full max-w-md premium-card rounded-[2.5rem] flex items-center justify-between p-2 shadow-2xl bg-white/2 border border-white/5">
+        <nav id="wt-mobile-nav" className="sm:hidden fixed bottom-0 left-0 right-0 z-70 px-4 pb-6 pt-3 bg-white/95 backdrop-blur-2xl border-t border-[#dde3ec] shadow-lg flex justify-center">
+            <div className="w-full max-w-md premium-card rounded-[2.5rem] flex items-center justify-between p-2 shadow-2xl bg-[#edf1f6] border border-[#dde3ec]">
                 {NAV_ITEMS.map((item) => {
                     const isActive = pathname === item.href || (item.href === "/" && pathname === "/");
 
@@ -38,22 +36,22 @@ export default function MobileNav() {
                             {isActive && (
                                 <motion.div
                                     layoutId="activeTabMobile"
-                                    className="absolute inset-0 bg-violet-600/10 rounded-2xl border border-violet-500/20"
+                                    className="absolute inset-0 bg-[#dc4835]/10 rounded-2xl border border-[#dc4835]/20"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
 
-                            <span className={`relative z-10 text-xs font-black uppercase tracking-widest transition-all ${isActive ? "text-violet-500" : "text-white/40 group-hover:text-white/60"}`}>
+                            <span className={`relative z-10 text-xs font-black uppercase tracking-widest transition-all ${isActive ? "text-[#dc4835]" : "text-[#5a6472] group-hover:text-[#222d32]"}`}>
                                 {item.label}
                             </span>
-                            <div className={`relative z-10 p-1 rounded-xl transition-all ${isActive ? "text-violet-500 scale-110" : "text-white/50 group-hover:text-white/70"}`}>
+                            <div className={`relative z-10 p-1 rounded-xl transition-all ${isActive ? "text-[#dc4835] scale-110" : "text-[#5a6472]/80 group-hover:text-[#222d32]"}`}>
                                 <item.icon className="w-5 h-5" />
                             </div>
                         </Link>
                     );
                 })}
 
-                <div className="w-px h-8 bg-white/5 mx-1" />
+                <div className="w-px h-8 bg-[#dde3ec] mx-1" />
 
                 {/* Quick Actions */}
                 <div className="flex items-center gap-1">
@@ -61,22 +59,15 @@ export default function MobileNav() {
                         href="https://bot.mubx.dev"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-3 rounded-2xl text-white/40 hover:text-cyan-300 transition-all active:scale-90"
+                        className="p-3 rounded-2xl text-[#222d32]/50 hover:text-[#5a6472] transition-all active:scale-90"
                         title="Open mubxbot"
                         aria-label="Open mubxbot"
                     >
                         <Bot className="w-5 h-5" />
                     </a>
                     <button
-                        onClick={toggleTheme}
-                        className="p-3 rounded-2xl text-white/40 hover:text-amber-400 transition-all active:scale-90"
-                        title="Toggle Theme"
-                    >
-                        {isLightMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                    </button>
-                    <button
                         onClick={() => void signOut({ callbackUrl: '/' })}
-                        className="p-3 rounded-2xl text-white/40 hover:text-red-400 transition-all active:scale-90"
+                        className="p-3 rounded-2xl text-[#222d32]/50 hover:text-[#dc4835] transition-all active:scale-90"
                         title="Sign out"
                     >
                         <LogOut className="w-5 h-5" />

@@ -75,8 +75,8 @@ export default function PlannerStudyLogClient() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="w-8 h-8 rounded-xl bg-white/5 animate-pulse" />
+            <div className="min-h-screen bg-[#edf1f6] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-white animate-pulse" />
             </div>
         );
     }
@@ -84,16 +84,16 @@ export default function PlannerStudyLogClient() {
     const { study_sessions, neglected_course } = stats?.studyLogStats || { study_sessions: [], neglected_course: null };
 
     return (
-        <div className="min-h-screen pb-24 bg-black text-white selection:bg-violet-500/30 overflow-hidden">
+        <div className="min-h-screen pb-24 bg-[#edf1f6] text-[#222d32] selection:bg-[#dc4835]/30 overflow-hidden">
             <LogSessionModal
                 isOpen={isLogSessionOpen}
                 onClose={() => setIsLogSessionOpen(false)}
                 courses={stats?.currentSemester?.courses || []}
                 onSuccess={() => fetchStudyLogInfo()}
             />
-            <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec] px-6 py-4 flex items-center justify-between">
                 <div className="flex flex-col">
-                    <Link href="/planner" className="text-xs text-white/40 uppercase tracking-widest font-bold hover:text-white transition-colors mb-1 flex items-center gap-1">
+                    <Link href="/planner" className="text-xs text-[#5a6472] uppercase tracking-widest font-bold hover:text-[#dc4835] transition-colors mb-1 flex items-center gap-1">
                         ← Dashboard
                     </Link>
                     <h1 className="font-bold text-lg flex items-center gap-2">
@@ -102,10 +102,10 @@ export default function PlannerStudyLogClient() {
                 </div>
                 <div className="flex items-center gap-3">
                     <ThemeToggle />
-                    <Link href="/planner/settings" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 transition-colors">
+                    <Link href="/planner/settings" className="p-2 rounded-xl bg-[#edf1f6] hover:bg-[#edf1f6] text-[#5a6472] transition-colors">
                         <Settings className="w-4 h-4" />
                     </Link>
-                    <Link href="/" className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold sm:text-sm text-white/70 transition-colors">
+                    <Link href="/" className="px-4 py-2 rounded-xl bg-[#edf1f6] hover:bg-[#edf1f6] text-xs font-semibold sm:text-sm text-[#5a6472] transition-colors">
                         Course Tracker
                     </Link>
                 </div>
@@ -114,12 +114,12 @@ export default function PlannerStudyLogClient() {
             <main className="max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-7xl mx-auto px-4 md:px-6 pt-8 space-y-6">
                 <div>
                     <h2 className="text-2xl font-black font-display tracking-tight">Focus & Tracking</h2>
-                    <p className="text-white/40 text-sm mt-1">Review your recent study sessions and identify areas needing attention.</p>
+                    <p className="text-[#5a6472] text-sm mt-1">Review your recent study sessions and identify areas needing attention.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-white/5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-[#dde3ec]">
                     {/* Time Logged Card */}
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/[0.02]">
+                    <div className="glass-panel p-6 rounded-[2rem] border border-[#dde3ec] bg-[#edf1f6]">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
                                 <Clock className="w-5 h-5 text-blue-400" />
@@ -127,9 +127,9 @@ export default function PlannerStudyLogClient() {
                             <h3 className="font-bold text-lg">Total Time Streamed</h3>
                         </div>
                         <div className="text-4xl font-black tabular-nums">
-                            {Math.floor((stats?.studyLogStats?.total_study_minutes || 0) / 60)}<span className="text-lg text-white/40 font-bold ml-1">hrs</span>
+                            {Math.floor((stats?.studyLogStats?.total_study_minutes || 0) / 60)}<span className="text-lg text-[#5a6472] font-bold ml-1">hrs</span>
                             {' '}
-                            {(stats?.studyLogStats?.total_study_minutes || 0) % 60}<span className="text-lg text-white/40 font-bold ml-1">mins</span>
+                            {(stats?.studyLogStats?.total_study_minutes || 0) % 60}<span className="text-lg text-[#5a6472] font-bold ml-1">mins</span>
                         </div>
                     </div>
 
@@ -143,25 +143,25 @@ export default function PlannerStudyLogClient() {
                         </div>
                         {neglected_course ? (
                             <div className="mt-2">
-                                <p className="text-sm text-white/60 mb-1">Needs attention soon:</p>
+                                <p className="text-sm text-[#5a6472] mb-1">Needs attention soon:</p>
                                 <p className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-rose-400 to-orange-400">
                                     {neglected_course.course.name}
                                 </p>
-                                <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mt-2">
+                                <p className="text-[11px] font-bold text-[#5a6472] uppercase tracking-widest mt-2">
                                     Last studied: {neglected_course.last_studied ? new Date(neglected_course.last_studied).toLocaleDateString() : 'Never'}
                                 </p>
                             </div>
                         ) : (
-                            <p className="text-white/40 text-sm italic mt-4">All tracked courses have recent activity.</p>
+                            <p className="text-[#5a6472] text-sm italic mt-4">All tracked courses have recent activity.</p>
                         )}
                     </div>
                 </div>
 
                 {/* Session History */}
                 <div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4 mt-8">
+                    <div className="flex items-center justify-between border-b border-[#dde3ec] pb-2 mb-4 mt-8">
                         <h3 className="text-lg font-bold font-display tracking-tight flex items-center gap-2">
-                            <CalendarIcon className="w-5 h-5 text-violet-400" /> Session History
+                            <CalendarIcon className="w-5 h-5 text-[#dc4835]" /> Session History
                         </h3>
                         <button
                             onClick={() => setIsLogSessionOpen(true)}
@@ -179,18 +179,18 @@ export default function PlannerStudyLogClient() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                     key={session.id}
-                                    className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between group hover:bg-white/[0.04] hover:border-white/10 transition-colors"
+                                    className="p-4 bg-[#edf1f6] border border-[#dde3ec] rounded-2xl flex items-center justify-between group hover:bg-[#edf1f6] hover:border-[#dde3ec] transition-colors"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex flex-col items-center justify-center text-white/40 font-bold">
+                                        <div className="w-10 h-10 rounded-xl bg-[#edf1f6] flex flex-col items-center justify-center text-[#5a6472] font-bold">
                                             <span className="text-xs uppercase leading-none">{new Date(session.created_at).toLocaleDateString('en-US', { month: 'short' })}</span>
                                             <span className="text-sm leading-none mt-0.5">{new Date(session.created_at).getDate()}</span>
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm text-white/90 group-hover:text-white transition-colors">
+                                            <p className="font-bold text-sm text-[#222d32] group-hover:text-[#222d32] transition-colors">
                                                 {session.course.name}
                                             </p>
-                                            <p className="text-[11px] text-white/40 uppercase tracking-wider font-bold mt-1">
+                                            <p className="text-[11px] text-[#5a6472] uppercase tracking-wider font-bold mt-1">
                                                 {session.notes || "No notes attached"}
                                             </p>
                                         </div>
@@ -201,9 +201,9 @@ export default function PlannerStudyLogClient() {
                                 </motion.div>
                             ))
                         ) : (
-                            <div className="py-12 text-center rounded-3xl border border-dashed border-white/5">
-                                <BookOpen className="w-8 h-8 text-white/40 mx-auto mb-3" />
-                                <p className="text-sm font-semibold text-white/50">No study sessions recorded yet.</p>
+                            <div className="py-12 text-center rounded-3xl border border-dashed border-[#dde3ec]">
+                                <BookOpen className="w-8 h-8 text-[#5a6472] mx-auto mb-3" />
+                                <p className="text-sm font-semibold text-[#5a6472]">No study sessions recorded yet.</p>
                                 <button
                                     onClick={() => setIsLogSessionOpen(true)}
                                     className="px-6 py-2.5 mt-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-sm text-white transition-colors inline-block shadow-[0_0_20px_rgba(37,99,235,0.3)]"

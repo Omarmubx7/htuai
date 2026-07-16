@@ -84,32 +84,32 @@ export default function LogSessionModal({ isOpen, onClose, courses, onSuccess }:
                     initial={{ scale: 0.95, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.95, y: 20, opacity: 0 }}
-                    className="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl"
+                    className="relative w-full max-w-md bg-white border border-[#dde3ec] rounded-3xl p-6 shadow-2xl"
                 >
                     <button
                         onClick={onClose}
                         disabled={logging}
-                        className="absolute top-4 right-4 p-2 text-white/40 hover:text-white/80 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
+                        className="absolute top-4 right-4 p-2 text-[#5a6472] hover:text-[#222d32] hover:bg-[#edf1f6] rounded-full transition-colors disabled:opacity-50"
                     >
                         <X className="w-5 h-5" />
                     </button>
                     
-                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-[#222d32]">
                         <PlayCircle className="w-5 h-5 text-blue-400" /> Log Study Session
                     </h2>
 
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="course" className="text-xs uppercase font-bold text-white/50 tracking-widest pl-1">Course</label>
+                            <label htmlFor="course" className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Course</label>
                             <select
                                 id="course"
                                 value={selectedCourseId}
                                 onChange={(e) => setSelectedCourseId(e.target.value)}
-                                className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors appearance-none text-white"
+                                className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors appearance-none text-[#222d32]"
                             >
-                                <option value="" disabled className="bg-black text-white/50">Select a course...</option>
+                                <option value="" disabled className="bg-white text-[#5a6472]">Select a course...</option>
                                 {courses.map(c => (
-                                    <option key={c.id} value={c.id} className="bg-black text-white">
+                                    <option key={c.id} value={c.id} className="bg-white text-[#222d32]">
                                         {c.code} - {c.name}
                                     </option>
                                 ))}
@@ -119,30 +119,30 @@ export default function LogSessionModal({ isOpen, onClose, courses, onSuccess }:
                             )}
                         </div>
                         <div>
-                            <label htmlFor="duration" className="text-xs uppercase font-bold text-white/50 tracking-widest pl-1">Duration (Minutes)</label>
+                            <label htmlFor="duration" className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Duration (Minutes)</label>
                             <input
                                 id="duration" type="number" value={duration} onChange={e => setDuration(Number(e.target.value))}
-                                className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors text-white"
+                                className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors text-[#222d32]"
                             />
                         </div>
                         <div>
-                            <label htmlFor="sessionType" className="text-xs uppercase font-bold text-white/50 tracking-widest pl-1">Activity Type</label>
+                            <label htmlFor="sessionType" className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Activity Type</label>
                             <select
                                 id="sessionType" value={sessionType} onChange={e => setSessionType(e.target.value)}
-                                className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors appearance-none text-white"
+                                className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors appearance-none text-[#222d32]"
                             >
-                                <option value="reading" className="bg-black text-white">Reading / Lecturing</option>
-                                <option value="practice" className="bg-black text-white">Practice / Homework</option>
-                                <option value="project" className="bg-black text-white">Project Work</option>
-                                <option value="review" className="bg-black text-white">Exam Review</option>
+                                <option value="reading" className="bg-white text-[#222d32]">Reading / Lecturing</option>
+                                <option value="practice" className="bg-white text-[#222d32]">Practice / Homework</option>
+                                <option value="project" className="bg-white text-[#222d32]">Project Work</option>
+                                <option value="review" className="bg-white text-[#222d32]">Exam Review</option>
                             </select>
                         </div>
                         <div>
-                            <label htmlFor="sessionNotes" className="text-xs uppercase font-bold text-white/50 tracking-widest pl-1">Optional Notes</label>
+                            <label htmlFor="sessionNotes" className="text-xs uppercase font-bold text-[#5a6472] tracking-widest pl-1">Optional Notes</label>
                             <textarea
                                 id="sessionNotes" value={sessionNotes} onChange={e => setSessionNotes(e.target.value)} rows={2}
                                 placeholder="What did you focus on?"
-                                className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors resize-none text-white"
+                                className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-blue-500 transition-colors resize-none text-[#222d32] placeholder-[#5a6472]/60"
                             />
                         </div>
                         <button

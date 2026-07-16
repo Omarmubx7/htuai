@@ -48,61 +48,51 @@ const majorGlow: Record<string, string> = {
 
 /** Per-major solid accent colour for border & text */
 const majorAccent: Record<string, string> = {
-    "data_science": "#8b5cf6",
-    "computer_science": "#3b82f6",
-    "cybersecurity": "#10b981",
-    "game_design": "#f43f5e",
-    "electrical_engineering": "#fbbf24",
-    "energy_engineering": "#84cc16",
-    "industrial_engineering": "#94a3b8",
-    "mechanical_engineering": "#f97316",
+    "data_science": "#dc4835", // red
+    "computer_science": "#43aad7", // blue
+    "cybersecurity": "#0da55a", // green
+    "game_design": "#dc4835", // crimson
+    "electrical_engineering": "#f39c14", // orange
+    "energy_engineering": "#92604c", // brown
+    "industrial_engineering": "#5a6472", // secondary
+    "mechanical_engineering": "#c5ac75", // gold
 };
 
 function MajorCard({ major, onSelect }: { major: typeof MAJORS[number]; onSelect: (key: MajorKey) => void }) {
-    const accent = majorAccent[major.key] ?? "#8b5cf6";
-    const glow = majorGlow[major.key] ?? "rgba(139,92,246,0.15)";
+    const accent = majorAccent[major.key] ?? "#dc4835";
+    const glow = majorGlow[major.key] ?? "rgba(220,72,53,0.15)";
 
     return (
         <motion.button
             variants={item}
-            whileHover={{ y: -6, scale: 1.03 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(major.key)}
-            className="group relative text-left p-6 rounded-2xl overflow-hidden cursor-pointer
-                       glass-card glass-card-hover transition-all duration-300"
+            className="group relative text-left p-6 rounded-xl cursor-pointer bg-white border border-[#dde3ec] hover:border-[#bec7d4] hover:shadow-[0_4px_12px_rgba(34,45,50,0.08)] transition-all duration-200"
             style={{
-                borderTop: `2px solid ${accent}50`,
-                background: `linear-gradient(135deg, ${accent}08, transparent 60%)`,
+                borderTop: `3px solid ${accent}`,
             }}
         >
-            {/* Hover glow */}
-            <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
-                style={{ background: `radial-gradient(ellipse 80% 60% at 50% 100%, ${glow}, transparent)` }}
-            />
-            {/* Subtle corner accent */}
-            <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-500"
-                style={{ background: `radial-gradient(circle at 100% 0%, ${accent}, transparent 70%)` }} />
+            {/* No gradient overlays */}
 
             <div className="relative z-10">
                 {/* Icon with colored background */}
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 transition-transform duration-300 group-hover:scale-110"
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl mb-4 transition-transform duration-300 group-hover:scale-110"
                     style={{
                         background: `${accent}15`,
                         border: `1px solid ${accent}20`,
-                        boxShadow: `0 0 0 0 ${accent}00`,
                     }}>
                     {major.icon}
                 </div>
-                <h2 className="text-base font-semibold mb-1.5 leading-snug tracking-tight transition-colors duration-200"
+                <h2 className="text-base font-bold mb-1.5 leading-snug tracking-tight transition-colors duration-200"
                     style={{ color: accent }}>
                     {major.label}
                 </h2>
-                <p className="text-[13px] text-white/60 mb-5 leading-relaxed">
+                <p className="text-[13px] text-[#5a6472] mb-5 leading-relaxed">
                     {major.description}
                 </p>
-                <div className="flex items-center gap-1.5 text-xs font-medium transition-all duration-200 group-hover:gap-2.5"
-                    style={{ color: `${accent}70` }}>
+                <div className="flex items-center gap-1.5 text-xs font-bold transition-all duration-200 group-hover:gap-2.5"
+                    style={{ color: `${accent}` }}>
                     Select major
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
@@ -115,15 +105,8 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
     return (
         <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
 
-            {/* Ambient background effects */}
-            <div className="pointer-events-none absolute inset-0">
-                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[900px] h-[700px]"
-                    style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.18) 0%, transparent 70%)" }} />
-                <div className="absolute right-0 bottom-0 w-[500px] h-[500px]"
-                    style={{ background: "radial-gradient(circle at 100% 100%, rgba(59,130,246,0.06) 0%, transparent 60%)" }} />
-                <div className="absolute left-0 bottom-1/3 w-[400px] h-[400px]"
-                    style={{ background: "radial-gradient(circle at 0% 50%, rgba(16,185,129,0.05) 0%, transparent 60%)" }} />
-            </div>
+            {/* Clean solid page background */}
+            <div className="pointer-events-none absolute inset-0 bg-[#edf1f6]" />
 
             <div className="relative z-10 w-full max-w-3xl py-12">
                 {/* Header */}
@@ -135,15 +118,14 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                 >
                     <div className="flex justify-center mb-6">
                         <span className="pill-badge-premium">
-                            <Image src="/mubxai-dark-logo.png" alt="MUBXAI Logo" width={16} height={16} className="dark-logo" />
                             <Image src="/mubxai-light-logo.png" alt="MUBXAI Logo" width={16} height={16} className="light-logo" />
                             MUBXAI
                         </span>
                     </div>
-                    <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-none">
+                    <h1 className="text-4xl sm:text-5xl font-black text-[#222d32] mb-4 tracking-tight leading-none uppercase">
                         {onCancel ? "Switch Your Major" : "Setup Your Academic Profile"}
                     </h1>
-                    <p className="text-white/50 text-sm sm:text-base max-w-md mx-auto">
+                    <p className="text-[#5a6472] text-sm sm:text-base max-w-md mx-auto font-medium">
                         {onCancel 
                             ? "Selecting a new major will update your curriculum roadmap immediately."
                             : "This is permanent — your courses and progress are tied to it."
@@ -153,7 +135,7 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                     {onCancel && (
                         <button 
                             onClick={onCancel}
-                            className="mt-6 px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest"
+                            className="mt-6 px-6 py-2 rounded-lg bg-white border border-[#dde3ec] text-[#5a6472] hover:text-[#222d32] hover:border-[#bec7d4] transition-all text-xs font-bold uppercase tracking-widest"
                         >
                             Cancel & Go Back
                         </button>
@@ -165,10 +147,10 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                     <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
                         className="flex items-center gap-4 mb-6">
-                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50 whitespace-nowrap">
+                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#5a6472] whitespace-nowrap">
                             School of Computing & Informatics
                         </h2>
-                        <div className="h-px flex-1 bg-linear-to-r from-white/8 to-transparent" />
+                        <div className="h-px flex-1 bg-[#dde3ec]" />
                     </motion.div>
                     <motion.div
                         variants={container}
@@ -187,10 +169,10 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                     <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.35 }}
                         className="flex items-center gap-4 mb-6">
-                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/50 whitespace-nowrap">
+                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#5a6472] whitespace-nowrap">
                             College of Engineering
                         </h2>
-                        <div className="h-px flex-1 bg-linear-to-r from-white/8 to-transparent" />
+                        <div className="h-px flex-1 bg-[#dde3ec]" />
                     </motion.div>
                     <motion.div
                         variants={container}
@@ -211,13 +193,13 @@ export default function MajorSelector({ onSelect, onCancel }: MajorSelectorProps
                     transition={{ delay: 0.7 }}
                     className="text-center mt-12 space-y-3"
                 >
-                    <p className="text-white/15 text-[11px]">
+                    <p className="text-[#92604c] text-[11px]">
                         You can change your major later from the dashboard settings.
                     </p>
-                    <p className="text-white/65 text-[11px]">
+                    <p className="text-[#5a6472] text-[11px]">
                         made by{" "}
                         <a href="https://mubx.dev" target="_blank" rel="noopener noreferrer"
-                            className="text-white/50 hover:text-white/50 font-semibold transition-colors duration-200">
+                            className="text-[#92604c] hover:text-[#222d32] font-semibold transition-colors duration-200">
                             mubx
                         </a>
                     </p>

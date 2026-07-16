@@ -18,6 +18,7 @@ if (typeof global !== "undefined" && typeof global.localStorage !== "undefined" 
 }
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: __dirname,
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.

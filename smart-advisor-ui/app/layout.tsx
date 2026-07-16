@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { getClientInfo } from "@/lib/client-info";
@@ -7,9 +7,9 @@ import { logVisitor } from "@/lib/database";
 import { Providers } from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
 import MobileHeader from "@/components/MobileHeader";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import ThemeProvider from "@/components/ThemeProvider";
 import SiteFooter from "@/components/SiteFooter";
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   metadataBase: new URL('https://ai.mubx.dev'),
   title: {
@@ -110,7 +110,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="light" suppressHydrationWarning>
       <head>
         <meta
           name="google-site-verification"
@@ -140,19 +140,11 @@ export default async function RootLayout({
               var ow=console.warn;console.warn=function(){if(f(arguments[0]))return;ow.apply(console,arguments)};
               var oe=console.error;console.error=function(){if(f(arguments[0]))return;oe.apply(console,arguments)};
               var ol=console.log;console.log=function(){if(f(arguments[0]))return;ol.apply(console,arguments)};
-
-              try{
-                var storage=window.localStorage;
-                if(isStorageLike(storage)){
-                  var t=storage.getItem("mubxai-theme");
-                  if(t==="light")document.documentElement.classList.add("light-theme");
-                }
-              }catch(e){}
             })();`
           }}
         />
       </head>
-      <body className={`${outfit.variable} font-sans min-h-screen flex flex-col pb-30 sm:pb-0`} suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans min-h-screen flex flex-col pb-30 sm:pb-0`} suppressHydrationWarning>
         <ThemeProvider>
           <Providers>
             {/* JSON-LD: SoftwareApplication */}

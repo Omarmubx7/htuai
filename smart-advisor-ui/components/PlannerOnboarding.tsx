@@ -13,7 +13,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
         {
             title: "Welcome to HTU Planner",
             desc: "Take control of your academic journey. The Planner helps you track courses, manage exams, and analyze your CGPA dynamically.",
-            icon: <Sparkles className="w-12 h-12 text-violet-400" />
+            icon: <Sparkles className="w-12 h-12 text-[#dc4835]" />
         },
         {
             title: "Track & Predict",
@@ -28,16 +28,16 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
     ];
 
     return (
-        <div className="fixed inset-0 z-100 bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 selection:bg-violet-500/30">
+        <div className="fixed inset-0 z-100 bg-[#edf1f6]/90 backdrop-blur-2xl flex items-center justify-center p-4 selection:bg-[#dc4835]/30">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-lg premium-card rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(139,92,246,0.1)] relative"
+                className="w-full max-w-lg premium-card rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(220,72,53,0.1)] relative"
             >
                 {/* Progress Bar */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#edf1f6]">
                     <motion.div
-                        className="h-full bg-violet-500"
+                        className="h-full bg-[#dc4835]"
                         initial={{ width: '0%' }}
                         animate={{ width: `${(step / steps.length) * 100}%` }}
                     />
@@ -52,15 +52,15 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                             exit={{ opacity: 0, x: -20 }}
                             className="flex flex-col items-center w-full"
                         >
-                            <div className="w-24 h-24 rounded-full bg-white/3 border border-white/5 flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden">
-                                <div className="absolute inset-0 bg-violet-500/10 blur-xl" />
+                            <div className="w-24 h-24 rounded-full bg-[#edf1f6] border border-[#dde3ec] flex items-center justify-center mb-8 shadow-2xl relative overflow-hidden">
+                                <div className="absolute inset-0 bg-[#dc4835]/10 blur-xl" />
                                 <div className="relative z-10">{steps[step - 1].icon}</div>
                             </div>
 
-                            <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white mb-4">
+                            <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-[#222d32] mb-4">
                                 {steps[step - 1].title}
                             </h2>
-                            <p className="text-white/50 text-base leading-relaxed max-w-sm">
+                            <p className="text-[#5a6472] text-base leading-relaxed max-w-sm">
                                 {steps[step - 1].desc}
                             </p>
                         </motion.div>
@@ -71,7 +71,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                             {steps.map((_, i) => (
                                 <div
                                     key={i}
-                                    className={`h-1.5 rounded-full transition-all duration-300 ${step - 1 === i ? 'w-6 bg-violet-400' : 'w-2 bg-white/10'}`}
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${step - 1 === i ? 'w-6 bg-[#dc4835]' : 'w-2 bg-[#edf1f6]'}`}
                                 />
                             ))}
                         </div>
@@ -79,15 +79,15 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
                         {step < steps.length ? (
                             <button
                                 onClick={() => setStep(s => s + 1)}
-                                className="w-full py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 group"
+                                className="w-full py-4 bg-[#edf1f6] hover:bg-[#edf1f6] text-[#222d32] font-bold rounded-2xl transition-all flex items-center justify-center gap-2 group"
                             >
                                 Continue
-                                <ArrowRight className="w-4 h-4 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                                <ArrowRight className="w-4 h-4 text-[#5a6472] group-hover:text-[#222d32] group-hover:translate-x-1 transition-all" />
                             </button>
                         ) : (
                             <button
                                 onClick={() => setShowWizard(true)}
-                                className="w-full py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]"
+                                className="w-full py-4 bg-[#dc4835] hover:bg-[#dc4835] text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(220,72,53,0.3)] hover:shadow-[0_0_30px_rgba(220,72,53,0.5)]"
                             >
                                 Set Up My First Semester
                                 <CalendarDays className="w-4 h-4" />
@@ -96,7 +96,7 @@ export default function PlannerOnboarding({ onComplete }: Readonly<{ onComplete:
 
                         <button
                             onClick={() => setShowWizard(true)}
-                            className={`text-xs text-white/50 hover:text-white/60 font-bold uppercase tracking-widest transition-colors ${step === steps.length ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                            className={`text-xs text-[#5a6472] hover:text-[#5a6472] font-bold uppercase tracking-widest transition-colors ${step === steps.length ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
                             Skip Tutorial
                         </button>

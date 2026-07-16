@@ -601,28 +601,27 @@ function CourseTrackerView({
             <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
                 <div className="space-y-4">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-1.5 h-6 bg-violet-600 rounded-full" />
-                            <span className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Degree Progress</span>
+                        <div className="htu-label mb-2">
+                            Degree Progress
                         </div>
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-none text-gradient">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#222d32] tracking-tight leading-none">
                             Course Tracker
                         </h1>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4">
                         <div className="min-w-25 h-6 flex items-center">
                             <AnimatePresence>
                                 {saveStatus === 'saving' && (
                                     <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                        className="flex items-center gap-2 text-xs font-bold text-white/50">
+                                        className="flex items-center gap-2 text-xs font-bold text-[#5a6472]">
                                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                         Syncing…
                                     </motion.span>
                                 )}
                                 {saveStatus === 'saved' && (
                                     <motion.span key="saved" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                                        className="flex items-center gap-2 text-xs font-bold text-emerald-400/70">
+                                        className="flex items-center gap-2 text-xs font-bold" style={{ color: '#0da55a' }}>
                                         <CheckCircle2 className="w-3.5 h-3.5" />
                                         Cloud Synced
                                     </motion.span>
@@ -630,14 +629,14 @@ function CourseTrackerView({
                             </AnimatePresence>
                         </div>
 
-                        <div className="h-4 w-px bg-white/10" />
+                        <div className="h-4 w-px bg-[#dde3ec]" />
 
                         <motion.button
                             id="wt-reset-btn"
                             whileHover={{ scale: 1.05, x: 2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setShowResetConfirm(true)}
-                            className="flex items-center gap-2 text-sm sm:text-xs font-bold text-white/40 hover:text-red-400/70 transition-all p-2 sm:p-0 -ml-2 sm:ml-0"
+                            className="flex items-center gap-2 text-sm sm:text-xs font-bold text-[#5a6472] hover:text-[#dc4835] transition-all p-2 sm:p-0 -ml-2 sm:ml-0"
                         >
                             <RotateCcw className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                             Reset All
@@ -645,53 +644,51 @@ function CourseTrackerView({
                     </div>
                 </div>
 
-                <div id="wt-progress-card" className="glass-card-premium p-6 rounded-[2.5rem] w-full lg:w-100 shrink-0 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
-                        <Trophy className="w-24 h-24 text-white" />
+                <div id="wt-progress-card" className="bg-white border border-[#dde3ec] p-6 rounded-xl w-full lg:w-100 shrink-0 relative overflow-hidden group" style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}>
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
+                        <Trophy className="w-24 h-24" style={{ color: '#dc4835' }} />
                     </div>
 
                     <div className="relative z-10 space-y-6">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
-                                <span className="text-xs font-bold text-white/50 uppercase tracking-[0.2em]">Overall Progress</span>
+                                <span className="text-xs font-bold text-[#5a6472] uppercase tracking-[0.2em]">Overall Progress</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-white">{completedCredits}</span>
-                                    <span className="text-sm font-bold text-white/40">/ {totalCredits} CH</span>
+                                    <span className="text-4xl font-black text-[#222d32]">{completedCredits}</span>
+                                    <span className="text-sm font-bold text-[#92604c]">/ {totalCredits} CH</span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shadow-inner">
+                            <div className="w-12 h-12 rounded-lg bg-[#edf1f6] border border-[#dde3ec] flex items-center justify-center" style={{ color: '#dc4835' }}>
                                 <GraduationCap className="w-6 h-6" />
                             </div>
                         </div>
 
                         <div className="space-y-3">
-                            <div className="h-1.5 bg-white/3 rounded-full overflow-hidden border border-white/5">
+                            <div className="h-1.5 bg-[#dde3ec] rounded-full overflow-hidden">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progress * 100}%` }}
                                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                                    className="h-full rounded-full relative"
-                                    style={{ background: "linear-gradient(90deg, #8B5CF6, #EC4899)" }}
-                                >
-                                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                                </motion.div>
+                                    className="h-full rounded-full"
+                                    style={{ background: '#dc4835' }}
+                                />
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    <p className="text-xs font-bold text-white/60 uppercase tracking-widest">
+                                    <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#0da55a' }} />
+                                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#dc4835' }}>
                                         {Math.round(progress * 100)}% Complete
                                     </p>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={jumpToCourseList}
-                                    className="text-xs font-bold text-white/90 tracking-tight hover:text-white transition-colors"
+                                    className="text-xs font-bold tracking-tight hover:text-[#dc4835] transition-colors text-[#5a6472]"
                                     title="Jump to course list"
                                 >
-                                    <span className="text-white font-black">{countedCourses}</span>
-                                    <span className="mx-1 text-white/50">/</span>
-                                    <span className="text-white/70">{requiredCoursesCount} Courses</span>
+                                    <span className="font-black text-[#222d32]">{countedCourses}</span>
+                                    <span className="mx-1 text-[#92604c]">/</span>
+                                    <span className="text-[#5a6472]">{requiredCoursesCount} Courses</span>
                                 </button>
                             </div>
                         </div>
@@ -721,35 +718,36 @@ function CourseTrackerView({
                 }}
             />
 
-            <section className="rounded-4xl border border-cyan-400/20 bg-cyan-500/4 p-5 sm:p-6 space-y-4">
+            <section className="rounded-xl border border-[#dde3ec] bg-white p-5 sm:p-6 space-y-4" style={{ boxShadow: '0 2px 8px rgba(34,45,50,0.07)' }}>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h2 className="text-lg sm:text-xl font-black text-cyan-100 tracking-tight">MUBX AI Advisor</h2>
-                        <p className="text-xs sm:text-sm text-cyan-100/60">Free AI-powered next-semester recommendations and study planning.</p>
+                        <h2 className="text-lg sm:text-xl font-black text-[#222d32] tracking-tight">MUBX AI Advisor</h2>
+                        <p className="text-xs sm:text-sm text-[#5a6472]">Free AI-powered next-semester recommendations and study planning.</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                         <div className="flex flex-col gap-1">
                             <button
                                 onClick={() => void generateAiSuggestions()}
                                 disabled={aiLoading !== null}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-xs font-black uppercase tracking-wider disabled:opacity-60"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-[#dc4835] transition-colors"
+                                style={{ color: '#ffffff' }}
                             >
                                 {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                 Suggest Courses
                                 {typeof suggestRemaining === 'number' && (
-                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded bg-red-600 text-white">AI trials: {suggestRemaining}</span>
+                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded" style={{ background: '#dc4835', color: '#fff' }}>AI trials: {suggestRemaining}</span>
                                 )}
                             </button>
                             {suggestCountdown && typeof suggestRemaining === 'number' && suggestRemaining > 0 && suggestRemaining <= 2 && (
-                                <span className="text-xs font-black uppercase tracking-wider text-red-300">
+                                <span className="text-xs font-black uppercase tracking-wider" style={{ color: '#dc4835' }}>
                                     Resets in {suggestCountdown}
                                 </span>
                             )}
                         </div>
                         {loadingSemester && (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 opacity-50">
-                                <div className="w-3 h-3 rounded-full bg-white/20 animate-pulse" />
-                                <span className="text-xs font-black uppercase tracking-wider text-white/40">Syncing...</span>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[#dde3ec] bg-[#edf1f6] opacity-50">
+                                <div className="w-3 h-3 rounded-full bg-[#dde3ec] animate-pulse" />
+                                <span className="text-xs font-black uppercase tracking-wider text-[#5a6472]">Syncing...</span>
                             </div>
                         )}
                         {!loadingSemester && activeSemester && activeSemester.courses.length > 0 && (
@@ -757,11 +755,11 @@ function CourseTrackerView({
                                 <button
                                     onClick={() => void generateWeeklySchedule()}
                                     disabled={aiLoading !== null}
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-cyan-300/40 text-cyan-100 text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-cyan-500/10 transition-colors"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[#43aad7] text-[#43aad7] text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-[#43aad7]/10 transition-colors"
                                 >
                                     {aiLoading === "schedule" ? (
                                         <>
-                                            <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping mr-1" />
+                                            <div className="w-3 h-3 rounded-full bg-[#43aad7] animate-ping mr-1" />
                                             <span>Generating...</span>
                                         </>
                                     ) : (
@@ -769,13 +767,13 @@ function CourseTrackerView({
                                             <Sparkles className="w-4 h-4" />
                                             Build your schedule
                                             {typeof scheduleRemaining === 'number' && (
-                                                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded bg-red-600 text-white">AI trials: {scheduleRemaining}</span>
+                                                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded" style={{ background: '#dc4835', color: '#fff' }}>AI trials: {scheduleRemaining}</span>
                                             )}
                                         </>
                                     )}
                                 </button>
                                 {scheduleCountdown && typeof scheduleRemaining === 'number' && scheduleRemaining > 0 && scheduleRemaining <= 2 && (
-                                    <span className="text-xs font-black uppercase tracking-wider text-red-300">
+                                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: '#dc4835' }}>
                                         Resets in {scheduleCountdown}
                                     </span>
                                 )}
@@ -784,7 +782,7 @@ function CourseTrackerView({
                         {!loadingSemester && (!activeSemester || activeSemester.courses.length === 0) && (
                             <button
                                 onClick={() => setShowSetupWizard(true)}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 text-amber-200 text-xs font-black uppercase tracking-wider hover:bg-amber-500/10 transition-colors shadow-[0_0_15px_rgba(251,191,36,0.1)]"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[#f39c14] text-[#f39c14] text-xs font-black uppercase tracking-wider hover:bg-[#f39c14]/10 transition-colors"
                             >
                                 <AlertCircle className="w-4 h-4" />
                                 Set up your semester
@@ -794,18 +792,18 @@ function CourseTrackerView({
                 </div>
 
                 {aiError && (
-                    <p className="text-xs text-rose-300 font-semibold">{aiError}</p>
+                    <p className="text-xs font-semibold" style={{ color: '#dc4835' }}>{aiError}</p>
                 )}
 
                 {aiLoading === "suggestions" && aiRecommendations.length === 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Analyzing Degree Progress...</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#222d32]">Analyzing Degree Progress...</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {new Array(2).fill(null).map((_, i) => (
-                                <div key={`sugg-skel-card-${i === 0 ? 'left' : 'right'}`} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3 animate-pulse">
-                                    <div className="h-3 w-24 bg-white/10 rounded" />
-                                    <div className="h-2 w-full bg-white/5 rounded" />
-                                    <div className="h-2 w-4/5 bg-white/5 rounded" />
+                                <div key={`sugg-skel-card-${i === 0 ? 'left' : 'right'}`} className="rounded-lg border border-[#dde3ec] bg-[#edf1f6] p-4 space-y-3 animate-pulse">
+                                    <div className="h-3 w-24 bg-[#dde3ec] rounded" />
+                                    <div className="h-2 w-full bg-[#dde3ec] rounded" />
+                                    <div className="h-2 w-4/5 bg-[#dde3ec] rounded" />
                                 </div>
                             ))}
                         </div>
@@ -814,14 +812,14 @@ function CourseTrackerView({
 
                 {aiRecommendations.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Recommended Next Courses</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#222d32]">Recommended Next Courses</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {aiRecommendations.map((item) => (
-                                <Link key={item.code} href={`/courses/${item.code}`} className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/5 p-3 hover:scale-[1.01] transition-transform">
+                                <Link key={item.code} href={`/courses/${item.code}`} className="rounded-lg border border-[#dde3ec] bg-white p-3 hover:border-[#dc4835] transition-colors">
                                     <div>
-                                        <div className="text-xs font-black text-cyan-700 dark:text-cyan-200">{courseMap[item.code] || item.code}</div>
-                                        <p className="text-xs text-cyan-800/70 dark:text-cyan-200/50 mt-0.5 font-mono">{item.code}</p>
-                                        <p className="text-xs text-gray-700 dark:text-white/70 mt-1">{item.reason}</p>
+                                        <div className="text-xs font-black" style={{ color: '#43aad7' }}>{courseMap[item.code] || item.code}</div>
+                                        <p className="text-xs mt-0.5 font-mono" style={{ color: '#92604c' }}>{item.code}</p>
+                                        <p className="text-xs text-[#222d32] mt-1">{item.reason}</p>
                                     </div>
                                 </Link>
                             ))}
@@ -831,27 +829,26 @@ function CourseTrackerView({
 
                 {aiTips.length > 0 && (
                     <div className="space-y-1">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Registration Tips</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#222d32]">Registration Tips</h3>
                         {Array.from(new Set(aiTips)).map((tip) => (
-                            <p key={tip} className="text-xs text-gray-700 dark:text-white/70">- {tip}</p>
+                            <p key={tip} className="text-xs text-[#5a6472]">- {tip}</p>
                         ))}
                     </div>
                 )}
 
                 {weeklyPlan.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Weekly Schedule</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#222d32]">Weekly Schedule</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
                             {weeklyPlan.map((dayPlan) => {
-                                // If day looks like ISO date, format it for display
                                 const isoLike = /^\d{4}-\d{2}-\d{2}$/;
                                 const dayLabel = isoLike.test(dayPlan.day) ? new Date(dayPlan.day).toLocaleDateString() : dayPlan.day;
                                 return (
-                                    <div key={dayPlan.day} className="rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 p-3">
-                                        <div className="text-xs font-black text-cyan-700 dark:text-cyan-200 mb-2">{dayLabel}</div>
+                                    <div key={dayPlan.day} className="rounded-lg border border-[#dde3ec] bg-[#edf1f6] p-3">
+                                        <div className="text-xs font-black mb-2" style={{ color: '#43aad7' }}>{dayLabel}</div>
                                         {dayPlan.sessions.map((session, sessionIndex) => (
-                                            <p key={`${dayPlan.day}-session-${sessionIndex}`} className="text-xs text-gray-700 dark:text-white/70 leading-relaxed">
-                                                <span className="font-bold text-cyan-800 dark:text-cyan-100">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
+                                            <p key={`${dayPlan.day}-session-${sessionIndex}`} className="text-xs text-[#5a6472] leading-relaxed">
+                                                <span className="font-bold text-[#222d32]">{courseMap[session.course] || session.course}</span>: {session.hours}h - {session.focus}
                                             </p>
                                         ))}
                                     </div>
@@ -863,18 +860,18 @@ function CourseTrackerView({
 
                 {aiLoading === "schedule" && weeklyPlan.length === 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-white/80">Generating Schedule...</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#222d32]">Generating Schedule...</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
                             {[
                                 'sched-skel-card-a',
                                 'sched-skel-card-b',
                                 'sched-skel-card-c',
                             ].map((skeletonKey) => (
-                                <div key={skeletonKey} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3 animate-pulse">
-                                    <div className="h-3 w-16 bg-white/10 rounded" />
+                                <div key={skeletonKey} className="rounded-lg border border-[#dde3ec] bg-[#edf1f6] p-4 space-y-3 animate-pulse">
+                                    <div className="h-3 w-16 bg-[#dde3ec] rounded" />
                                     <div className="space-y-2">
-                                        <div className="h-2.5 w-full bg-white/5 rounded" />
-                                        <div className="h-2.5 w-2/3 bg-white/5 rounded" />
+                                        <div className="h-2.5 w-full bg-[#dde3ec] rounded" />
+                                        <div className="h-2.5 w-2/3 bg-[#dde3ec] rounded" />
                                     </div>
                                 </div>
                             ))}
@@ -884,7 +881,7 @@ function CourseTrackerView({
 
                 {examTips.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-white/80">Exam Tips</h3>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-[#222d32]">Exam Tips</h3>
                         <div className="space-y-1.5">
                             {Array.from(new Set(examTips)).map((tip) => (
                                 <ExamTipItem key={tip} tip={tip} />
@@ -894,26 +891,26 @@ function CourseTrackerView({
                 )}
             </section>
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-white/5">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-[#dde3ec]">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center text-white/40">
+                    <div className="w-10 h-10 rounded-xl bg-[#dc4835]/10 border-2 border-[#dc4835]/25 flex items-center justify-center" style={{ color: '#dc4835' }}>
                         {viewMode === 'level' ? <Trophy className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-white">Curriculum View</h3>
-                        <p className="text-xs text-white/50 font-medium">Browse by {viewMode === 'level' ? 'academic year' : 'requirement type'}</p>
+                        <h3 className="text-lg font-black text-[#222d32]">Curriculum View</h3>
+                        <p className="text-xs text-[#5a6472] font-bold">Browse by {viewMode === 'level' ? 'academic year' : 'requirement type'}</p>
                     </div>
                 </div>
 
-                <div id="wt-view-toggle" className="flex p-1 bg-white/3 border border-white/5 rounded-xl sm:rounded-[1.25rem] shadow-inner backdrop-blur-xl w-full sm:w-auto">
+                <div id="wt-view-toggle" className="flex p-1 bg-white border-2 border-[#dc4835]/20 rounded-xl w-full sm:w-auto">
                     {(["level", "category"] as const).map((mode) => (
                         <button
                             key={mode}
                             onClick={() => setViewMode(mode)}
-                            className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 rounded-lg sm:rounded-xl text-xs sm:text-xs font-bold transition-all duration-300 relative group
+                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-xs font-black transition-all duration-300
                                 ${viewMode === mode
-                                    ? "text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                                    : "text-white/40 bg-white/3 hover:text-white hover:bg-white/8"
+                                    ? "text-white bg-[#dc4835] shadow-md shadow-[#dc4835]/25"
+                                    : "text-[#5a6472] hover:text-[#dc4835] hover:bg-[#dc4835]/5"
                                 }`}
                         >
                             {mode === "level" ? "Roadmap" : "Categories"}
@@ -924,14 +921,22 @@ function CourseTrackerView({
 
             <div className="space-y-12">
                 {Object.entries(groups).map(([title, courses]) => {
-                    const catStyle: Record<string, { icon: React.ReactNode; color: string }> = {
-                        "University Requirements": { icon: <GraduationCap className="w-4 h-4" />, color: "#a78bfa" },
-                        "University Elective": { icon: <Star className="w-4 h-4" />, color: "#34d399" },
-                        "College Requirements": { icon: <BookOpen className="w-4 h-4" />, color: "#60a5fa" },
-                        "Department Requirements": { icon: <Target className="w-4 h-4" />, color: "#f59e0b" },
-                        "Department Elective": { icon: <Star className="w-4 h-4" />, color: "#f472b6" },
+                    const catStyle: Record<string, { icon: React.ReactNode; color: string; bg: string; border: string; headerText: string; badge: string; divider: string }> = {
+                        "University Requirements": { icon: <GraduationCap className="w-5 h-5" />, color: "#7c3aed", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.25)", headerText: "#7c3aed", badge: "rgba(124,58,237,0.15)", divider: "rgba(124,58,237,0.20)" },
+                        "University Elective": { icon: <Star className="w-5 h-5" />, color: "#059669", bg: "rgba(5,150,105,0.08)", border: "rgba(5,150,105,0.25)", headerText: "#059669", badge: "rgba(5,150,105,0.15)", divider: "rgba(5,150,105,0.20)" },
+                        "College Requirements": { icon: <BookOpen className="w-5 h-5" />, color: "#2563eb", bg: "rgba(37,99,235,0.08)", border: "rgba(37,99,235,0.25)", headerText: "#2563eb", badge: "rgba(37,99,235,0.15)", divider: "rgba(37,99,235,0.20)" },
+                        "Department Requirements": { icon: <Target className="w-5 h-5" />, color: "#d97706", bg: "rgba(217,119,6,0.08)", border: "rgba(217,119,6,0.25)", headerText: "#d97706", badge: "rgba(217,119,6,0.15)", divider: "rgba(217,119,6,0.20)" },
+                        "Department Elective": { icon: <Star className="w-5 h-5" />, color: "#db2777", bg: "rgba(219,39,119,0.08)", border: "rgba(219,39,119,0.25)", headerText: "#db2777", badge: "rgba(219,39,119,0.15)", divider: "rgba(219,39,119,0.20)" },
                     };
-                    const style = catStyle[title];
+                    const levelStyle: Record<string, { icon: React.ReactNode; color: string; bg: string; border: string; headerText: string; badge: string; divider: string }> = {
+                        "First Year (Level 1)": { icon: <Trophy className="w-5 h-5" />, color: "#dc4835", bg: "rgba(220,72,53,0.06)", border: "rgba(220,72,53,0.22)", headerText: "#dc4835", badge: "rgba(220,72,53,0.12)", divider: "rgba(220,72,53,0.18)" },
+                        "Second Year (Level 2)": { icon: <Trophy className="w-5 h-5" />, color: "#ea580c", bg: "rgba(234,88,12,0.06)", border: "rgba(234,88,12,0.22)", headerText: "#ea580c", badge: "rgba(234,88,12,0.12)", divider: "rgba(234,88,12,0.18)" },
+                        "Third Year (Level 3)": { icon: <Trophy className="w-5 h-5" />, color: "#ca8a04", bg: "rgba(202,138,4,0.06)", border: "rgba(202,138,4,0.22)", headerText: "#ca8a04", badge: "rgba(202,138,4,0.12)", divider: "rgba(202,138,4,0.18)" },
+                        "Fourth Year (Level 4)": { icon: <Trophy className="w-5 h-5" />, color: "#16a34a", bg: "rgba(22,163,74,0.06)", border: "rgba(22,163,74,0.22)", headerText: "#16a34a", badge: "rgba(22,163,74,0.12)", divider: "rgba(22,163,74,0.18)" },
+                        "Fifth Year (Level 5)": { icon: <Trophy className="w-5 h-5" />, color: "#7c3aed", bg: "rgba(124,58,237,0.06)", border: "rgba(124,58,237,0.22)", headerText: "#7c3aed", badge: "rgba(124,58,237,0.12)", divider: "rgba(124,58,237,0.18)" },
+                    };
+                    const allStyles = { ...catStyle, ...levelStyle };
+                    const style = allStyles[title];
 
                     const gpaCourses = courses
                         .filter((c: Course) => completedCourses.has(c.code))
@@ -946,25 +951,35 @@ function CourseTrackerView({
 
                     const displayTitle = title === "University Requirements" && isMobile ? "Uni. Requirements" : title;
 
+                    const sectionBg = style?.bg ?? "rgba(220,72,53,0.06)";
+                    const sectionBorder = style?.border ?? "rgba(220,72,53,0.22)";
+                    const sectionHeaderColor = style?.headerText ?? "#dc4835";
+                    const sectionDivider = style?.divider ?? "rgba(220,72,53,0.18)";
+                    const sectionBadge = style?.badge ?? "rgba(220,72,53,0.12)";
+
                     return (
-                        <section id={`section-${title.replaceAll(/\s+/g, '-')}`} key={title} className="bg-white/2 border border-white/5 p-4 sm:p-0 sm:bg-transparent sm:border-transparent rounded-3xl sm:rounded-none">
+                        <section
+                            id={`section-${title.replaceAll(/\s+/g, '-')}`}
+                            key={title}
+                            className="p-4 sm:p-6 rounded-xl border-2 transition-colors"
+                            style={{ background: sectionBg, borderColor: sectionBorder }}
+                        >
                             <div className="flex items-center gap-3 mb-5 sm:mb-6">
-                                {viewMode === 'level'
-                                    ? <Trophy className="w-4 h-4 text-violet-400/60 shrink-0" />
-                                    : style && <span className="shrink-0" style={{ color: style.color, opacity: 0.7 }}>{style.icon}</span>
-                                }
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: sectionBadge, color: sectionHeaderColor }}>
+                                    {style?.icon ?? <Trophy className="w-5 h-5" />}
+                                </div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-sm font-semibold text-white/65 uppercase tracking-widest whitespace-nowrap">
+                                    <h2 className="text-sm font-black uppercase tracking-widest whitespace-nowrap" style={{ color: sectionHeaderColor }}>
                                         {displayTitle}
                                     </h2>
                                     {groupGpa > 0 && (
-                                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-xs font-bold text-white/80 uppercase tracking-widest">
+                                        <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase tracking-widest" style={{ background: sectionBadge, color: sectionHeaderColor, border: `1px solid ${sectionBorder}` }}>
                                             GPA: {groupGpa.toFixed(2)}
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex-1 h-px bg-white/5" />
-                                <span className="text-[11px] text-white/40 shrink-0">{courses.length} courses</span>
+                                <div className="flex-1 h-px" style={{ background: sectionDivider }} />
+                                <span className="text-[11px] font-bold shrink-0" style={{ color: sectionHeaderColor, opacity: 0.7 }}>{courses.length} courses</span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -981,10 +996,11 @@ function CourseTrackerView({
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     onClick={() => setExpandedCategories(prev => ({ ...prev, [title]: true }))}
-                                    className="w-full mt-4 py-3 rounded-2xl border border-white/10 bg-white/2 hover:bg-white/5 active:scale-[0.98] transition-all text-xs font-bold text-white/60 tracking-widest uppercase flex flex-col items-center gap-1"
+                                    className="w-full mt-4 py-3 rounded-lg border-2 active:scale-[0.98] transition-all text-xs font-bold tracking-widest uppercase flex flex-col items-center gap-1"
+                                    style={{ borderColor: sectionBorder, background: sectionBadge, color: sectionHeaderColor }}
                                 >
                                     <span>Load All {courses.length} Courses</span>
-                                    <span className="text-[11px] text-white/50 normal-case tracking-normal">+{hiddenCount} hidden</span>
+                                    <span className="text-[11px] normal-case tracking-normal opacity-70">+{hiddenCount} hidden</span>
                                 </motion.button>
                             )}
                         </section>

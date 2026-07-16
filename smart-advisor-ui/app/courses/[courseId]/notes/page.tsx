@@ -9,8 +9,8 @@ import { ChevronLeft } from "lucide-react";
 const CourseNotesEditor = dynamic(() => import("@/components/CourseNotesEditor"), {
   ssr: false,
   loading: () => (
-    <div className="h-100 w-full bg-white/5 animate-pulse rounded-4xl border border-white/10 flex items-center justify-center">
-      <span className="text-xs font-black uppercase tracking-widest text-white/40">Loading Editor...</span>
+    <div className="h-100 w-full bg-[#edf1f6] animate-pulse rounded-4xl border border-[#dde3ec] flex items-center justify-center">
+      <span className="text-xs font-black uppercase tracking-widest text-[#5a6472]">Loading Editor...</span>
     </div>
   ),
 });
@@ -67,12 +67,12 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#edf1f6]">
       {/* Navigation Layer */}
       <div className="fixed top-4 left-4 z-60 pointer-events-none">
         <Link
           href="/planner"
-          className="p-3 rounded-2xl bg-black/40 backdrop-blur-2xl border border-white/5 text-white/40 hover:text-white transition-all flex items-center justify-center pointer-events-auto hover:bg-white/5 active:scale-95"
+          className="p-3 rounded-2xl bg-[#edf1f6]/40 backdrop-blur-2xl border border-[#dde3ec] text-[#5a6472] hover:text-[#222d32] transition-all flex items-center justify-center pointer-events-auto hover:bg-[#edf1f6] active:scale-95"
         >
           <ChevronLeft className="w-5 h-5" />
         </Link>
@@ -80,10 +80,10 @@ export default function CourseNotesPage({ params }: Readonly<{ params: Promise<{
 
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
-            <div className="w-6 h-6 rounded-full bg-violet-500/20 border border-violet-500/40 animate-ping" />
+          <div className="w-12 h-12 rounded-2xl bg-[#edf1f6] border border-[#dde3ec] flex items-center justify-center animate-pulse">
+            <div className="w-6 h-6 rounded-full bg-[#dc4835]/20 border border-[#dc4835]/40 animate-ping" />
           </div>
-          <span className="text-xs font-black uppercase tracking-widest text-white/40 animate-pulse">Loading Workspace...</span>
+          <span className="text-xs font-black uppercase tracking-widest text-[#5a6472] animate-pulse">Loading Workspace...</span>
         </div>
       ) : (
         <CourseNotesEditor

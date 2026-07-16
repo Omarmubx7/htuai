@@ -191,91 +191,91 @@ export default function CourseSettingsModal({ isOpen, onClose, course, semesterM
                     initial={{ scale: 0.95, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.95, y: 20, opacity: 0 }}
-                    className="relative w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
+                    className="relative w-full max-w-2xl bg-white border border-[#dde3ec] rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
                 >
                     <button
                         onClick={onClose}
                         disabled={isSaving}
-                        className="absolute top-4 right-4 p-2 text-white/40 hover:text-white/80 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
+                        className="absolute top-4 right-4 p-2 text-[#5a6472] hover:text-[#222d32] hover:bg-[#edf1f6] rounded-full transition-colors disabled:opacity-50"
                     >
                         <X className="w-5 h-5" />
                     </button>
 
-                    <h2 className="text-xl font-bold mb-1 text-white">{course.name} Settings</h2>
-                    <p className="text-sm text-white/50 mb-6">{course.code} • {course.credits} CH</p>
+                    <h2 className="text-xl font-bold mb-1 text-[#222d32]">{course.name} Settings</h2>
+                    <p className="text-sm text-[#5a6472] mb-6">{course.code} • {course.credits} CH</p>
 
                     <div className="space-y-6">
                         {/* Exam Dates */}
-                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-white/50 flex items-center gap-2 mb-4">
+                        <div className="bg-[#edf1f6] rounded-2xl p-4 border border-[#dde3ec]">
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-[#5a6472] flex items-center gap-2 mb-4">
                                 <CalendarIcon className="w-4 h-4" /> Exam Schedule
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="midtermDate" className="text-xs font-bold text-white/70">Midterm Date & Time</label>
+                                    <label htmlFor="midtermDate" className="text-xs font-bold text-[#5a6472]">Midterm Date & Time</label>
                                     <input
                                         id="midtermDate" type="datetime-local" value={midtermDate} onChange={e => setMidtermDate(e.target.value)}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-violet-500 transition-colors text-white"
+                                        className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-[#dc4835] transition-colors text-[#222d32]"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="finalDate" className="text-xs font-bold text-white/70">Final Date & Time</label>
+                                    <label htmlFor="finalDate" className="text-xs font-bold text-[#5a6472]">Final Date & Time</label>
                                     <input
                                         id="finalDate" type="datetime-local" value={finalDate} onChange={e => setFinalDate(e.target.value)}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-violet-500 transition-colors text-white"
+                                        className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-[#dc4835] transition-colors text-[#222d32]"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Course Info */}
-                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-white/50 flex items-center gap-2 mb-4">
+                        <div className="bg-[#edf1f6] rounded-2xl p-4 border border-[#dde3ec]">
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-[#5a6472] flex items-center gap-2 mb-4">
                                 <Info className="w-4 h-4" /> Course Details
                             </h3>
                             {!hasSemesterDateRange && (
-                                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700">
                                     Set semester start and end dates first to unlock course metadata and schedule sync.
                                 </div>
                             )}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="instructorName" className="text-xs font-bold text-white/70">Instructor Name</label>
+                                    <label htmlFor="instructorName" className="text-xs font-bold text-[#5a6472]">Instructor Name</label>
                                     <input
                                         id="instructorName" type="text" value={instructorName} onChange={e => setInstructorName(e.target.value)} placeholder="e.g. Dr. Smith" disabled={!hasSemesterDateRange}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-white disabled:opacity-50"
+                                        className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-[#222d32] disabled:opacity-50 placeholder-[#5a6472]/60"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="location" className="text-xs font-bold text-white/70">Location</label>
+                                    <label htmlFor="location" className="text-xs font-bold text-[#5a6472]">Location</label>
                                     <input
                                         id="location" type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Room 302" disabled={!hasSemesterDateRange}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-white disabled:opacity-50"
+                                        className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-[#222d32] disabled:opacity-50 placeholder-[#5a6472]/60"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="courseStatus" className="text-xs font-bold text-white/70">Course Status</label>
+                                    <label htmlFor="courseStatus" className="text-xs font-bold text-[#5a6472]">Course Status</label>
                                     <select
                                         id="courseStatus" value={courseStatus} onChange={e => setCourseStatus(e.target.value)} disabled={!hasSemesterDateRange}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors appearance-none text-white disabled:opacity-50"
+                                        className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors appearance-none text-[#222d32] disabled:opacity-50"
                                     >
-                                        <option value="planned" className="bg-black">Planned</option>
-                                        <option value="in_progress" className="bg-black">In Progress</option>
-                                        <option value="completed" className="bg-black">Completed</option>
-                                        <option value="dropped" className="bg-black">Dropped</option>
+                                        <option value="planned" className="bg-white text-[#222d32]">Planned</option>
+                                        <option value="in_progress" className="bg-white text-[#222d32]">In Progress</option>
+                                        <option value="completed" className="bg-white text-[#222d32]">Completed</option>
+                                        <option value="dropped" className="bg-white text-[#222d32]">Dropped</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="finalMark" className="text-xs font-bold text-white/70">Final Expected Mark (0-100)</label>
+                                    <label htmlFor="finalMark" className="text-xs font-bold text-[#5a6472]">Final Expected Mark (0-100)</label>
                                     <input
                                         id="finalMark" type="number" value={finalMark} onChange={e => setFinalMark(e.target.value ? Number(e.target.value) : "")} placeholder="e.g. 95" disabled={!hasSemesterDateRange}
-                                        className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-white disabled:opacity-50"
+                                        className="w-full mt-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-[#222d32] disabled:opacity-50 placeholder-[#5a6472]/60"
                                     />
                                 </div>
                             </div>
                             
                             <div className="mt-4 space-y-3">
-                                <span className="text-xs font-bold text-white/70 block">Class Schedule</span>
+                                <span className="text-xs font-bold text-[#5a6472] block">Class Schedule</span>
                                 <div className="flex flex-wrap gap-2">
                                     {ALL_DAYS.map(day => {
                                         const isActive = scheduleDays.includes(day);
@@ -286,7 +286,7 @@ export default function CourseSettingsModal({ isOpen, onClose, course, semesterM
                                                     if (isActive) setScheduleDays(scheduleDays.filter(d => d !== day));
                                                     else setScheduleDays([...scheduleDays, day]);
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${isActive ? 'bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/80'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${isActive ? 'bg-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.4)]' : 'bg-[#edf1f6] text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]'}`}
                                             >
                                                 {day}
                                             </button>
@@ -294,17 +294,17 @@ export default function CourseSettingsModal({ isOpen, onClose, course, semesterM
                                     })}
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Clock className="w-4 h-4 text-white/40" />
+                                    <Clock className="w-4 h-4 text-[#5a6472]" />
                                     <input
                                         id="scheduleTime" type="time" title="Schedule Start Time"
                                         value={scheduleTime} disabled={!hasSemesterDateRange} onChange={e => setScheduleTime(e.target.value)}
-                                        className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-white disabled:opacity-50"
+                                        className="flex-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-[#222d32] disabled:opacity-50"
                                     />
-                                    <span className="text-white/40 text-xs">to</span>
+                                    <span className="text-[#5a6472] text-xs">to</span>
                                     <input
                                         id="scheduleEndTime" type="time" title="Schedule End Time"
                                         value={scheduleEndTime} disabled={!hasSemesterDateRange} onChange={e => setScheduleEndTime(e.target.value)}
-                                        className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-white disabled:opacity-50"
+                                        className="flex-1 bg-white border border-[#dde3ec] rounded-xl px-4 py-3 text-sm focus:border-emerald-500 transition-colors text-[#222d32] disabled:opacity-50"
                                     />
                                 </div>
                             </div>

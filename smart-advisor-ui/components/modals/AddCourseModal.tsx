@@ -265,7 +265,7 @@ export default function AddCourseModal({ isOpen, onClose, semesterId, existingCo
                         <button
                             onClick={handleAddCourse}
                             disabled={isSubmitting || !semesterId}
-                            className="w-full mt-6 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                            className="w-full mt-6 py-3 bg-[#dc4835] hover:bg-[#dc4835]/90 disabled:opacity-50 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? 'Adding...' : 'Add Course'}
                             {!isSubmitting && <Plus className="w-4 h-4" />}

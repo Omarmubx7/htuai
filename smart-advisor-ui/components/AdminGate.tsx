@@ -63,10 +63,10 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center"
                         style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))', border: '1px solid rgba(139,92,246,0.2)' }}>
-                        <KeyRound className="w-5 h-5 text-violet-400" />
+                        <KeyRound className="w-5 h-5 text-[#dc4835]" />
                     </div>
-                    <h1 className="text-lg font-bold text-white/80">Admin Access</h1>
-                    <p className="text-xs text-white/50 text-center">Enter the admin secret to continue</p>
+                    <h1 className="text-lg font-bold text-[#222d32]">Admin Access</h1>
+                    <p className="text-xs text-[#5a6472] text-center">Enter the admin secret to continue</p>
                 </div>
 
                 <input
@@ -76,7 +76,7 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                     placeholder="Admin secret"
                     autoFocus
                     className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/20 outline-none
-                        border border-white/6 focus:border-violet-500/30 transition-colors"
+                        border border-white/6 focus:border-[#dc4835]/30 transition-colors"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                     autoComplete="current-password"
                 />
@@ -89,13 +89,13 @@ export default function AdminGate({ children }: Readonly<{ children: ReactNode }
                 )}
 
                 {!error && attempted && !verifying && (
-                    <p className="text-[11px] text-white/50 leading-relaxed">
+                    <p className="text-[11px] text-[#5a6472] leading-relaxed">
                         Forgot the secret? Contact your system admin.
                     </p>
                 )}
 
                 {error === 'Admin service is temporarily unavailable' && (
-                    <p className="text-[11px] text-white/35 leading-relaxed">
+                    <p className="text-[11px] text-[#5a6472]/80 leading-relaxed">
                         Try again in a minute, or check that the backend services are online.
                     </p>
                 )}

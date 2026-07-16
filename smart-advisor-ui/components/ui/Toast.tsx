@@ -53,16 +53,16 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     }, [onDismiss]);
 
     const icon = toast.type === "success"
-        ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        ? <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
         : toast.type === "error"
-            ? <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-            : <Info className="w-5 h-5 text-blue-400 shrink-0" />;
+            ? <AlertTriangle className="w-5 h-5 text-[#dc4835] shrink-0" />
+            : <Info className="w-5 h-5 text-[#43aad7] shrink-0" />;
 
     const bgColor = toast.type === "success"
-        ? "bg-emerald-500/15 border-emerald-500/40"
+        ? "bg-emerald-50 border-emerald-200"
         : toast.type === "error"
-            ? "bg-red-500/15 border-red-500/40"
-            : "bg-blue-500/15 border-blue-500/40";
+            ? "bg-red-50 border-red-200"
+            : "bg-blue-50 border-blue-200";
 
     return (
         <motion.div
@@ -70,11 +70,11 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className={`pointer-events-auto flex items-center gap-3 px-6 py-4 rounded-2xl border ${bgColor} shadow-2xl backdrop-blur-sm`}
+            className={`pointer-events-auto flex items-center gap-3 px-6 py-4 rounded-2xl border ${bgColor} shadow-sm`}
         >
             {icon}
-            <span className="text-sm font-semibold text-white flex-1">{toast.message}</span>
-            <button onClick={onDismiss} className="text-white/40 hover:text-white/80 transition-colors shrink-0">
+            <span className="text-sm font-semibold text-[#222d32] flex-1">{toast.message}</span>
+            <button onClick={onDismiss} className="text-[#5a6472] hover:text-[#222d32] transition-colors shrink-0">
                 <X className="w-4 h-4" />
             </button>
         </motion.div>

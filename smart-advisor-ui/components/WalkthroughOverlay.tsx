@@ -225,8 +225,8 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                                 top: spotlight.top - 2,
                                 width: spotlight.width + 4,
                                 height: spotlight.height + 4,
-                                border: "2px solid rgba(139, 92, 246, 0.5)",
-                                boxShadow: "0 0 30px rgba(139, 92, 246, 0.25), inset 0 0 30px rgba(139, 92, 246, 0.1)",
+                                border: "2px solid rgba(220, 72, 53, 0.5)",
+                                boxShadow: "0 0 30px rgba(220, 72, 53, 0.25), inset 0 0 30px rgba(220, 72, 53, 0.1)",
                             }}
                         />
                     )}
@@ -246,14 +246,14 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                     className="fixed z-201"
                     style={getTooltipStyle()}
                 >
-                    <div className="bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_60px_rgba(139,92,246,0.15)] w-full">
+                    <div className="bg-white/95 backdrop-blur-2xl border border-[#dde3ec] rounded-3xl p-6 shadow-lg w-full">
                         {/* Step counter */}
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                                 {activeSteps.map((s, i) => {
-                                    let dotClass = "w-2 bg-white/10";
-                                    if (i === currentStep) dotClass = "w-6 bg-violet-500";
-                                    else if (i < currentStep) dotClass = "w-2 bg-violet-500/40";
+                                    let dotClass = "w-2 bg-[#dde3ec]";
+                                    if (i === currentStep) dotClass = "w-6 bg-[#dc4835]";
+                                    else if (i < currentStep) dotClass = "w-2 bg-[#dc4835]/40";
                                     return (
                                         <div
                                             key={s.targetId}
@@ -264,7 +264,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                             </div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleSkip(); }}
-                                className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-all"
+                                className="p-1.5 rounded-lg hover:bg-[#edf1f6] text-[#5a6472] hover:text-[#222d32] transition-all"
                                 title="Close walkthrough"
                             >
                                 <X className="w-4 h-4" />
@@ -273,10 +273,10 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
 
                         {/* Content */}
                         <div className="mb-6">
-                            <h3 id="walkthrough-title" className="text-lg font-black text-white tracking-tight mb-2">
+                            <h3 id="walkthrough-title" className="text-lg font-black text-[#222d32] tracking-tight mb-2">
                                 {step.title}
                             </h3>
-                            <p id="walkthrough-description" className="text-sm text-white/50 leading-relaxed font-medium">
+                            <p id="walkthrough-description" className="text-sm text-[#5a6472] leading-relaxed font-medium">
                                 {step.description}
                             </p>
                         </div>
@@ -287,7 +287,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                                 {currentStep > 0 && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                                        className="flex items-center gap-1.5 px-5 py-3 sm:px-4 sm:py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/60 hover:text-white text-sm sm:text-xs font-bold transition-all"
+                                        className="flex items-center gap-1.5 px-5 py-3 sm:px-4 sm:py-2.5 rounded-xl bg-[#edf1f6] hover:bg-[#dde3ec] text-[#5a6472] hover:text-[#222d32] text-sm sm:text-xs font-bold transition-all"
                                     >
                                         <ArrowLeft className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                                         Back
@@ -295,7 +295,7 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
                                 )}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleSkip(); }}
-                                    className="px-5 py-3 sm:px-4 sm:py-2.5 rounded-xl text-white/50 hover:text-white/60 active:text-white/80 text-sm sm:text-xs font-bold transition-all"
+                                    className="px-5 py-3 sm:px-4 sm:py-2.5 rounded-xl text-[#5a6472] hover:text-[#222d32] text-sm sm:text-xs font-bold transition-all"
                                 >
                                     Skip Tour
                                 </button>
@@ -303,14 +303,14 @@ export default function WalkthroughOverlay({ steps, isOpen, onClose }: Readonly<
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                                className="flex items-center gap-2 px-7 py-3 sm:px-6 sm:py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:bg-violet-400 text-white text-sm sm:text-xs font-bold transition-all shadow-lg shadow-violet-500/25 active:scale-95"
+                                className="flex items-center gap-2 px-7 py-3 sm:px-6 sm:py-2.5 rounded-xl bg-[#dc4835] hover:bg-[#c03d2e] text-white text-sm sm:text-xs font-bold transition-all shadow-lg shadow-[#dc4835]/25 active:scale-95"
                             >
                                 {currentStep === activeSteps.length - 1 ? "Finish" : "Next"}
                                 <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                         </div>
 
-                        <p className="text-xs text-white/40 font-medium mt-3 text-center">
+                        <p className="text-xs text-[#5a6472] font-medium mt-3 text-center">
                             Step {currentStep + 1} of {activeSteps.length} · Press → to advance
                         </p>
                     </div>
@@ -328,7 +328,7 @@ export function WalkthroughHelpButton({ onClick }: Readonly<{ onClick: () => voi
     return (
         <button
             onClick={onClick}
-            className="p-2.5 rounded-2xl bg-white/3 border border-white/6 text-white/40 hover:text-violet-400 hover:bg-violet-400/5 transition-all"
+            className="p-2.5 rounded-2xl bg-white border border-[#dde3ec] text-[#5a6472] hover:text-[#dc4835] hover:bg-[#dc4835]/5 transition-all"
             title="App Walkthrough"
         >
             <HelpCircle className="w-4.5 h-4.5" />

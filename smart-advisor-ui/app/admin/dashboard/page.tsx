@@ -368,12 +368,12 @@ function DashboardInner() {
     ];
 
     return (
-        <div className="min-h-screen text-white">
+        <div className="min-h-screen text-[#222d32]">
 
             {/* Ambient effects */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
                 <div className="absolute left-1/2 top-0 -translate-x-1/2 w-350 h-200"
-                    style={{ background: 'radial-gradient(ellipse 50% 35% at 50% 0%, rgba(139,92,246,0.08) 0%, transparent 70%)' }} />
+                    style={{ background: 'radial-gradient(ellipse 50% 35% at 50% 0%, rgba(220,72,53,0.08) 0%, transparent 70%)' }} />
                 <div className="absolute -right-40 top-1/3 w-150 h-150"
                     style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%)' }} />
                 <div className="absolute -left-40 bottom-1/4 w-125 h-125"
@@ -390,12 +390,12 @@ function DashboardInner() {
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-600/10 border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.2)] overflow-hidden">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#dc4835]/10 border border-[#dc4835]/20 shadow-[0_0_15px_rgba(220,72,53,0.2)] overflow-hidden">
                                 <Image src="/mubxai-dark-logo.png" alt="MUBXAI Logo" width={16} height={16} className="object-contain dark-logo" />
                                 <Image src="/mubxai-light-logo.png" alt="MUBXAI Logo" width={16} height={16} className="object-contain light-logo" />
                             </div>
                             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest"
-                                style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.2)' }}>
+                                style={{ background: 'linear-gradient(135deg, rgba(220,72,53,0.15), rgba(220,72,53,0.05))', color: '#c4b5fd', border: '1px solid rgba(220,72,53,0.2)' }}>
                                 Admin Panel
                             </span>
                             <div className="flex items-center gap-1.5">
@@ -409,15 +409,15 @@ function DashboardInner() {
                         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-linear-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent">
                             Platform Analytics
                         </h1>
-                        <p className="text-white/50 text-xs mt-1.5 font-medium">
+                        <p className="text-[#222d32]/50 text-xs mt-1.5 font-medium">
                             {lastFetched ? `Updated ${timeAgo(lastFetched.toISOString())} · Auto-refreshes every 10s` : 'Loading...'}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
                         <button onClick={() => fetchData(true)} disabled={refreshing}
-                            className="group flex items-center gap-2 text-[11px] font-medium text-white/50 hover:text-white/60 transition-all duration-300 px-4 py-2.5 rounded-xl
-                        border border-white/6 hover:border-white/10 hover:shadow-lg hover:shadow-violet-500/5"
+                            className="group flex items-center gap-2 text-[11px] font-medium text-[#222d32]/50 hover:text-[#222d32]/60 transition-all duration-300 px-4 py-2.5 rounded-xl
+                        border border-[#dde3ec]/60 hover:border-[#dde3ec] hover:shadow-lg hover:shadow-[#dc4835]/5"
                             style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
                             <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-500 ${refreshing ? 'animate-spin' : 'group-hover:rotate-90'}`} />
                             {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -429,13 +429,13 @@ function DashboardInner() {
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
                     className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     {/* Tabs */}
-                    <div className="flex gap-1 p-1 rounded-2xl border border-white/6"
+                    <div className="flex gap-1 p-1 rounded-2xl border border-[#dde3ec]/60"
                         style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
                         {TABS.map(t => (
                             <button key={t.key} onClick={() => setTab(t.key)}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${tab === t.key
-                                    ? 'bg-white text-black shadow-md shadow-white/10'
-                                    : 'text-white/50 hover:text-white/55 hover:bg-white/3'
+                                    ? 'bg-white text-black shadow-md shadow-[#dde3ec]/10'
+                                    : 'text-[#222d32]/50 hover:text-[#222d32]/55 hover:bg-[#edf1f6]/30'
                                     }`}>
                                 {t.icon}{t.label}
                             </button>
@@ -443,11 +443,11 @@ function DashboardInner() {
                     </div>
 
                     {/* Major Filter */}
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/6"
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#dde3ec]/60"
                         style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))' }}>
-                        <Filter className="w-3.5 h-3.5 text-white/40" />
+                        <Filter className="w-3.5 h-3.5 text-[#222d32]/40" />
                         <select value={majorFilter} onChange={e => setMajorFilter(e.target.value)}
-                            className="bg-transparent text-xs text-white/60 outline-none cursor-pointer appearance-none pr-4 font-medium">
+                            className="bg-transparent text-xs text-[#222d32]/60 outline-none cursor-pointer appearance-none pr-4 font-medium">
                             <option value="all" className="bg-neutral-900">All Majors</option>
                             {allMajorKeys.map(m => (
                                 <option key={m} value={m} className="bg-neutral-900">{formatMajor(m)}</option>
@@ -485,7 +485,7 @@ function DashboardInner() {
                     )}
                 </AnimatePresence>
 
-                <div className="text-center text-xs text-white/10 pt-6 pb-10 font-bold tracking-widest uppercase">
+                <div className="text-center text-xs text-[#222d32]/10 pt-6 pb-10 font-bold tracking-widest uppercase">
                     MUBXAI &middot; Admin Dashboard
                 </div>
             </div>
@@ -510,7 +510,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
         <>
             {/* Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-                <StatCard icon={<Users className="w-4 h-4" />} label="Total Students" value={animStudents} gradient="from-violet-500/20 to-purple-500/5" iconBg="#7c3aed" delay={0} />
+                <StatCard icon={<Users className="w-4 h-4" />} label="Total Students" value={animStudents} gradient="from-[#dc4835]/20 to-[#dc4835]/5" iconBg="#7c3aed" delay={0} />
                 <StatCard icon={<Eye className="w-4 h-4" />} label="Total Visits" value={animVisitors} gradient="from-blue-500/20 to-cyan-500/5" iconBg="#2563eb" delay={0.04}
                     badge={weekBadge} />
                 <StatCard icon={<BookOpen className="w-4 h-4" />} label="Courses Done" value={animCourses} gradient="from-blue-500/20 to-indigo-500/5" iconBg="#4f46e5" delay={0.08} />
@@ -523,7 +523,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
             <GlassCard delay={0.1}>
                 <div className="flex items-center justify-between mb-6">
                     <CardHeader icon={<TrendingUp className="w-4 h-4" />} title="Visitor Traffic" iconColor="#60a5fa" />
-                    <span className="text-xs text-white/40 font-medium px-2.5 py-1 rounded-lg bg-white/3">Last 30 days</span>
+                    <span className="text-xs text-[#222d32]/40 font-medium px-2.5 py-1 rounded-lg bg-[#edf1f6]/30">Last 30 days</span>
                 </div>
                 {stats.trafficByDay.length === 0 ? <Empty text="No visitor data yet" /> : (
                     <AreaChart data={stats.trafficByDay} maxVal={maxTraffic} />
@@ -572,7 +572,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                                             style={{ background: color.bar }}
                                         />
                                     </div>
-                                    <span className="text-xs text-white/50 font-mono font-medium">{range}</span>
+                                    <span className="text-xs text-[#222d32]/50 font-mono font-medium">{range}</span>
                                 </div>
                             );
                         })}
@@ -586,21 +586,21 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                     <div className="sticky top-0 z-10 pb-4 -mt-1"
                         style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
                         <CardHeader icon={<BookOpen className="w-4 h-4" />} title="Top Courses" iconColor="#fbbf24"
-                            right={<span className="text-xs text-white/40 font-mono tabular-nums">{stats.topCourses.length}</span>} />
+                            right={<span className="text-xs text-[#222d32]/40 font-mono tabular-nums">{stats.topCourses.length}</span>} />
                     </div>
                     <div className="space-y-1">
                         {stats.topCourses.map((course, i) => (
                             <motion.div key={course.code} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 + i * 0.02 }}
-                                className="flex items-center gap-3 hover:bg-white/2.5 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 group cursor-default">
-                                <span className="text-xs font-mono text-white/15 w-5 shrink-0 tabular-nums">{i + 1}</span>
+                                className="flex items-center gap-3 hover:bg-[#edf1f6]/20.5 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 group cursor-default">
+                                <span className="text-xs font-mono text-[#222d32]/15 w-5 shrink-0 tabular-nums">{i + 1}</span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs text-white/55 truncate group-hover:text-white/70 transition-colors font-medium">{course.name}</p>
-                                    <p className="text-xs text-white/15 font-mono">{course.code}</p>
+                                    <p className="text-xs text-[#222d32]/55 truncate group-hover:text-[#222d32]/70 transition-colors font-medium">{course.name}</p>
+                                    <p className="text-xs text-[#222d32]/15 font-mono">{course.code}</p>
                                 </div>
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className="text-xs font-bold text-white/50 tabular-nums">{course.count}</span>
-                                    <Users className="w-3 h-3 text-white/10" />
+                                    <span className="text-xs font-bold text-[#222d32]/50 tabular-nums">{course.count}</span>
+                                    <Users className="w-3 h-3 text-[#222d32]/10" />
                                 </div>
                             </motion.div>
                         ))}
@@ -610,7 +610,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
 
                 <GlassCard delay={0.3}>
                     <CardHeader icon={<Flame className="w-4 h-4" />} title="Activity Heatmap" iconColor="#fb923c"
-                        right={<span className="text-xs text-white/40">Hour × Day</span>} />
+                        right={<span className="text-xs text-[#222d32]/40">Hour × Day</span>} />
                     <div className="mt-4">
                         <Heatmap data={stats.heatmap} />
                     </div>
@@ -630,28 +630,28 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
     sortKey: SortKey; sortDir: SortDir; toggleSort: (k: SortKey) => void;
 }>) {
     const renderSortIcon = (col: SortKey) => {
-        if (sortKey !== col) return <ChevronDown className="w-3 h-3 text-white/10" />;
-        return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-violet-400/70" /> : <ChevronDown className="w-3 h-3 text-violet-400/70" />;
+        if (sortKey !== col) return <ChevronDown className="w-3 h-3 text-[#222d32]/10" />;
+        return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-[#dc4835]/70" /> : <ChevronDown className="w-3 h-3 text-[#dc4835]/70" />;
     };
 
     return (
         <GlassCard delay={0.05}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
                 <CardHeader icon={<Database className="w-4 h-4" />} title="All Students" iconColor="#a78bfa"
-                    right={<span className="text-xs text-white/40 font-mono tabular-nums">{students.length}/{total}</span>} />
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/6"
+                    right={<span className="text-xs text-[#222d32]/40 font-mono tabular-nums">{students.length}/{total}</span>} />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#dde3ec]/60"
                     style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005))' }}>
-                    <Search className="w-3.5 h-3.5 text-white/40" />
+                    <Search className="w-3.5 h-3.5 text-[#222d32]/40" />
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                         placeholder="Search ID or Major..."
-                        className="bg-transparent text-xs text-white placeholder-white/15 outline-none w-44 font-medium" />
+                        className="bg-transparent text-xs text-[#222d32] placeholder-white/15 outline-none w-44 font-medium" />
                 </div>
             </div>
 
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="border-b border-white/4">
+                        <tr className="border-b border-[#dde3ec]/40">
                             <Th>#</Th>
                             <Th sortable onClick={() => toggleSort('student_id')}>Student ID {renderSortIcon('student_id')}</Th>
                             <Th sortable onClick={() => toggleSort('major')}>Major {renderSortIcon('major')}</Th>
@@ -669,28 +669,28 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
                             return (
                                 <motion.tr key={`${s.student_id}-${s.major}`}
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.008 }}
-                                    className="border-b border-white/2 hover:bg-white/1.5 transition-colors group">
-                                    <td className="py-3 pr-4 text-xs text-white/15 font-mono tabular-nums">{i + 1}</td>
-                                    <td className="py-3 pr-4 text-xs font-mono text-white/50 group-hover:text-white/70 transition-colors">{s.student_id}</td>
+                                    className="border-b border-[#dde3ec]/20 hover:bg-[#edf1f6]/15 transition-colors group">
+                                    <td className="py-3 pr-4 text-xs text-[#222d32]/15 font-mono tabular-nums">{i + 1}</td>
+                                    <td className="py-3 pr-4 text-xs font-mono text-[#222d32]/50 group-hover:text-[#222d32]/70 transition-colors">{s.student_id}</td>
                                     <td className="py-3 pr-4">
                                         <span className="inline-flex items-center gap-2">
                                             <span className="text-sm">{MAJOR_ICONS[s.major] || '📚'}</span>
                                             <span className="w-2.5 h-2.5 rounded-md shadow-sm"
                                                 style={{ background: MAJOR_GRADIENTS[s.major] || fallbackGradient }} />
-                                            <span className="text-xs text-white/45 font-medium">{formatMajor(s.major)}</span>
+                                            <span className="text-xs text-[#222d32]/45 font-medium">{formatMajor(s.major)}</span>
                                         </span>
                                     </td>
-                                    <td className="py-3 pr-4 text-xs font-mono text-white/45 tabular-nums">{s.count}</td>
-                                    <td className="py-3 pr-4 text-xs font-mono text-white/35 tabular-nums">{realCH}<span className="text-white/15">/{goal}</span></td>
+                                    <td className="py-3 pr-4 text-xs font-mono text-[#222d32]/45 tabular-nums">{s.count}</td>
+                                    <td className="py-3 pr-4 text-xs font-mono text-[#222d32]/35 tabular-nums">{realCH}<span className="text-[#222d32]/15">/{goal}</span></td>
                                     <td className="py-3">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-24 h-1.5 bg-white/4 rounded-full overflow-hidden">
+                                            <div className="w-24 h-1.5 bg-[#edf1f6]/40 rounded-full overflow-hidden">
                                                 <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                                                     transition={{ duration: 0.5, delay: i * 0.008 }}
                                                     className="h-full rounded-full shadow-sm"
                                                     style={{ background: barColor, boxShadow: `0 0 8px ${barColor}40` }} />
                                             </div>
-                                            <span className="text-xs font-mono text-white/50 w-8 tabular-nums">{pct}%</span>
+                                            <span className="text-xs font-mono text-[#222d32]/50 w-8 tabular-nums">{pct}%</span>
                                         </div>
                                     </td>
                                 </motion.tr>
@@ -745,7 +745,7 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
                         <CardHeader icon={<Zap className="w-4 h-4" />} title="Daily AI Usage Remaining" iconColor="#fbbf24" />
-                        <p className="text-[11px] text-white/50 mt-1">Each user has 2 AI uses per day. Reset clears today's AI usage for every account.</p>
+                        <p className="text-[11px] text-[#222d32]/50 mt-1">Each user has 2 AI uses per day. Reset clears today's AI usage for every account.</p>
                     </div>
                     <button
                         type="button"
@@ -760,7 +760,7 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                 <div className="mt-5 overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-white/5 text-xs uppercase tracking-widest text-white/50">
+                            <tr className="border-b border-[#dde3ec] text-xs uppercase tracking-widest text-[#222d32]/50">
                                 <th className="py-2 pr-4">User</th>
                                 <th className="py-2 pr-4">Used Today</th>
                                 <th className="py-2 pr-4">Remaining</th>
@@ -769,18 +769,18 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                         </thead>
                         <tbody>
                             {usage.userUsage.length > 0 ? usage.userUsage.map((user) => (
-                                <tr key={String(user.userId ?? user.email ?? user.studentId)} className="border-b border-white/3">
-                                    <td className="py-3 pr-4 text-xs text-white/60">
-                                        <div className="font-medium text-white/75">{user.studentId || user.email || `User #${user.userId ?? 'unknown'}`}</div>
-                                        <div className="text-xs text-white/40">{user.email || user.studentId || 'No identifier'}</div>
+                                <tr key={String(user.userId ?? user.email ?? user.studentId)} className="border-b border-[#dde3ec]/30">
+                                    <td className="py-3 pr-4 text-xs text-[#222d32]/60">
+                                        <div className="font-medium text-[#222d32]/75">{user.studentId || user.email || `User #${user.userId ?? 'unknown'}`}</div>
+                                        <div className="text-xs text-[#222d32]/40">{user.email || user.studentId || 'No identifier'}</div>
                                     </td>
-                                    <td className="py-3 pr-4 text-xs tabular-nums text-white/60">{user.usedToday}</td>
+                                    <td className="py-3 pr-4 text-xs tabular-nums text-[#222d32]/60">{user.usedToday}</td>
                                     <td className={`py-3 pr-4 text-xs tabular-nums font-bold ${user.remainingToday === 0 ? 'text-rose-300' : 'text-emerald-300'}`}>{user.remainingToday}</td>
-                                    <td className="py-3 pr-4 text-xs tabular-nums text-white/35">{user.limit}</td>
+                                    <td className="py-3 pr-4 text-xs tabular-nums text-[#222d32]/35">{user.limit}</td>
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td className="py-4 text-xs text-white/50" colSpan={4}>No AI usage recorded today.</td>
+                                    <td className="py-4 text-xs text-[#222d32]/50" colSpan={4}>No AI usage recorded today.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -801,9 +801,9 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                             <motion.div key={item.endpoint}
                                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 + i * 0.05 }}
-                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/1.5 group cursor-default">
-                                <span className="text-xs text-white/50 font-medium truncate">{item.endpoint}</span>
-                                <span className="text-sm font-bold text-white/70 tabular-nums ml-2">{item.count}</span>
+                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-[#edf1f6]/15 group cursor-default">
+                                <span className="text-xs text-[#222d32]/50 font-medium truncate">{item.endpoint}</span>
+                                <span className="text-sm font-bold text-[#222d32]/70 tabular-nums ml-2">{item.count}</span>
                             </motion.div>
                         ))}
                         {usage.callsByEndpoint.length === 0 && <Empty text="No endpoint data" />}
@@ -820,13 +820,13 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                             return (
                                 <div key={item.status || 'unknown'} className="group">
                                     <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs text-white/50 font-medium capitalize">{item.status || 'unknown'}</span>
+                                        <span className="text-xs text-[#222d32]/50 font-medium capitalize">{item.status || 'unknown'}</span>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-white/70 tabular-nums">{item.count}</span>
-                                            <span className="text-xs text-white/50 tabular-nums">({pct}%)</span>
+                                            <span className="text-sm font-bold text-[#222d32]/70 tabular-nums">{item.count}</span>
+                                            <span className="text-xs text-[#222d32]/50 tabular-nums">({pct}%)</span>
                                         </div>
                                     </div>
-                                    <div className="h-2 bg-white/4 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-[#edf1f6]/40 rounded-full overflow-hidden">
                                         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                                             transition={{ duration: 0.6, delay: i * 0.1 }}
                                             className="h-full rounded-full"
@@ -848,11 +848,11 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                                 <motion.div key={item.model}
                                     initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: 0.3 + i * 0.05 }}
-                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-white/1.5">
-                                    <span className="text-xs text-white/50 font-medium">{item.model}</span>
+                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-[#edf1f6]/15">
+                                    <span className="text-xs text-[#222d32]/50 font-medium">{item.model}</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-white/70">{item.count}</span>
-                                        <span className="text-xs text-white/50 w-8 text-right">{pct}%</span>
+                                        <span className="text-sm font-bold text-[#222d32]/70">{item.count}</span>
+                                        <span className="text-xs text-[#222d32]/50 w-8 text-right">{pct}%</span>
                                     </div>
                                 </motion.div>
                             );
@@ -874,8 +874,8 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 + i * 0.1 }}
                             className="p-4 rounded-xl" style={{ background: `${item.color}08`, border: `1px solid ${item.color}15` }}>
-                            <div className="text-xs text-white/50 uppercase font-bold tracking-wider mb-2">{item.label}</div>
-                            <div className="text-2xl font-bold text-white/80 tabular-nums">{item.value.toLocaleString()}</div>
+                            <div className="text-xs text-[#222d32]/50 uppercase font-bold tracking-wider mb-2">{item.label}</div>
+                            <div className="text-2xl font-bold text-[#222d32]/80 tabular-nums">{item.value.toLocaleString()}</div>
                         </motion.div>
                     ))}
                 </div>
@@ -886,24 +886,24 @@ function AIUsageTab({ aiUsage, onResetAll, resetting }: Readonly<{ aiUsage?: AIU
                 <div className="sticky top-0 z-10 pb-4 -mt-1"
                     style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
                     <CardHeader icon={<Terminal className="w-4 h-4" />} title="Recent AI Calls" iconColor="#a78bfa"
-                        right={<span className="text-xs text-white/40 font-mono tabular-nums">{usage.recentLogs.length} logs</span>} />
+                        right={<span className="text-xs text-[#222d32]/40 font-mono tabular-nums">{usage.recentLogs.length} logs</span>} />
                 </div>
                 <div className="space-y-1">
                     {usage.recentLogs.map((log, i) => (
                         <motion.div key={log.id}
                             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 + i * 0.01 }}
-                            className="group p-3 rounded-xl hover:bg-white/1.5 border border-transparent hover:border-white/4 transition-all">
+                            className="group p-3 rounded-xl hover:bg-[#edf1f6]/15 border border-transparent hover:border-[#dde3ec]/40 transition-all">
                             <div className="flex items-start justify-between mb-1.5">
                                 <div className="flex items-center gap-2">
                                     <span className={`text-[11px] font-black uppercase tracking-tighter px-2 py-0.5 rounded ${getStatusBadgeClass(log.status)}`}>
                                         {log.status}
                                     </span>
-                                    <span className="text-xs text-white/35 font-mono">{log.endpoint}</span>
+                                    <span className="text-xs text-[#222d32]/35 font-mono">{log.endpoint}</span>
                                 </div>
-                                <span className="text-xs text-white/15 tabular-nums">{timeAgo(log.createdAt.toString())}</span>
+                                <span className="text-xs text-[#222d32]/15 tabular-nums">{timeAgo(log.createdAt.toString())}</span>
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-white/40">
+                            <div className="flex items-center gap-3 text-xs text-[#222d32]/40">
                                 {log.totalTokens && <span>Tokens: {log.totalTokens}</span>}
                                 {log.responseTimeMs && <span>Time: {log.responseTimeMs}ms</span>}
                                 {log.studentId && <span>Student: {log.studentId}</span>}
@@ -929,33 +929,33 @@ function LogsTab({ logs }: Readonly<{ logs: Record<string, unknown>[] }>) {
             <div className="sticky top-0 z-10 pb-4 -mt-1"
                 style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
                 <CardHeader icon={<Terminal className="w-4 h-4" />} title="System Activity Logs" iconColor="#a78bfa"
-                    right={<span className="text-xs text-white/40 font-mono tabular-nums">{logs.length} entries</span>} />
+                    right={<span className="text-xs text-[#222d32]/40 font-mono tabular-nums">{logs.length} entries</span>} />
             </div>
             <div className="space-y-1 mt-2">
                 {logs.map((rawLog: Record<string, unknown>, _i: number) => {
                     const log = rawLog as { id: number; type: string; created_at: string | Date; message: string; event_kind?: string; course_id?: string; target_id?: string; details?: Record<string, unknown> };
                     return (
-                        <div key={log.id} className="group hover:bg-white/1.5 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-white/4">
+                        <div key={log.id} className="group hover:bg-[#edf1f6]/15 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 cursor-default border border-transparent hover:border-[#dde3ec]/40">
                             <div className="flex items-center justify-between mb-1">
                                 <span className={`text-[11px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded ${getLogTypeBadgeClass(log.type)}`}>
                                     {log.type}
                                 </span>
-                                <span className="text-xs text-white/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
+                                <span className="text-xs text-[#222d32]/15 tabular-nums">{new Date(log.created_at).toLocaleString()}</span>
                             </div>
-                            <p className="text-xs text-white/70 font-medium mb-1">{log.message}</p>
+                            <p className="text-xs text-[#222d32]/70 font-medium mb-1">{log.message}</p>
 
                             {/* Display new relational columns if they exist */}
                             {(log.event_kind || log.course_id || log.target_id) && (
                                 <div className="flex flex-wrap gap-2 mt-2 mb-1">
-                                    {log.event_kind && <span className="text-xs text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Event: {log.event_kind}</span>}
-                                    {log.course_id && <span className="text-xs text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Course ID: {log.course_id}</span>}
-                                    {log.target_id && <span className="text-xs text-white/50 bg-white/5 px-2 py-0.5 rounded-full font-mono">Target: {log.target_id}</span>}
+                                    {log.event_kind && <span className="text-xs text-[#222d32]/50 bg-[#edf1f6] px-2 py-0.5 rounded-full font-mono">Event: {log.event_kind}</span>}
+                                    {log.course_id && <span className="text-xs text-[#222d32]/50 bg-[#edf1f6] px-2 py-0.5 rounded-full font-mono">Course ID: {log.course_id}</span>}
+                                    {log.target_id && <span className="text-xs text-[#222d32]/50 bg-[#edf1f6] px-2 py-0.5 rounded-full font-mono">Target: {log.target_id}</span>}
                                 </div>
                             )}
 
                             {log.details && Object.keys(log.details as object).length > 0 && (
-                                <div className="mt-1.5 p-2 rounded-lg bg-black/40 border border-white/5 overflow-x-auto">
-                                    <pre className="text-xs text-white/50 font-mono italic">
+                                <div className="mt-1.5 p-2 rounded-lg bg-[#222d32]/40 border border-[#dde3ec] overflow-x-auto">
+                                    <pre className="text-xs text-[#222d32]/50 font-mono italic">
                                         {JSON.stringify(log.details, null, 2)}
                                     </pre>
                                 </div>
@@ -976,22 +976,22 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                     <div className="sticky top-0 z-10 pb-4 -mt-1"
                         style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
                         <CardHeader icon={<Monitor className="w-4 h-4" />} title="Devices & Browsers" iconColor="#22d3ee"
-                            right={<span className="text-xs text-white/40 font-mono tabular-nums">{stats.deviceBreakdown.length}</span>} />
+                            right={<span className="text-xs text-[#222d32]/40 font-mono tabular-nums">{stats.deviceBreakdown.length}</span>} />
                     </div>
                     <div className="space-y-3.5">
                         {stats.deviceBreakdown.map((d, i) => {
                             const pct = Math.round((d.count / totalDeviceCount) * 100);
                             const isMobile = /ios|android/i.test(d.os);
                             return (
-                                <div key={`${d.os}-${d.browser}`} className="group hover:bg-white/1.5 rounded-xl px-2 py-1.5 -mx-1 transition-all duration-200 cursor-default">
+                                <div key={`${d.os}-${d.browser}`} className="group hover:bg-[#edf1f6]/15 rounded-xl px-2 py-1.5 -mx-1 transition-all duration-200 cursor-default">
                                     <div className="flex items-center justify-between mb-1.5">
                                         <div className="flex items-center gap-2">
                                             {isMobile ? <Smartphone className="w-3.5 h-3.5 text-cyan-400/40" /> : <Globe className="w-3.5 h-3.5 text-cyan-400/40" />}
-                                            <span className="text-xs text-white/50 font-medium">{d.os} · {d.browser}</span>
+                                            <span className="text-xs text-[#222d32]/50 font-medium">{d.os} · {d.browser}</span>
                                         </div>
-                                        <span className="text-xs font-mono text-white/50 tabular-nums">{d.count} ({pct}%)</span>
+                                        <span className="text-xs font-mono text-[#222d32]/50 tabular-nums">{d.count} ({pct}%)</span>
                                     </div>
-                                    <div className="h-1.5 bg-white/3 rounded-full overflow-hidden">
+                                    <div className="h-1.5 bg-[#edf1f6]/30 rounded-full overflow-hidden">
                                         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                                             transition={{ duration: 0.7, delay: i * 0.04 }}
                                             className="h-full rounded-full"
@@ -1008,7 +1008,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                     <div className="sticky top-0 z-10 pb-4 -mt-1"
                         style={{ background: 'linear-gradient(180deg, rgba(14,14,24,0.95) 80%, transparent 100%)' }}>
                         <CardHeader icon={<Clock className="w-4 h-4" />} title="Recent Activity" iconColor="#fb7185"
-                            right={<span className="text-xs text-white/40 font-mono tabular-nums">{stats.recentActivity.length}</span>} />
+                            right={<span className="text-xs text-[#222d32]/40 font-mono tabular-nums">{stats.recentActivity.length}</span>} />
                     </div>
                     <div className="space-y-1">
                         {stats.recentActivity.map((act, i) => {
@@ -1018,7 +1018,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
 
                             return (
                                 <motion.div key={`${act.student_id}-${act.time}-${i}`} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
-                                    className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-white/1.5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-default">
+                                    className="group flex flex-col gap-2 p-3 rounded-xl hover:bg-[#edf1f6]/15 border border-transparent hover:border-[#dde3ec] transition-all duration-200 cursor-default">
                                     <div className="flex items-start gap-3">
                                         <div className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                                             style={{ background: `linear-gradient(135deg, ${iconBg}, transparent)`, border: `1px solid ${borderColor}` }}>
@@ -1026,23 +1026,23 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <p className="text-xs text-white/45 font-medium truncate">
-                                                    <span className="font-mono text-white/50">{act.student_id === 'Anonymous' ? 'Anon' : `${act.student_id}`}</span>{' '}
+                                                <p className="text-xs text-[#222d32]/45 font-medium truncate">
+                                                    <span className="font-mono text-[#222d32]/50">{act.student_id === 'Anonymous' ? 'Anon' : `${act.student_id}`}</span>{' '}
                                                     • {act.ip}
                                                 </p>
-                                                <p className="text-xs text-white/15 tabular-nums shrink-0">{timeAgo(act.time)}</p>
+                                                <p className="text-xs text-[#222d32]/15 tabular-nums shrink-0">{timeAgo(act.time)}</p>
                                             </div>
-                                            <p className="text-[11px] text-white/70 mt-0.5 font-semibold">
+                                            <p className="text-[11px] text-[#222d32]/70 mt-0.5 font-semibold">
                                                 {act.detail}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap gap-2 ml-10">
-                                        <span className="px-1.5 py-0.5 rounded bg-white/3 text-[11px] text-white/50 font-medium">
+                                        <span className="px-1.5 py-0.5 rounded bg-[#edf1f6]/30 text-[11px] text-[#222d32]/50 font-medium">
                                             {act.os} · {act.browser}
                                         </span>
                                         {act.vendor && (
-                                            <span className="px-1.5 py-0.5 rounded bg-white/3 text-[11px] text-white/50 font-medium">
+                                            <span className="px-1.5 py-0.5 rounded bg-[#edf1f6]/30 text-[11px] text-[#222d32]/50 font-medium">
                                                 {act.vendor}
                                             </span>
                                         )}
@@ -1057,7 +1057,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
 
             <GlassCard delay={0.15}>
                 <CardHeader icon={<Flame className="w-4 h-4" />} title="Visitor Heatmap" iconColor="#fb923c"
-                    right={<span className="text-xs text-white/40">Activity by hour and day</span>} />
+                    right={<span className="text-xs text-[#222d32]/40">Activity by hour and day</span>} />
                 <div className="mt-4">
                     <Heatmap data={stats.heatmap} />
                 </div>
@@ -1088,7 +1088,7 @@ function CardHeader({ icon, title, iconColor, right }: Readonly<{ icon: React.Re
                     style={{ background: `${iconColor}15`, border: `1px solid ${iconColor}20`, color: iconColor }}>
                     {icon}
                 </div>
-                <h2 className="text-sm font-semibold text-white/75">{title}</h2>
+                <h2 className="text-sm font-semibold text-[#222d32]/75">{title}</h2>
             </div>
             {right}
         </div>
@@ -1106,12 +1106,12 @@ function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: Readon
         >
             {/* Color accent glow */}
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-linear-to-br ${gradient}`} />
-            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-white"
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[#222d32]"
                 style={{ background: `${iconBg}25`, border: `1px solid ${iconBg}30` }}>
                 {icon}
             </div>
             <div className="relative min-w-0 flex-1">
-                <div className="text-[11px] text-white/50 uppercase font-bold tracking-widest mb-0.5">{label}</div>
+                <div className="text-[11px] text-[#222d32]/50 uppercase font-bold tracking-widest mb-0.5">{label}</div>
                 <div className="text-lg font-bold truncate tabular-nums">{value}</div>
             </div>
             {badge && (
@@ -1128,7 +1128,7 @@ function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: Readon
 function Th({ children, sortable, onClick }: Readonly<{ children: React.ReactNode; sortable?: boolean; onClick?: () => void }>) {
     return (
         <th onClick={onClick}
-            className={`text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4 ${sortable ? 'cursor-pointer select-none hover:text-white/45 transition-colors' : ''}`}>
+            className={`text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4 ${sortable ? 'cursor-pointer select-none hover:text-[#222d32]/45 transition-colors' : ''}`}>
             <span className="inline-flex items-center gap-1">{children}</span>
         </th>
     );
@@ -1194,8 +1194,8 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                             key={mode}
                             onClick={() => setViewMode(mode as 'chart' | 'table')}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${viewMode === mode
-                                ? 'bg-white/8 text-white/70 border border-white/10'
-                                : 'text-white/40 hover:text-white/40 border border-transparent'
+                                ? 'bg-[#edf1f6]/80 text-[#222d32]/70 border border-[#dde3ec]'
+                                : 'text-[#222d32]/40 hover:text-[#222d32]/40 border border-transparent'
                                 }`}
                         >
                             {mode === 'chart' ? 'Visual' : 'Details'}
@@ -1204,7 +1204,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                 </div>
                 {selectedMajor && (
                     <button onClick={() => setSelectedMajor(null)}
-                        className="text-xs text-white/50 hover:text-white/50 transition-colors font-medium">
+                        className="text-xs text-[#222d32]/50 hover:text-[#222d32]/50 transition-colors font-medium">
                         Clear Selection
                     </button>
                 )}
@@ -1305,35 +1305,35 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                 {/* Center content */}
                                 {activeSeg && activeStats ? (
                                     <>
-                                        <text x={cx} y={cy - 14} textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 22 }}>
+                                        <text x={cx} y={cy - 14} textAnchor="middle" className="fill-[#222d32] font-bold" style={{ fontSize: 22 }}>
                                             {activeSeg.count}
                                         </text>
                                         <text x={cx} y={cy + 2} textAnchor="middle" style={{ fontSize: 7.5, letterSpacing: '0.12em', fill: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>
                                             {formatMajor(activeSeg.major).toUpperCase()}
                                         </text>
-                                        <text x={cx} y={cy + 16} textAnchor="middle" className="fill-white/25" style={{ fontSize: 8 }}>
+                                        <text x={cx} y={cy + 16} textAnchor="middle" className="fill-[#222d32]/25" style={{ fontSize: 8 }}>
                                             Avg {activeStats.avgProgress}% done
                                         </text>
                                     </>
                                 ) : (
                                     <>
-                                        <text x={cx} y={cy - 10} textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 28 }}>
+                                        <text x={cx} y={cy - 10} textAnchor="middle" className="fill-[#222d32] font-bold" style={{ fontSize: 28 }}>
                                             {animTotal}
                                         </text>
-                                        <text x={cx} y={cy + 6} textAnchor="middle" className="fill-white/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.15em' }}>
+                                        <text x={cx} y={cy + 6} textAnchor="middle" className="fill-[#222d32]/20 font-bold" style={{ fontSize: 8, letterSpacing: '0.15em' }}>
                                             STUDENTS
                                         </text>
-                                        <text x={cx} y={cy + 18} textAnchor="middle" className="fill-white/10" style={{ fontSize: 7, letterSpacing: '0.08em' }}>
+                                        <text x={cx} y={cy + 18} textAnchor="middle" className="fill-[#222d32]/10" style={{ fontSize: 7, letterSpacing: '0.08em' }}>
                                             CLICK TO EXPLORE
                                         </text>
                                     </>
                                 )}
 
                                 {/* Ring labels */}
-                                <text x={size - 4} y={cy - outerRadius + 4} textAnchor="end" className="fill-white/10" style={{ fontSize: 6, letterSpacing: '0.1em' }}>
+                                <text x={size - 4} y={cy - outerRadius + 4} textAnchor="end" className="fill-[#222d32]/10" style={{ fontSize: 6, letterSpacing: '0.1em' }}>
                                     COUNT
                                 </text>
-                                <text x={size - 4} y={cy - innerRadius + 4} textAnchor="end" className="fill-white/8" style={{ fontSize: 6, letterSpacing: '0.1em' }}>
+                                <text x={size - 4} y={cy - innerRadius + 4} textAnchor="end" className="fill-[#222d32]/8" style={{ fontSize: 6, letterSpacing: '0.1em' }}>
                                     PROGRESS
                                 </text>
                             </svg>
@@ -1356,7 +1356,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                             }}>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <span className="text-sm">{MAJOR_ICONS[activeSeg.major] || '📚'}</span>
-                                                <span className="text-[11px] font-semibold text-white/80">{formatMajor(activeSeg.major)}</span>
+                                                <span className="text-[11px] font-semibold text-[#222d32]/80">{formatMajor(activeSeg.major)}</span>
                                                 <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-md"
                                                     style={{ background: `${MAJOR_COLORS[activeSeg.major] || fallbackColor}20`, color: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>
                                                     #{activeSeg.rank}
@@ -1364,16 +1364,16 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                             </div>
                                             <div className="grid grid-cols-3 gap-3 text-center">
                                                 <div>
-                                                    <div className="text-sm font-bold text-white tabular-nums">{activeSeg.count}</div>
-                                                    <div className="text-xs text-white/50 uppercase font-bold">Students</div>
+                                                    <div className="text-sm font-bold text-[#222d32] tabular-nums">{activeSeg.count}</div>
+                                                    <div className="text-xs text-[#222d32]/50 uppercase font-bold">Students</div>
                                                 </div>
                                                 <div>
                                                     <div className="text-sm font-bold tabular-nums" style={{ color: MAJOR_COLORS[activeSeg.major] || fallbackColor }}>{activeStats.avgCH}</div>
-                                                    <div className="text-xs text-white/50 uppercase font-bold">Avg CH</div>
+                                                    <div className="text-xs text-[#222d32]/50 uppercase font-bold">Avg CH</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-sm font-bold text-white tabular-nums">{activeStats.avgProgress}%</div>
-                                                    <div className="text-xs text-white/50 uppercase font-bold">Progress</div>
+                                                    <div className="text-sm font-bold text-[#222d32] tabular-nums">{activeStats.avgProgress}%</div>
+                                                    <div className="text-xs text-[#222d32]/50 uppercase font-bold">Progress</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1444,21 +1444,21 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                             {/* Name + bars */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs text-white/55 font-medium group-hover:text-white/80 transition-colors truncate">
+                                                    <span className="text-xs text-[#222d32]/55 font-medium group-hover:text-[#222d32]/80 transition-colors truncate">
                                                         {formatMajor(seg.major)}
                                                     </span>
                                                     <div className="flex items-center gap-2 shrink-0 ml-2">
-                                                        <span className="text-xs font-mono text-white/50 tabular-nums">
+                                                        <span className="text-xs font-mono text-[#222d32]/50 tabular-nums">
                                                             {stats?.avgProgress ?? 0}%
                                                         </span>
-                                                        <span className="text-xs font-mono text-white/40 tabular-nums">
-                                                            {seg.count} <span className="text-white/15">({pctRounded}%)</span>
+                                                        <span className="text-xs font-mono text-[#222d32]/40 tabular-nums">
+                                                            {seg.count} <span className="text-[#222d32]/15">({pctRounded}%)</span>
                                                         </span>
                                                     </div>
                                                 </div>
                                                 {/* Stacked bar: distribution + progress */}
                                                 <div className="flex items-center gap-1.5">
-                                                    <div className="flex-1 h-1.5 bg-white/4 rounded-full overflow-hidden">
+                                                    <div className="flex-1 h-1.5 bg-[#edf1f6]/40 rounded-full overflow-hidden">
                                                         <motion.div
                                                             className="h-full rounded-full"
                                                             initial={{ width: 0 }}
@@ -1470,7 +1470,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                             }}
                                                         />
                                                     </div>
-                                                    <div className="w-12 h-1.5 bg-white/3 rounded-full overflow-hidden" title="Avg progress">
+                                                    <div className="w-12 h-1.5 bg-[#edf1f6]/30 rounded-full overflow-hidden" title="Avg progress">
                                                         <motion.div
                                                             className="h-full rounded-full"
                                                             initial={{ width: 0 }}
@@ -1490,7 +1490,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                 transition={{ duration: 0.2 }}
                                                 className="shrink-0"
                                             >
-                                                <ChevronDown className="w-3.5 h-3.5 text-white/15" />
+                                                <ChevronDown className="w-3.5 h-3.5 text-[#222d32]/15" />
                                             </motion.div>
                                         </div>
 
@@ -1519,15 +1519,15 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                                         style={{ color: `${MAJOR_COLORS[seg.major] || fallbackColor}80` }}>
                                                                         {item.icon}
                                                                     </div>
-                                                                    <div className="text-xs font-bold text-white/60 tabular-nums">{item.value}</div>
-                                                                    <div className="text-[7px] text-white/40 uppercase font-bold tracking-wide">{item.label}</div>
+                                                                    <div className="text-xs font-bold text-[#222d32]/60 tabular-nums">{item.value}</div>
+                                                                    <div className="text-[7px] text-[#222d32]/40 uppercase font-bold tracking-wide">{item.label}</div>
                                                                 </div>
                                                             ))}
                                                         </div>
 
                                                         {/* Mini progress distribution */}
                                                         <div>
-                                                            <div className="text-xs text-white/40 uppercase font-bold tracking-wider mb-2">Progress Breakdown</div>
+                                                            <div className="text-xs text-[#222d32]/40 uppercase font-bold tracking-wider mb-2">Progress Breakdown</div>
                                                             <div className="flex items-end gap-1.5" style={{ height: 36 }}>
                                                                 {['0-25%', '26-50%', '51-75%', '76-100%'].map((label, bi) => {
                                                                     const bucketVal = stats.progressBuckets[bi];
@@ -1544,7 +1544,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                                                 className="w-full rounded-sm"
                                                                                 style={{ background: bucketColor.bar }}
                                                                             />
-                                                                            <span className="text-[6px] text-white/15 font-mono">{label}</span>
+                                                                            <span className="text-[6px] text-[#222d32]/15 font-mono">{label}</span>
                                                                         </div>
                                                                     );
                                                                 })}
@@ -1567,14 +1567,14 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                                         transform="rotate(-90 22 22)"
                                                                         style={{ filter: `drop-shadow(0 0 4px ${MAJOR_COLORS[seg.major] || fallbackColor}50)` }}
                                                                     />
-                                                                    <text x="22" y="24" textAnchor="middle" className="fill-white font-bold" style={{ fontSize: 11 }}>
+                                                                    <text x="22" y="24" textAnchor="middle" className="fill-[#222d32] font-bold" style={{ fontSize: 11 }}>
                                                                         {stats.avgProgress}%
                                                                     </text>
                                                                 </svg>
                                                             </div>
                                                             <div className="text-left">
-                                                                <div className="text-xs text-white/40 font-medium">Average Degree Completion</div>
-                                                                <div className="text-[11px] text-white/40 mt-0.5">
+                                                                <div className="text-xs text-[#222d32]/40 font-medium">Average Degree Completion</div>
+                                                                <div className="text-[11px] text-[#222d32]/40 mt-0.5">
                                                                     {stats.avgCH} of 135 credit hours
                                                                 </div>
                                                             </div>
@@ -1594,14 +1594,14 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
-                                    <tr className="border-b border-white/4">
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4">#</th>
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4">Major</th>
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Students</th>
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Avg Courses</th>
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Avg CH</th>
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Max CH</th>
-                                        <th className="text-xs text-white/50 uppercase tracking-widest font-bold pb-3 pr-4">Avg Progress</th>
+                                    <tr className="border-b border-[#dde3ec]/40">
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4">#</th>
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4">Major</th>
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Students</th>
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Avg Courses</th>
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Avg CH</th>
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4 text-right">Max CH</th>
+                                        <th className="text-xs text-[#222d32]/50 uppercase tracking-widest font-bold pb-3 pr-4">Avg Progress</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1612,7 +1612,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                         return (
                                             <motion.tr key={seg.major}
                                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
-                                                className="border-b border-white/2 hover:bg-white/1.5 transition-colors">
+                                                className="border-b border-[#dde3ec]/20 hover:bg-[#edf1f6]/15 transition-colors">
                                                 <td className="py-3 pr-4">
                                                     <span className="text-xs font-black tabular-nums"
                                                         style={{ color: RANK_MEDALS[seg.rank] || 'rgba(255,255,255,0.2)' }}>
@@ -1623,27 +1623,27 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm">{MAJOR_ICONS[seg.major] || '📚'}</span>
                                                         <div className="w-3 h-3 rounded-md" style={{ background: MAJOR_GRADIENTS[seg.major] || fallbackGradient }} />
-                                                        <span className="text-xs text-white/55 font-medium">{formatMajor(seg.major)}</span>
+                                                        <span className="text-xs text-[#222d32]/55 font-medium">{formatMajor(seg.major)}</span>
                                                     </div>
                                                 </td>
-                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/45 tabular-nums">
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-[#222d32]/45 tabular-nums">
                                                     {seg.count}
-                                                    <span className="text-white/15 ml-1">({Math.round(seg.pct * 100)}%)</span>
+                                                    <span className="text-[#222d32]/15 ml-1">({Math.round(seg.pct * 100)}%)</span>
                                                 </td>
-                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/40 tabular-nums">{stats.avgCourses}</td>
-                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/40 tabular-nums">
-                                                    {stats.avgCH}<span className="text-white/15">/135</span>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-[#222d32]/40 tabular-nums">{stats.avgCourses}</td>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-[#222d32]/40 tabular-nums">
+                                                    {stats.avgCH}<span className="text-[#222d32]/15">/135</span>
                                                 </td>
-                                                <td className="py-3 pr-4 text-right text-xs font-mono text-white/35 tabular-nums">{stats.maxCH}</td>
+                                                <td className="py-3 pr-4 text-right text-xs font-mono text-[#222d32]/35 tabular-nums">{stats.maxCH}</td>
                                                 <td className="py-3 pr-4">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className="w-20 h-1.5 bg-white/4 rounded-full overflow-hidden">
+                                                        <div className="w-20 h-1.5 bg-[#edf1f6]/40 rounded-full overflow-hidden">
                                                             <motion.div initial={{ width: 0 }} animate={{ width: `${stats.avgProgress}%` }}
                                                                 transition={{ duration: 0.6, delay: i * 0.04 }}
                                                                 className="h-full rounded-full"
                                                                 style={{ background: barColor, boxShadow: `0 0 6px ${barColor}40` }} />
                                                         </div>
-                                                        <span className="text-xs font-mono text-white/50 w-8 tabular-nums">{stats.avgProgress}%</span>
+                                                        <span className="text-xs font-mono text-[#222d32]/50 w-8 tabular-nums">{stats.avgProgress}%</span>
                                                     </div>
                                                 </td>
                                             </motion.tr>
@@ -1734,7 +1734,7 @@ function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: numb
                         <line x1={points[hoverIdx].x} y1={PT} x2={points[hoverIdx].x} y2={PT + chartH}
                             stroke="rgba(96,165,250,0.3)" strokeWidth="1" strokeDasharray="3 3" />
                         <circle cx={points[hoverIdx].x} cy={points[hoverIdx].y} r="4"
-                            fill="#60a5fa" stroke="#0a0a0f" strokeWidth="2" />
+                            fill="#60a5fa" stroke="#edf1f6" strokeWidth="2" />
                         <circle cx={points[hoverIdx].x} cy={points[hoverIdx].y} r="8"
                             fill="rgba(96,165,250,0.15)" />
                     </>
@@ -1767,9 +1767,9 @@ function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: numb
                     }}>
                     <div className="px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
                         style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.95), rgba(20,20,40,0.95))', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-                        <span className="text-white/40">{data[hoverIdx].date.slice(5)}</span>{' · '}
-                        <span className="text-white font-bold">{data[hoverIdx].count}</span>
-                        <span className="text-white/50"> visits</span>
+                        <span className="text-[#222d32]/40">{data[hoverIdx].date.slice(5)}</span>{' · '}
+                        <span className="text-[#222d32] font-bold">{data[hoverIdx].count}</span>
+                        <span className="text-[#222d32]/50"> visits</span>
                     </div>
                 </div>
             )}
@@ -1789,12 +1789,12 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
         <div className="space-y-0.75">
             <div className="flex gap-0.75 ml-10">
                 {Array.from({ length: 24 }, (_, h) => (
-                    <div key={`hour-${h}`} className="flex-1 text-center text-[7px] text-white/12 font-mono font-bold">{h % 3 === 0 ? `${h}` : ''}</div>
+                    <div key={`hour-${h}`} className="flex-1 text-center text-[7px] text-[#222d32]/12 font-mono font-bold">{h % 3 === 0 ? `${h}` : ''}</div>
                 ))}
             </div>
             {grid.map((row, dayIdx) => (
                 <div key={`day-${DAYS[dayIdx]}`} className="flex items-center gap-0.75">
-                    <span className="w-8 text-[11px] text-white/40 font-mono text-right pr-1 font-bold">{DAYS[dayIdx]}</span>
+                    <span className="w-8 text-[11px] text-[#222d32]/40 font-mono text-right pr-1 font-bold">{DAYS[dayIdx]}</span>
                     {row.map((count, hourIdx) => {
                         const intensity = count / maxCount;
                         return (
@@ -1807,8 +1807,8 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
                                 style={{
                                     background: count === 0
                                         ? 'rgba(255,255,255,0.015)'
-                                        : `rgba(139, 92, 246, ${0.12 + intensity * 0.75})`,
-                                    boxShadow: intensity > 0.5 ? `0 0 8px rgba(139,92,246,${intensity * 0.3})` : 'none',
+                                        : `rgba(220, 72, 53, ${0.12 + intensity * 0.75})`,
+                                    boxShadow: intensity > 0.5 ? `0 0 8px rgba(220,72,53,${intensity * 0.3})` : 'none',
                                 }}
                             />
                         );
@@ -1816,15 +1816,15 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
                 </div>
             ))}
             <div className="flex items-center justify-end gap-1.5 mt-3">
-                <span className="text-xs text-white/15 font-bold">Less</span>
+                <span className="text-xs text-[#222d32]/15 font-bold">Less</span>
                 {[0, 0.2, 0.4, 0.7, 1].map((v) => (
                     <div key={`legend-${v}`} className="w-3.5 h-3.5 rounded-[3px]"
                         style={{
-                            background: v === 0 ? 'rgba(255,255,255,0.015)' : `rgba(139,92,246,${0.12 + v * 0.75})`,
-                            boxShadow: v > 0.5 ? `0 0 6px rgba(139,92,246,${v * 0.25})` : 'none'
+                            background: v === 0 ? 'rgba(255,255,255,0.015)' : `rgba(220,72,53,${0.12 + v * 0.75})`,
+                            boxShadow: v > 0.5 ? `0 0 6px rgba(220,72,53,${v * 0.25})` : 'none'
                         }} />
                 ))}
-                <span className="text-xs text-white/15 font-bold">More</span>
+                <span className="text-xs text-[#222d32]/15 font-bold">More</span>
             </div>
         </div>
     );
@@ -1833,10 +1833,10 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
 function Empty({ text }: Readonly<{ text: string }>) {
     return (
         <div className="flex flex-col items-center justify-center py-10 gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/3 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-white/10" />
+            <div className="w-8 h-8 rounded-full bg-[#edf1f6]/30 flex items-center justify-center">
+                <BarChart3 className="w-4 h-4 text-[#222d32]/10" />
             </div>
-            <p className="text-xs text-white/15 font-medium">{text}</p>
+            <p className="text-xs text-[#222d32]/15 font-medium">{text}</p>
         </div>
     );
 }
@@ -1849,27 +1849,27 @@ function SkeletonLoader() {
     const shimmer = 'relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/[0.03] before:to-transparent';
 
     return (
-        <div className="min-h-screen text-white">
+        <div className="min-h-screen text-[#222d32]">
             <style>{`@keyframes shimmer { to { transform: translateX(100%); } }`}</style>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
                 {/* Header skeleton */}
                 <div className="space-y-3">
-                    <div className={`h-4 w-28 rounded-lg bg-white/4 ${shimmer}`} />
-                    <div className={`h-8 w-56 rounded-xl bg-white/4 ${shimmer}`} />
-                    <div className={`h-3 w-40 rounded-lg bg-white/3 ${shimmer}`} />
+                    <div className={`h-4 w-28 rounded-lg bg-[#edf1f6]/40 ${shimmer}`} />
+                    <div className={`h-8 w-56 rounded-xl bg-[#edf1f6]/40 ${shimmer}`} />
+                    <div className={`h-3 w-40 rounded-lg bg-[#edf1f6]/30 ${shimmer}`} />
                 </div>
                 {/* Stat cards skeleton */}
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                     {new Array(5).fill(null).map((_, i) => (
-                        <div key={`skeleton-${i + 1}`} className={`h-20 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
+                        <div key={`skeleton-${i + 1}`} className={`h-20 rounded-2xl bg-[#edf1f6]/20 border border-[#dde3ec]/30 ${shimmer}`} />
                     ))}
                 </div>
                 {/* Chart skeleton */}
-                <div className={`h-64 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
+                <div className={`h-64 rounded-2xl bg-[#edf1f6]/20 border border-[#dde3ec]/30 ${shimmer}`} />
                 {/* Two columns skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className={`h-72 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
-                    <div className={`h-72 rounded-2xl bg-white/2 border border-white/3 ${shimmer}`} />
+                    <div className={`h-72 rounded-2xl bg-[#edf1f6]/20 border border-[#dde3ec]/30 ${shimmer}`} />
+                    <div className={`h-72 rounded-2xl bg-[#edf1f6]/20 border border-[#dde3ec]/30 ${shimmer}`} />
                 </div>
             </div>
         </div>
@@ -1882,9 +1882,9 @@ function ErrorState({ onRetry }: Readonly<{ onRetry: () => void }>) {
             <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/15 flex items-center justify-center">
                 <Activity className="w-5 h-5 text-red-400/60" />
             </div>
-            <p className="text-sm text-white/50 font-medium">Failed to load analytics</p>
+            <p className="text-sm text-[#222d32]/50 font-medium">Failed to load analytics</p>
             <button onClick={onRetry}
-                className="text-xs font-semibold text-white/40 hover:text-white/70 transition-colors px-4 py-2 rounded-xl border border-white/6 hover:border-white/10">
+                className="text-xs font-semibold text-[#222d32]/40 hover:text-[#222d32]/70 transition-colors px-4 py-2 rounded-xl border border-[#dde3ec]/60 hover:border-[#dde3ec]">
                 Try Again
             </button>
         </div>
