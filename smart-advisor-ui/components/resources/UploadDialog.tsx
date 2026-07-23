@@ -2,18 +2,11 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Link2, FileUp, Search, File, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { X, Upload, Link2, FileUp, Search, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 const SEASONS = ["Spring", "Summer", "Fall", "Winter"] as const;
 const YEARS = Array.from({ length: 21 }, (_, i) => 2020 + i);
-
-const ALLOWED_EXTENSIONS = new Set([
-    "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx",
-    "txt", "zip", "rar",
-    "png", "jpg", "jpeg", "gif", "webp",
-    "mp4", "webm",
-]);
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -31,10 +24,6 @@ function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getFileExtension(filename: string): string {
-    return filename.split(".").pop()?.toLowerCase() || "";
 }
 
 interface Course {
@@ -209,13 +198,8 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     }
 
     function validateFile(selectedFile: File): boolean {
-        const ext = getFileExtension(selectedFile.name);
-        if (!ALLOWED_EXTENSIONS.has(ext)) {
-            toast(`File type .${ext} is not allowed`, "error");
-            return false;
-        }
         if (selectedFile.size > MAX_FILE_SIZE) {
-            toast(`${selectedFile.name} is too large. Max 50 MB`, "error");
+            toast(`${selectedFile.name} is too large (${formatFileSize(selectedFile.size)}). Maximum size is 50 MB.`, "error");
             return false;
         }
         return true;
@@ -690,7 +674,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                     {dragActive ? "Drop files here" : uploadFiles.length > 0 ? "Add more files" : "Drop files or click to browse"}
                                                 </p>
                                                 <p className="text-[11px] text-[#5a6472] mt-1">
-                                                    PDF, Office, images, video, archives — max 50 MB each
+                                                    Any file type — max 50 MB each
                                                 </p>
                                             </div>
                                         </div>
@@ -699,7 +683,6 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                             type="file"
                                             multiple
                                             className="hidden"
-                                            accept={Array.from(ALLOWED_EXTENSIONS).map((e) => `.${e}`).join(",")}
                                             onChange={handleFileInputChange}
                                             tabIndex={-1}
                                         />

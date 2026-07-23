@@ -5,25 +5,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/r2";
 
-const ALLOWED_EXTENSIONS: Record<string, string> = {
-    pdf: "application/pdf",
-    png: "image/png",
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    gif: "image/gif",
-    webp: "image/webp",
-    mp4: "video/mp4",
-    webm: "video/webm",
-    txt: "text/plain",
-    zip: "application/zip",
-    rar: "application/x-rar-compressed",
-    doc: "application/msword",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ppt: "application/vnd.ms-powerpoint",
-    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    xls: "application/vnd.ms-excel",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-};
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 function generateKey(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() || "";
@@ -35,19 +17,25 @@ function generateKey(filename: string): string {
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json({ error: "You must be signed in to upload files." }, { status: 401 });
     }
 
     try {
-        const { filename, contentType } = await req.json();
+        const { filename, contentType, fileSize } = await req.json();
 
         if (!filename || !contentType) {
-            return NextResponse.json({ error: "filename and contentType required" }, { status: 400 });
+            return NextResponse.json({ error: "Missing required fields: filename and contentType are both required." }, { status: 400 });
         }
 
-        const ext = filename.split(".").pop()?.toLowerCase() || "";
-        if (!ALLOWED_EXTENSIONS[ext]) {
-            return NextResponse.json({ error: `File type .${ext} is not allowed` }, { status: 400 });
+        if (typeof fileSize === "number" && fileSize > MAX_FILE_SIZE) {
+            return NextResponse.json(
+                { error: `File "${filename}" is too large (${(fileSize / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is 50 MB.` },
+                { status: 413 }
+            );
+        }
+
+        if (filename.length > 255) {
+            return NextResponse.json({ error: "Filename is too long. Maximum 255 characters." }, { status: 400 });
         }
 
         const key = generateKey(filename);
@@ -66,7 +54,7 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error("[directory] Presign error:", error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to generate upload URL" },
+            { error: error instanceof Error ? error.message : "Failed to generate upload URL. Please try again." },
             { status: 500 }
         );
     }
