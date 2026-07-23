@@ -78,6 +78,7 @@ model User {
   study_sessions       StudySession[]
   user_badges          UserBadge[]
   visitor_logs         VisitorLog[]
+  resources            Resource[]
 
   @@map("users")
 }
@@ -353,4 +354,39 @@ model AIUsageLog {
   @@index([created_at(sort: Desc)])
   @@index([model_used])
   @@map("ai_usage_logs")
+}
+
+model Resource {
+  id           Int       @id @default(autoincrement())
+  course_code  String
+  title        String
+  type         String
+  url          String
+  file_path    String?
+  description  String?
+  uploaded_by  String?
+  semester     String?
+  report_count Int       @default(0)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  user_id      Int?
+  user         User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  reports      Report[]
+
+  @@index([course_code])
+  @@index([created_at(sort: Desc)])
+  @@map("resources")
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  resource_id Int
+  reason      String
+  detail      String?
+  created_by  String?
+  created_at  DateTime @default(now())
+  resource    Resource @relation(fields: [resource_id], references: [id], onDelete: Cascade)
+
+  @@index([resource_id])
+  @@map("reports")
 }

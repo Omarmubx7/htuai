@@ -44,20 +44,20 @@ function ExamTipItem({ tip }: ExamTipItemProps) {
     if (parsed.day || parsed.course || parsed.hours) {
         // Structured format
         return (
-            <div className="text-xs text-gray-700 dark:text-white/70 space-y-0.5">
-                <p className="font-semibold text-gray-900 dark:text-white/90">
+            <div className="text-xs text-gray-700 space-y-0.5">
+                <p className="font-semibold text-gray-900">
                     {parsed.day && `${parsed.day}`}
                     {parsed.day && parsed.course && ' • '}
                     {parsed.course && `${parsed.course}`}
                 </p>
-                {parsed.hours && <p className="text-gray-600 dark:text-white/60">⏱️ {parsed.hours} hours</p>}
-                <p className="text-gray-700 dark:text-white/70">{parsed.text}</p>
+                {parsed.hours && <p className="text-gray-600">⏱️ {parsed.hours} hours</p>}
+                <p className="text-gray-700">{parsed.text}</p>
             </div>
         );
     }
     
     // Plain text format
-    return <p className="text-xs text-gray-700 dark:text-white/70">✓ {parsed.text}</p>;
+    return <p className="text-xs text-gray-700">✓ {parsed.text}</p>;
 }
 
 export interface CourseTrackerViewProps {
@@ -583,7 +583,19 @@ function CourseTrackerView({
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-24 sm:pb-36 space-y-6 sm:space-y-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-24 sm:pb-36 space-y-6 sm:space-y-12 relative">
+            {/* Ambient effects */}
+            <div className="pointer-events-none fixed inset-0 overflow-hidden">
+                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-350 h-200"
+                    style={{ background: 'radial-gradient(ellipse 50% 35% at 50% 0%, rgba(220,72,53,0.08) 0%, transparent 70%)' }} />
+                <div className="absolute -right-40 top-1/3 w-150 h-150"
+                    style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%)' }} />
+                <div className="absolute -left-40 bottom-1/4 w-125 h-125"
+                    style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.03) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.015]"
+                    style={{ backgroundImage: 'linear-gradient(#222d32 1px, transparent 1px), linear-gradient(90deg, #222d32 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+            </div>
+
             <ConfirmDialog
                 isOpen={showResetConfirm}
                 title="Reset All Progress"

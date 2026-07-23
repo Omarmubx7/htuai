@@ -168,27 +168,27 @@ export default function AddCourseModal({ isOpen, onClose, semesterId, existingCo
                     initial={{ scale: 0.95, y: 20, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
                     exit={{ scale: 0.95, y: 20, opacity: 0 }}
-                    className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-3xl p-6 shadow-2xl overflow-visible"
+                    className="relative w-full max-w-sm bg-white border border-black/10 rounded-3xl p-6 shadow-2xl overflow-visible"
                 >
                     <button
                         onClick={onClose}
                         disabled={isSubmitting}
-                        className="absolute top-4 right-4 p-2 text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/80 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
+                        className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-900 hover:bg-black/10 rounded-full transition-colors disabled:opacity-50"
                     >
                         <X className="w-5 h-5" />
                     </button>
 
-                    <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Add Course</h3>
+                    <h3 className="text-xl font-bold mb-4 text-gray-900">Add Course</h3>
                     <div className="space-y-4">
                         {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-xs rounded-xl">
+                            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-xl">
                                 {error}
                             </div>
                         )}
                         <div className="relative">
-                            <label htmlFor="search-db" className="text-xs uppercase text-gray-500 dark:text-white/50 tracking-widest font-bold pl-1">Search Course (Database)</label>
+                            <label htmlFor="search-db" className="text-xs uppercase text-gray-500/50 tracking-widest font-bold pl-1">Search Course (Database)</label>
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-white/50" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400/50" />
                                 <input
                                     id="search-db"
                                     type="text"
@@ -200,17 +200,17 @@ export default function AddCourseModal({ isOpen, onClose, semesterId, existingCo
                                     }}
                                     onFocus={() => setShowSuggestions(true)}
                                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                    className="w-full mt-1 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors text-gray-900 dark:text-white"
+                                    className="w-full mt-1 bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors text-gray-900"
                                 />
                             </div>
 
                             {showSuggestions && searchQuery && filteredSuggestions.length > 0 && (
-                                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-800 border border-black/10 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto">
+                                <div className="absolute z-50 w-full mt-2 bg-white border border-black/10 rounded-xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto">
                                     {filteredSuggestions.map((c) => (
                                         <button
                                             key={c.code}
                                             type="button"
-                                            className="w-full px-4 py-2 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer text-sm flex justify-between items-center text-left"
+                                            className="w-full px-4 py-2 hover:bg-black/5 cursor-pointer text-sm flex justify-between items-center text-left"
                                             onClick={() => {
                                                 setNewCourse({ code: c.code, name: c.name, credits: c.credits });
                                                 setSearchQuery(c.name);
@@ -218,10 +218,10 @@ export default function AddCourseModal({ isOpen, onClose, semesterId, existingCo
                                             }}
                                         >
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-gray-900 dark:text-white/90 truncate max-w-[200px]">{c.name}</span>
-                                                <span className="text-xs text-gray-500 dark:text-white/40">{c.code}</span>
+                                                <span className="font-bold text-gray-900/90 truncate max-w-[200px]">{c.name}</span>
+                                                <span className="text-xs text-gray-500">{c.code}</span>
                                             </div>
-                                            <span className="text-xs bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-md text-gray-600 dark:text-white/60">{c.credits} CH</span>
+                                            <span className="text-xs bg-black/5 px-2 py-0.5 rounded-md text-gray-600/60">{c.credits} CH</span>
                                         </button>
                                     ))}
                                 </div>
@@ -230,35 +230,35 @@ export default function AddCourseModal({ isOpen, onClose, semesterId, existingCo
 
                         <div className="flex gap-3">
                             <div className="flex-1">
-                                <label htmlFor="new-code" className="text-xs uppercase text-gray-500 dark:text-white/50 tracking-widest font-bold pl-1">Course Code</label>
+                                <label htmlFor="new-code" className="text-xs uppercase text-gray-500/50 tracking-widest font-bold pl-1">Course Code</label>
                                 <input
                                     id="new-code"
                                     type="text" placeholder="e.g. CS101"
                                     value={newCourse.code} onChange={e => setNewCourse({ ...newCourse, code: e.target.value })}
-                                    className="w-full mt-1 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors uppercase text-gray-900 dark:text-white"
+                                    className="w-full mt-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors uppercase text-gray-900"
                                 />
                             </div>
                             <div className="flex-1">
-                                <label htmlFor="new-credits" className="text-xs uppercase text-gray-500 dark:text-white/50 tracking-widest font-bold pl-1">Credits</label>
+                                <label htmlFor="new-credits" className="text-xs uppercase text-gray-500/50 tracking-widest font-bold pl-1">Credits</label>
                                 <select
                                     id="new-credits"
                                     value={newCourse.credits} onChange={e => setNewCourse({ ...newCourse, credits: Number(e.target.value) })}
-                                    className="w-full mt-1 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors appearance-none text-gray-900 dark:text-white"
+                                    className="w-full mt-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors appearance-none text-gray-900"
                                 >
                                     {[1, 2, 3, 4, 5, 6].map(num => (
-                                        <option key={num} value={num} className="bg-white dark:bg-black text-gray-900 dark:text-white">{num} CH</option>
+                                        <option key={num} value={num} className="bg-white text-gray-900">{num} CH</option>
                                     ))}
                                 </select>
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="new-name" className="text-xs uppercase text-gray-500 dark:text-white/50 tracking-widest font-bold pl-1">Course Name</label>
+                            <label htmlFor="new-name" className="text-xs uppercase text-gray-500/50 tracking-widest font-bold pl-1">Course Name</label>
                             <input
                                 id="new-name"
                                 type="text" placeholder="e.g. Introduction to Programming"
                                 value={newCourse.name} onChange={e => setNewCourse({ ...newCourse, name: e.target.value })}
-                                className="w-full mt-1 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors text-gray-900 dark:text-white"
+                                className="w-full mt-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-blue-500 transition-colors text-gray-900"
                             />
                         </div>
 

@@ -144,34 +144,42 @@ input[type="range"]::-webkit-slider-runnable-track {
   }
 }
 
-/* ── LIGHT MODE COMPATIBILITY OVERRIDES ── */
+/* ── LIGHT MODE COMPATIBILITY ──────────────────────────── */
+/* Dark variant is disabled (line 20). All dark: classes are
+   dead code. We override only elements that were designed
+   for dark backgrounds and would be invisible on light bg.
+   text-white on colored buttons is LEFT ALONE (correct). */
 
-.bg-white\/1, .bg-white\/2, .bg-white\/3 { background-color: rgba(34,45,50,0.02) !important; }
-.bg-white\/5, .bg-white\/8 { background-color: rgba(34,45,50,0.04) !important; }
-.bg-white\/10, .bg-white\/15 { background-color: rgba(34,45,50,0.06) !important; }
-.bg-white\/20, .bg-white\/30, .bg-white\/40 { background-color: rgba(34,45,50,0.08) !important; }
-
+/* Border overrides: white borders → light-mode border color */
 .border-white\/5, .border-white\/6, .border-white\/8, .border-white\/10 { border-color: #dde3ec !important; }
 .border-white\/15, .border-white\/20, .border-white\/25, .border-white\/30 { border-color: rgba(221,227,236,0.8) !important; }
 
-.bg-black\/5, .bg-black\/10 { background-color: #edf1f6 !important; }
-.bg-black\/20, .bg-black\/30, .bg-black\/40,
-.bg-black\/50, .bg-black\/60, .bg-black\/70,
-.bg-black\/80, .bg-black\/90 { background-color: rgba(237,241,246,0.95) !important; }
+/* bg-white/* → preserve actual white transparency (visible on light bg) */
+.bg-white\/10 { background: rgba(255,255,255,0.10) !important; }
+.bg-white\/20 { background: rgba(255,255,255,0.20) !important; }
+.bg-white\/40 { background: rgba(255,255,255,0.40) !important; }
+.bg-white\/50 { background: rgba(255,255,255,0.50) !important; }
+.bg-white\/60 { background: rgba(255,255,255,0.60) !important; }
+.bg-white\/80 { background: rgba(255,255,255,0.80) !important; }
 
-.text-white { color: #222d32 !important; }
-.text-white\/20, .text-white\/30, .text-white\/40 { color: #92604c !important; }
-.text-white\/50, .text-white\/60 { color: #5a6472 !important; }
-.text-white\/70, .text-white\/80, .text-white\/90 { color: #222d32 !important; }
+/* bg-black/* → subtle dark tints on light bg */
+.bg-black\/5 { background: rgba(34,45,50,0.04) !important; }
+.bg-black\/10 { background: rgba(34,45,50,0.07) !important; }
+.bg-black\/20 { background: rgba(34,45,50,0.12) !important; }
+.bg-black\/50 { background: rgba(34,45,50,0.25) !important; }
 
+/* gray-* text overrides: ensure medium grays stay readable on light bg */
 .text-zinc-400, .text-neutral-400, .text-gray-400, .text-slate-400,
 .text-zinc-500, .text-neutral-500, .text-gray-500, .text-slate-500 { color: #5a6472 !important; }
 .text-zinc-300, .text-neutral-300, .text-gray-300, .text-slate-300 { color: #92604c !important; }
 
+/* Logo swap: show light logo, hide dark logo */
 .dark-logo { display: none !important; }
 .light-logo { display: block !important; }
 
+/* Progress bar segments */
 .h-2\.5.bg-black\/40, .h-1\.5.bg-white\/3, .h-1.bg-white\/3 { background-color: #dde3ec !important; }
 
+/* Dark-named backgrounds → light-mode equivalents */
 .bg-zinc-900, .bg-neutral-900, .bg-gray-900, .bg-slate-900 { background-color: #ffffff !important; }
 .bg-zinc-800, .bg-neutral-800, .bg-gray-800 { background-color: #edf1f6 !important; }

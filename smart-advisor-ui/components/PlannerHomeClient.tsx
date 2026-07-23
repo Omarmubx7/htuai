@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable sonarjs/cognitive-complexity */
-
 import { useState, useEffect, memo, useCallback, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -446,7 +444,19 @@ function PlannerHomeClient() {
     }
 
     return (
-        <div className="min-h-screen pb-24 selection:bg-[#dc4835]/30">
+        <div className="min-h-screen pb-24 selection:bg-[#dc4835]/30 relative">
+            {/* Ambient effects */}
+            <div className="pointer-events-none fixed inset-0 overflow-hidden">
+                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-350 h-200"
+                    style={{ background: 'radial-gradient(ellipse 50% 35% at 50% 0%, rgba(220,72,53,0.08) 0%, transparent 70%)' }} />
+                <div className="absolute -right-40 top-1/3 w-150 h-150"
+                    style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%)' }} />
+                <div className="absolute -left-40 bottom-1/4 w-125 h-125"
+                    style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.03) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.015]"
+                    style={{ backgroundImage: 'linear-gradient(#222d32 1px, transparent 1px), linear-gradient(90deg, #222d32 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+            </div>
+
             <LogSessionModal
                 isOpen={isLogSessionOpen}
                 onClose={() => setIsLogSessionOpen(false)}
@@ -478,7 +488,7 @@ function PlannerHomeClient() {
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
-                            className="p-2 rounded-xl bg-[#edf1f6] hover:bg-[#edf1f6] transition-colors relative"
+                            className="p-2 rounded-xl bg-[#edf1f6] hover:bg-[#dc4835]/10 transition-colors relative"
                         >
                             <Bell className="w-5 h-5 text-[#5a6472]" />
                             {summary?.upcomingEvents && summary.upcomingEvents.length > 0 && (
@@ -499,7 +509,7 @@ function PlannerHomeClient() {
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className="absolute right-0 mt-3 w-72 bg-white border border-[#dde3ec] p-4 rounded-3xl z-110 shadow-xl origin-top-right backdrop-blur-xl"
+                                        className="absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white border border-[#dde3ec] p-4 rounded-3xl z-110 shadow-xl origin-top-right backdrop-blur-xl"
                                     >
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-[#5a6472] mb-3 flex items-center gap-2">
                                             <Bell className="w-3 h-3" /> Academic Alerts
@@ -785,7 +795,7 @@ function PlannerHomeClient() {
                                     className="px-6 py-2.5 rounded-xl bg-[#dc4835] hover:bg-[#c03d2e] disabled:opacity-50 text-xs font-bold text-white transition-all flex items-center gap-2 group shadow-[0_0_20px_rgba(220,72,53,0.3)]"
                                 >
                                     {generatingSchedule ? (
-                                        <div className="w-3 h-3 rounded-full bg-[#edf1f6]0 animate-ping mr-1" />
+                                        <div className="w-3 h-3 rounded-full bg-white animate-ping mr-1" />
                                     ) : (
                                         <Sparkles className="w-4 h-4" />
                                     )}

@@ -52,8 +52,8 @@ export async function checkDailyAiUsageLimit(
     limit = 2,
     userEmail?: string
 ): Promise<DailyAiUsageLimit> {
-    // Dev mode: unlimited access for dev email
-    if (userEmail === DEV_EMAIL) {
+    // Dev mode: unlimited access for dev email (disabled in production)
+    if (process.env.NODE_ENV !== 'production' && userEmail === DEV_EMAIL) {
         return {
             allowed: true,
             usedToday: 0,

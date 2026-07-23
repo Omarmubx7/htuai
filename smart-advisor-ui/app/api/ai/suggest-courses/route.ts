@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const startTime = Date.now();
-    let userId: number | null = user.id;
+    const userId: number | null = user.id;
     let status: 'success' | 'error' | 'timeout' = 'success';
     let errorMessage: string | undefined;
 

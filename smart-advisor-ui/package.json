@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "build": "prisma generate && next build",
     "vercel-build": "prisma generate && next build",
     "start": "next start",
@@ -19,6 +21,7 @@
     "db:fix-credits": "node scripts/fix-previous-credits.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1092.0",
     "@prisma/client": "^6.19.3",
     "@tailwindcss/typography": "^0.5.19",
     "@tiptap/core": "^3.20.0",
@@ -43,6 +46,7 @@
     "@tiptap/starter-kit": "^3.20.0",
     "@tiptap/suggestion": "^3.20.0",
     "@vercel/analytics": "^1.6.1",
+    "@vercel/blob": "^2.6.1",
     "@vercel/postgres": "^0.10.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
@@ -62,6 +66,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
+    "@next/eslint-plugin-next": "^16.2.11",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
@@ -73,10 +79,14 @@
     "@types/react-dom": "^19",
     "@types/tippy.js": "^6.3.0",
     "@types/ua-parser-js": "^0.7.39",
+    "eslint": "^10.7.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "happy-dom": "^20.9.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^3.1.0"
   },
   "browserslist": [

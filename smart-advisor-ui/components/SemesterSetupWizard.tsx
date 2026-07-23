@@ -212,7 +212,7 @@ export default function SemesterSetupWizard({ onClose, onComplete }: Readonly<Se
         }
     }, [semesterId, semType, semYear, startDate, endDate, toast]);
 
-    // eslint-disable-next-line sonarjs/cognitive-complexity
+
     const handleFinish = async () => {
         setSaving(true);
         try {

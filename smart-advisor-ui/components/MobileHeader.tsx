@@ -3,8 +3,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ChevronLeft } from "lucide-react";
-import BrandMark from "@/components/BrandMark";
-import Link from "next/link";
 
 interface MobileHeaderProps {
     title?: string;
@@ -27,11 +25,16 @@ export default function MobileHeader({ title, showBack = false, backHref }: Read
         return null;
     }
 
+    // Hide when there's nothing to show
+    if (!showBack && !title) {
+        return null;
+    }
+
     // Only show on small screens
     return (
-        <div className="sm:hidden fixed top-0 left-0 right-0 z-60 bg-white/90 backdrop-blur-xl border-b border-[#dde3ec] shadow-xs">
-            <div className="px-4 py-3 flex items-center justify-between gap-3">
-                {showBack ? (
+        <div className="sm:hidden fixed top-0 left-0 right-0 z-60 bg-white/90 backdrop-blur-xl border-b border-[#dde3ec] shadow-xs" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+            <div className="px-4 py-3 flex items-center gap-3">
+                {showBack && (
                     <button
                         onClick={() => {
                             if (backHref) {
@@ -40,29 +43,17 @@ export default function MobileHeader({ title, showBack = false, backHref }: Read
                                 router.back();
                             }
                         }}
-                        className="p-2 hover:bg-[#edf1f6] rounded-lg transition-colors"
+                        className="p-2 hover:bg-[#edf1f6] rounded-lg transition-colors flex-shrink-0"
                         title="Go back"
                         aria-label="Go back"
                     >
                         <ChevronLeft className="w-5 h-5 text-[#222d32]" />
                     </button>
-                ) : (
-                    <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <BrandMark size="sm" />
-                    </Link>
                 )}
 
                 {title && (
-                    <h1 className="flex-1 text-sm font-bold text-[#222d32] truncate text-center">{title}</h1>
+                    <h1 className="flex-1 text-sm font-bold text-[#222d32] truncate text-center min-w-0">{title}</h1>
                 )}
-
-                {!showBack && !title && (
-                    <div className="flex-1 flex items-center justify-center">
-                        <span className="text-xs font-black tracking-[0.2em] uppercase text-[#222d32]">MUBXAI</span>
-                    </div>
-                )}
-
-                <div className="w-8" /> {/* Spacer for balance */}
             </div>
         </div>
     );

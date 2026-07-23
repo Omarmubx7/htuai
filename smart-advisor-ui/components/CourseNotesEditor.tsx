@@ -63,7 +63,7 @@ interface CourseNotesEditorProps {
   updatedAt?: string;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
+
 export default function CourseNotesEditor({
   value,
   onChange,

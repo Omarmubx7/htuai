@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
+import SiteFooter from "@/components/SiteFooter";
 import { Course, CourseData, CurriculumRules } from "@/types";
-import { Settings2, Bot } from "lucide-react";
+import { Settings2, Bot, BookOpen } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -360,7 +361,10 @@ export default function HomeClient() {
             )}
 
             {appState === "landing" && (
-                <LandingPage onGetStarted={() => setAppState("login")} />
+                <>
+                    <LandingPage onGetStarted={() => setAppState("login")} />
+                    <SiteFooter />
+                </>
             )}
 
             {appState === "login" && (
@@ -406,6 +410,14 @@ export default function HomeClient() {
                                         <Bot className="w-4 h-4" />
                                         <span className="text-xs font-bold uppercase tracking-wider">mubxbot</span>
                                     </a>
+                                    <Link
+                                        href="/resources"
+                                        className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#0da55a] hover:bg-[#0b8f4d] text-white transition-colors"
+                                        title="Course Resources"
+                                    >
+                                        <BookOpen className="w-4 h-4" />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Resources</span>
+                                    </Link>
                                     <div className="relative">
                                         <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} aria-haspopup="true" aria-expanded={profileMenuOpen}
                                             className="w-10 h-10 rounded-md bg-[#dc4835] hover:bg-[#fe1f11] flex items-center justify-center text-white font-black text-sm transition-colors">
@@ -422,6 +434,7 @@ export default function HomeClient() {
                                             <div className="absolute right-0 mt-2 w-48 bg-white border border-[#dde3ec] rounded-lg p-2 shadow-[0_4px_14px_rgba(34,45,50,0.12)] z-50">
                                                 <button type="button" onClick={() => { setAppState("course-tracker"); setProfileMenuOpen(false); }} className="block w-full text-left px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors">Course Tracker</button>
                                                 <Link href="/planner" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Semester Planner</Link>
+                                                <Link href="/resources" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Resources</Link>
                                                 <Link href="/planner/settings" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Profile & Settings</Link>
                                                 <div className="h-px bg-[#dde3ec] my-1" />
                                                 <button onClick={() => void signOut({ callbackUrl: '/' })} className="w-full text-left px-3 py-2 text-sm text-[#dc4835] hover:bg-[#edf1f6] rounded transition-colors">Sign out</button>

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
       },
-      secret: requireEnv("AUTH_SECRET"),
+        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "",
     });
 
     const response = NextResponse.json({

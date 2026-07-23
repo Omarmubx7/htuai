@@ -121,7 +121,7 @@ function getCompletedEntryGrade(entry: unknown): string {
     return typeof grade === 'string' ? grade : 'M';
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
+
 export async function GET(_req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

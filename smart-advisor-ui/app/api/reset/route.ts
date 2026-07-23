@@ -6,6 +6,10 @@ import { requireAdmin } from '@/lib/admin-auth';
 export const dynamic = 'force-dynamic';
 
 export async function POST(_request: NextRequest) {
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Not available' }, { status: 404 });
+    }
+
     const adminCheck = await requireAdmin();
     if (adminCheck) return adminCheck;
 

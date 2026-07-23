@@ -27,6 +27,8 @@ export default function SiteFooter() {
                 <div className="w-1 h-1 rounded-full bg-[#dde3ec]" />
                 <Link href="/terms" className="hover:text-[#222d32] transition-colors pointer-events-auto">Terms</Link>
                 <div className="w-1 h-1 rounded-full bg-[#dde3ec]" />
+                <Link href="/resources" className="hover:text-[#222d32] transition-colors pointer-events-auto">Resources</Link>
+                <div className="w-1 h-1 rounded-full bg-[#dde3ec]" />
                 <Link href="/ai-transparency" className="hover:text-[#222d32] transition-colors pointer-events-auto">AI Transparency</Link>
             </nav>
 

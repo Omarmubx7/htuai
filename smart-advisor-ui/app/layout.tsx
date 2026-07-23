@@ -8,7 +8,6 @@ import { Providers } from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
 import MobileHeader from "@/components/MobileHeader";
 import ThemeProvider from "@/components/ThemeProvider";
-import SiteFooter from "@/components/SiteFooter";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   metadataBase: new URL('https://ai.mubx.dev'),
@@ -110,7 +109,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className="light" suppressHydrationWarning>
+    <html lang="en" className="light overflow-x-hidden" suppressHydrationWarning>
       <head>
         <meta
           name="google-site-verification"
@@ -144,7 +143,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans min-h-screen flex flex-col pb-30 sm:pb-0`} suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans min-h-screen flex flex-col`} suppressHydrationWarning>
         <ThemeProvider>
           <Providers>
             {/* JSON-LD: SoftwareApplication */}
@@ -346,7 +345,6 @@ export default async function RootLayout({
               {children}
             </main>
             <MobileNav />
-            <SiteFooter />
           </Providers>
         </ThemeProvider>
         <Analytics />
