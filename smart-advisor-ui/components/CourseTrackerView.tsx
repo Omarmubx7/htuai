@@ -741,13 +741,12 @@ function CourseTrackerView({
                             <button
                                 onClick={() => void generateAiSuggestions()}
                                 disabled={aiLoading !== null}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-white text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-[#dc4835] transition-colors"
-                                style={{ color: '#ffffff' }}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[#43aad7] text-xs font-black uppercase tracking-wider disabled:opacity-60 hover:bg-[#43aad7]/10 transition-colors"
                             >
                                 {aiLoading === "suggestions" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                 Suggest Courses
                                 {typeof suggestRemaining === 'number' && (
-                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded" style={{ background: '#dc4835', color: '#fff' }}>AI trials: {suggestRemaining}</span>
+                                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-black rounded bg-[#43aad7]/15 text-[#43aad7]">AI trials: {suggestRemaining}</span>
                                 )}
                             </button>
                             {suggestCountdown && typeof suggestRemaining === 'number' && suggestRemaining > 0 && suggestRemaining <= 2 && (
