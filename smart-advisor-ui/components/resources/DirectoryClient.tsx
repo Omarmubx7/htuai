@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Upload, BookOpen, Loader2, ChevronDown } from "lucide-react";
+import { Search, Upload, BookOpen, Loader2, ChevronDown, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/Toast";
 import CourseChips from "./CourseChips";
@@ -110,6 +111,13 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
+                            <Link
+                                href="/dashboard"
+                                className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#edf1f6] hover:bg-[#dde3ec] text-[#5a6472] hover:text-[#222d32] transition-all duration-200"
+                                aria-label="Back to dashboard"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </Link>
                             <motion.div
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
