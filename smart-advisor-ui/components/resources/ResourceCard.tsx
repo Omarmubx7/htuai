@@ -31,6 +31,7 @@ interface ResourceCardProps {
     onReport: (resource: ResourceItem) => void;
     onDelete?: (resource: ResourceItem) => void;
     isOwner?: boolean;
+    courseNameMap?: Record<string, string>;
 }
 
 const cardVariants = {
@@ -38,9 +39,10 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
 
-export default function ResourceCard({ resource, onReport, onDelete, isOwner }: Readonly<ResourceCardProps>) {
+export default function ResourceCard({ resource, onReport, onDelete, isOwner, courseNameMap }: Readonly<ResourceCardProps>) {
     const config = TYPE_CONFIG[resource.type] || TYPE_CONFIG.other;
     const Icon = config.icon;
+    const courseLabel = courseNameMap?.[resource.course_code] || resource.course_code;
 
     return (
         <motion.article
@@ -59,13 +61,16 @@ export default function ResourceCard({ resource, onReport, onDelete, isOwner }: 
 
                 <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-[#222d32] truncate leading-tight">{resource.title}</h3>
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span
                             className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white"
                             style={{ backgroundColor: config.color }}
                             aria-label={`Type: ${config.label}`}
                         >
                             {config.label}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-[#222d32]/8 text-[#222d32]">
+                            {courseLabel}
                         </span>
                         {resource.semester && (
                             <span className="text-[11px] font-semibold text-[#5a6472]">

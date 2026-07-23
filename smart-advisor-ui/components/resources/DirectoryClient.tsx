@@ -40,6 +40,12 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
 
     const courses = activeMajor.courses;
 
+    const courseNameMap = useMemo(() => {
+        const map: Record<string, string> = {};
+        majorGroups.forEach((g) => g.courses.forEach((c) => { map[c.code] = c.name; }));
+        return map;
+    }, [majorGroups]);
+
     // Reset course selection when major changes
     useEffect(() => {
         setSelectedCourse(null);
@@ -259,6 +265,7 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                                     onReport={setReportTarget}
                                     onDelete={handleDelete}
                                     isOwner={currentUser === r.uploaded_by}
+                                    courseNameMap={courseNameMap}
                                 />
                             ))}
                         </motion.div>
