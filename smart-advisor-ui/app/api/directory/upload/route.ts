@@ -4,7 +4,7 @@ import { authOptions } from "@/auth";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getR2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/r2";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
 const ALLOWED_EXTENSIONS: Record<string, string> = {
     pdf: "application/pdf",
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         }
 
         if (file.size > MAX_FILE_SIZE) {
-            return NextResponse.json({ error: "File too large. Maximum size is 10 MB" }, { status: 400 });
+            return NextResponse.json({ error: "File too large. Maximum size is 4 MB" }, { status: 400 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());

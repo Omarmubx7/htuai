@@ -15,7 +15,7 @@ const ALLOWED_EXTENSIONS = new Set([
     "mp4", "webm",
 ]);
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
 function detectTypeFromExtension(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() || "";
@@ -192,7 +192,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
             return false;
         }
         if (selectedFile.size > MAX_FILE_SIZE) {
-            toast(`${selectedFile.name} is too large. Max 10 MB`, "error");
+            toast(`${selectedFile.name} is too large. Max 4 MB`, "error");
             return false;
         }
         return true;
@@ -595,16 +595,26 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <div className="flex-shrink-0">
+                                                        <div className="flex-shrink-0 flex items-center gap-1">
                                                             {uf.status === "error" ? (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => retryFile(uf.id)}
-                                                                    className="p-1 rounded-lg hover:bg-[#dc4835]/10 text-[#dc4835] text-[10px] font-bold transition-all duration-200"
-                                                                    aria-label={`Retry ${uf.file.name}`}
-                                                                >
-                                                                    Retry
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => retryFile(uf.id)}
+                                                                        className="p-1 rounded-lg hover:bg-[#43aad7]/10 text-[#43aad7] text-[10px] font-bold transition-all duration-200"
+                                                                        aria-label={`Retry ${uf.file.name}`}
+                                                                    >
+                                                                        Retry
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeFile(uf.id)}
+                                                                        className="p-1 rounded-lg hover:bg-[#dc4835]/10 text-[#dc4835] transition-all duration-200"
+                                                                        aria-label={`Delete ${uf.file.name}`}
+                                                                    >
+                                                                        <X className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </>
                                                             ) : uf.status === "uploading" ? (
                                                                 <button
                                                                     type="button"
@@ -657,7 +667,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                     {dragActive ? "Drop files here" : uploadFiles.length > 0 ? "Add more files" : "Drop files or click to browse"}
                                                 </p>
                                                 <p className="text-[11px] text-[#5a6472] mt-1">
-                                                    PDF, Office, images, video, archives — max 10 MB each
+                                                    PDF, Office, images, video, archives — max 4 MB each
                                                 </p>
                                             </div>
                                         </div>
