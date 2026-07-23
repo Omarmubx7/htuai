@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { getClientInfo } from "@/lib/client-info";
@@ -108,6 +109,9 @@ export default async function RootLayout({
     logVisitor(info).catch(e => console.error("Logging failed", e));
   }
 
+  const hdrs = await headers();
+  const nonce = hdrs.get("x-nonce") || undefined;
+
   return (
     <html lang="en" className="light overflow-x-hidden" suppressHydrationWarning>
       <head>
@@ -119,6 +123,7 @@ export default async function RootLayout({
         <link rel="prefetch" href="/ai.txt" />
         <link rel="prefetch" href="/llms.txt" />
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `(function(){
               var isStorageLike=function(value){
