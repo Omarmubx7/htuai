@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Upload, BookOpen, Loader2, ChevronDown, ArrowLeft } from "lucide-react";
+import { Search, Upload, BookOpen, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import Fuse from "fuse.js";
 import { useToast } from "@/components/ui/Toast";
 import CourseChips from "./CourseChips";
 import ResourceFilters from "./ResourceFilters";
@@ -17,11 +18,17 @@ import type { MajorGroup } from "@/app/resources/page";
 
 interface DirectoryClientProps {
     majorGroups: MajorGroup[];
+    courseToMajorLabels: Record<string, string[]>;
     initialResources?: ResourceItem[];
     prefilledCourseCode?: string | null;
 }
 
-export default function DirectoryClient({ majorGroups, initialResources, prefilledCourseCode }: Readonly<DirectoryClientProps>) {
+export default function DirectoryClient({
+    majorGroups,
+    courseToMajorLabels,
+    initialResources,
+    prefilledCourseCode,
+}: Readonly<DirectoryClientProps>) {
     const { status, data: session } = useSession();
     const { toast } = useToast();
     const [selectedMajor, setSelectedMajor] = useState<string>("all");
@@ -32,7 +39,7 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
     const [loading, setLoading] = useState(false);
     const [uploadOpen, setUploadOpen] = useState(false);
     const [reportTarget, setReportTarget] = useState<ResourceItem | null>(null);
-    const [majorDropdownOpen, setMajorDropdownOpen] = useState(false);
+    const majorScrollRef = useRef<HTMLDivElement>(null);
 
     const activeMajor = useMemo(
         () => majorGroups.find((g) => g.id === selectedMajor) || majorGroups[0],
@@ -56,7 +63,11 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            if (selectedCourse) params.set("course_code", selectedCourse);
+            if (selectedCourse) {
+                params.set("course_code", selectedCourse);
+            } else if (selectedMajor && selectedMajor !== "all") {
+                params.set("major", selectedMajor);
+            }
 
             const res = await fetch(`/api/directory/resources?${params.toString()}`);
             if (res.ok) {
@@ -68,20 +79,58 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
         } finally {
             setLoading(false);
         }
-    }, [selectedCourse]);
+    }, [selectedCourse, selectedMajor]);
 
     useEffect(() => {
         fetchResources();
     }, [fetchResources]);
 
-    const filteredResources = resources.filter((r) => {
-        const matchesType = typeFilter === "all" || r.type === typeFilter;
-        const matchesSearch = !searchQuery || r.title.toLowerCase().includes(searchQuery.toLowerCase()) || r.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesType && matchesSearch;
-    });
+    // Build enriched resources with course names for Fuse.js
+    const enrichedResources = useMemo(() => {
+        return resources.map((r) => ({
+            ...r,
+            courseName: courseNameMap[r.course_code] || "",
+            majorLabels: courseToMajorLabels[r.course_code] || [],
+        }));
+    }, [resources, courseNameMap, courseToMajorLabels]);
+
+    // Fuse.js instance for fuzzy search
+    const fuse = useMemo(
+        () =>
+            new Fuse(enrichedResources, {
+                keys: [
+                    { name: "title", weight: 0.4 },
+                    { name: "description", weight: 0.2 },
+                    { name: "courseName", weight: 0.25 },
+                    { name: "course_code", weight: 0.1 },
+                    { name: "type", weight: 0.05 },
+                ],
+                threshold: 0.35,
+                includeScore: true,
+                ignoreLocation: true,
+                minMatchCharLength: 2,
+            }),
+        [enrichedResources]
+    );
+
+    const filteredResources = useMemo(() => {
+        let results = enrichedResources;
+
+        // Fuzzy search
+        if (searchQuery.trim()) {
+            results = fuse.search(searchQuery).map((r) => r.item);
+        }
+
+        // Type filter
+        if (typeFilter !== "all") {
+            results = results.filter((r) => r.type === typeFilter);
+        }
+
+        return results;
+    }, [enrichedResources, fuse, searchQuery, typeFilter]);
 
     const typeCounts: Record<string, number> = {};
-    resources.forEach((r) => {
+    enrichedResources.forEach((r) => {
         typeCounts[r.type] = (typeCounts[r.type] || 0) + 1;
     });
 
@@ -168,59 +217,53 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-sm text-[#222d32] placeholder:text-[#5a6472]/50 focus:outline-none focus:border-[#dc4835] focus:ring-2 focus:ring-[#dc4835]/10 transition-all duration-200"
-                            placeholder="Search resources..."
-                            aria-label="Search resources by title or description"
+                            placeholder="Search by title, course, or description..."
+                            aria-label="Search resources"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#5a6472] hover:text-[#dc4835] transition-colors"
+                                aria-label="Clear search"
+                            >
+                                Clear
+                            </button>
+                        )}
                     </div>
 
-                    {/* Major selector dropdown */}
-                    <div className="mb-3 relative">
-                        <button
-                            type="button"
-                            onClick={() => setMajorDropdownOpen(!majorDropdownOpen)}
-                            onBlur={() => setTimeout(() => setMajorDropdownOpen(false), 150)}
-                            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-white border border-[#dde3ec] text-sm font-bold text-[#222d32] hover:border-[#dc4835] focus:outline-none focus:border-[#dc4835] focus:ring-2 focus:ring-[#dc4835]/10 transition-all duration-200"
-                            aria-haspopup="listbox"
-                            aria-expanded={majorDropdownOpen}
-                        >
-                            <span>{activeMajor.label}</span>
-                            <ChevronDown className={`w-4 h-4 text-[#5a6472] transition-transform duration-200 ${majorDropdownOpen ? "rotate-180" : ""}`} />
-                        </button>
-                        <AnimatePresence>
-                            {majorDropdownOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -4 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="absolute z-50 w-full mt-1 bg-white border border-[#dde3ec] rounded-lg shadow-lg overflow-hidden"
-                                    role="listbox"
-                                    aria-label="Select a major"
-                                >
-                                    {majorGroups.map((group) => (
-                                        <button
-                                            key={group.id}
-                                            type="button"
-                                            onMouseDown={(e) => {
-                                                e.preventDefault();
-                                                setSelectedMajor(group.id);
-                                                setMajorDropdownOpen(false);
-                                            }}
-                                            role="option"
-                                            aria-selected={group.id === selectedMajor}
-                                            className={`w-full text-left px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 ${
-                                                group.id === selectedMajor
-                                                    ? "bg-[#dc4835] text-white"
-                                                    : "text-[#222d32] hover:bg-[#edf1f6]"
+                    {/* Major chips — horizontal scroll */}
+                    <div className="mb-3" ref={majorScrollRef}>
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" role="tablist" aria-label="Filter by major">
+                            {majorGroups.map((group) => {
+                                const isActive = group.id === selectedMajor;
+                                return (
+                                    <motion.button
+                                        key={group.id}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setSelectedMajor(group.id)}
+                                        role="tab"
+                                        aria-selected={isActive}
+                                        className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border ${
+                                            isActive
+                                                ? "bg-[#dc4835] text-white border-[#dc4835] shadow-sm"
+                                                : "bg-white text-[#5a6472] border-[#dde3ec] hover:border-[#dc4835]/50 hover:text-[#222d32]"
+                                        }`}
+                                        style={{
+                                            boxShadow: isActive ? "0 2px 8px #dc483525" : "none",
+                                        }}
+                                    >
+                                        {group.label}
+                                        <span
+                                            className={`ml-0.5 text-[10px] rounded-full px-1 py-px font-bold ${
+                                                isActive ? "bg-white/20" : "bg-[#edf1f6]"
                                             }`}
                                         >
-                                            {group.label}
-                                            <span className="ml-1.5 text-[10px] opacity-60">({group.courses.length})</span>
-                                        </button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                            {group.courses.length}
+                                        </span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Course chips */}
@@ -230,7 +273,7 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
 
                     {/* Type filters */}
                     <AnimatePresence>
-                        {resources.length > 0 && (
+                        {enrichedResources.length > 0 && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
@@ -266,7 +309,7 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                             exit={{ opacity: 0 }}
                             className="grid gap-4 sm:grid-cols-2"
                         >
-                            {filteredResources.map((r, i) => (
+                            {filteredResources.map((r) => (
                                 <ResourceCard
                                     key={r.id}
                                     resource={r}
@@ -274,6 +317,7 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                                     onDelete={handleDelete}
                                     isOwner={currentUser === r.uploaded_by}
                                     courseNameMap={courseNameMap}
+                                    majorLabels={r.majorLabels}
                                 />
                             ))}
                         </motion.div>
@@ -285,6 +329,15 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                             exit={{ opacity: 0 }}
                         >
                             <EmptyState type="no-resources" courseName={selectedCourseData?.name || selectedCourse} onUpload={status === "authenticated" ? () => setUploadOpen(true) : undefined} />
+                        </motion.div>
+                    ) : searchQuery ? (
+                        <motion.div
+                            key="no-results"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <EmptyState type="no-results" />
                         </motion.div>
                     ) : (
                         <motion.div
@@ -306,6 +359,7 @@ export default function DirectoryClient({ majorGroups, initialResources, prefill
                 courses={courses}
                 prefilledCourseCode={selectedCourse}
                 onResourceCreated={fetchResources}
+                courseToMajorLabels={courseToMajorLabels}
             />
             <ReportDialog resource={reportTarget} onClose={() => setReportTarget(null)} />
         </div>

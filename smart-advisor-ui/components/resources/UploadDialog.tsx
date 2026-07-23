@@ -48,9 +48,10 @@ interface UploadDialogProps {
     courses: Course[];
     prefilledCourseCode?: string | null;
     onResourceCreated?: () => void;
+    courseToMajorLabels?: Record<string, string[]>;
 }
 
-export default function UploadDialog({ open, onClose, courses, prefilledCourseCode, onResourceCreated }: Readonly<UploadDialogProps>) {
+export default function UploadDialog({ open, onClose, courses, prefilledCourseCode, onResourceCreated, courseToMajorLabels }: Readonly<UploadDialogProps>) {
     const [step, setStep] = useState<"course" | "details">("course");
     const [courseCode, setCourseCode] = useState(prefilledCourseCode || "");
     const [courseSearch, setCourseSearch] = useState("");
@@ -400,18 +401,38 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                             </div>
 
                             <div className="flex flex-col gap-1 max-h-60 overflow-y-auto" role="listbox" aria-label="Available courses">
-                                {filteredCourses.map((course) => (
-                                    <button
-                                        key={course.code}
-                                        onClick={() => handleCourseSelect(course.code)}
-                                        role="option"
-                                        className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-[#edf1f6] focus:bg-[#edf1f6] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/20 transition-all duration-150 flex items-center gap-3"
-                                        aria-label={`${course.code} — ${course.name}`}
-                                    >
-                                        <span className="text-xs font-bold text-[#dc4835] min-w-[70px]">{course.code}</span>
-                                        <span className="text-sm text-[#222d32] truncate">{course.name}</span>
-                                    </button>
-                                ))}
+                                {filteredCourses.map((course) => {
+                                    const majors = courseToMajorLabels?.[course.code];
+                                    return (
+                                        <button
+                                            key={course.code}
+                                            onClick={() => handleCourseSelect(course.code)}
+                                            role="option"
+                                            className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-[#edf1f6] focus:bg-[#edf1f6] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/20 transition-all duration-150 flex flex-col gap-1"
+                                            aria-label={`${course.code} — ${course.name}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-bold text-[#dc4835] min-w-[70px]">{course.code}</span>
+                                                <span className="text-sm text-[#222d32] truncate">{course.name}</span>
+                                            </div>
+                                            {majors && majors.length > 0 && (
+                                                <div className="flex items-center gap-1 ml-[82px] flex-wrap">
+                                                    {majors.slice(0, 3).map((major) => (
+                                                        <span
+                                                            key={major}
+                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wide bg-[#43aad7]/10 text-[#43aad7]"
+                                                        >
+                                                            {major}
+                                                        </span>
+                                                    ))}
+                                                    {majors.length > 3 && (
+                                                        <span className="text-[8px] font-bold text-[#5a6472]">+{majors.length - 3}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                                 {filteredCourses.length === 0 && (
                                     <p className="text-sm text-[#5a6472] text-center py-4" role="status">No courses found</p>
                                 )}
@@ -422,16 +443,31 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                     {step === "details" && (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-label="Resource details form">
                             {selectedCourse && (
-                                <div className="flex items-center gap-2 text-xs bg-[#edf1f6] rounded-lg px-3 py-2">
-                                    <span className="font-bold text-[#dc4835]">{selectedCourse.code}</span>
-                                    <span className="text-[#5a6472] truncate">{selectedCourse.name}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setStep("course"); setCourseCode(""); }}
-                                        className="ml-auto text-[#dc4835] font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 rounded px-1"
-                                    >
-                                        Change
-                                    </button>
+                                <div className="flex flex-col gap-1.5 bg-[#edf1f6] rounded-lg px-3 py-2">
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="font-bold text-[#dc4835]">{selectedCourse.code}</span>
+                                        <span className="text-[#5a6472] truncate">{selectedCourse.name}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setStep("course"); setCourseCode(""); }}
+                                            className="ml-auto text-[#dc4835] font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 rounded px-1"
+                                        >
+                                            Change
+                                        </button>
+                                    </div>
+                                    {courseToMajorLabels?.[selectedCourse.code] && courseToMajorLabels[selectedCourse.code].length > 0 && (
+                                        <div className="flex items-center gap-1 flex-wrap">
+                                            <span className="text-[9px] font-bold text-[#5a6472] uppercase tracking-wider">Majors:</span>
+                                            {courseToMajorLabels[selectedCourse.code].map((major) => (
+                                                <span
+                                                    key={major}
+                                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wide bg-[#43aad7]/10 text-[#43aad7]"
+                                                >
+                                                    {major}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

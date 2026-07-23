@@ -53,6 +53,7 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.23",
     "framer-motion": "^12.34.2",
+    "fuse.js": "^7.5.0",
     "googleapis": "^171.4.0",
     "groq-sdk": "^1.1.2",
     "lowlight": "^3.3.0",

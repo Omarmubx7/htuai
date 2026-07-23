@@ -45,7 +45,10 @@ function sortCourses(courses: Course[]): Course[] {
     });
 }
 
-async function getMajorGroups(): Promise<MajorGroup[]> {
+async function getMajorGroups(): Promise<{
+    majorGroups: MajorGroup[];
+    courseToMajorLabels: Record<string, string[]>;
+}> {
     try {
         const dataDir = path.join(process.cwd(), "public/data");
         const content = await fs.readFile(path.join(dataDir, "curriculum.json"), "utf8");
@@ -74,6 +77,7 @@ async function getMajorGroups(): Promise<MajorGroup[]> {
 
         // Per-major groups
         const groups: MajorGroup[] = [];
+        const courseToMajors = new Map<string, Set<string>>();
 
         for (const majorKey of Object.keys(data.majors)) {
             const majorData = data.majors[majorKey];
@@ -90,9 +94,16 @@ async function getMajorGroups(): Promise<MajorGroup[]> {
             processList(majorData.electives, majorMap);
             processList(majorData.work_market_requirements, majorMap);
 
+            // Track which majors each course belongs to
+            const label = MAJOR_LABELS[majorKey] || majorKey;
+            majorMap.forEach((_, code) => {
+                if (!courseToMajors.has(code)) courseToMajors.set(code, new Set());
+                courseToMajors.get(code)!.add(label);
+            });
+
             groups.push({
                 id: majorKey,
-                label: MAJOR_LABELS[majorKey] || majorKey,
+                label,
                 courses: sortCourses(Array.from(majorMap.values())),
             });
         }
@@ -106,18 +117,27 @@ async function getMajorGroups(): Promise<MajorGroup[]> {
             courses: sortCourses(Array.from(allMap.values())),
         });
 
-        return groups;
+        // Convert to serializable record
+        const courseToMajorLabels: Record<string, string[]> = {};
+        courseToMajors.forEach((majors, code) => {
+            courseToMajorLabels[code] = Array.from(majors).sort();
+        });
+
+        return { majorGroups: groups, courseToMajorLabels };
     } catch {
-        return [{ id: "all", label: "All Majors", courses: [] }];
+        return {
+            majorGroups: [{ id: "all", label: "All Majors", courses: [] }],
+            courseToMajorLabels: {},
+        };
     }
 }
 
 export default async function ResourcesPage() {
-    const majorGroups = await getMajorGroups();
+    const { majorGroups, courseToMajorLabels } = await getMajorGroups();
 
     return (
         <main className="min-h-dvh">
-            <DirectoryClient majorGroups={majorGroups} />
+            <DirectoryClient majorGroups={majorGroups} courseToMajorLabels={courseToMajorLabels} />
         </main>
     );
 }

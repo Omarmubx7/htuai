@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import path from "node:path";
+import fs from "node:fs/promises";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -7,13 +9,77 @@ import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
 const ALLOWED_TYPES = ["pdf", "video", "link", "image", "folder", "other"];
 
+async function getCourseCodesForMajor(majorKey: string): Promise<string[] | null> {
+    try {
+        const content = await fs.readFile(
+            path.join(process.cwd(), "public/data/curriculum.json"),
+            "utf8"
+        );
+        const data = JSON.parse(content);
+        const majorData = data.majors[majorKey];
+        if (!majorData) return null;
+
+        const codes = new Set<string>();
+
+        const processList = (list: Array<{ code?: string }>) => {
+            if (!list) return;
+            list.forEach((c) => {
+                if (c.code) {
+                    let code = c.code.trim();
+                    if (code.startsWith("00") && code.length === 10) code = code.substring(2);
+                    codes.add(code);
+                }
+            });
+        };
+
+        // Shared courses
+        processList(data.shared?.university_requirements);
+        processList(data.shared?.college_requirements);
+        processList(data.shared?.university_electives);
+
+        // Major-specific courses
+        processList(majorData.university_requirements);
+        processList(majorData.college_requirements);
+        processList(majorData.university_electives);
+        processList(majorData.department_requirements);
+        processList(majorData.electives);
+        processList(majorData.work_market_requirements);
+
+        return Array.from(codes);
+    } catch {
+        return null;
+    }
+}
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const courseCode = searchParams.get("course_code") || searchParams.get("courseCode");
+    const majorKey = searchParams.get("major");
 
     try {
+        let courseCodes: string[] | undefined;
+
+        // If major is specified, resolve to course codes
+        if (majorKey && majorKey !== "all") {
+            const codes = await getCourseCodesForMajor(majorKey);
+            if (codes && codes.length > 0) {
+                courseCodes = codes;
+            }
+        }
+
+        const where: Record<string, unknown> = {};
+
+        if (courseCode) {
+            // Specific course takes priority
+            where.course_code = courseCode;
+        } else if (courseCodes) {
+            // Filter by all courses in this major
+            where.course_code = { in: courseCodes };
+        }
+        // else: no filter, return all
+
         const resources = await prisma.resource.findMany({
-            where: courseCode ? { course_code: courseCode } : undefined,
+            where: Object.keys(where).length > 0 ? where : undefined,
             orderBy: { created_at: "desc" },
             select: {
                 id: true,

@@ -32,6 +32,7 @@ interface ResourceCardProps {
     onDelete?: (resource: ResourceItem) => void;
     isOwner?: boolean;
     courseNameMap?: Record<string, string>;
+    majorLabels?: string[];
 }
 
 const cardVariants = {
@@ -39,7 +40,7 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
 
-export default function ResourceCard({ resource, onReport, onDelete, isOwner, courseNameMap }: Readonly<ResourceCardProps>) {
+export default function ResourceCard({ resource, onReport, onDelete, isOwner, courseNameMap, majorLabels }: Readonly<ResourceCardProps>) {
     const config = TYPE_CONFIG[resource.type] || TYPE_CONFIG.other;
     const Icon = config.icon;
     const courseLabel = courseNameMap?.[resource.course_code] || resource.course_code;
@@ -78,6 +79,23 @@ export default function ResourceCard({ resource, onReport, onDelete, isOwner, co
                             </span>
                         )}
                     </div>
+                    {majorLabels && majorLabels.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                            {majorLabels.slice(0, 3).map((major) => (
+                                <span
+                                    key={major}
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wide bg-[#43aad7]/10 text-[#43aad7]"
+                                >
+                                    {major}
+                                </span>
+                            ))}
+                            {majorLabels.length > 3 && (
+                                <span className="text-[9px] font-bold text-[#5a6472]">
+                                    +{majorLabels.length - 3}
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
