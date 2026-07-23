@@ -15,7 +15,7 @@ const ALLOWED_EXTENSIONS = new Set([
     "mp4", "webm",
 ]);
 
-const MAX_FILE_SIZE = 4 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 function detectTypeFromExtension(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() || "";
@@ -109,60 +109,83 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
         setTimeout(() => titleRef.current?.focus(), 150);
     }, []);
 
-    function uploadFileToR2(uploadFile: UploadFile) {
-        const formData = new FormData();
-        formData.append("file", uploadFile.file);
+    async function uploadFileToR2(uploadFile: UploadFile) {
+        try {
+            // Step 1: Get presigned URL from our server (tiny JSON request)
+            const presignRes = await fetch("/api/directory/presign", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: uploadFile.file.name,
+                    contentType: uploadFile.file.type || "application/octet-stream",
+                }),
+            });
 
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
-                const pct = Math.round((e.loaded / e.total) * 100);
-                setUploadFiles((prev) =>
-                    prev.map((f) => (f.id === uploadFile.id ? { ...f, progress: pct } : f))
-                );
+            if (!presignRes.ok) {
+                const data = await presignRes.json();
+                throw new Error(data.error || "Failed to get upload URL");
             }
-        };
 
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                const data = JSON.parse(xhr.responseText);
+            const { uploadUrl, publicUrl } = await presignRes.json();
+
+            // Step 2: PUT file directly to R2 (bypasses Vercel entirely)
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    setUploadFiles((prev) =>
+                        prev.map((f) => (f.id === uploadFile.id ? { ...f, progress: pct } : f))
+                    );
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    setUploadFiles((prev) =>
+                        prev.map((f) =>
+                            f.id === uploadFile.id
+                                ? { ...f, status: "done", progress: 100, url: publicUrl, xhr: undefined }
+                                : f
+                        )
+                    );
+                } else {
+                    setUploadFiles((prev) =>
+                        prev.map((f) =>
+                            f.id === uploadFile.id
+                                ? { ...f, status: "error", error: `Upload failed (${xhr.status})`, xhr: undefined }
+                                : f
+                        )
+                    );
+                }
+            };
+
+            xhr.onerror = () => {
                 setUploadFiles((prev) =>
                     prev.map((f) =>
                         f.id === uploadFile.id
-                            ? { ...f, status: "done", progress: 100, url: data.url, xhr: undefined }
+                            ? { ...f, status: "error", error: "Network error", xhr: undefined }
                             : f
                     )
                 );
-            } else {
-                let msg = "Upload failed";
-                try { msg = JSON.parse(xhr.responseText).error || msg; } catch {}
-                setUploadFiles((prev) =>
-                    prev.map((f) =>
-                        f.id === uploadFile.id
-                            ? { ...f, status: "error", error: msg, xhr: undefined }
-                            : f
-                    )
-                );
-            }
-        };
+            };
 
-        xhr.onerror = () => {
+            xhr.open("PUT", uploadUrl);
+            xhr.setRequestHeader("Content-Type", uploadFile.file.type || "application/octet-stream");
+            xhr.send(uploadFile.file);
+
+            setUploadFiles((prev) =>
+                prev.map((f) => (f.id === uploadFile.id ? { ...f, xhr } : f))
+            );
+        } catch (err) {
             setUploadFiles((prev) =>
                 prev.map((f) =>
                     f.id === uploadFile.id
-                        ? { ...f, status: "error", error: "Network error", xhr: undefined }
+                        ? { ...f, status: "error", error: err instanceof Error ? err.message : "Upload failed", xhr: undefined }
                         : f
                 )
             );
-        };
-
-        xhr.open("POST", "/api/directory/upload");
-        xhr.send(formData);
-
-        setUploadFiles((prev) =>
-            prev.map((f) => (f.id === uploadFile.id ? { ...f, xhr } : f))
-        );
+        }
     }
 
     function reset() {
@@ -192,7 +215,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
             return false;
         }
         if (selectedFile.size > MAX_FILE_SIZE) {
-            toast(`${selectedFile.name} is too large. Max 4 MB`, "error");
+            toast(`${selectedFile.name} is too large. Max 50 MB`, "error");
             return false;
         }
         return true;
@@ -667,7 +690,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                     {dragActive ? "Drop files here" : uploadFiles.length > 0 ? "Add more files" : "Drop files or click to browse"}
                                                 </p>
                                                 <p className="text-[11px] text-[#5a6472] mt-1">
-                                                    PDF, Office, images, video, archives — max 4 MB each
+                                                    PDF, Office, images, video, archives — max 50 MB each
                                                 </p>
                                             </div>
                                         </div>

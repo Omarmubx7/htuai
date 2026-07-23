@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/r2";
-
-const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
 const ALLOWED_EXTENSIONS: Record<string, string> = {
     pdf: "application/pdf",
@@ -40,41 +39,34 @@ export async function POST(req: Request) {
     }
 
     try {
-        const formData = await req.formData();
-        const file = formData.get("file") as File | null;
+        const { filename, contentType } = await req.json();
 
-        if (!file) {
-            return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        if (!filename || !contentType) {
+            return NextResponse.json({ error: "filename and contentType required" }, { status: 400 });
         }
 
-        const ext = file.name.split(".").pop()?.toLowerCase() || "";
+        const ext = filename.split(".").pop()?.toLowerCase() || "";
         if (!ALLOWED_EXTENSIONS[ext]) {
             return NextResponse.json({ error: `File type .${ext} is not allowed` }, { status: 400 });
         }
 
-        if (file.size > MAX_FILE_SIZE) {
-            return NextResponse.json({ error: "File too large. Maximum size is 4 MB" }, { status: 400 });
-        }
-
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const key = generateKey(file.name);
-        const contentType = ALLOWED_EXTENSIONS[ext] || "application/octet-stream";
-
+        const key = generateKey(filename);
         const s3 = getR2Client();
-        await s3.send(new PutObjectCommand({
+
+        const command = new PutObjectCommand({
             Bucket: R2_BUCKET_NAME,
             Key: key,
-            Body: buffer,
             ContentType: contentType,
-        }));
+        });
 
+        const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
         const publicUrl = `${R2_PUBLIC_URL}/${key}`;
 
-        return NextResponse.json({ url: publicUrl, key });
+        return NextResponse.json({ uploadUrl, key, publicUrl });
     } catch (error) {
-        console.error("[directory] Upload error:", error);
+        console.error("[directory] Presign error:", error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Upload failed" },
+            { error: error instanceof Error ? error.message : "Failed to generate upload URL" },
             { status: 500 }
         );
     }
