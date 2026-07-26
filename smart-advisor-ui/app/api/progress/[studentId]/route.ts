@@ -31,6 +31,6 @@ export async function GET(
         return NextResponse.json({ studentId: targetId, major, completed });
     } catch (error) {
         console.error("[Progress GET] Error loading progress:", error);
-        return NextResponse.json({ error: 'Server error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }

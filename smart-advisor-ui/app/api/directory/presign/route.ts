@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error("[directory] Presign error:", error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to generate upload URL. Please try again." },
+            { error: "Failed to generate upload URL" },
             { status: 500 }
         );
     }

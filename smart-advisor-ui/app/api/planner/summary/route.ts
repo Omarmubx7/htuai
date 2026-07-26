@@ -237,7 +237,7 @@ export async function GET(_req: NextRequest) {
 
         console.log(`[PlannerSummary] Fetched ${semesters.length} semesters for userId=${user.id}`);
         if (semesters.length === 0) {
-            console.warn(`[PlannerSummary] WARNING: No semesters found for userId=${user.id}, email=${user.email}`);
+            console.warn(`[PlannerSummary] WARNING: No semesters found for userId=${user.id}`);
         }
 
         let gamification = user.gamification_profile;

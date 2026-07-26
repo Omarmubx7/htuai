@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData, CurriculumRules } from '@/types';
 import CourseCard from './ui/CourseCard';
 import { checkPrerequisites } from '@/lib/advisor';
 import { calculateGPA } from '@/lib/grading';
-import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star, Sparkles, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Trophy, RotateCcw, Loader2, GraduationCap, BookOpen, Target, Star, Sparkles, AlertCircle, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import StudentDashboard from './StudentDashboard';
 import ConfirmDialog from './ui/ConfirmDialog';
@@ -115,6 +115,11 @@ function CourseTrackerView({
     const [weeklyPlan, setWeeklyPlan] = useState<Array<{ day: string; sessions: Array<{ course: string; hours: number; focus: string }> }>>([]);
     const [examTips, setExamTips] = useState<string[]>([]);
 
+    // ── Plan Mode (Sandbox) State ─────────────────────────────────────────
+    const [sandboxMode, setSandboxMode] = useState(false);
+    const [sandboxCourses, setSandboxCourses] = useState<Set<string>>(new Set());
+    const [showSandboxConfirm, setShowSandboxConfirm] = useState(false);
+
     const formatCountdown = (targetIso: string | null) => {
         if (!targetIso) return null;
         const target = new Date(targetIso).getTime();
@@ -137,6 +142,32 @@ function CourseTrackerView({
             globalThis.window.scrollTo({ top: y, behavior: 'smooth' });
         }, 140);
     };
+
+    // ── Plan Mode: Toggle handlers ─────────────────────────────────────────
+    const handleSandboxToggle = useCallback(() => {
+        if (sandboxMode) {
+            setShowSandboxConfirm(true);
+        } else {
+            setSandboxMode(true);
+        }
+    }, [sandboxMode]);
+
+    const confirmDisableSandbox = useCallback(() => {
+        setSandboxMode(false);
+        setSandboxCourses(new Set());
+        safeStorage.remove("mubxai-sandbox");
+        setShowSandboxConfirm(false);
+    }, []);
+
+    const toggleSandboxCourse = useCallback((code: string) => {
+        if (!sandboxMode) return;
+        setSandboxCourses(prev => {
+            const next = new Set(prev);
+            if (next.has(code)) next.delete(code);
+            else next.add(code);
+            return next;
+        });
+    }, [sandboxMode]);
     const [showSetupWizard, setShowSetupWizard] = useState(false);
     const [loadingSemester, setLoadingSemester] = useState(true);
 
@@ -215,6 +246,28 @@ function CourseTrackerView({
         const interval = globalThis.setInterval(updateCountdowns, 1000);
         return () => globalThis.clearInterval(interval);
     }, [suggestResetAt, scheduleResetAt]);
+
+    // ── Plan Mode: Load from localStorage ──────────────────────────────────
+    useEffect(() => {
+        const saved = safeStorage.get("mubxai-sandbox");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.mode) setSandboxMode(true);
+                if (Array.isArray(parsed.courses)) setSandboxCourses(new Set(parsed.courses));
+            } catch { /* ignore */ }
+        }
+    }, []);
+
+    // ── Plan Mode: Persist to localStorage ──────────────────────────────────
+    useEffect(() => {
+        if (sandboxMode || sandboxCourses.size > 0) {
+            safeStorage.set("mubxai-sandbox", JSON.stringify({
+                mode: sandboxMode,
+                courses: Array.from(sandboxCourses),
+            }));
+        }
+    }, [sandboxMode, sandboxCourses]);
 
     const allCourses = [
         ...data.university_requirements,
@@ -299,6 +352,81 @@ function CourseTrackerView({
         MAX_DEPT_ELECTIVES;
 
     const progress = Math.min(completedCredits / totalCredits, 1);
+
+    // ── Plan Mode: Sandbox credit calculations ─────────────────────────────
+    const sandboxCredits = (() => {
+        let total = 0;
+        let uniElecCounted = 0;
+        let deptElecCounted = 0;
+        for (const course of allCourses) {
+            if (!sandboxCourses.has(course.code)) continue;
+            if (uniElectiveCodes.has(course.code)) {
+                if (uniElecCounted < MAX_UNI_ELECTIVES) { total += course.ch; uniElecCounted++; }
+            } else if (deptElectiveCodes.has(course.code)) {
+                if (deptElecCounted < MAX_DEPT_ELECTIVES) { total += course.ch; deptElecCounted++; }
+            } else {
+                total += course.ch;
+            }
+        }
+        return Math.min(total, TOTAL_CAP);
+    })();
+
+    const sandboxCourseCount = sandboxCourses.size;
+    const sandboxRemaining = Math.max(0, totalCredits - completedCredits - sandboxCredits);
+    const sandboxProgress = Math.min((completedCredits + sandboxCredits) / totalCredits, 1);
+
+    // ── Plan Mode: Per-category simulation impact ──────────────────────────
+    const categoryImpact = useMemo(() => {
+        const cats = [
+            { label: "University Requirements", courses: data.university_requirements, cap: undefined as number | undefined },
+            { label: "University Elective", courses: data.university_electives ?? [], cap: MAX_UNI_ELECTIVES },
+            { label: "College Requirements", courses: data.college_requirements, cap: undefined as number | undefined },
+            { label: "Department Requirements", courses: [...data.department_requirements, ...(data.work_market_requirements ?? [])], cap: undefined as number | undefined },
+            { label: "Department Elective", courses: data.electives, cap: MAX_DEPT_ELECTIVES },
+        ];
+
+        return cats.map(cat => {
+            let currentDone = 0;
+            let count = 0;
+            for (const c of cat.courses) {
+                if (completedCourses.has(c.code)) {
+                    if (cat.cap !== undefined && count >= cat.cap) continue;
+                    currentDone += c.ch;
+                    count++;
+                }
+            }
+
+            let sandboxCH = 0;
+            let sandboxCatCount = 0;
+            for (const c of cat.courses) {
+                if (sandboxCourses.has(c.code)) {
+                    if (cat.cap !== undefined && sandboxCatCount >= cat.cap) continue;
+                    sandboxCH += c.ch;
+                    sandboxCatCount++;
+                }
+            }
+
+            const totalCH = cat.cap !== undefined
+                ? cat.cap * (cat.courses[0]?.ch ?? 3)
+                : cat.courses.reduce((s, c) => s + c.ch, 0);
+
+            const afterDone = Math.min(currentDone + sandboxCH, totalCH);
+            const remaining = Math.max(0, totalCH - afterDone);
+            const remainingCourses = cat.courses.filter(c => !completedCourses.has(c.code) && !sandboxCourses.has(c.code)).length;
+
+            return {
+                label: cat.label,
+                totalCH,
+                currentDone: Math.min(currentDone, totalCH),
+                afterDone,
+                delta: afterDone - currentDone,
+                remaining,
+                remainingCourses,
+                sandboxCatCount,
+                isComplete: remaining === 0 && totalCH > 0,
+            };
+        });
+    }, [data, completedCourses, sandboxCourses, MAX_UNI_ELECTIVES, MAX_DEPT_ELECTIVES]);
 
     // Grouping Logic
     const getGroups = () => {
@@ -537,6 +665,27 @@ function CourseTrackerView({
         let isElectiveLocked = false;
         let capMax = 0;
 
+        if (sandboxMode) {
+            return (
+                <CourseCard
+                    key={course.code}
+                    course={course}
+                    isCompleted={completedCourses.has(course.code)}
+                    isInProgress={plannerCourseCodes.has(course.code) && !completedCourses.has(course.code)}
+                    grade={completedCourses.get(course.code) || "M"}
+                    isLocked={false}
+                    hasPrereqWarning={false}
+                    lockReason={undefined}
+                    missingPrereqs={[]}
+                    courseMap={courseMap}
+                    completedCredits={completedCredits}
+                    onToggle={() => toggleSandboxCourse(course.code)}
+                    onOpenNotes={() => setSelectedCourseForNotes({ id: course.code, title: course.name })}
+                    isSandboxSelected={sandboxCourses.has(course.code)}
+                />
+            );
+        }
+
         if (uniElectiveCodes.has(course.code)) {
             isElectiveLocked = tickedUniElecCount >= MAX_UNI_ELECTIVES && !completedCourses.has(course.code);
             capMax = MAX_UNI_ELECTIVES;
@@ -608,6 +757,16 @@ function CourseTrackerView({
                     setShowResetConfirm(false);
                 }}
                 onCancel={() => setShowResetConfirm(false)}
+            />
+
+            <ConfirmDialog
+                isOpen={showSandboxConfirm}
+                title="Disable Plan Mode?"
+                description="This will clear all your planned course selections. Your actual progress won't be affected."
+                confirmLabel="Clear & Disable"
+                variant="danger"
+                onConfirm={confirmDisableSandbox}
+                onCancel={() => setShowSandboxConfirm(false)}
             />
 
             <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
@@ -928,7 +1087,200 @@ function CourseTrackerView({
                         </button>
                     ))}
                 </div>
+
+                <motion.button
+                    onClick={handleSandboxToggle}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 border-2
+                        ${sandboxMode
+                            ? "bg-[#f39c14] text-white border-[#f39c14] shadow-md shadow-[#f39c14]/25"
+                            : "text-[#5a6472] border-[#dde3ec] hover:border-[#f39c14] hover:text-[#f39c14] hover:bg-[#f39c14]/5"
+                        }`}
+                >
+                    <Target className="w-4 h-4" />
+                    {sandboxMode ? "Plan Mode ON" : "Plan Mode"}
+                </motion.button>
             </div>
+
+            {/* ── Plan Mode: Summary Bar ───────────────────────────────────── */}
+            <AnimatePresence>
+                {sandboxMode && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: -10, height: 0 }}
+                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                        className="rounded-xl border-2 border-[#f39c14]/30 bg-gradient-to-br from-[#f39c14]/5 to-white p-5 sm:p-6 space-y-4"
+                        style={{ boxShadow: '0 2px 12px rgba(243,156,20,0.08)' }}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#f39c14]/15 border border-[#f39c14]/25 flex items-center justify-center">
+                                    <Target className="w-5 h-5 text-[#f39c14]" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-[#222d32]">Plan Mode — What-If Sandbox</h3>
+                                    <p className="text-xs text-[#5a6472] font-bold">Click courses below to add them to your plan</p>
+                                </div>
+                            </div>
+                            {sandboxCourseCount > 0 && (
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setSandboxCourses(new Set())}
+                                    className="text-xs font-bold text-[#dc4835] hover:text-[#c03d2e] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#dc4835]/5"
+                                >
+                                    Clear Plan
+                                </motion.button>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-white border border-[#dde3ec]">
+                                <span className="text-2xl font-black text-[#f39c14]">{sandboxCourseCount}</span>
+                                <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">Courses</p>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-white border border-[#dde3ec]">
+                                <span className="text-2xl font-black text-[#f39c14]">{sandboxCredits}</span>
+                                <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">CH in Plan</p>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-white border border-[#dde3ec]">
+                                <span className={`text-2xl font-black ${sandboxRemaining <= 0 ? 'text-[#0da55a]' : 'text-[#dc4835]'}`}>
+                                    {sandboxRemaining}
+                                </span>
+                                <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">CH Left</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between text-[10px] font-bold tracking-widest uppercase">
+                                <span className="text-[#5a6472]">Overall</span>
+                                <span className="text-[#f39c14]">{Math.round(sandboxProgress * 100)}%</span>
+                            </div>
+                            <div className="h-2.5 bg-[#dde3ec] rounded-full overflow-hidden flex">
+                                <div className="h-full bg-[#0da55a] rounded-l-full transition-all duration-700" style={{ width: `${(completedCredits / totalCredits) * 100}%` }} />
+                                <div className="h-full bg-[#f39c14] transition-all duration-700" style={{ width: `${(sandboxCredits / totalCredits) * 100}%` }} />
+                            </div>
+                            <div className="flex justify-between text-[10px] font-bold text-[#5a6472]">
+                                <span>Done: {completedCredits} CH</span>
+                                <span className="text-[#f39c14]">Plan: +{sandboxCredits} CH</span>
+                                <span>Total: {totalCredits} CH</span>
+                            </div>
+                        </div>
+
+                        {/* Semester Load Assessment */}
+                        {sandboxCredits > 0 && (
+                            <div className="flex items-center gap-2 pt-2 border-t border-[#f39c14]/15">
+                                <span className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest">Semester Load:</span>
+                                <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border ${
+                                    sandboxCredits <= 15
+                                        ? "bg-[#0da55a]/10 border-[#0da55a]/25 text-[#0da55a]"
+                                        : sandboxCredits <= 18
+                                        ? "bg-[#f39c14]/10 border-[#f39c14]/25 text-[#f39c14]"
+                                        : "bg-[#dc4835]/10 border-[#dc4835]/25 text-[#dc4835]"
+                                }`}>
+                                    {sandboxCredits} CH — {sandboxCredits <= 15 ? 'Light' : sandboxCredits <= 18 ? 'Moderate' : 'Heavy'}
+                                </span>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ── Plan Mode: Roadmap Simulation Panel ──────────────────────── */}
+            <AnimatePresence>
+                {sandboxMode && sandboxCourseCount > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: -10, height: 0 }}
+                        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                        className="rounded-xl border-2 border-[#f39c14]/20 bg-white p-5 sm:p-6 space-y-5"
+                        style={{ boxShadow: '0 2px 12px rgba(243,156,20,0.06)' }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#f39c14]/10 border border-[#f39c14]/20 flex items-center justify-center">
+                                <TrendingUp className="w-5 h-5 text-[#f39c14]" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black text-[#222d32]">Roadmap Simulation</h3>
+                                <p className="text-xs text-[#5a6472] font-bold">How this plan changes your degree progress</p>
+                            </div>
+                        </div>
+
+                        {/* Top-level aggregate stats */}
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="p-3 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-center">
+                                <div className="flex items-baseline justify-center gap-1">
+                                    <span className="text-lg font-black text-[#222d32]">{Math.round(progress * 100)}%</span>
+                                    <span className="text-xs font-bold text-[#f39c14]">→ {Math.round(sandboxProgress * 100)}%</span>
+                                </div>
+                                <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">Progress</p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-center">
+                                <div className="flex items-baseline justify-center gap-1">
+                                    <span className="text-lg font-black text-[#222d32]">{totalCredits - completedCredits}</span>
+                                    <span className="text-xs font-bold text-[#f39c14]">→ {sandboxRemaining}</span>
+                                </div>
+                                <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">CH Remaining</p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-center">
+                                <div className="flex items-baseline justify-center gap-1">
+                                    <span className="text-lg font-black text-[#222d32]">
+                                        {Math.ceil(Math.ceil((totalCredits - completedCredits) / 17) / 2)}
+                                    </span>
+                                    <span className="text-xs font-bold text-[#f39c14]">→ {sandboxRemaining > 0 ? Math.ceil(Math.ceil(sandboxRemaining / 17) / 2) : 0}</span>
+                                </div>
+                                <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">Years Left</p>
+                            </div>
+                        </div>
+
+                        {/* Per-category breakdown */}
+                        <div className="space-y-2">
+                            <h4 className="text-[10px] font-black text-[#5a6472] uppercase tracking-[0.2em]">Category Breakdown</h4>
+                            {categoryImpact.map((cat) => {
+                                const currentPct = cat.totalCH > 0 ? (cat.currentDone / cat.totalCH) * 100 : 0;
+                                const afterPct = cat.totalCH > 0 ? (cat.afterDone / cat.totalCH) * 100 : 0;
+
+                                return (
+                                    <div key={cat.label} className="p-3 rounded-lg border border-[#dde3ec] bg-white hover:border-[#bec7d4] transition-colors">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-bold text-[#222d32] uppercase tracking-wider">{cat.label}</span>
+                                            <div className="flex items-center gap-2">
+                                                {cat.delta > 0 && (
+                                                    <span className="text-[10px] font-black text-[#f39c14] bg-[#f39c14]/10 px-1.5 py-0.5 rounded">
+                                                        +{cat.delta} CH
+                                                    </span>
+                                                )}
+                                                {cat.isComplete ? (
+                                                    <span className="text-[10px] font-black text-[#0da55a] bg-[#0da55a]/10 px-2 py-0.5 rounded-full border border-[#0da55a]/25">
+                                                        ✅ Complete
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-[#5a6472]">
+                                                        {cat.remaining} CH left ({cat.remainingCourses} courses)
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="h-2 bg-[#dde3ec] rounded-full overflow-hidden flex">
+                                            <div className="h-full bg-[#0da55a] rounded-l-full transition-all duration-700" style={{ width: `${currentPct}%` }} />
+                                            {cat.delta > 0 && (
+                                                <div className="h-full bg-[#f39c14] transition-all duration-700" style={{ width: `${afterPct - currentPct}%` }} />
+                                            )}
+                                        </div>
+                                        <div className="flex justify-between mt-1 text-[10px] font-bold text-[#5a6472]">
+                                            <span>{cat.currentDone}/{cat.totalCH} CH</span>
+                                            <span className="text-[#222d32]">{cat.afterDone}/{cat.totalCH} CH</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="space-y-12">
                 {Object.entries(groups).map(([title, courses]) => {

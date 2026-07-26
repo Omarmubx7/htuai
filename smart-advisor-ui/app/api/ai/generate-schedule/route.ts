@@ -292,8 +292,7 @@ async function handleScheduleRequest(request: NextRequest, userId: number, start
         });
 
         return NextResponse.json({ 
-            error: "Failed to generate schedule",
-            details: errorMessage || "An unexpected error occurred. Please try again."
+            error: "Failed to generate schedule"
         }, { status: 500 });
     }
 }

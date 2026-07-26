@@ -5,9 +5,23 @@ import { encode } from "next-auth/jwt";
 import { requireEnv } from "@/lib/env";
 import { authCredentialsSchema } from "@/lib/schemas/api";
 import { validationErrorResponse } from "@/lib/validation";
+import { authRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 login attempts per minute per IP
+    const rateLimit = authRateLimit(req);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
     const body = await req.json();
     const validation = authCredentialsSchema.safeParse(body);
     if (!validation.success) {
@@ -34,7 +48,7 @@ export async function POST(req: NextRequest) {
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
       },
-        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "",
+        secret: requireEnv("AUTH_SECRET"),
     });
 
     const response = NextResponse.json({

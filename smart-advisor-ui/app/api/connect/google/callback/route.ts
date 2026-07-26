@@ -66,7 +66,18 @@ async function fetchGoogleProfile(accessToken: string): Promise<GoogleProfile> {
 function decodeReturnTo(encoded?: string): string {
     if (!encoded) return "/planner/settings";
     try {
-        return Buffer.from(encoded, "base64url").toString();
+        const decoded = Buffer.from(encoded, "base64url").toString();
+        // Security: only allow relative paths starting with /
+        // Block external URLs (//host, scheme://host) and path traversal
+        if (
+            !decoded.startsWith("/") ||
+            decoded.startsWith("//") ||
+            decoded.includes("://") ||
+            decoded.includes("\\")
+        ) {
+            return "/planner/settings";
+        }
+        return decoded;
     } catch {
         return "/planner/settings";
     }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Circle, Lock, AlertCircle, Sparkles, ChevronDown } from "lucide-react";
+import { CheckCircle, Circle, Lock, AlertCircle, Sparkles, ChevronDown, Target } from "lucide-react";
 import { Course } from "../../types";
 
 interface CourseCardProps {
@@ -18,6 +18,7 @@ interface CourseCardProps {
     completedCredits?: number;
     onToggle: () => void;
     onOpenNotes?: () => void;
+    isSandboxSelected?: boolean;
 }
 
 function parsePrereqCodes(prereq: string): string[] {
@@ -41,7 +42,8 @@ function extractRequiredCH(prereq: string): number | null {
     return m ? Number.parseInt(m[1], 10) : null;
 }
 
-function StatusIcon({ isLocked, hasPrereqWarning, isCompleted, isInProgress }: Readonly<{ isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean; isInProgress?: boolean }>) {
+function StatusIcon({ isLocked, hasPrereqWarning, isCompleted, isInProgress, isSandboxSelected }: Readonly<{ isLocked: boolean; hasPrereqWarning?: boolean; isCompleted: boolean; isInProgress?: boolean; isSandboxSelected?: boolean }>) {
+    if (isSandboxSelected) return <Target className="w-4 h-4" style={{ color: '#f39c14' }} />;
     if (isCompleted) return <CheckCircle className="w-4 h-4" style={{ color: '#0da55a' }} />;
     if (isInProgress) return <Circle className="w-4 h-4" style={{ fill: 'rgba(243,156,20,0.2)', color: '#f39c14' }} />;
     if (isLocked) return <Lock className="w-4 h-4 text-[#dde3ec]" />;
@@ -240,6 +242,7 @@ function CourseCard({
     completedCredits = 0,
     onToggle,
     onOpenNotes,
+    isSandboxSelected = false,
 }: Readonly<CourseCardProps>) {
     const prereqCodes = course.prereq ? parsePrereqCodes(course.prereq) : [];
     const requiredCH = course.prereq ? extractRequiredCH(course.prereq) : null;
@@ -266,7 +269,11 @@ function CourseCard({
     let cardBorder = "border-[#dde3ec] hover:border-[#bec7d4] hover:shadow-[0_4px_12px_rgba(34,45,50,0.08)]";
     let cardOpacity = "";
     let cardShadow = "";
-    if (isCompleted) {
+    if (isSandboxSelected) {
+        cardBorder = "border-[#f39c14]/60";
+        cardBg = "bg-[#f39c14]/12";
+        cardShadow = "shadow-[inset_0_0_0_1px_rgba(243,156,20,0.12),0_2px_8px_rgba(243,156,20,0.12)]";
+    } else if (isCompleted) {
         cardBorder = "border-[#0da55a]/50";
         cardBg = "bg-[#0da55a]/15";
         cardShadow = "shadow-[inset_0_0_0_1px_rgba(13,165,90,0.1)]";
@@ -301,7 +308,7 @@ function CourseCard({
         >
             {/* Bold top-edge accent bar */}
             <div className={`absolute top-0 left-0 right-0 h-1 transition-opacity duration-500 pointer-events-none rounded-t-xl`}
-                style={{ background: isCompleted ? '#0da55a' : isInProgress ? '#f39c14' : '#dc4835', opacity: (isCompleted || isInProgress) ? 1 : 0 }}
+                style={{ background: isSandboxSelected ? '#f39c14' : isCompleted ? '#0da55a' : isInProgress ? '#f39c14' : '#dc4835', opacity: (isSandboxSelected || isCompleted || isInProgress) ? 1 : 0 }}
             />
 
             {/* Top Row */}
@@ -324,7 +331,7 @@ function CourseCard({
                         title={isLocked ? "Course Requirements" : "Course Prerequisites & Status"}
                         className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#edf1f6] border border-[#dde3ec] group-hover/card:bg-[#dde3ec] transition-colors cursor-help"
                     >
-                        <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} isInProgress={isInProgress} />
+                        <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} isInProgress={isInProgress} isSandboxSelected={isSandboxSelected} />
                     </button>
                     <AnimatePresence>
                         {showLockInfo && (isLocked || hasPrereqWarning) && (
@@ -359,7 +366,9 @@ function CourseCard({
                 </div>
 
                 <span className={`text-xs font-black tracking-widest px-3 py-1.5 rounded-lg border-2 transition-all duration-300
-                    ${isCompleted
+                    ${isSandboxSelected
+                        ? "bg-[#f39c14]/20 border-[#f39c14]/40 text-[#d97706]"
+                        : isCompleted
                         ? "bg-[#0da55a]/20 border-[#0da55a]/40 text-[#0da55a]"
                         : isInProgress
                         ? "bg-[#f39c14]/15 border-[#f39c14]/35 text-[#d97706]"
@@ -401,7 +410,8 @@ const CourseCardMemoized = memo(CourseCard, (prevProps, nextProps) => {
         prevProps.lockReason === nextProps.lockReason &&
         JSON.stringify(prevProps.missingPrereqs) === JSON.stringify(nextProps.missingPrereqs) &&
         prevProps.completedCredits === nextProps.completedCredits &&
-        prevProps.onToggle === nextProps.onToggle
+        prevProps.onToggle === nextProps.onToggle &&
+        prevProps.isSandboxSelected === nextProps.isSandboxSelected
     );
 });
 
