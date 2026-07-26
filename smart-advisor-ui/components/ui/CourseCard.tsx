@@ -19,6 +19,7 @@ interface CourseCardProps {
     onToggle: () => void;
     onOpenNotes?: () => void;
     isSandboxSelected?: boolean;
+    isDimmed?: boolean;
 }
 
 function parsePrereqCodes(prereq: string): string[] {
@@ -243,6 +244,7 @@ function CourseCard({
     onToggle,
     onOpenNotes,
     isSandboxSelected = false,
+    isDimmed = false,
 }: Readonly<CourseCardProps>) {
     const prereqCodes = course.prereq ? parsePrereqCodes(course.prereq) : [];
     const requiredCH = course.prereq ? extractRequiredCH(course.prereq) : null;
@@ -281,6 +283,9 @@ function CourseCard({
         cardBorder = "border-[#f39c14]/50 hover:border-[#f39c14]/70";
         cardBg = "bg-[#f39c14]/15";
         cardShadow = "shadow-[inset_0_0_0_1px_rgba(243,156,20,0.1)]";
+    } else if (isDimmed) {
+        cardOpacity = "opacity-40";
+        cardBorder = "border-[#dde3ec]";
     } else if (isLocked) {
         cardOpacity = "opacity-40";
         cardBorder = "border-[#dde3ec]";
@@ -293,30 +298,26 @@ function CourseCard({
     return (
         <motion.div
             data-testid="course-card"
-            whileHover={isLocked ? {} : { y: -4, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
-            whileTap={isLocked ? {} : { scale: 0.98 }}
+            whileHover={isLocked || isDimmed ? {} : { y: -4, scale: 1.015, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
+            whileTap={isLocked || isDimmed ? {} : { scale: 0.98 }}
             className={`
-                relative p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 select-none overflow-hidden group/card
-                ${isLocked ? "cursor-not-allowed" : "cursor-pointer"}
+                relative p-3 sm:p-5 rounded-xl border-2 transition-all duration-300 select-none overflow-hidden group/card
+                ${isLocked || isDimmed ? "cursor-not-allowed" : "cursor-pointer"}
                 ${cardBorder} ${cardBg} ${cardOpacity} ${cardShadow}
             `}
             onClick={() => {
-                if (isLocked) return;
+                if (isLocked || isDimmed) return;
                 onToggle();
             }}
             title={lockReason}
         >
-            {/* Bold top-edge accent bar */}
-            <div className={`absolute top-0 left-0 right-0 h-1 transition-opacity duration-500 pointer-events-none rounded-t-xl`}
+            {/* Bold top-edge accent bar — hidden on mobile */}
+            <div className={`absolute top-0 left-0 right-0 h-1 transition-opacity duration-500 pointer-events-none rounded-t-xl hidden sm:block`}
                 style={{ background: isSandboxSelected ? '#f39c14' : isCompleted ? '#0da55a' : isInProgress ? '#f39c14' : '#dc4835', opacity: (isSandboxSelected || isCompleted || isInProgress) ? 1 : 0 }}
             />
 
-            {/* Top Row */}
-            <div className="flex justify-between items-start mb-4 relative z-10">
-                <span className={`inline-flex items-center gap-2 text-[11px] font-black px-2.5 py-1 rounded-full border tracking-[0.15em] uppercase transition-colors ${accent.badge}`}>
-                    <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
-                    {course.framework}
-                </span>
+            {/* Top Row — compact on mobile */}
+            <div className="flex justify-between items-center mb-2 sm:mb-4 relative z-10">
                 <div className="relative">
                     <button
                         data-testid="status-icon"
@@ -329,7 +330,7 @@ function CourseCard({
                             }
                         }}
                         title={isLocked ? "Course Requirements" : "Course Prerequisites & Status"}
-                        className="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#edf1f6] border border-[#dde3ec] group-hover/card:bg-[#dde3ec] transition-colors cursor-help"
+                        className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#edf1f6] border border-[#dde3ec] group-hover/card:bg-[#dde3ec] transition-colors cursor-help"
                     >
                         <StatusIcon isLocked={isLocked} hasPrereqWarning={hasPrereqWarning} isCompleted={isCompleted} isInProgress={isInProgress} isSandboxSelected={isSandboxSelected} />
                     </button>
@@ -344,20 +345,28 @@ function CourseCard({
                         )}
                     </AnimatePresence>
                 </div>
+                {/* Framework badge — inline on mobile, pill on desktop */}
+                <span className={`hidden sm:inline-flex items-center gap-2 text-[11px] font-black px-2.5 py-1 rounded-full border tracking-[0.15em] uppercase transition-colors ${accent.badge}`}>
+                    <span className={`w-1 h-1 rounded-full animate-pulse ${accent.dot}`} />
+                    {course.framework}
+                </span>
             </div>
 
             {/* Course Name */}
-            <h3 data-testid="course-name" className={`font-bold text-sm sm:text-base leading-tight mb-1.5 sm:mb-2 tracking-tight relative z-10 transition-colors text-[#222d32] group-hover/card:text-[#0d1117]`}>
+            <h3 data-testid="course-name" className={`font-bold text-sm sm:text-base leading-tight mb-1 sm:mb-2 tracking-tight relative z-10 transition-colors text-[#222d32] group-hover/card:text-[#0d1117]`}>
                 {course.name}
             </h3>
 
-            {/* Code + Credits + Notes */}
-            <div className="flex flex-wrap items-center justify-between gap-y-3 mt-3 sm:mt-5 relative z-10">
-                <div className="flex flex-wrap items-center gap-3">
+            {/* Code + Framework (mobile inline) + Credits + Notes */}
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 mt-1.5 sm:mt-5 relative z-10">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span data-testid="course-code" className="text-xs text-[#92604c] font-mono font-bold tracking-[0.2em] mt-0.5">{course.code}</span>
+                    <span className={`sm:hidden inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full border tracking-wider uppercase ${accent.badge}`}>
+                        {course.framework}
+                    </span>
                     <button
                         onClick={(e) => { e.stopPropagation(); onOpenNotes?.(); }}
-                        className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-[#edf1f6] border border-[#dde3ec] hover:border-[#dc4835] hover:bg-[#dc4835]/5 transition-all group/notes min-h-8"
+                        className="hidden sm:flex items-center gap-1.5 py-1 px-3 rounded-lg bg-[#edf1f6] border border-[#dde3ec] hover:border-[#dc4835] hover:bg-[#dc4835]/5 transition-all group/notes min-h-8"
                         title="Course Notes"
                     >
                         <Sparkles className="w-3.5 h-3.5 text-[#5a6472] group-hover/notes:text-[#dc4835] transition-colors" />
@@ -386,9 +395,9 @@ function CourseCard({
                 fullPrereq={course.prereq}
             />
 
-            {/* No prerequisites */}
+            {/* No prerequisites — hidden on mobile */}
             {!course.prereq && (
-                <div className="mt-3 pt-3 border-t border-[#dde3ec] relative z-10 transition-colors">
+                <div className="hidden sm:block mt-3 pt-3 border-t border-[#dde3ec] relative z-10 transition-colors">
                     <span className="text-xs text-[#92604c] italic">No prerequisites</span>
                 </div>
             )}
@@ -411,7 +420,8 @@ const CourseCardMemoized = memo(CourseCard, (prevProps, nextProps) => {
         JSON.stringify(prevProps.missingPrereqs) === JSON.stringify(nextProps.missingPrereqs) &&
         prevProps.completedCredits === nextProps.completedCredits &&
         prevProps.onToggle === nextProps.onToggle &&
-        prevProps.isSandboxSelected === nextProps.isSandboxSelected
+        prevProps.isSandboxSelected === nextProps.isSandboxSelected &&
+        prevProps.isDimmed === nextProps.isDimmed
     );
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Course, CourseData, CurriculumRules } from '@/types';
 import CourseCard from './ui/CourseCard';
@@ -118,7 +118,11 @@ function CourseTrackerView({
     // ── Plan Mode (Sandbox) State ─────────────────────────────────────────
     const [sandboxMode, setSandboxMode] = useState(false);
     const [sandboxCourses, setSandboxCourses] = useState<Set<string>>(new Set());
-    const [showSandboxConfirm, setShowSandboxConfirm] = useState(false);
+    const [semesterType, setSemesterType] = useState<"normal" | "summer">("normal");
+    const sandboxOrderRef = useRef<string[]>([]);
+
+    const SEMESTER_MAX = semesterType === "summer" ? 10 : 18;
+    const SEMESTER_MIN = semesterType === "summer" ? 0 : 12;
 
     const formatCountdown = (targetIso: string | null) => {
         if (!targetIso) return null;
@@ -146,28 +150,15 @@ function CourseTrackerView({
     // ── Plan Mode: Toggle handlers ─────────────────────────────────────────
     const handleSandboxToggle = useCallback(() => {
         if (sandboxMode) {
-            setShowSandboxConfirm(true);
+            setSandboxMode(false);
+            setSandboxCourses(new Set());
+            sandboxOrderRef.current = [];
+            safeStorage.remove("mubxai-sandbox");
         } else {
             setSandboxMode(true);
         }
     }, [sandboxMode]);
 
-    const confirmDisableSandbox = useCallback(() => {
-        setSandboxMode(false);
-        setSandboxCourses(new Set());
-        safeStorage.remove("mubxai-sandbox");
-        setShowSandboxConfirm(false);
-    }, []);
-
-    const toggleSandboxCourse = useCallback((code: string) => {
-        if (!sandboxMode) return;
-        setSandboxCourses(prev => {
-            const next = new Set(prev);
-            if (next.has(code)) next.delete(code);
-            else next.add(code);
-            return next;
-        });
-    }, [sandboxMode]);
     const [showSetupWizard, setShowSetupWizard] = useState(false);
     const [loadingSemester, setLoadingSemester] = useState(true);
 
@@ -255,6 +246,8 @@ function CourseTrackerView({
                 const parsed = JSON.parse(saved);
                 if (parsed.mode) setSandboxMode(true);
                 if (Array.isArray(parsed.courses)) setSandboxCourses(new Set(parsed.courses));
+                if (parsed.semesterType === "summer" || parsed.semesterType === "normal") setSemesterType(parsed.semesterType);
+                if (Array.isArray(parsed.order)) sandboxOrderRef.current = parsed.order;
             } catch { /* ignore */ }
         }
     }, []);
@@ -265,9 +258,11 @@ function CourseTrackerView({
             safeStorage.set("mubxai-sandbox", JSON.stringify({
                 mode: sandboxMode,
                 courses: Array.from(sandboxCourses),
+                semesterType,
+                order: sandboxOrderRef.current,
             }));
         }
-    }, [sandboxMode, sandboxCourses]);
+    }, [sandboxMode, sandboxCourses, semesterType]);
 
     const allCourses = [
         ...data.university_requirements,
@@ -374,6 +369,63 @@ function CourseTrackerView({
     const sandboxCourseCount = sandboxCourses.size;
     const sandboxRemaining = Math.max(0, totalCredits - completedCredits - sandboxCredits);
     const sandboxProgress = Math.min((completedCredits + sandboxCredits) / totalCredits, 1);
+
+    const toggleSandboxCourse = useCallback((code: string) => {
+        if (!sandboxMode) return;
+        setSandboxCourses(prev => {
+            const next = new Set(prev);
+            if (next.has(code)) {
+                next.delete(code);
+                sandboxOrderRef.current = sandboxOrderRef.current.filter(c => c !== code);
+            } else {
+                let wouldBeCredits = 0;
+                let uniElecCounted = 0;
+                let deptElecCounted = 0;
+                for (const course of allCourses) {
+                    if (!next.has(course.code) && course.code !== code) continue;
+                    if (uniElectiveCodes.has(course.code)) {
+                        if (uniElecCounted < MAX_UNI_ELECTIVES) { wouldBeCredits += course.ch; uniElecCounted++; }
+                    } else if (deptElectiveCodes.has(course.code)) {
+                        if (deptElecCounted < MAX_DEPT_ELECTIVES) { wouldBeCredits += course.ch; deptElecCounted++; }
+                    } else {
+                        wouldBeCredits += course.ch;
+                    }
+                }
+                wouldBeCredits = Math.min(wouldBeCredits, totalCredits);
+                if (wouldBeCredits > SEMESTER_MAX) return prev;
+                next.add(code);
+                sandboxOrderRef.current.push(code);
+            }
+            return next;
+        });
+    }, [sandboxMode, allCourses, uniElectiveCodes, deptElectiveCodes, MAX_UNI_ELECTIVES, MAX_DEPT_ELECTIVES, totalCredits, SEMESTER_MAX]);
+
+    const switchSemesterType = useCallback((newType: "normal" | "summer") => {
+        if (newType === semesterType) return;
+        const newMax = newType === "summer" ? 10 : 18;
+        if (sandboxCredits > newMax) {
+            const order = sandboxOrderRef.current;
+            const toRemove: string[] = [];
+            let credits = sandboxCredits;
+            for (let i = order.length - 1; i >= 0 && credits > newMax; i--) {
+                const code = order[i];
+                const course = allCourses.find(c => c.code === code);
+                if (course) {
+                    credits -= course.ch;
+                    toRemove.push(code);
+                }
+            }
+            if (toRemove.length > 0) {
+                setSandboxCourses(prev => {
+                    const next = new Set(prev);
+                    for (const c of toRemove) next.delete(c);
+                    return next;
+                });
+                sandboxOrderRef.current = order.filter(c => !toRemove.includes(c));
+            }
+        }
+        setSemesterType(newType);
+    }, [semesterType, sandboxCredits, allCourses]);
 
     // ── Plan Mode: Per-category simulation impact ──────────────────────────
     const categoryImpact = useMemo(() => {
@@ -666,6 +718,8 @@ function CourseTrackerView({
         let capMax = 0;
 
         if (sandboxMode) {
+            const isSelected = sandboxCourses.has(course.code);
+            const isAtCap = sandboxCredits >= SEMESTER_MAX;
             return (
                 <CourseCard
                     key={course.code}
@@ -681,7 +735,8 @@ function CourseTrackerView({
                     completedCredits={completedCredits}
                     onToggle={() => toggleSandboxCourse(course.code)}
                     onOpenNotes={() => setSelectedCourseForNotes({ id: course.code, title: course.name })}
-                    isSandboxSelected={sandboxCourses.has(course.code)}
+                    isSandboxSelected={isSelected}
+                    isDimmed={isAtCap && !isSelected && !completedCourses.has(course.code)}
                 />
             );
         }
@@ -757,16 +812,6 @@ function CourseTrackerView({
                     setShowResetConfirm(false);
                 }}
                 onCancel={() => setShowResetConfirm(false)}
-            />
-
-            <ConfirmDialog
-                isOpen={showSandboxConfirm}
-                title="Disable Plan Mode?"
-                description="This will clear all your planned course selections. Your actual progress won't be affected."
-                confirmLabel="Clear & Disable"
-                variant="danger"
-                onConfirm={confirmDisableSandbox}
-                onCancel={() => setShowSandboxConfirm(false)}
             />
 
             <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
@@ -1061,55 +1106,58 @@ function CourseTrackerView({
                 )}
             </section>
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-[#dde3ec]">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#dc4835]/10 border-2 border-[#dc4835]/25 flex items-center justify-center" style={{ color: '#dc4835' }}>
-                        {viewMode === 'level' ? <Trophy className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
+            <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#dde3ec]">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#dc4835]/10 border-2 border-[#dc4835]/25 flex items-center justify-center" style={{ color: '#dc4835' }}>
+                        {viewMode === 'level' ? <Trophy className="w-4 h-4 sm:w-5 sm:h-5" /> : <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </div>
                     <div>
-                        <h3 className="text-lg font-black text-[#222d32]">Curriculum View</h3>
-                        <p className="text-xs text-[#5a6472] font-bold">Browse by {viewMode === 'level' ? 'academic year' : 'requirement type'}</p>
+                        <h3 className="text-sm sm:text-lg font-black text-[#222d32]">Curriculum View</h3>
+                        <p className="text-[10px] sm:text-xs text-[#5a6472] font-bold hidden sm:block">Browse by {viewMode === 'level' ? 'academic year' : 'requirement type'}</p>
                     </div>
                 </div>
 
-                <div id="wt-view-toggle" className="flex p-1 bg-white border-2 border-[#dc4835]/20 rounded-xl w-full sm:w-auto">
-                    {(["level", "category"] as const).map((mode) => (
-                        <button
-                            key={mode}
-                            onClick={() => setViewMode(mode)}
-                            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-xs font-black transition-all duration-300
-                                ${viewMode === mode
-                                    ? "text-white bg-[#dc4835] shadow-md shadow-[#dc4835]/25"
-                                    : "text-[#5a6472] hover:text-[#dc4835] hover:bg-[#dc4835]/5"
-                                }`}
-                        >
-                            {mode === "level" ? "Roadmap" : "Categories"}
-                        </button>
-                    ))}
-                </div>
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <div id="wt-view-toggle" className="flex p-0.5 sm:p-1 bg-white border-2 border-[#dc4835]/20 rounded-lg sm:rounded-xl">
+                        {(["level", "category"] as const).map((mode) => (
+                            <button
+                                key={mode}
+                                onClick={() => setViewMode(mode)}
+                                className={`px-2.5 sm:px-6 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black transition-all duration-300
+                                    ${viewMode === mode
+                                        ? "text-white bg-[#dc4835] shadow-md shadow-[#dc4835]/25"
+                                        : "text-[#5a6472] hover:text-[#dc4835] hover:bg-[#dc4835]/5"
+                                    }`}
+                            >
+                                {mode === "level" ? "Roadmap" : "Categories"}
+                            </button>
+                        ))}
+                    </div>
 
-                <motion.button
-                    onClick={handleSandboxToggle}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-300 border-2
-                        ${sandboxMode
-                            ? "bg-[#f39c14] text-white border-[#f39c14] shadow-md shadow-[#f39c14]/25"
-                            : "text-[#5a6472] border-[#dde3ec] hover:border-[#f39c14] hover:text-[#f39c14] hover:bg-[#f39c14]/5"
-                        }`}
-                >
-                    <Target className="w-4 h-4" />
-                    {sandboxMode ? "Plan Mode ON" : "Plan Mode"}
-                </motion.button>
+                    <motion.button
+                        onClick={handleSandboxToggle}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className={`flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-xl text-xs font-black transition-all duration-300 border-2
+                            ${sandboxMode
+                                ? "bg-[#f39c14] text-white border-[#f39c14] shadow-md shadow-[#f39c14]/25"
+                                : "text-[#5a6472] border-[#dde3ec] hover:border-[#f39c14] hover:text-[#f39c14] hover:bg-[#f39c14]/5"
+                            }`}
+                        title="Plan Mode"
+                    >
+                        <Target className="w-4 h-4" />
+                        <span className="hidden sm:inline ml-1.5">{sandboxMode ? "Plan Mode ON" : "Plan Mode"}</span>
+                    </motion.button>
+                </div>
             </div>
 
             {/* ── Plan Mode: Summary Bar ───────────────────────────────────── */}
             <AnimatePresence>
                 {sandboxMode && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, height: 0 }}
-                        animate={{ opacity: 1, y: 0, height: 'auto' }}
-                        exit={{ opacity: 0, y: -10, height: 0 }}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className="rounded-xl border-2 border-[#f39c14]/30 bg-gradient-to-br from-[#f39c14]/5 to-white p-5 sm:p-6 space-y-4"
                         style={{ boxShadow: '0 2px 12px rgba(243,156,20,0.08)' }}
@@ -1124,29 +1172,52 @@ function CourseTrackerView({
                                     <p className="text-xs text-[#5a6472] font-bold">Click courses below to add them to your plan</p>
                                 </div>
                             </div>
-                            {sandboxCourseCount > 0 && (
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => setSandboxCourses(new Set())}
-                                    className="text-xs font-bold text-[#dc4835] hover:text-[#c03d2e] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#dc4835]/5"
-                                >
-                                    Clear Plan
-                                </motion.button>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {sandboxCourseCount > 0 && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => { setSandboxCourses(new Set()); sandboxOrderRef.current = []; }}
+                                        className="text-xs font-bold text-[#dc4835] hover:text-[#c03d2e] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#dc4835]/5"
+                                    >
+                                        Clear Plan
+                                    </motion.button>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center p-3 rounded-lg bg-white border border-[#dde3ec]">
-                                <span className="text-2xl font-black text-[#f39c14]">{sandboxCourseCount}</span>
+                        {/* Semester Type Toggle */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest">Semester:</span>
+                            <div className="inline-flex rounded-lg border border-[#dde3ec] overflow-hidden bg-white">
+                                {(["normal", "summer"] as const).map(t => (
+                                    <button
+                                        key={t}
+                                        onClick={() => switchSemesterType(t)}
+                                        className={`px-3 py-1 text-xs font-bold transition-all ${
+                                            semesterType === t
+                                                ? "bg-[#f39c14] text-white"
+                                                : "text-[#5a6472] hover:bg-[#f39c14]/10 hover:text-[#f39c14]"
+                                        }`}
+                                    >
+                                        {t === "normal" ? "Fall / Spring" : "Summer"}
+                                    </button>
+                                ))}
+                            </div>
+                            <span className="text-[10px] font-bold text-[#92604c]">Max {SEMESTER_MAX} CH{SEMESTER_MIN > 0 ? ` / Min ${SEMESTER_MIN} CH` : ""}</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <div className="text-center p-2.5 sm:p-3 rounded-lg bg-white border border-[#dde3ec]">
+                                <span className="text-xl sm:text-2xl font-black text-[#f39c14]">{sandboxCourseCount}</span>
                                 <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">Courses</p>
                             </div>
-                            <div className="text-center p-3 rounded-lg bg-white border border-[#dde3ec]">
-                                <span className="text-2xl font-black text-[#f39c14]">{sandboxCredits}</span>
+                            <div className="text-center p-2.5 sm:p-3 rounded-lg bg-white border border-[#dde3ec]">
+                                <span className="text-xl sm:text-2xl font-black text-[#f39c14]">{sandboxCredits}<span className="text-xs sm:text-sm font-bold text-[#92604c]">/{SEMESTER_MAX}</span></span>
                                 <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">CH in Plan</p>
                             </div>
-                            <div className="text-center p-3 rounded-lg bg-white border border-[#dde3ec]">
-                                <span className={`text-2xl font-black ${sandboxRemaining <= 0 ? 'text-[#0da55a]' : 'text-[#dc4835]'}`}>
+                            <div className="text-center p-2.5 sm:p-3 rounded-lg bg-white border border-[#dde3ec] col-span-2 sm:col-span-1">
+                                <span className={`text-xl sm:text-2xl font-black ${sandboxRemaining <= 0 ? 'text-[#0da55a]' : 'text-[#dc4835]'}`}>
                                     {sandboxRemaining}
                                 </span>
                                 <p className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest mt-1">CH Left</p>
@@ -1158,14 +1229,19 @@ function CourseTrackerView({
                                 <span className="text-[#5a6472]">Overall</span>
                                 <span className="text-[#f39c14]">{Math.round(sandboxProgress * 100)}%</span>
                             </div>
-                            <div className="h-2.5 bg-[#dde3ec] rounded-full overflow-hidden flex">
+                            <div className="h-2 sm:h-2.5 bg-[#dde3ec] rounded-full overflow-hidden flex">
                                 <div className="h-full bg-[#0da55a] rounded-l-full transition-all duration-700" style={{ width: `${(completedCredits / totalCredits) * 100}%` }} />
                                 <div className="h-full bg-[#f39c14] transition-all duration-700" style={{ width: `${(sandboxCredits / totalCredits) * 100}%` }} />
                             </div>
-                            <div className="flex justify-between text-[10px] font-bold text-[#5a6472]">
+                            <div className="hidden sm:flex justify-between text-[10px] font-bold text-[#5a6472]">
                                 <span>Done: {completedCredits} CH</span>
                                 <span className="text-[#f39c14]">Plan: +{sandboxCredits} CH</span>
                                 <span>Total: {totalCredits} CH</span>
+                            </div>
+                            <div className="sm:hidden text-[10px] font-bold text-[#5a6472] text-center">
+                                <span>{completedCredits} + {sandboxCredits}</span>
+                                <span className="text-[#f39c14] mx-1">=</span>
+                                <span className="text-[#222d32]">{completedCredits + sandboxCredits}/{totalCredits} CH</span>
                             </div>
                         </div>
 
@@ -1174,14 +1250,27 @@ function CourseTrackerView({
                             <div className="flex items-center gap-2 pt-2 border-t border-[#f39c14]/15">
                                 <span className="text-[10px] font-bold text-[#5a6472] uppercase tracking-widest">Semester Load:</span>
                                 <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border ${
-                                    sandboxCredits <= 15
+                                    semesterType === "summer"
+                                        ? "bg-[#f39c14]/10 border-[#f39c14]/25 text-[#f39c14]"
+                                        : sandboxCredits <= 12
                                         ? "bg-[#0da55a]/10 border-[#0da55a]/25 text-[#0da55a]"
                                         : sandboxCredits <= 18
                                         ? "bg-[#f39c14]/10 border-[#f39c14]/25 text-[#f39c14]"
                                         : "bg-[#dc4835]/10 border-[#dc4835]/25 text-[#dc4835]"
                                 }`}>
-                                    {sandboxCredits} CH — {sandboxCredits <= 15 ? 'Light' : sandboxCredits <= 18 ? 'Moderate' : 'Heavy'}
+                                    {semesterType === "summer"
+                                        ? `${sandboxCredits} CH`
+                                        : `${sandboxCredits} CH — ${sandboxCredits <= 12 ? 'Light' : sandboxCredits <= 18 ? 'Moderate' : 'Heavy'}`
+                                    }
                                 </span>
+                            </div>
+                        )}
+
+                        {/* Below Minimum Warning (normal semesters only) */}
+                        {semesterType === "normal" && sandboxCredits > 0 && sandboxCredits < SEMESTER_MIN && (
+                            <div className="flex items-center gap-2 pt-2 border-t border-[#dc4835]/15">
+                                <AlertCircle className="w-3.5 h-3.5 text-[#dc4835]" />
+                                <span className="text-xs font-bold text-[#dc4835]">Below minimum — {SEMESTER_MIN} CH required for a normal semester</span>
                             </div>
                         )}
                     </motion.div>
@@ -1192,9 +1281,9 @@ function CourseTrackerView({
             <AnimatePresence>
                 {sandboxMode && sandboxCourseCount > 0 && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, height: 0 }}
-                        animate={{ opacity: 1, y: 0, height: 'auto' }}
-                        exit={{ opacity: 0, y: -10, height: 0 }}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                         className="rounded-xl border-2 border-[#f39c14]/20 bg-white p-5 sm:p-6 space-y-5"
                         style={{ boxShadow: '0 2px 12px rgba(243,156,20,0.06)' }}
@@ -1282,7 +1371,7 @@ function CourseTrackerView({
                 )}
             </AnimatePresence>
 
-            <div className="space-y-12">
+            <div className="space-y-6 sm:space-y-12">
                 {Object.entries(groups).map(([title, courses]) => {
                     const catStyle: Record<string, { icon: React.ReactNode; color: string; bg: string; border: string; headerText: string; badge: string; divider: string }> = {
                         "University Requirements": { icon: <GraduationCap className="w-5 h-5" />, color: "#7c3aed", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.25)", headerText: "#7c3aed", badge: "rgba(124,58,237,0.15)", divider: "rgba(124,58,237,0.20)" },
@@ -1327,9 +1416,9 @@ function CourseTrackerView({
                             className="p-4 sm:p-6 rounded-xl border-2 transition-colors"
                             style={{ background: sectionBg, borderColor: sectionBorder }}
                         >
-                            <div className="flex items-center gap-3 mb-5 sm:mb-6">
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: sectionBadge, color: sectionHeaderColor }}>
-                                    {style?.icon ?? <Trophy className="w-5 h-5" />}
+                            <div className="flex items-center gap-3 mb-3 sm:mb-6">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: sectionBadge, color: sectionHeaderColor }}>
+                                    {style?.icon ?? <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <h2 className="text-sm font-black uppercase tracking-widest whitespace-nowrap" style={{ color: sectionHeaderColor }}>
@@ -1341,8 +1430,8 @@ function CourseTrackerView({
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex-1 h-px" style={{ background: sectionDivider }} />
-                                <span className="text-[11px] font-bold shrink-0" style={{ color: sectionHeaderColor, opacity: 0.7 }}>{courses.length} courses</span>
+                                <div className="flex-1 h-px hidden sm:block" style={{ background: sectionDivider }} />
+                                <span className="hidden sm:inline text-[11px] font-bold shrink-0" style={{ color: sectionHeaderColor, opacity: 0.7 }}>{courses.length} courses</span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
