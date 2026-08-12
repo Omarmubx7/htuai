@@ -2,8 +2,9 @@
 
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Circle, Lock, AlertCircle, Sparkles, ChevronDown, Target } from "lucide-react";
+import { CheckCircle, Circle, Lock, AlertCircle, Sparkles, ChevronDown, Target, Copy, Check } from "lucide-react";
 import { Course } from "../../types";
+import { useToast } from "./Toast";
 
 interface CourseCardProps {
     course: Course;
@@ -254,6 +255,19 @@ function CourseCard({
     const [isExpanded, setIsExpanded] = useState(false);
     const [showLockInfo, setShowLockInfo] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const { toast } = useToast();
+    const [copiedField, setCopiedField] = useState<"name" | "code" | null>(null);
+
+    const handleCopy = async (text: string, field: "name" | "code") => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedField(field);
+            toast(field === "code" ? "Course code copied" : "Course name copied", "success");
+            setTimeout(() => setCopiedField(null), 1500);
+        } catch {
+            toast("Failed to copy", "error");
+        }
+    };
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -353,14 +367,40 @@ function CourseCard({
             </div>
 
             {/* Course Name */}
-            <h3 data-testid="course-name" className={`font-bold text-sm sm:text-base leading-tight mb-1 sm:mb-2 tracking-tight relative z-10 transition-colors text-[#222d32] group-hover/card:text-[#0d1117]`}>
-                {course.name}
-            </h3>
+            <div className="flex items-center gap-1.5 relative z-10 mb-1 sm:mb-2">
+                <h3 data-testid="course-name" className={`font-bold text-sm sm:text-base leading-tight tracking-tight transition-colors text-[#222d32] group-hover/card:text-[#0d1117]`}>
+                    {course.name}
+                </h3>
+                <button
+                    type="button"
+                    title="Copy course name"
+                    aria-label="Copy course name"
+                    onClick={(e) => { e.stopPropagation(); handleCopy(course.name, "name"); }}
+                    className="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-md bg-[#edf1f6] border border-[#dde3ec] hover:border-[#dc4835] hover:bg-[#dc4835]/5 transition-all cursor-pointer"
+                >
+                    {copiedField === "name"
+                        ? <Check className="w-3 h-3 text-[#0da55a]" />
+                        : <Copy className="w-3 h-3 text-[#5a6472]" />}
+                </button>
+            </div>
 
             {/* Code + Framework (mobile inline) + Credits + Notes */}
             <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 mt-1.5 sm:mt-5 relative z-10">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <span data-testid="course-code" className="text-xs text-[#92604c] font-mono font-bold tracking-[0.2em] mt-0.5">{course.code}</span>
+                    <div className="flex items-center gap-1.5">
+                        <span data-testid="course-code" className="text-xs text-[#92604c] font-mono font-bold tracking-[0.2em] mt-0.5">{course.code}</span>
+                        <button
+                            type="button"
+                            title="Copy course code"
+                            aria-label="Copy course code"
+                            onClick={(e) => { e.stopPropagation(); handleCopy(course.code, "code"); }}
+                            className="inline-flex items-center justify-center w-6 h-6 mt-0.5 rounded-md bg-[#edf1f6] border border-[#dde3ec] hover:border-[#dc4835] hover:bg-[#dc4835]/5 transition-all cursor-pointer shrink-0"
+                        >
+                            {copiedField === "code"
+                                ? <Check className="w-3 h-3 text-[#0da55a]" />
+                                : <Copy className="w-3 h-3 text-[#5a6472]" />}
+                        </button>
+                    </div>
                     <span className={`sm:hidden inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full border tracking-wider uppercase ${accent.badge}`}>
                         {course.framework}
                     </span>
