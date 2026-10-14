@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, FileText, Video, Link2, Image, Folder, HelpCircle, Flag, Trash2 } from "lucide-react";
+import { ExternalLink, FileText, Video, Link2, Image, Folder, HelpCircle, Flag, Trash2, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const TYPE_CONFIG: Record<string, { icon: typeof FileText; color: string; label: string }> = {
@@ -24,12 +24,15 @@ export interface ResourceItem {
     semester: string | null;
     report_count: number;
     created_at: string;
+    user_id?: number | null;
+    is_owner?: boolean;
 }
 
 interface ResourceCardProps {
     resource: ResourceItem;
     onReport: (resource: ResourceItem) => void;
     onDelete?: (resource: ResourceItem) => void;
+    onShare?: (resource: ResourceItem) => void;
     isOwner?: boolean;
     courseNameMap?: Record<string, string>;
     majorLabels?: string[];
@@ -40,7 +43,7 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
 
-export default function ResourceCard({ resource, onReport, onDelete, isOwner, courseNameMap, majorLabels }: Readonly<ResourceCardProps>) {
+export default function ResourceCard({ resource, onReport, onDelete, onShare, isOwner, courseNameMap, majorLabels }: Readonly<ResourceCardProps>) {
     const config = TYPE_CONFIG[resource.type] || TYPE_CONFIG.other;
     const Icon = config.icon;
     const courseLabel = courseNameMap?.[resource.course_code] || resource.course_code;
@@ -107,11 +110,9 @@ export default function ResourceCard({ resource, onReport, onDelete, isOwner, co
 
             <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-[#dde3ec]/60">
                 <div className="flex items-center gap-3 min-w-0">
-                    {resource.uploaded_by && (
-                        <span className="text-[11px] text-[#92604c] font-medium truncate min-w-0">
-                            by {resource.uploaded_by}
-                        </span>
-                    )}
+                    <span className="text-[11px] text-[#92604c] font-medium truncate min-w-0">
+                        {resource.uploaded_by ? `by ${resource.uploaded_by}` : "by Anonymous"}
+                    </span>
                     {resource.report_count > 0 && (
                         <span className="text-[11px] text-[#dc4835] font-semibold shrink-0" aria-label={`${resource.report_count} reports`}>
                             {resource.report_count} report{resource.report_count > 1 ? "s" : ""}
@@ -120,6 +121,17 @@ export default function ResourceCard({ resource, onReport, onDelete, isOwner, co
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
+                    {onShare && (
+                        <button
+                            onClick={() => onShare(resource)}
+                            className="p-2 rounded-lg text-[#5a6472]/40 hover:text-[#dc4835] hover:bg-[#dc4835]/10 focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 transition-all duration-200"
+                            title="Share resource"
+                            aria-label={`Share ${resource.title}`}
+                        >
+                            <Share2 className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+
                     {isOwner && onDelete && (
                         <button
                             onClick={() => onDelete(resource)}

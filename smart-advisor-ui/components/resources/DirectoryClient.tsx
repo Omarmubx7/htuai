@@ -138,6 +138,32 @@ export default function DirectoryClient({
 
     const currentUser = session?.user?.name || session?.user?.email || null;
 
+    async function handleShare(resource: ResourceItem) {
+        const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/resources?course_code=${resource.course_code}&rid=${resource.id}`;
+        const text = `Check out "${resource.title}" for ${resource.course_code} on MubxAI`;
+
+        try {
+            if (typeof navigator !== "undefined" && navigator.share) {
+                await navigator.share({
+                    title: "MubxAI Resources",
+                    text,
+                    url: shareUrl,
+                });
+            } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+                await navigator.clipboard.writeText(shareUrl);
+                toast("Link copied to clipboard", "success");
+            } else {
+                toast(shareUrl, "info");
+            }
+        } catch (err) {
+            // User cancelled share or error
+            if (err instanceof Error && err.name === "AbortError") {
+                return;
+            }
+            toast("Failed to share", "error");
+        }
+    }
+
     async function handleDelete(resource: ResourceItem) {
         if (!confirm(`Delete "${resource.title}"?`)) return;
         try {
@@ -157,8 +183,8 @@ export default function DirectoryClient({
         <div className="min-h-dvh bg-[#edf1f6]">
             {/* Header */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec]">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center gap-3">
                             <Link
                                 href="/dashboard"
@@ -192,6 +218,14 @@ export default function DirectoryClient({
                                 >
                                     Course materials shared by students
                                 </motion.p>
+                                <motion.p
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.3 }}
+                                    className="hidden sm:block text-[11px] text-[#dc4835] font-semibold mt-0.5"
+                                >
+                                    Found something useful? Share it with your classmates.
+                                </motion.p>
                             </div>
                         </div>
 
@@ -210,7 +244,7 @@ export default function DirectoryClient({
                     </div>
 
                     {/* Search */}
-                    <div className="relative mb-3">
+                    <div className="relative mb-2 sm:mb-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6472]" />
                         <input
                             type="search"
@@ -232,7 +266,7 @@ export default function DirectoryClient({
                     </div>
 
                     {/* Major chips — horizontal scroll */}
-                    <div className="mb-3" ref={majorScrollRef}>
+                    <div className="mb-2 sm:mb-3" ref={majorScrollRef}>
                         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" role="tablist" aria-label="Filter by major">
                             {majorGroups.map((group) => {
                                 const isActive = group.id === selectedMajor;
@@ -267,7 +301,7 @@ export default function DirectoryClient({
                     </div>
 
                     {/* Course chips */}
-                    <div className="mb-3">
+                    <div className="mb-2 sm:mb-3">
                         <CourseChips courses={courses} selected={selectedCourse} onSelect={setSelectedCourse} />
                     </div>
 
@@ -288,7 +322,7 @@ export default function DirectoryClient({
             </div>
 
             {/* Content */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
                 <AnimatePresence mode="wait">
                     {loading ? (
                         <motion.div
@@ -315,7 +349,8 @@ export default function DirectoryClient({
                                     resource={r}
                                     onReport={setReportTarget}
                                     onDelete={handleDelete}
-                                    isOwner={currentUser === r.uploaded_by}
+                                    onShare={handleShare}
+                                    isOwner={Boolean(r.is_owner ?? (currentUser === r.uploaded_by))}
                                     courseNameMap={courseNameMap}
                                     majorLabels={r.majorLabels}
                                 />

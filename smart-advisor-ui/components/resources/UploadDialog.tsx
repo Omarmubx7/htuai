@@ -64,6 +64,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [dragActive, setDragActive] = useState(false);
+    const [isAnonymous, setIsAnonymous] = useState(false);
     const { toast } = useToast();
     const titleRef = useRef<HTMLInputElement>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
@@ -190,6 +191,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
         setUrl("");
         setUploadFiles([]);
         setDragActive(false);
+        setIsAnonymous(false);
     }
 
     function handleClose() {
@@ -296,6 +298,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                         url,
                         description: description || undefined,
                         semester,
+                        anonymous: isAnonymous,
                     }),
                 });
                 if (!res.ok) {
@@ -318,6 +321,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                             url: f.url,
                             description: description || undefined,
                             semester,
+                            anonymous: isAnonymous,
                         }),
                     });
                     if (!res.ok) {
@@ -532,6 +536,21 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                     </select>
                                 </div>
                             </fieldset>
+
+                            <div className="flex items-start gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="upload-anonymous"
+                                    checked={isAnonymous}
+                                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                                    className="mt-0.5 h-4 w-4 rounded border-[#dde3ec] text-[#dc4835] focus:ring-[#dc4835]/30 transition-all duration-200"
+                                    aria-label="Upload anonymously"
+                                />
+                                <label htmlFor="upload-anonymous" className="flex flex-col gap-0.5 cursor-pointer">
+                                    <span className="text-xs font-bold text-[#222d32]">Upload anonymously</span>
+                                    <span className="text-[11px] text-[#5a6472] leading-relaxed">Your name won't be shown to others</span>
+                                </label>
+                            </div>
 
                             <fieldset>
                                 <legend className="text-xs font-bold text-[#222d32] mb-2">Source *</legend>

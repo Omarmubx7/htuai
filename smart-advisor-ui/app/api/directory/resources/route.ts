@@ -7,6 +7,21 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
 
+const LIST_SELECT = {
+    id: true,
+    course_code: true,
+    title: true,
+    type: true,
+    url: true,
+    file_path: true,
+    description: true,
+    uploaded_by: true,
+    semester: true,
+    report_count: true,
+    created_at: true,
+    user_id: true,
+} as const;
+
 const ALLOWED_TYPES = ["pdf", "video", "link", "image", "folder", "other"];
 
 async function getCourseCodesForMajor(majorKey: string): Promise<string[] | null> {
@@ -56,6 +71,9 @@ export async function GET(req: Request) {
     const courseCode = searchParams.get("course_code") || searchParams.get("courseCode");
     const majorKey = searchParams.get("major");
 
+    const session = await getServerSession(authOptions);
+    const user = session?.user ? await resolveAuthenticatedUser(session) : null;
+
     try {
         let courseCodes: string[] | undefined;
 
@@ -81,22 +99,17 @@ export async function GET(req: Request) {
         const resources = await prisma.resource.findMany({
             where: Object.keys(where).length > 0 ? where : undefined,
             orderBy: { created_at: "desc" },
-            select: {
-                id: true,
-                course_code: true,
-                title: true,
-                type: true,
-                url: true,
-                file_path: true,
-                description: true,
-                uploaded_by: true,
-                semester: true,
-                report_count: true,
-                created_at: true,
-            },
+            select: LIST_SELECT,
         });
 
-        return NextResponse.json({ resources });
+        // Mark ownership in response based on session
+        const currentName = session?.user?.name || session?.user?.email || null;
+        const resourcesWithOwnership = resources.map((r) => ({
+            ...r,
+            is_owner: Boolean((user?.id && r.user_id === user.id) || (currentName && r.uploaded_by === currentName)),
+        }));
+
+        return NextResponse.json({ resources: resourcesWithOwnership });
     } catch (error) {
         console.error("[directory] Failed to fetch resources:", error);
         return NextResponse.json({ error: "Failed to fetch resources" }, { status: 500 });
@@ -118,7 +131,7 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { course_code, title, type, url, file_path, description, semester } = body;
+        const { course_code, title, type, url, file_path, description, semester, anonymous } = body;
 
         if (!course_code || !title || !type || !semester || (!url && !file_path)) {
             return NextResponse.json(
@@ -138,6 +151,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Title must be 200 characters or fewer" }, { status: 400 });
         }
 
+        const isAnonymous = Boolean(anonymous);
+        const uploadedBy = isAnonymous ? null : (session.user.name || session.user.email || null);
+
         const resource = await prisma.resource.create({
             data: {
                 course_code,
@@ -146,26 +162,20 @@ export async function POST(req: Request) {
                 url: url || "",
                 file_path: file_path || null,
                 description: description?.trim() || null,
-                uploaded_by: session.user.name || session.user.email || null,
+                uploaded_by: uploadedBy,
                 semester: semester || null,
                 user_id: user?.id ?? null,
             },
-            select: {
-                id: true,
-                course_code: true,
-                title: true,
-                type: true,
-                url: true,
-                file_path: true,
-                description: true,
-                uploaded_by: true,
-                semester: true,
-                report_count: true,
-                created_at: true,
-            },
+            select: LIST_SELECT,
         });
 
-        return NextResponse.json(resource, { status: 201 });
+        const currentName = session?.user?.name || session?.user?.email || null;
+        const resourceWithOwnership = {
+            ...resource,
+            is_owner: Boolean((user?.id && resource.user_id === user.id) || (currentName && resource.uploaded_by === currentName)),
+        };
+
+        return NextResponse.json(resourceWithOwnership, { status: 201 });
     } catch (error) {
         console.error("[directory] Failed to create resource:", error);
         return NextResponse.json({ error: "Failed to create resource" }, { status: 500 });
