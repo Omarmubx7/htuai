@@ -139,41 +139,20 @@ export default function DirectoryClient({
     const currentUser = session?.user?.name || session?.user?.email || null;
 
     async function handleShare(resource: ResourceItem) {
-        const shareUrl = resource.url;
-        const text = `Check out "${resource.title}" for ${resource.course_code} — shared via MubxAI.\n\nDon't gatekeep. Help your batch.\nUpload helpful files on MubxAI — together we all win!`;
+        const shareUrl = resource.url || `${typeof window !== "undefined" ? window.location.origin : ""}/resources?course_code=${resource.course_code}&rid=${resource.id}`;
+        const shareMessage = `Don't gatekeep. Help your classmates.\n\n"${resource.title}" (${resource.course_code})\n${shareUrl}\n\nUpload helpful files on MubxAI to lift the whole class!`;
 
         try {
-            if (shareUrl) {
-                if (typeof navigator !== "undefined" && navigator.share) {
-                    await navigator.share({
-                        title: resource.title,
-                        text,
-                        url: shareUrl,
-                    });
-                } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                    const fullText = `${text}\n${shareUrl}`;
-                    await navigator.clipboard.writeText(fullText);
-                    toast("Link copied to clipboard", "success");
-                } else {
-                    toast(`${text}\n${shareUrl}`, "info");
-                }
-                return;
-            }
-
-            // Fallback to resource page if no direct URL
-            const pageUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/resources?course_code=${resource.course_code}&rid=${resource.id}`;
             if (typeof navigator !== "undefined" && navigator.share) {
                 await navigator.share({
-                    title: resource.title,
-                    text,
-                    url: pageUrl,
+                    title: `MubxAI | ${resource.title}`,
+                    text: shareMessage,
                 });
             } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                const fullText = `${text}\n${pageUrl}`;
-                await navigator.clipboard.writeText(fullText);
+                await navigator.clipboard.writeText(shareMessage);
                 toast("Link copied to clipboard", "success");
             } else {
-                toast(`${text}\n${pageUrl}`, "info");
+                toast(shareMessage, "info");
             }
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") {
@@ -243,7 +222,7 @@ export default function DirectoryClient({
                                     transition={{ duration: 0.3, delay: 0.3 }}
                                     className="hidden sm:block text-[11px] text-[#dc4835] font-semibold mt-0.5"
                                 >
-                                    Don't gatekeep. Share what helps your batch.
+                                    Don't gatekeep. Share what helps your classmates.
                                 </motion.p>
                                 <motion.p
                                     initial={{ opacity: 0 }}
@@ -251,7 +230,7 @@ export default function DirectoryClient({
                                     transition={{ duration: 0.3, delay: 0.35 }}
                                     className="hidden sm:block text-[11px] text-[#5a6472] font-semibold mt-0.5"
                                 >
-                                    Help build MubxAI — upload files to lift the whole batch.
+                                    Help build MubxAI — upload files to lift the whole classmates.
                                 </motion.p>
                                 <motion.p
                                     initial={{ opacity: 0 }}
@@ -259,7 +238,7 @@ export default function DirectoryClient({
                                     transition={{ duration: 0.3, delay: 0.35 }}
                                     className="sm:hidden text-[9px] text-[#dc4835] font-semibold mt-0.5"
                                 >
-                                    Share • Upload • Help your batch
+                                    Share • Upload • Help your classmates
                                 </motion.p>
                             </div>
                         </div>
