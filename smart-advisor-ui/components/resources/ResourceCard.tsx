@@ -123,7 +123,10 @@ export default function ResourceCard({ resource, onReport, onDelete, onShare, is
                 <div className="flex items-center gap-1.5 shrink-0">
                     {onShare && (
                         <button
-                            onClick={() => onShare(resource)}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onShare(resource);
+                            }}
                             className="p-2 rounded-lg text-[#5a6472]/40 hover:text-[#dc4835] hover:bg-[#dc4835]/10 focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 transition-all duration-200"
                             title="Share resource"
                             aria-label={`Share ${resource.title}`}

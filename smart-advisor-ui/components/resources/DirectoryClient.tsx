@@ -139,24 +139,41 @@ export default function DirectoryClient({
     const currentUser = session?.user?.name || session?.user?.email || null;
 
     async function handleShare(resource: ResourceItem) {
-        const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/resources?course_code=${resource.course_code}&rid=${resource.id}`;
-        const text = `Check out "${resource.title}" for ${resource.course_code} on MubxAI`;
+        const shareUrl = resource.url;
+        const text = `Check out "${resource.title}" for ${resource.course_code}`;
 
         try {
+            if (shareUrl) {
+                if (typeof navigator !== "undefined" && navigator.share) {
+                    await navigator.share({
+                        title: resource.title,
+                        text,
+                        url: shareUrl,
+                    });
+                } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+                    await navigator.clipboard.writeText(shareUrl);
+                    toast("Link copied to clipboard", "success");
+                } else {
+                    toast(shareUrl, "info");
+                }
+                return;
+            }
+
+            // Fallback to resource page if no direct URL
+            const pageUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/resources?course_code=${resource.course_code}&rid=${resource.id}`;
             if (typeof navigator !== "undefined" && navigator.share) {
                 await navigator.share({
-                    title: "MubxAI Resources",
+                    title: resource.title,
                     text,
-                    url: shareUrl,
+                    url: pageUrl,
                 });
             } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                await navigator.clipboard.writeText(shareUrl);
+                await navigator.clipboard.writeText(pageUrl);
                 toast("Link copied to clipboard", "success");
             } else {
-                toast(shareUrl, "info");
+                toast(pageUrl, "info");
             }
         } catch (err) {
-            // User cancelled share or error
             if (err instanceof Error && err.name === "AbortError") {
                 return;
             }
