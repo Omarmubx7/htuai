@@ -99,8 +99,23 @@ export async function POST(request: NextRequest) {
                     candidateCoursesCount: candidateCourses.length,
                 },
             });
-        } catch {
-            parsed = { recommendations: [], tips: [], raw: undefined };
+        } catch (error: unknown) {
+            status = 'error';
+            errorMessage = error instanceof Error ? error.message : String(error);
+            console.error("suggest-courses AI call failed:", errorMessage);
+
+            await logAIUsage({
+                userId,
+                endpoint: 'suggest-courses',
+                featureName: 'Course Suggestions',
+                status,
+                errorMessage,
+                responseTimeMs: Date.now() - startTime,
+            });
+
+            return NextResponse.json({
+                error: "AI suggestions are temporarily unavailable. Please try again in a few minutes.",
+            }, { status: 502 });
         }
 
         return NextResponse.json({ result: parsed });

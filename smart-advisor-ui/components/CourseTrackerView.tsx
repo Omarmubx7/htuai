@@ -603,7 +603,17 @@ function CourseTrackerView({
             setAiRecommendations(recommendations);
             setAiTips(tips);
             if (recommendations.length === 0) {
-                setAiError("No recommendations found yet. Try again after marking more courses.");
+                const fallbackRecommendations = eligibleCourses
+                    .slice(0, 5)
+                    .map(c => ({
+                        code: c.code,
+                        reason: "Recommended next step based on your progress and prerequisites.",
+                        name: c.name,
+                    }));
+                setAiRecommendations(fallbackRecommendations);
+                if (fallbackRecommendations.length === 0) {
+                    setAiError("No recommendations found yet. Try again after marking more courses.");
+                }
             }
             // Update local remaining counters (best-effort) after successful call
             setSuggestRemaining(prev => (typeof prev === 'number' ? Math.max(prev - 1, 0) : prev));

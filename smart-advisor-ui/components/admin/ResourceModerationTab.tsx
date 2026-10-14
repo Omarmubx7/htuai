@@ -214,10 +214,10 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
                                         )}
                                     </div>
                                     <h3 className="text-sm font-semibold text-[#222d32]/80 truncate">{resource.title}</h3>
-                                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#222d32]/30">
-                                        {resource.uploaded_by && <span>by {resource.uploaded_by}</span>}
+                                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#222d32]/30 flex-wrap">
+                                        {resource.uploaded_by && <span className="truncate min-w-0 max-w-full">by {resource.uploaded_by}</span>}
                                         {resource.semester && <span className="font-mono">{resource.semester}</span>}
-                                        <span>{new Date(resource.created_at).toLocaleDateString()}</span>
+                                        <span className="shrink-0">{new Date(resource.created_at).toLocaleDateString()}</span>
                                     </div>
                                 </div>
 

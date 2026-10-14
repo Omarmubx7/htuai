@@ -14,6 +14,8 @@ type GroqResult = {
 
 type SuggestedCourse = { code: string; name: string; credits: number; prereq?: string };
 
+const DEFAULT_MODEL = "openai/gpt-oss-20b";
+
 function buildSuggestedCoursesPrompt(major: string, candidateCourses: SuggestedCourse[], completedCourses: string[]) {
     const candidatesStr = candidateCourses.map((course) => `${course.code}:${course.name}`).join("|");
     const completedStr = completedCourses.slice(0, 20).join("|") || "none";
@@ -257,7 +259,7 @@ export async function getSuggestedCourses(params: {
 }): Promise<GroqResult> {
     const { major, completedCourses, candidateCourses } = params;
     const client = getGroqClient();
-    const modelUsed = "llama-3.1-8b-instant";
+    const modelUsed = DEFAULT_MODEL;
     const topCandidates = candidateCourses.slice(0, 15);
     const prompt = buildSuggestedCoursesPrompt(major, topCandidates, completedCourses);
 
@@ -307,7 +309,7 @@ export async function getStudySchedule(params: {
     weeklyHours: number;
 }): Promise<GroqResult> {
     const client = getGroqClient();
-    const modelUsed = "llama-3.1-8b-instant";
+    const modelUsed = DEFAULT_MODEL;
     const prompt = buildStudySchedulePrompt(params);
 
     if (process.env.NODE_ENV === 'development') {

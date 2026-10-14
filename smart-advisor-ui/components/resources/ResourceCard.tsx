@@ -61,7 +61,7 @@ export default function ResourceCard({ resource, onReport, onDelete, isOwner, co
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-[#222d32] truncate leading-tight">{resource.title}</h3>
+                    <h3 className="text-sm font-bold text-[#222d32] leading-tight line-clamp-2 break-words">{resource.title}</h3>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span
                             className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white"
@@ -105,21 +105,21 @@ export default function ResourceCard({ resource, onReport, onDelete, isOwner, co
                 </p>
             )}
 
-            <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-[#dde3ec]/60">
-                <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-[#dde3ec]/60">
+                <div className="flex items-center gap-3 min-w-0">
                     {resource.uploaded_by && (
-                        <span className="text-[11px] text-[#92604c] font-medium">
+                        <span className="text-[11px] text-[#92604c] font-medium truncate min-w-0">
                             by {resource.uploaded_by}
                         </span>
                     )}
                     {resource.report_count > 0 && (
-                        <span className="text-[11px] text-[#dc4835] font-semibold" aria-label={`${resource.report_count} reports`}>
+                        <span className="text-[11px] text-[#dc4835] font-semibold shrink-0" aria-label={`${resource.report_count} reports`}>
                             {resource.report_count} report{resource.report_count > 1 ? "s" : ""}
                         </span>
                     )}
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                     {isOwner && onDelete && (
                         <button
                             onClick={() => onDelete(resource)}

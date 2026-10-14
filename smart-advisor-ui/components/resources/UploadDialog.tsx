@@ -358,7 +358,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
                     transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                    className="w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl p-6 shadow-xl max-h-[85vh] overflow-y-auto"
+                    className="w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl p-6 shadow-xl max-h-[85dvh] overflow-y-auto overflow-x-hidden"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="flex items-center justify-between mb-5">
@@ -411,9 +411,9 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                             className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-[#edf1f6] focus:bg-[#edf1f6] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/20 transition-all duration-150 flex flex-col gap-1"
                                             aria-label={`${course.code} — ${course.name}`}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xs font-bold text-[#dc4835] min-w-[70px]">{course.code}</span>
-                                                <span className="text-sm text-[#222d32] truncate">{course.name}</span>
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <span className="text-xs font-bold text-[#dc4835] shrink-0 min-w-[70px]">{course.code}</span>
+                                                <span className="text-sm text-[#222d32] truncate min-w-0 flex-1">{course.name}</span>
                                             </div>
                                             {majors && majors.length > 0 && (
                                                 <div className="flex items-center gap-1 ml-[82px] flex-wrap">
@@ -444,9 +444,9 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-label="Resource details form">
                             {selectedCourse && (
                                 <div className="flex flex-col gap-1.5 bg-[#edf1f6] rounded-lg px-3 py-2">
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <span className="font-bold text-[#dc4835]">{selectedCourse.code}</span>
-                                        <span className="text-[#5a6472] truncate">{selectedCourse.name}</span>
+                                    <div className="flex items-center gap-2 text-xs min-w-0">
+                                        <span className="font-bold text-[#dc4835] shrink-0">{selectedCourse.code}</span>
+                                        <span className="text-[#5a6472] truncate min-w-0 flex-1">{selectedCourse.name}</span>
                                         <button
                                             type="button"
                                             onClick={() => { setStep("course"); setCourseCode(""); }}
@@ -614,17 +614,17 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                             )}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-bold text-[#222d32] truncate">{uf.file.name}</p>
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-[10px] text-[#5a6472]">{formatFileSize(uf.file.size)}</p>
+                                                            <p className="text-xs font-bold text-[#222d32] break-words">{uf.file.name}</p>
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <p className="text-[10px] text-[#5a6472] shrink-0">{formatFileSize(uf.file.size)}</p>
                                                                 {uf.status === "uploading" && (
-                                                                    <p className="text-[10px] text-[#dc4835] font-semibold">{uf.progress}%</p>
+                                                                    <p className="text-[10px] text-[#dc4835] font-semibold shrink-0">{uf.progress}%</p>
                                                                 )}
                                                                 {uf.status === "error" && (
-                                                                    <p className="text-[10px] text-[#dc4835] font-semibold truncate">{uf.error}</p>
+                                                                    <p className="text-[10px] text-[#dc4835] font-semibold truncate min-w-0">{uf.error}</p>
                                                                 )}
                                                                 {uf.status === "done" && (
-                                                                    <p className="text-[10px] text-[#0da55a] font-semibold">Done</p>
+                                                                    <p className="text-[10px] text-[#0da55a] font-semibold shrink-0">Done</p>
                                                                 )}
                                                             </div>
                                                             {uf.status === "uploading" && (

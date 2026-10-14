@@ -117,7 +117,7 @@ export default function ReportDialog({ resource, onClose }: Readonly<ReportDialo
                         </button>
                     </div>
 
-                    <p className="text-xs text-[#5a6472] mb-4">
+                    <p className="text-xs text-[#5a6472] mb-4 break-words">
                         Reporting: <span className="font-semibold text-[#222d32]">{resource.title}</span>
                     </p>
 
