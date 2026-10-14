@@ -140,7 +140,7 @@ export default function DirectoryClient({
 
     async function handleShare(resource: ResourceItem) {
         const shareUrl = resource.url;
-        const text = `Check out "${resource.title}" for ${resource.course_code}`;
+        const text = `Check out "${resource.title}" for ${resource.course_code} — shared via MubxAI.\n\nDon't gatekeep. Help your batch.\nUpload helpful files on MubxAI — together we all win!`;
 
         try {
             if (shareUrl) {
@@ -151,10 +151,11 @@ export default function DirectoryClient({
                         url: shareUrl,
                     });
                 } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                    await navigator.clipboard.writeText(shareUrl);
+                    const fullText = `${text}\n${shareUrl}`;
+                    await navigator.clipboard.writeText(fullText);
                     toast("Link copied to clipboard", "success");
                 } else {
-                    toast(shareUrl, "info");
+                    toast(`${text}\n${shareUrl}`, "info");
                 }
                 return;
             }
@@ -168,10 +169,11 @@ export default function DirectoryClient({
                     url: pageUrl,
                 });
             } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                await navigator.clipboard.writeText(pageUrl);
+                const fullText = `${text}\n${pageUrl}`;
+                await navigator.clipboard.writeText(fullText);
                 toast("Link copied to clipboard", "success");
             } else {
-                toast(pageUrl, "info");
+                toast(`${text}\n${pageUrl}`, "info");
             }
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") {
@@ -201,7 +203,7 @@ export default function DirectoryClient({
             {/* Header */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec]">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-4">
                         <div className="flex items-center gap-3">
                             <Link
                                 href="/dashboard"
@@ -241,27 +243,49 @@ export default function DirectoryClient({
                                     transition={{ duration: 0.3, delay: 0.3 }}
                                     className="hidden sm:block text-[11px] text-[#dc4835] font-semibold mt-0.5"
                                 >
-                                    Found something useful? Share it with your classmates.
+                                    Don't gatekeep. Share what helps your batch.
+                                </motion.p>
+                                <motion.p
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.35 }}
+                                    className="hidden sm:block text-[11px] text-[#5a6472] font-semibold mt-0.5"
+                                >
+                                    Help build MubxAI — upload files to lift the whole batch.
+                                </motion.p>
+                                <motion.p
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.35 }}
+                                    className="sm:hidden text-[9px] text-[#dc4835] font-semibold mt-0.5"
+                                >
+                                    Share • Upload • Help your batch
                                 </motion.p>
                             </div>
                         </div>
 
-                        {status === "authenticated" && (
-                            <motion.button
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                onClick={() => setUploadOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#dc4835] text-white text-sm font-bold hover:bg-[#c43a2a] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 focus:ring-offset-2 transition-all duration-200 shadow-sm"
-                                aria-label="Upload a resource"
-                            >
-                                <Upload className="w-4 h-4" />
-                                <span className="hidden sm:inline">Upload</span>
-                            </motion.button>
-                        )}
+                        <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => {
+                                if (status === "authenticated") {
+                                    setUploadOpen(true);
+                                } else {
+                                    if (typeof window !== "undefined") {
+                                        window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                                    }
+                                }
+                            }}
+                            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg sm:py-2.5 bg-[#dc4835] text-white text-xs sm:text-sm font-bold hover:bg-[#c43a2a] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 focus:ring-offset-2 transition-all duration-200 shadow-sm whitespace-nowrap"
+                            aria-label="Upload a resource"
+                        >
+                            <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span>{status === "authenticated" ? "Upload" : "Sign in to Upload"}</span>
+                        </motion.button>
                     </div>
 
                     {/* Search */}
-                    <div className="relative mb-2 sm:mb-3">
+                    <div className="relative mb-1 sm:mb-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6472]" />
                         <input
                             type="search"
@@ -283,7 +307,7 @@ export default function DirectoryClient({
                     </div>
 
                     {/* Major chips — horizontal scroll */}
-                    <div className="mb-2 sm:mb-3" ref={majorScrollRef}>
+                    <div className="mb-1 sm:mb-3" ref={majorScrollRef}>
                         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" role="tablist" aria-label="Filter by major">
                             {majorGroups.map((group) => {
                                 const isActive = group.id === selectedMajor;
@@ -318,7 +342,7 @@ export default function DirectoryClient({
                     </div>
 
                     {/* Course chips */}
-                    <div className="mb-2 sm:mb-3">
+                    <div className="mb-1 sm:mb-3">
                         <CourseChips courses={courses} selected={selectedCourse} onSelect={setSelectedCourse} />
                     </div>
 
@@ -339,7 +363,7 @@ export default function DirectoryClient({
             </div>
 
             {/* Content */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-1.5 pb-3 sm:py-6">
                 <AnimatePresence mode="wait">
                     {loading ? (
                         <motion.div
@@ -380,7 +404,19 @@ export default function DirectoryClient({
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                         >
-                            <EmptyState type="no-resources" courseName={selectedCourseData?.name || selectedCourse} onUpload={status === "authenticated" ? () => setUploadOpen(true) : undefined} />
+                            <EmptyState
+                                type="no-resources"
+                                courseName={selectedCourseData?.name || selectedCourse}
+                                onUpload={() => {
+                                    if (status === "authenticated") {
+                                        setUploadOpen(true);
+                                    } else {
+                                        if (typeof window !== "undefined") {
+                                            window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                                        }
+                                    }
+                                }}
+                            />
                         </motion.div>
                     ) : searchQuery ? (
                         <motion.div

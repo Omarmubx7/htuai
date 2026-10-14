@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, Search, Upload } from "lucide-react";
+import { BookOpen, Search, Upload, Heart } from "lucide-react";
 
 interface EmptyStateProps {
     type: "no-search" | "no-results" | "no-resources";
@@ -62,8 +62,8 @@ export default function EmptyState({ type, courseName, onUpload }: Readonly<Empt
                 <motion.h3 variants={itemVariants} className="text-base font-bold text-[#222d32] mb-1">
                     No resources yet{courseName ? ` for ${courseName}` : ""}
                 </motion.h3>
-                <motion.p variants={itemVariants} className="text-sm text-[#5a6472] max-w-xs mb-5">
-                    Be the first to upload a resource.
+                <motion.p variants={itemVariants} className="text-sm text-[#5a6472] max-w-xs mb-4">
+                    No one's shared yet. Help your batch — upload one now.
                 </motion.p>
                 {onUpload && (
                     <motion.button
@@ -78,6 +78,10 @@ export default function EmptyState({ type, courseName, onUpload }: Readonly<Empt
                         Upload Resource
                     </motion.button>
                 )}
+                <motion.div variants={itemVariants} className="mt-4 flex items-center gap-1.5 text-[11px] text-[#5a6472]">
+                    <Heart className="w-3.5 h-3.5 text-[#dc4835]" />
+                    <span>Built by students, for students — MubxAI</span>
+                </motion.div>
             </motion.div>
         );
     }
@@ -97,9 +101,13 @@ export default function EmptyState({ type, courseName, onUpload }: Readonly<Empt
             <motion.h3 variants={itemVariants} className="text-base font-bold text-[#222d32] mb-1">
                 Find course resources
             </motion.h3>
-            <motion.p variants={itemVariants} className="text-sm text-[#5a6472] max-w-xs">
+            <motion.p variants={itemVariants} className="text-sm text-[#5a6472] max-w-xs mb-2">
                 Search for a course to browse PDFs, videos, links, and more.
             </motion.p>
+            <motion.div variants={itemVariants} className="flex items-center gap-1.5 text-[11px] text-[#5a6472]">
+                <Heart className="w-3.5 h-3.5 text-[#dc4835]" />
+                <span>Share, upload, help your batch — MubxAI</span>
+            </motion.div>
         </motion.div>
     );
 }
