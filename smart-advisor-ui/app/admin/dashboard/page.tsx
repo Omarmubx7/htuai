@@ -10,9 +10,12 @@ import {
     Eye, Clock, Database,
     Search, ChevronUp, ChevronDown, RefreshCw,
     Flame, BarChart3, ArrowUp, ArrowDown, Filter,
-    GraduationCap, Terminal, Zap, Shield
+    GraduationCap, Terminal, Zap, Shield, FileText
 } from 'lucide-react';
 import ResourceModerationTab from "@/components/admin/ResourceModerationTab";
+import UsersTab from "@/components/admin/UsersTab";
+import ContentTab from "@/components/admin/ContentTab";
+import CurriculumTab from "@/components/admin/CurriculumTab";
 
 /* ═══════════════════════════════════════════════════════════════════
    Types
@@ -90,7 +93,7 @@ interface Stats {
 
 type SortKey = 'student_id' | 'major' | 'count' | 'ch';
 type SortDir = 'asc' | 'desc';
-type TabKey = 'overview' | 'students' | 'visitors' | 'logs' | 'ai-usage' | 'resources';
+type TabKey = 'overview' | 'students' | 'visitors' | 'logs' | 'ai-usage' | 'resources' | 'users' | 'content' | 'curriculum';
 
 /* ═══════════════════════════════════════════════════════════════════
    Design Tokens
@@ -261,7 +264,7 @@ function DashboardInner() {
     const [loading, setLoading] = useState(true);
     const searchParams = useSearchParams();
     const tabParam = searchParams.get('tab');
-    const VALID_TABS: TabKey[] = ['overview', 'students', 'visitors', 'ai-usage', 'resources', 'logs'];
+    const VALID_TABS: TabKey[] = ['overview', 'students', 'visitors', 'ai-usage', 'resources', 'users', 'content', 'curriculum', 'logs'];
     const tab: TabKey = VALID_TABS.includes(tabParam as TabKey) ? (tabParam as TabKey) : 'overview';
     const [refreshing, setRefreshing] = useState(false);
     const [lastFetched, setLastFetched] = useState<Date | null>(null);
@@ -372,6 +375,9 @@ function DashboardInner() {
         { key: 'visitors', label: 'Visitors', icon: <Eye className="w-3.5 h-3.5" /> },
         { key: 'ai-usage', label: 'AI Usage', icon: <Zap className="w-3.5 h-3.5" /> },
         { key: 'resources', label: 'Resources', icon: <Shield className="w-3.5 h-3.5" /> },
+        { key: 'users', label: 'Users', icon: <Users className="w-3.5 h-3.5" /> },
+        { key: 'content', label: 'Content', icon: <FileText className="w-3.5 h-3.5" /> },
+        { key: 'curriculum', label: 'Curriculum', icon: <BookOpen className="w-3.5 h-3.5" /> },
         { key: 'logs', label: 'Logs', icon: <Terminal className="w-3.5 h-3.5" /> },
     ];
 
@@ -444,6 +450,21 @@ function DashboardInner() {
                     {tab === 'resources' && (
                         <motion.div key="resources" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
                             <ResourceModerationTab adminSecret={adminSecret} />
+                        </motion.div>
+                    )}
+                    {tab === 'users' && (
+                        <motion.div key="users" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
+                            <UsersTab adminSecret={adminSecret} />
+                        </motion.div>
+                    )}
+                    {tab === 'content' && (
+                        <motion.div key="content" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
+                            <ContentTab adminSecret={adminSecret} />
+                        </motion.div>
+                    )}
+                    {tab === 'curriculum' && (
+                        <motion.div key="curriculum" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
+                            <CurriculumTab adminSecret={adminSecret} />
                         </motion.div>
                     )}
                     {tab === 'logs' && (

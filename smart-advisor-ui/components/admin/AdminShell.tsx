@@ -16,6 +16,9 @@ import {
     X,
     ExternalLink,
     LayoutDashboard,
+    Users,
+    FileText,
+    BookOpen,
 } from "lucide-react";
 
 type NavItem = {
@@ -37,6 +40,9 @@ const PRIMARY_NAV: NavItem[] = [
 ];
 
 const MANAGEMENT_NAV: NavItem[] = [
+    { label: "Users", href: "/admin/dashboard?tab=users", icon: <Users className="w-4 h-4" />, tab: "users" },
+    { label: "Content", href: "/admin/dashboard?tab=content", icon: <FileText className="w-4 h-4" />, tab: "content" },
+    { label: "Curriculum", href: "/admin/dashboard?tab=curriculum", icon: <BookOpen className="w-4 h-4" />, tab: "curriculum" },
     { label: "Settings", href: "/admin/settings", icon: <Settings2 className="w-4 h-4" /> },
 ];
 

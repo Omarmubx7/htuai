@@ -113,6 +113,11 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
+                    // Banned accounts cannot sign in.
+                    if (user.role === "banned") {
+                        return null;
+                    }
+
                     return { id: user.id.toString(), name: user.student_id, student_id: user.student_id, role: user.role };
                 } catch (error) {
                     console.error("Auth Error in authorize callback:", error);
@@ -128,6 +133,10 @@ export const authOptions: NextAuthOptions = {
                 if (account?.provider === "google") {
                     const existingUser = await getUserByEmail(user.email || "");
                     if (existingUser) {
+                        // Banned accounts cannot sign in.
+                        if (existingUser.role === "banned") {
+                            return false;
+                        }
                         await linkAccount(existingUser.id, account.provider, account.providerAccountId).catch((err) => {
                             console.error(`[signIn callback] linkAccount failed for ${account.provider}/${account.providerAccountId} user=${user.email}`, err);
                         });
