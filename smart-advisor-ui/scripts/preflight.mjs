@@ -461,10 +461,12 @@ async function main() {
 
   if (!SKIP.git) checkGit();
   if (!SKIP.migrations) scanMigrations();
-  if (!SKIP.db) await checkDatabase();
+  // NOTE: the build runs before the DB check on purpose. Loading PrismaClient (the
+  // DB check) locks the Windows query-engine DLL, which then blocks `prisma generate`.
   if (!SKIP.tsc) checkTsc();
   if (!SKIP.lint) checkLint();
   if (!SKIP.build) checkBuild();
+  if (!SKIP.db) await checkDatabase();
   if (!SKIP.api) await checkApi();
   if (!SKIP.env) checkEnv();
 
