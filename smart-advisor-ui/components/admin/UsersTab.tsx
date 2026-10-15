@@ -29,10 +29,6 @@ function roleBadge(role?: string | null) {
     }
 }
 
-function displayName(u: AdminUser) {
-    return u.name || u.email || u.student_id || `User #${u.id}`;
-}
-
 export default function UsersTab({ adminSecret }: Readonly<{ adminSecret: string }>) {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [total, setTotal] = useState(0);

@@ -180,15 +180,15 @@ function getStatusColor(status?: string) {
 }
 
 function getStatusBadgeClass(status?: string) {
-    if (status === 'success') return 'text-emerald-400 bg-emerald-500/10';
-    if (status === 'error') return 'text-rose-400 bg-rose-500/10';
-    return 'text-amber-400 bg-amber-500/10';
+    if (status === 'success') return 'text-emerald-700 bg-emerald-500/15';
+    if (status === 'error') return 'text-rose-700 bg-rose-500/15';
+    return 'text-amber-700 bg-amber-500/15';
 }
 
 function getLogTypeBadgeClass(type?: string) {
-    if (type === 'error') return 'text-rose-400 bg-rose-500/10';
-    if (type === 'warning') return 'text-amber-400 bg-amber-500/10';
-    return 'text-cyan-400 bg-cyan-500/10';
+    if (type === 'error') return 'text-rose-700 bg-rose-500/15';
+    if (type === 'warning') return 'text-amber-700 bg-amber-500/15';
+    return 'text-cyan-700 bg-cyan-500/15';
 }
 
 function getProgressBucketIndex(pct: number) {
@@ -580,7 +580,7 @@ function OverviewTab({ stats, majors, progress, maxProgress, maxTraffic, weekCha
                         {stats.topCourses.map((course, i) => (
                             <motion.div key={course.code} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 + i * 0.02 }}
-                                className="flex items-center gap-3 hover:bg-[#edf1f6]/20.5 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 group cursor-default">
+                                className="flex items-center gap-3 hover:bg-[#edf1f6]/40 rounded-xl px-3 py-2 -mx-1 transition-all duration-200 group cursor-default">
                                 <span className="text-xs font-mono text-[#222d32]/80 w-5 shrink-0 tabular-nums">{i + 1}</span>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs text-[#222d32]/90 truncate group-hover:text-[#222d32]/85 transition-colors font-medium">{course.name}</p>
@@ -627,12 +627,11 @@ function StudentsTab({ students, total, search, setSearch, sortKey, sortDir, tog
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
                 <CardHeader icon={<Database className="w-4 h-4" />} title="All Students" iconColor="#a78bfa"
                     right={<span className="text-xs text-[#222d32]/90 font-mono tabular-nums">{students.length}/{total}</span>} />
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#dde3ec]/60"
-                    style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005))' }}>
-                    <Search className="w-3.5 h-3.5 text-[#222d32]/90" />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#dde3ec] bg-[#edf1f6]">
+                    <Search className="w-3.5 h-3.5 text-[#5a6472]" />
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                         placeholder="Search ID or Major..."
-                        className="bg-transparent text-xs text-[#222d32] placeholder-[#222d32]/30 outline-none w-44 font-medium" />
+                        className="bg-transparent text-xs text-[#222d32] placeholder-[#5a6472]/60 outline-none w-44 font-medium" />
                 </div>
             </div>
 
@@ -974,7 +973,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                                 <div key={`${d.os}-${d.browser}`} className="group hover:bg-[#edf1f6]/30 rounded-xl px-2 py-1.5 -mx-1 transition-all duration-200 cursor-default">
                                     <div className="flex items-center justify-between mb-1.5">
                                         <div className="flex items-center gap-2">
-                                            {isMobile ? <Smartphone className="w-3.5 h-3.5 text-cyan-400/40" /> : <Globe className="w-3.5 h-3.5 text-cyan-400/40" />}
+                                            {isMobile ? <Smartphone className="w-3.5 h-3.5 text-[#5a6472]" /> : <Globe className="w-3.5 h-3.5 text-[#5a6472]" />}
                                             <span className="text-xs text-[#222d32]/85 font-medium">{d.os} · {d.browser}</span>
                                         </div>
                                         <span className="text-xs font-mono text-[#222d32]/85 tabular-nums">{d.count} ({pct}%)</span>
@@ -1000,7 +999,7 @@ function VisitorsTab({ stats, totalDeviceCount }: Readonly<{ stats: Stats; total
                     </div>
                     <div className="space-y-1">
                         {stats.recentActivity.map((act, i) => {
-                            const icon = <Activity className="w-3 h-3 text-blue-400/60" />;
+                            const icon = <Activity className="w-3 h-3 text-blue-600" />;
                             const iconBg = 'rgba(59,130,246,0.1)';
                             const borderColor = 'rgba(59,130,246,0.15)';
 
@@ -1103,7 +1102,7 @@ function StatCard({ icon, label, value, gradient, iconBg, delay, badge }: Readon
                 <div className="text-lg font-bold truncate tabular-nums">{value}</div>
             </div>
             {badge && (
-                <span className={`relative text-xs font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5 ${badge.positive ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/15' : 'text-red-400 bg-red-500/10 border border-red-500/15'
+                <span className={`relative text-xs font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5 ${badge.positive ? 'text-emerald-700 bg-emerald-500/15 border border-emerald-500/20' : 'text-red-700 bg-red-500/15 border border-red-500/20'
                     }`}>
                     {badge.positive ? <ArrowUp className="w-2.5 h-2.5" /> : <ArrowDown className="w-2.5 h-2.5" />}
                     {badge.value}
@@ -1226,9 +1225,9 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                 </defs>
 
                                 {/* Outer background track */}
-                                <circle cx={cx} cy={cy} r={outerRadius} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={outerStroke} />
+                                <circle cx={cx} cy={cy} r={outerRadius} fill="none" stroke="rgba(34,45,50,0.08)" strokeWidth={outerStroke} />
                                 {/* Inner background track */}
-                                <circle cx={cx} cy={cy} r={innerRadius} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth={innerStroke} />
+                                <circle cx={cx} cy={cy} r={innerRadius} fill="none" stroke="rgba(34,45,50,0.05)" strokeWidth={innerStroke} />
 
                                 {/* Inner ring: avg progress per major */}
                                 {segments.map((seg, i) => {
@@ -1391,8 +1390,8 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                     background = `${majorColor}08`;
                                     borderColor = `${majorColor}15`;
                                 }
-                                const rankBorderColor = medalColor ? `${medalColor}30` : 'rgba(255,255,255,0.04)';
-                                const rankBackground = medalColor ? `${medalColor}20` : 'rgba(255,255,255,0.03)';
+                                const rankBorderColor = medalColor ? `${medalColor}30` : 'rgba(34,45,50,0.08)';
+                                const rankBackground = medalColor ? `${medalColor}20` : 'rgba(34,45,50,0.05)';
 
                                 return (
                                     <motion.div
@@ -1412,7 +1411,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                             <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0"
                                                 style={{
                                                     background: rankBackground,
-                                                    color: medalColor || 'rgba(255,255,255,0.2)',
+                                                    color: medalColor || 'rgba(34,45,50,0.40)',
                                                     border: `1px solid ${rankBorderColor}`,
                                                 }}>
                                                 {seg.rank}
@@ -1502,7 +1501,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                                 { label: 'Min CH', value: stats.minCH, icon: <ArrowDown className="w-3 h-3" /> },
                                                             ].map((item) => (
                                                                 <div key={item.label} className="text-center p-2 rounded-lg"
-                                                                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                                                    style={{ background: 'rgba(34,45,50,0.03)', border: '1px solid rgba(34,45,50,0.07)' }}>
                                                                     <div className="flex items-center justify-center gap-1 mb-1"
                                                                         style={{ color: `${MAJOR_COLORS[seg.major] || fallbackColor}80` }}>
                                                                         {item.icon}
@@ -1543,7 +1542,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                         <div className="flex items-center justify-center gap-4 pt-1">
                                                             <div className="relative" style={{ width: 44, height: 44 }}>
                                                                 <svg width="44" height="44" viewBox="0 0 44 44">
-                                                                    <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="4" />
+                                                                    <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(34,45,50,0.10)" strokeWidth="4" />
                                                                     <motion.circle
                                                                         cx="22" cy="22" r="18" fill="none"
                                                                         stroke={MAJOR_COLORS[seg.major] || fallbackColor}
@@ -1603,7 +1602,7 @@ function MajorDonutSection({ majors, total, students }: Readonly<{ majors: [stri
                                                 className="border-b border-[#dde3ec]/20 hover:bg-[#edf1f6]/30 transition-colors">
                                                 <td className="py-3 pr-4">
                                                     <span className="text-xs font-black tabular-nums"
-                                                        style={{ color: RANK_MEDALS[seg.rank] || 'rgba(255,255,255,0.2)' }}>
+                                                        style={{ color: RANK_MEDALS[seg.rank] || 'rgba(34,45,50,0.40)' }}>
                                                         {seg.rank}
                                                     </span>
                                                 </td>
@@ -1704,8 +1703,8 @@ function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: numb
                 {yTicks.map((t, i) => (
                     <g key={`tick-${t.val}`}>
                         <line x1={PL} y1={t.y} x2={W - PR} y2={t.y}
-                            stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray={i === 0 ? 'none' : '4 4'} />
-                        <text x={PL - 8} y={t.y + 3} textAnchor="end" fill="rgba(255,255,255,0.15)"
+                            stroke="rgba(34,45,50,0.10)" strokeWidth="1" strokeDasharray={i === 0 ? 'none' : '4 4'} />
+                        <text x={PL - 8} y={t.y + 3} textAnchor="end" fill="rgba(34,45,50,0.45)"
                             style={{ fontSize: 9, fontFamily: 'monospace' }}>{t.val}</text>
                     </g>
                 ))}
@@ -1732,7 +1731,7 @@ function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: numb
                 {data.map((d, i) => {
                     if (n > 10 && i % Math.ceil(n / 6) !== 0 && i !== n - 1) return null;
                     return (
-                        <text key={`label-${d.date}`} x={points[i]?.x ?? 0} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.15)"
+                        <text key={`label-${d.date}`} x={points[i]?.x ?? 0} y={H - 4} textAnchor="middle" fill="rgba(34,45,50,0.45)"
                             style={{ fontSize: 8, fontFamily: 'monospace' }}>{d.date.slice(5)}</text>
                     );
                 })}
@@ -1754,10 +1753,10 @@ function AreaChart({ data, maxVal }: Readonly<{ data: TrafficDay[]; maxVal: numb
                         transform: 'translate(-50%, -100%)',
                     }}>
                     <div className="px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
-                        style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.95), rgba(20,20,40,0.95))', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-                        <span className="text-[#222d32]/90">{data[hoverIdx].date.slice(5)}</span>{' · '}
+                        style={{ background: '#ffffff', border: '1px solid #dde3ec', boxShadow: '0 8px 24px rgba(34,45,50,0.14)' }}>
+                        <span className="text-[#5a6472]">{data[hoverIdx].date.slice(5)}</span>{' · '}
                         <span className="text-[#222d32] font-bold">{data[hoverIdx].count}</span>
-                        <span className="text-[#222d32]/85"> visits</span>
+                        <span className="text-[#5a6472]"> visits</span>
                     </div>
                 </div>
             )}
@@ -1777,7 +1776,7 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
         <div className="space-y-0.75">
             <div className="flex gap-0.75 ml-10">
                 {Array.from({ length: 24 }, (_, h) => (
-                    <div key={`hour-${h}`} className="flex-1 text-center text-[7px] text-[#222d32]/12 font-mono font-bold">{h % 3 === 0 ? `${h}` : ''}</div>
+                    <div key={`hour-${h}`} className="flex-1 text-center text-[7px] text-[#5a6472]/70 font-mono font-bold">{h % 3 === 0 ? `${h}` : ''}</div>
                 ))}
             </div>
             {grid.map((row, dayIdx) => (
@@ -1794,7 +1793,7 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
                                 className="flex-1 aspect-square rounded-sm cursor-default transition-transform duration-200 hover:scale-150 hover:z-10"
                                 style={{
                                     background: count === 0
-                                        ? 'rgba(255,255,255,0.015)'
+                                        ? 'rgba(34,45,50,0.06)'
                                         : `rgba(220, 72, 53, ${0.12 + intensity * 0.75})`,
                                     boxShadow: intensity > 0.5 ? `0 0 8px rgba(220,72,53,${intensity * 0.3})` : 'none',
                                 }}
@@ -1808,7 +1807,7 @@ function Heatmap({ data }: Readonly<{ data: HeatmapCell[] }>) {
                 {[0, 0.2, 0.4, 0.7, 1].map((v) => (
                     <div key={`legend-${v}`} className="w-3.5 h-3.5 rounded-[3px]"
                         style={{
-                            background: v === 0 ? 'rgba(255,255,255,0.015)' : `rgba(220,72,53,${0.12 + v * 0.75})`,
+                            background: v === 0 ? 'rgba(34,45,50,0.06)' : `rgba(220,72,53,${0.12 + v * 0.75})`,
                             boxShadow: v > 0.5 ? `0 0 6px rgba(220,72,53,${v * 0.25})` : 'none'
                         }} />
                 ))}
@@ -1868,7 +1867,7 @@ function ErrorState({ onRetry }: Readonly<{ onRetry: () => void }>) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/15 flex items-center justify-center">
-                <Activity className="w-5 h-5 text-red-400/60" />
+                <Activity className="w-5 h-5 text-red-600" />
             </div>
             <p className="text-sm text-[#222d32]/85 font-medium">Failed to load analytics</p>
             <button onClick={onRetry}

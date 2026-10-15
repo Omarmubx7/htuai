@@ -56,13 +56,13 @@ function LogsInner() {
                             <th className="px-4 py-3">Browser</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
+                    <tbody className="divide-y divide-[#edf1f6]">
                         {logs.map((log) => (
                             <tr key={log.id} className="hover:bg-[#edf1f6] transition-colors">
-                                <td className="px-4 py-3 whitespace-nowrap text-[#222d32]/80">
+                                <td className="px-4 py-3 whitespace-nowrap text-[#222d32]">
                                     {new Date(log.visited_at).toLocaleString()}
                                 </td>
-                                <td className="px-4 py-3 font-mono text-blue-400">
+                                <td className="px-4 py-3 font-mono text-blue-700">
                                     {log.student_id || '-'}
                                 </td>
                                 <td className="px-4 py-3 font-mono text-[#5a6472]">
@@ -76,7 +76,7 @@ function LogsInner() {
                                         {log.os_name} {log.os_version}
                                     </div>
                                 </td>
-                                <td className="px-4 py-3 text-[#222d32]/70">
+                                <td className="px-4 py-3 text-[#222d32]">
                                     {log.browser_name}
                                 </td>
                             </tr>

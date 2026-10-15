@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Shield, ExternalLink, Trash2, AlertTriangle,
-    FileText, Filter, Search, RefreshCw, ChevronDown
+    ExternalLink, Trash2, AlertTriangle,
+    FileText, Filter, Search, RefreshCw,
+    Eye, EyeOff
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -47,21 +48,21 @@ const REASON_LABELS: Record<string, string> = {
 function reasonBadge(reason: string) {
     const base = 'text-[10px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded';
     switch (reason) {
-        case 'broken_link': return `${base} bg-rose-500/15 text-rose-400`;
-        case 'wrong_course': return `${base} bg-amber-500/15 text-amber-400`;
-        case 'inappropriate': return `${base} bg-purple-500/15 text-purple-400`;
-        default: return `${base} bg-gray-500/15 text-gray-400`;
+        case 'broken_link': return `${base} bg-rose-500/15 text-rose-700`;
+        case 'wrong_course': return `${base} bg-amber-500/15 text-amber-700`;
+        case 'inappropriate': return `${base} bg-purple-500/15 text-purple-700`;
+        default: return `${base} bg-slate-500/15 text-slate-600`;
     }
 }
 
 function typeBadge(type: string) {
     const base = 'text-[10px] font-bold uppercase tracking-tighter px-1.5 py-0.5 rounded';
     switch (type) {
-        case 'pdf': return `${base} bg-red-500/15 text-red-400`;
-        case 'video': return `${base} bg-blue-500/15 text-blue-400`;
-        case 'link': return `${base} bg-green-500/15 text-green-400`;
-        case 'image': return `${base} bg-pink-500/15 text-pink-400`;
-        default: return `${base} bg-gray-500/15 text-gray-400`;
+        case 'pdf': return `${base} bg-red-500/15 text-red-700`;
+        case 'video': return `${base} bg-blue-500/15 text-blue-700`;
+        case 'link': return `${base} bg-green-500/15 text-green-700`;
+        case 'image': return `${base} bg-pink-500/15 text-pink-700`;
+        default: return `${base} bg-slate-500/15 text-slate-600`;
     }
 }
 
@@ -77,6 +78,63 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [hiddenIds, setHiddenIds] = useState<number[]>([]);
+    const [restoredIds, setRestoredIds] = useState<number[]>([]);
+    const [busyVisId, setBusyVisId] = useState<number | null>(null);
+
+    const loadVisibility = useCallback(async () => {
+        if (!adminSecret) return;
+        try {
+            const res = await fetch('/api/admin/settings', {
+                headers: { 'x-admin-secret': adminSecret },
+                cache: 'no-store',
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            setHiddenIds(data.settings?.resources?.hiddenResourceIds ?? []);
+            setRestoredIds(data.settings?.resources?.restoredResourceIds ?? []);
+        } catch {
+            /* visibility is best-effort; never blocks the list */
+        }
+    }, [adminSecret]);
+
+    useEffect(() => {
+        void loadVisibility();
+    }, [loadVisibility]);
+
+    /** Hide or restore a resource by editing the settings lists — nothing is deleted. */
+    const setVisibility = useCallback(
+        async (id: number, hide: boolean) => {
+            if (!adminSecret) return;
+            setBusyVisId(id);
+            const nextHidden = hide
+                ? Array.from(new Set([...hiddenIds, id]))
+                : hiddenIds.filter((h) => h !== id);
+            const nextRestored = hide
+                ? restoredIds.filter((r) => r !== id)
+                : Array.from(new Set([...restoredIds, id]));
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'PUT',
+                    headers: { 'x-admin-secret': adminSecret, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resources: {
+                            hiddenResourceIds: nextHidden,
+                            restoredResourceIds: nextRestored,
+                        },
+                    }),
+                });
+                if (!res.ok) throw new Error('Failed');
+                setHiddenIds(nextHidden);
+                setRestoredIds(nextRestored);
+            } catch {
+                /* ignore — UI simply keeps the previous state */
+            } finally {
+                setBusyVisId(null);
+            }
+        },
+        [adminSecret, hiddenIds, restoredIds]
+    );
 
     const fetchResources = useCallback(async () => {
         setLoading(true);
@@ -136,7 +194,7 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
                     <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.05 * i, duration: 0.35 }}
                         className="premium-card p-4 text-center">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#222d32]/30 mb-1">{stat.label}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#5a6472] mb-1">{stat.label}</p>
                         <p className="text-2xl font-black tabular-nums" style={{ color: stat.color }}>{stat.value}</p>
                     </motion.div>
                 ))}
@@ -146,13 +204,13 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                 className="premium-card p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <div className="flex items-center gap-2">
-                    <Filter className="w-3.5 h-3.5 text-[#222d32]/30" />
+                    <Filter className="w-3.5 h-3.5 text-[#5a6472]" />
                     <div className="flex rounded-lg overflow-hidden border border-[#dde3ec]/60">
                         {([['reported', 'Reported'], ['all', 'All']] as const).map(([key, label]) => (
                             <button key={key} onClick={() => setFilter(key)}
                                 className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all ${filter === key
                                     ? 'bg-[#dc4835] text-white'
-                                    : 'bg-[#edf1f6]/40 text-[#222d32]/40 hover:text-[#222d32]/60'
+                                    : 'bg-[#edf1f6] text-[#5a6472] hover:text-[#222d32]'
                                 }`}>
                                 {label}
                             </button>
@@ -161,14 +219,14 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
                 </div>
 
                 <div className="flex-1 w-full sm:w-auto relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#222d32]/20" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5a6472]" />
                     <input value={search} onChange={e => setSearch(e.target.value)}
                         placeholder="Search resources..."
-                        className="w-full pl-9 pr-3 py-2 rounded-lg bg-[#edf1f6]/40 border border-[#dde3ec]/60 text-xs text-[#222d32]/70 placeholder:text-[#222d32]/20 focus:outline-none focus:ring-2 focus:ring-[#dc4835]/20 transition-all" />
+                        className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-[#dde3ec] text-xs text-[#222d32] placeholder:text-[#5a6472]/70 focus:outline-none focus:ring-2 focus:ring-[#dc4835]/20 transition-all" />
                 </div>
 
                 <button onClick={fetchResources}
-                    className="p-2 rounded-lg hover:bg-[#edf1f6]/40 text-[#222d32]/30 hover:text-[#222d32]/60 transition-all">
+                    className="p-2 rounded-lg hover:bg-[#edf1f6] text-[#5a6472] hover:text-[#222d32] transition-all">
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
             </motion.div>
@@ -177,12 +235,12 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
             {loading ? (
                 <div className="premium-card p-10 text-center">
                     <div className="w-6 h-6 border-2 border-[#dc4835]/30 border-t-[#dc4835] rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-xs text-[#222d32]/30 font-medium">Loading resources...</p>
+                    <p className="text-xs text-[#5a6472] font-medium">Loading resources...</p>
                 </div>
             ) : filtered.length === 0 ? (
                 <div className="premium-card p-10 text-center">
-                    <div className="w-10 h-10 rounded-full bg-[#edf1f6]/30 flex items-center justify-center mx-auto mb-3">
-                        <FileText className="w-5 h-5 text-[#222d32]/10" />
+                    <div className="w-10 h-10 rounded-full bg-[#edf1f6] flex items-center justify-center mx-auto mb-3">
+                        <FileText className="w-5 h-5 text-[#5a6472]/60" />
                     </div>
                     <p className="text-xs text-[#222d32]/20 font-medium">
                         {filter === 'reported' ? 'No reported resources — nice!' : 'No resources yet'}
@@ -203,18 +261,24 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
                                         <span className={`font-mono text-[11px] font-bold ${typeBadge(resource.type)}`}>
                                             {resource.type.toUpperCase()}
                                         </span>
-                                        <span className="text-[11px] font-mono font-bold text-[#222d32]/40 bg-[#edf1f6]/60 px-2 py-0.5 rounded">
+                                        <span className="text-[11px] font-mono font-bold text-[#5a6472] bg-[#edf1f6] px-2 py-0.5 rounded">
                                             {resource.course_code}
                                         </span>
                                         {resource.report_count > 0 && (
-                                            <span className="flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                                            <span className="flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-500/15 px-2 py-0.5 rounded-full">
                                                 <AlertTriangle className="w-3 h-3" />
                                                 {resource.report_count} report{resource.report_count > 1 ? 's' : ''}
                                             </span>
                                         )}
+                                        {hiddenIds.includes(resource.id) && (
+                                            <span className="flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-500/15 px-2 py-0.5 rounded-full">
+                                                <EyeOff className="w-3 h-3" />
+                                                Hidden from students
+                                            </span>
+                                        )}
                                     </div>
-                                    <h3 className="text-sm font-semibold text-[#222d32]/80 truncate">{resource.title}</h3>
-                                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#222d32]/30 flex-wrap">
+                                    <h3 className="text-sm font-semibold text-[#222d32] truncate">{resource.title}</h3>
+                                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[#5a6472] flex-wrap">
                                         {resource.uploaded_by && <span className="truncate min-w-0 max-w-full">by {resource.uploaded_by}</span>}
                                         {resource.semester && <span className="font-mono">{resource.semester}</span>}
                                         <span className="shrink-0">{new Date(resource.created_at).toLocaleDateString()}</span>
@@ -225,20 +289,27 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
                                 <div className="flex items-center gap-1.5 shrink-0">
                                     {resource.url && (
                                         <a href={resource.url} target="_blank" rel="noopener noreferrer"
-                                            className="p-2 rounded-lg hover:bg-blue-500/10 text-[#222d32]/25 hover:text-blue-400 transition-all"
+                                            className="p-2 rounded-lg hover:bg-blue-500/10 text-[#5a6472] hover:text-blue-700 transition-all"
                                             title="Open resource">
                                             <ExternalLink className="w-4 h-4" />
                                         </a>
                                     )}
                                     {resource.reports.length > 0 && (
                                         <button onClick={() => setExpandedId(expandedId === resource.id ? null : resource.id)}
-                                            className="p-2 rounded-lg hover:bg-amber-500/10 text-[#222d32]/25 hover:text-amber-400 transition-all"
+                                            className="p-2 rounded-lg hover:bg-amber-500/10 text-[#5a6472] hover:text-amber-700 transition-all"
                                             title="View reports">
                                             <AlertTriangle className="w-4 h-4" />
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => setVisibility(resource.id, !hiddenIds.includes(resource.id))}
+                                        disabled={busyVisId === resource.id}
+                                        className="p-2 rounded-lg hover:bg-amber-500/10 text-[#5a6472] hover:text-amber-700 transition-all disabled:opacity-40"
+                                        title={hiddenIds.includes(resource.id) ? 'Restore (show to students again)' : 'Hide from students'}>
+                                        {hiddenIds.includes(resource.id) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                    </button>
                                     <button onClick={() => setDeleteId(resource.id)}
-                                        className="p-2 rounded-lg hover:bg-rose-500/10 text-[#222d32]/25 hover:text-rose-400 transition-all"
+                                        className="p-2 rounded-lg hover:bg-rose-500/10 text-[#5a6472] hover:text-rose-700 transition-all"
                                         title="Delete resource">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -255,8 +326,8 @@ export default function ResourceModerationTab({ adminSecret }: { adminSecret: st
                                                 {REASON_LABELS[report.reason] || report.reason}
                                             </span>
                                             <div className="flex-1 min-w-0">
-                                                {report.detail && <p className="text-[#222d32]/50">{report.detail}</p>}
-                                                <p className="text-[#222d32]/25 mt-0.5">
+                                                {report.detail && <p className="text-[#5a6472]">{report.detail}</p>}
+                                                <p className="text-[#5a6472] mt-0.5">
                                                     {report.created_by || 'Anonymous'} · {new Date(report.created_at).toLocaleString()}
                                                 </p>
                                             </div>
