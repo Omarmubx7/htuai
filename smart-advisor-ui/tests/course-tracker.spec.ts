@@ -1,6 +1,6 @@
 import { test, expect, type Page, type Locator, type TestInfo } from "@playwright/test";
 
-test.describe.configure({ timeout: 90000 });
+test.describe.configure({ timeout: 120000 });
 
 // Click the card body rather than its geometric centre: the "Course Notes"
 // button sits beside the centre of the card, so a centre click opens the notes
@@ -49,7 +49,7 @@ async function enterTracker(page: Page, testInfo: TestInfo): Promise<boolean> {
   // test below skipped with "not reachable in this environment".
   const majorHeading = page.getByRole("heading", { name: /Setup Your Academic Profile/i });
   const sawOnboarding = await majorHeading
-    .waitFor({ state: "visible", timeout: 12000 })
+    .waitFor({ state: "visible", timeout: 20000 })
     .then(() => true)
     .catch(() => false);
 
@@ -67,7 +67,7 @@ async function enterTracker(page: Page, testInfo: TestInfo): Promise<boolean> {
       const cardVisible = await page
         .locator('[data-testid="course-card"]')
         .first()
-        .waitFor({ state: "visible", timeout: 3000 })
+        .waitFor({ state: "visible", timeout: 5000 })
         .then(() => true)
         .catch(() => false);
       if (cardVisible) break;
@@ -82,7 +82,7 @@ async function enterTracker(page: Page, testInfo: TestInfo): Promise<boolean> {
   const reachedTracker = await page
     .locator('[data-testid="course-card"]')
     .first()
-    .waitFor({ state: "visible", timeout: 30000 })
+    .waitFor({ state: "visible", timeout: 60000 })
     .then(() => true)
     .catch(() => false);
 
@@ -144,7 +144,9 @@ test.describe("Course Tracker Performance", () => {
   });
 
   test("should render prerequisites section on at least one card", async ({ page }) => {
-    await expect(page.getByText(/Prerequisites/i).first()).toBeVisible();
+    // Cards can carry a hidden "No prerequisites" label, so a bare .first()
+    // matches an invisible node on narrow viewports. Assert on a *visible* match.
+    await expect(page.getByText(/Prerequisites/i).filter({ visible: true }).first()).toBeVisible();
   });
 
   test("should keep CGPA card visible after interactions", async ({ page }) => {

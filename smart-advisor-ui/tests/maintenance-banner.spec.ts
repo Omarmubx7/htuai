@@ -31,6 +31,13 @@ async function setMaintenance(enabled: boolean, message?: string) {
   });
 }
 
+/** Current maintenance state, so the test can put it back exactly as it found it. */
+async function readMaintenance(): Promise<{ enabled: boolean; message: string }> {
+  const res = await fetch(`${BASE}/api/settings`);
+  const body = await res.json();
+  return body.maintenance;
+}
+
 // A representative route from each surface: landing, auth, public legal,
 // directory and the admin area. The banner lives in the root layout, so any
 // page proves the mount point — these prove it across every layout variant.
@@ -47,6 +54,10 @@ test.describe("Maintenance notice shown site-wide", () => {
     // on one project only keeps the 4 projects from racing the shared flag.
     test.skip(testInfo.project.name !== "chromium", "runs once; flag is global site state");
 
+    // Snapshot the original state first: the flag is real site data, so the test
+    // must leave it exactly as it found it (enabled AND message).
+    const original = await readMaintenance();
+
     const enableRes = await setMaintenance(true, MESSAGE);
     expect(enableRes.status, `enable failed: ${await enableRes.text()}`).toBe(200);
 
@@ -60,7 +71,7 @@ test.describe("Maintenance notice shown site-wide", () => {
         await expect(banner).toHaveCount(1);
       }
     } finally {
-      const restoreRes = await setMaintenance(false);
+      const restoreRes = await setMaintenance(original.enabled, original.message);
       if (restoreRes.status !== 200) {
         console.error(`cleanup returned ${restoreRes.status}; maintenance may still be ON`);
       }
