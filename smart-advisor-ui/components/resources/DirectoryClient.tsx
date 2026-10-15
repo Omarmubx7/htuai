@@ -14,6 +14,7 @@ import EmptyState from "./EmptyState";
 import UploadDialog from "./UploadDialog";
 import ReportDialog from "./ReportDialog";
 import UploadRulesBanner from "./UploadRulesBanner";
+import { useSitePolicy } from "@/lib/use-site-policy";
 import SearchSuggestions from "./SearchSuggestions";
 import type { SuggestionItem } from "./SearchSuggestions";
 import type { MajorGroup } from "@/app/resources/page";
@@ -35,6 +36,8 @@ export default function DirectoryClient({
 }: Readonly<DirectoryClientProps>) {
     const { status } = useSession();
     const { toast } = useToast();
+    const policy = useSitePolicy();
+    const uploadsAllowed = policy.resources.enabled && policy.resources.uploadsEnabled;
     const [selectedMajor, setSelectedMajor] = useState<string>("all");
     const [selectedCourse, setSelectedCourse] = useState<string | null>(prefilledCourseCode || null);
     const [typeFilter, setTypeFilter] = useState("all");
@@ -303,6 +306,10 @@ export default function DirectoryClient({
     }
 
     function requireAuthThenUpload() {
+        if (!uploadsAllowed) {
+            toast("Uploads are paused right now. Please try again later.", "info");
+            return;
+        }
         if (status === "authenticated") {
             setUploadOpen(true);
         } else if (typeof window !== "undefined") {
@@ -337,6 +344,11 @@ export default function DirectoryClient({
 
     return (
         <div className="min-h-dvh bg-[#edf1f6]">
+            {policy.maintenance.enabled && (
+                <div className="bg-[#dc4835] text-white text-xs sm:text-sm font-semibold px-4 py-2 text-center">
+                    {policy.maintenance.message}
+                </div>
+            )}
             {/* Header */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec]">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
@@ -394,15 +406,20 @@ export default function DirectoryClient({
                         </div>
 
                         <motion.button
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
+                            whileHover={uploadsAllowed ? { scale: 1.03 } : undefined}
+                            whileTap={uploadsAllowed ? { scale: 0.97 } : undefined}
                             onClick={requireAuthThenUpload}
-                            className="flex items-center gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-4 py-2 rounded-lg sm:py-2.5 bg-[#dc4835] text-white text-xs sm:text-sm font-bold hover:bg-[#c43a2a] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 focus:ring-offset-2 transition-all duration-200 shadow-sm whitespace-nowrap"
-                            aria-label="Upload a resource"
+                            disabled={!uploadsAllowed}
+                            className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-4 py-2 rounded-lg sm:py-2.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 transition-all duration-200 shadow-sm whitespace-nowrap ${
+                                uploadsAllowed
+                                    ? "bg-[#dc4835] text-white hover:bg-[#c43a2a] focus:ring-[#dc4835]/30 focus:ring-offset-2"
+                                    : "bg-[#dde3ec] text-[#5a6472] cursor-not-allowed"
+                            }`}
+                            aria-label={uploadsAllowed ? "Upload a resource" : "Uploads are paused"}
                         >
                             <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">{status === "authenticated" ? "Upload" : "Sign in to Upload"}</span>
-                            <span className="sm:hidden">Upload</span>
+                            <span className="hidden sm:inline">{!uploadsAllowed ? "Uploads paused" : status === "authenticated" ? "Upload" : "Sign in to Upload"}</span>
+                            <span className="sm:hidden">{uploadsAllowed ? "Upload" : "Paused"}</span>
                         </motion.button>
                     </div>
 
