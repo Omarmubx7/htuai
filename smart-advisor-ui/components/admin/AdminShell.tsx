@@ -35,8 +35,11 @@ const PRIMARY_NAV: NavItem[] = [
     { label: "Students", href: "/admin/dashboard?tab=students", icon: <GraduationCap className="w-4 h-4" />, tab: "students" },
     { label: "Visitors", href: "/admin/dashboard?tab=visitors", icon: <Eye className="w-4 h-4" />, tab: "visitors" },
     { label: "AI Usage", href: "/admin/dashboard?tab=ai-usage", icon: <Zap className="w-4 h-4" />, tab: "ai-usage" },
-    { label: "Resources", href: "/admin/dashboard?tab=resources", icon: <Shield className="w-4 h-4" />, tab: "resources" },
     { label: "Logs", href: "/admin/dashboard?tab=logs", icon: <Terminal className="w-4 h-4" />, tab: "logs" },
+];
+
+const MODERATION_NAV: NavItem[] = [
+    { label: "Resources", href: "/admin/dashboard?tab=resources", icon: <Shield className="w-4 h-4" />, tab: "resources" },
 ];
 
 const MANAGEMENT_NAV: NavItem[] = [
@@ -73,7 +76,7 @@ export default function AdminShell({ children }: Readonly<{ children: ReactNode 
                 </div>
             </Link>
 
-            <p className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-widest text-[#5a6472]">Analytics</p>
+            <p className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-widest text-[#5a6472]">Insights</p>
             {PRIMARY_NAV.map((item) => {
                 const active = isActive(item, pathname, tab);
                 return (
@@ -90,6 +93,33 @@ export default function AdminShell({ children }: Readonly<{ children: ReactNode 
                         {active && (
                             <motion.span
                                 layoutId="admin-nav-active"
+                                className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[#dc4835]"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                            />
+                        )}
+                        {item.icon}
+                        {item.label}
+                    </Link>
+                );
+            })}
+
+            <p className="px-3 pt-4 pb-1 text-[10px] font-black uppercase tracking-widest text-[#5a6472]">Moderation</p>
+            {MODERATION_NAV.map((item) => {
+                const active = isActive(item, pathname, tab);
+                return (
+                    <Link
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+                            active
+                                ? "bg-[#dc4835]/10 text-[#dc4835]"
+                                : "text-[#5a6472] hover:bg-[#edf1f6] hover:text-[#222d32]"
+                        }`}
+                    >
+                        {active && (
+                            <motion.span
+                                layoutId="admin-nav-active-mod"
                                 className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[#dc4835]"
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                             />

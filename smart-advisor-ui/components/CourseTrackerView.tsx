@@ -264,14 +264,24 @@ function CourseTrackerView({
         }
     }, [sandboxMode, sandboxCourses, semesterType]);
 
-    const allCourses = [
-        ...data.university_requirements,
-        ...data.college_requirements,
-        ...(data.university_electives ?? []),
-        ...data.department_requirements,
-        ...data.electives,
-        ...(data.work_market_requirements ?? [])
-    ];
+    const allCourses = useMemo(
+        () => [
+            ...data.university_requirements,
+            ...data.college_requirements,
+            ...(data.university_electives ?? []),
+            ...data.department_requirements,
+            ...data.electives,
+            ...(data.work_market_requirements ?? []),
+        ],
+        [
+            data.university_requirements,
+            data.college_requirements,
+            data.university_electives,
+            data.department_requirements,
+            data.electives,
+            data.work_market_requirements,
+        ]
+    );
     const completedCodes = new Set(completedCourses.keys());
 
     const courseMap = Object.fromEntries(allCourses.map((c) => [c.code, c.name]));
@@ -294,11 +304,17 @@ function CourseTrackerView({
     const uniReqCodes = new Set(data.university_requirements.map(r => r.code));
 
     // ── University Electives
-    const uniElectiveCodes = new Set((data.university_electives ?? []).map((c: Course) => c.code));
+    const uniElectiveCodes = useMemo(
+        () => new Set((data.university_electives ?? []).map((c: Course) => c.code)),
+        [data.university_electives]
+    );
     const tickedUniElecCount = Array.from(completedCourses.keys()).filter(c => uniElectiveCodes.has(c)).length;
 
     // ── Department Electives
-    const deptElectiveCodes = new Set(data.electives.map((c: Course) => c.code));
+    const deptElectiveCodes = useMemo(
+        () => new Set(data.electives.map((c: Course) => c.code)),
+        [data.electives]
+    );
     const tickedDeptElecCount = Array.from(completedCourses.keys()).filter(c => deptElectiveCodes.has(c)).length;
     const deptElecCapReached = tickedDeptElecCount >= MAX_DEPT_ELECTIVES;
 

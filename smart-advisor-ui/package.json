@@ -18,7 +18,9 @@
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "test:all": "pnpm build && pnpm test -- --reporter=html,list",
-    "db:fix-credits": "node scripts/fix-previous-credits.js"
+    "db:fix-credits": "node scripts/fix-previous-credits.js",
+    "preflight": "node scripts/preflight.mjs",
+    "preflight:full": "node scripts/preflight.mjs --build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1092.0",
