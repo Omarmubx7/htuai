@@ -306,7 +306,7 @@ export default function DirectoryClient({
         if (status === "authenticated") {
             setUploadOpen(true);
         } else if (typeof window !== "undefined") {
-            window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
         }
     }
 

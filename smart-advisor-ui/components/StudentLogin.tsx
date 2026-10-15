@@ -6,6 +6,17 @@ import { ArrowRight, Lock, User } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 
+/**
+ * Reads the `?callbackUrl=` query the auth-gate redirects with, so a user sent
+ * from the Resources "Upload" button lands back on the page they were on.
+ * Only same-origin relative paths are honoured (open-redirect guard).
+ */
+function getCallbackUrl(): string {
+    if (typeof window === "undefined") return "/";
+    const cb = new URLSearchParams(window.location.search).get("callbackUrl");
+    return cb && cb.startsWith("/") && !cb.startsWith("//") ? cb : "/";
+}
+
 export default function StudentLogin() {
     const [id, setId] = useState("");
     const [password, setPassword] = useState("");
@@ -43,7 +54,7 @@ export default function StudentLogin() {
                     // Hard navigate so the SessionProvider re-reads the new auth cookie.
                     // router.refresh() does NOT update useSession() status — only a full
                     // page reload causes next-auth to re-fetch /api/auth/session properly.
-                    window.location.href = "/";
+                    window.location.href = getCallbackUrl();
                     return; // leave loading=true (we're navigating away anyway)
                 }
             } catch (err) {
@@ -179,7 +190,7 @@ export default function StudentLogin() {
                         <motion.button
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
-                            onClick={() => signIn('google', { callbackUrl: '/' })}
+                            onClick={() => signIn('google', { callbackUrl: getCallbackUrl() })}
                             aria-label="Continue with Google"
                             className="w-full flex items-center justify-center gap-3 py-4 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-[#222d32] text-sm font-semibold transition-all hover:bg-[#dde3ec] group"
                         >

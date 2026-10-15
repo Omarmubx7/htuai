@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import AdminGate, { useAdminSecret } from '@/components/AdminGate';
+import { useAdminSecret } from '@/components/AdminGate';
 import { Loader2 } from 'lucide-react';
 import { fetchJSON } from '@/lib/fetch-retry';
 
@@ -18,7 +18,7 @@ interface LogEntry {
 }
 
 export default function LogsPage() {
-    return <AdminGate><LogsInner /></AdminGate>;
+    return <LogsInner />;
 }
 
 function LogsInner() {

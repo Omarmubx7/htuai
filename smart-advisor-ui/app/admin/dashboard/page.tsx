@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AdminGate, { useAdminSecret } from '@/components/AdminGate';
+import { useSearchParams } from 'next/navigation';
+import { useAdminSecret } from '@/components/AdminGate';
 import {
     Users, Activity, PieChart, TrendingUp,
     Monitor, Smartphone, Globe, BookOpen,
@@ -11,8 +12,6 @@ import {
     Flame, BarChart3, ArrowUp, ArrowDown, Filter,
     GraduationCap, Terminal, Zap, Shield
 } from 'lucide-react';
-import Image from 'next/image';
-import ThemeToggle from "@/components/ThemeToggle";
 import ResourceModerationTab from "@/components/admin/ResourceModerationTab";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -249,14 +248,21 @@ function useCountUp(target: number, duration = 1400) {
    ═══════════════════════════════════════════════════════════════════ */
 
 export default function Dashboard() {
-    return <AdminGate><DashboardInner /></AdminGate>;
+    return (
+        <Suspense fallback={null}>
+            <DashboardInner />
+        </Suspense>
+    );
 }
 
 function DashboardInner() {
     const adminSecret = useAdminSecret();
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<TabKey>('overview');
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get('tab');
+    const VALID_TABS: TabKey[] = ['overview', 'students', 'visitors', 'ai-usage', 'resources', 'logs'];
+    const tab: TabKey = VALID_TABS.includes(tabParam as TabKey) ? (tabParam as TabKey) : 'overview';
     const [refreshing, setRefreshing] = useState(false);
     const [lastFetched, setLastFetched] = useState<Date | null>(null);
     const [search, setSearch] = useState('');
@@ -370,89 +376,47 @@ function DashboardInner() {
     ];
 
     return (
-        <div className="min-h-screen text-[#222d32]">
-
-            {/* Ambient effects */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-0 -translate-x-1/2 w-350 h-200"
-                    style={{ background: 'radial-gradient(ellipse 50% 35% at 50% 0%, rgba(220,72,53,0.08) 0%, transparent 70%)' }} />
-                <div className="absolute -right-40 top-1/3 w-150 h-150"
-                    style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%)' }} />
-                <div className="absolute -left-40 bottom-1/4 w-125 h-125"
-                    style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.03) 0%, transparent 70%)' }} />
-                {/* Grid overlay */}
-                <div className="absolute inset-0 opacity-[0.015]"
-                    style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-            </div>
-
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
+        <div className="space-y-6">
 
                 {/* ─── Header ──────────────────────────────────────── */}
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#dc4835]/10 border border-[#dc4835]/20 shadow-[0_0_15px_rgba(220,72,53,0.2)] overflow-hidden">
-                                <Image src="/mubxai-dark-logo.png" alt="MUBXAI Logo" width={16} height={16} className="object-contain dark-logo" />
-                                <Image src="/mubxai-light-logo.png" alt="MUBXAI Logo" width={16} height={16} className="object-contain light-logo" />
-                            </div>
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest"
-                                style={{ background: 'linear-gradient(135deg, rgba(220,72,53,0.15), rgba(220,72,53,0.05))', color: '#222d32', border: '1px solid rgba(220,72,53,0.2)' }}>
-                                Admin Panel
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                                </span>
-                                <span className="text-xs font-medium text-emerald-600">Live</span>
-                            </div>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#222d32]">
-                            Platform Analytics
+                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#222d32]">
+                            {TABS.find(t => t.key === tab)?.label ?? 'Overview'}
                         </h1>
                         <p className="text-[#5a6472] text-xs mt-1.5 font-medium">
                             {lastFetched ? `Updated ${timeAgo(lastFetched.toISOString())} · Auto-refreshes every 10s` : 'Loading...'}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <ThemeToggle />
+                        <div className="flex items-center gap-1.5">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                            </span>
+                            <span className="text-xs font-semibold text-emerald-600">Live</span>
+                        </div>
                         <button onClick={() => fetchData(true)} disabled={refreshing}
-                            className="group flex items-center gap-2 text-[11px] font-medium text-[#5a6472] hover:text-[#222d32] transition-all duration-300 px-4 py-2.5 rounded-xl
-                        border border-[#dde3ec]/60 hover:border-[#dde3ec] hover:shadow-lg hover:shadow-[#dc4835]/5 bg-white">
+                            className="group flex items-center gap-2 text-[11px] font-semibold text-[#5a6472] hover:text-[#222d32] transition-all duration-300 px-4 py-2.5 rounded-xl
+                        border border-[#dde3ec] hover:shadow-lg hover:shadow-[#dc4835]/5 bg-white">
                             <RefreshCw className={`w-3.5 h-3.5 transition-transform duration-500 ${refreshing ? 'animate-spin' : 'group-hover:rotate-90'}`} />
                             {refreshing ? 'Refreshing...' : 'Refresh'}
                         </button>
                     </div>
                 </motion.div>
 
-                {/* ─── Controls Row ────────────────────────────────── */}
+                {/* ─── Major Filter ────────────────────────────────── */}
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-                    className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    {/* Tabs */}
-                    <div className="flex gap-1 p-1 rounded-2xl border border-[#dde3ec]/60 bg-white">
-                        {TABS.map(t => (
-                            <button key={t.key} onClick={() => setTab(t.key)}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${tab === t.key
-                                    ? 'bg-[#dc4835] text-white shadow-md shadow-[#dc4835]/25'
-                                    : 'text-[#5a6472] hover:text-[#222d32] hover:bg-[#edf1f6]/30'
-                                    }`}>
-                                {t.icon}{t.label}
-                            </button>
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#dde3ec] bg-white w-fit">
+                    <Filter className="w-3.5 h-3.5 text-[#5a6472]" />
+                    <select value={majorFilter} onChange={e => setMajorFilter(e.target.value)}
+                        className="bg-transparent text-xs text-[#222d32] outline-none cursor-pointer appearance-none pr-4 font-medium">
+                        <option value="all">All Majors</option>
+                        {allMajorKeys.map(m => (
+                            <option key={m} value={m}>{formatMajor(m)}</option>
                         ))}
-                    </div>
-
-                    {/* Major Filter */}
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#dde3ec]/60 bg-white">
-                        <Filter className="w-3.5 h-3.5 text-[#5a6472]" />
-                        <select value={majorFilter} onChange={e => setMajorFilter(e.target.value)}
-                            className="bg-transparent text-xs text-[#222d32]/80 outline-none cursor-pointer appearance-none pr-4 font-medium">
-                            <option value="all" className="bg-neutral-900">All Majors</option>
-                            {allMajorKeys.map(m => (
-                                <option key={m} value={m} className="bg-neutral-900">{formatMajor(m)}</option>
-                            ))}
-                        </select>
-                    </div>
+                    </select>
                 </motion.div>
 
                 {/* ─── Tab Content ─────────────────────────────────── */}
@@ -489,11 +453,10 @@ function DashboardInner() {
                     )}
                 </AnimatePresence>
 
-                <div className="text-center text-xs text-[#222d32]/90 pt-6 pb-10 font-bold tracking-widest uppercase">
+                <div className="text-center text-xs text-[#5a6472] pt-6 pb-10 font-bold tracking-widest uppercase">
                     MUBXAI &middot; Admin Dashboard
                 </div>
             </div>
-        </div>
     );
 }
 

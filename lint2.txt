@@ -1,0 +1,197 @@
+﻿node.exe : `next lint` is deprecated and will be removed in Next.js 16.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (`next lint` is ... in Next.js 16.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+For new projects, use create-next-app to choose your preferred linter.
+For existing projects, migrate to the ESLint CLI:
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+(node:4824) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ ΓÜá The Next.js plugin was not detected in your ESLint configuration. See 
+https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config
+
+./app/api/ai/usage/route.ts
+7:27  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  
+@typescript-eslint/no-unused-vars
+
+./app/api/planner/semesters/route.ts
+52:27  Warning: 'req' is defined but never used. Allowed unused args must match /^_/u.  
+@typescript-eslint/no-unused-vars
+
+./app/courses/[courseId]/notes/page.tsx
+20:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+32:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/resources/loading.tsx
+5:8  Warning: 'BrandMark' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+
+./components/admin/ResourceModerationTab.tsx
+6:5  Warning: 'Shield' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+7:42  Warning: 'ChevronDown' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+
+./components/CourseTrackerView.tsx
+79:5  Warning: 'studentId' is defined but never used. Allowed unused args must match /^_/u.  
+@typescript-eslint/no-unused-vars
+84:5  Warning: 'updateCourseGrade' is defined but never used. Allowed unused args must match /^_/u.  
+@typescript-eslint/no-unused-vars
+267:11  Warning: The 'allCourses' array makes the dependencies of useCallback Hook (at line 401) change on every 
+render. To fix this, wrap the initialization of 'allCourses' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+267:11  Warning: The 'allCourses' array makes the dependencies of useCallback Hook (at line 428) change on every 
+render. To fix this, wrap the initialization of 'allCourses' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+297:11  Warning: The 'uniElectiveCodes' object construction makes the dependencies of useCallback Hook (at line 401) 
+change on every render. To fix this, wrap the initialization of 'uniElectiveCodes' in its own useMemo() Hook.  
+react-hooks/exhaustive-deps
+301:11  Warning: The 'deptElectiveCodes' object construction makes the dependencies of useCallback Hook (at line 401) 
+change on every render. To fix this, wrap the initialization of 'deptElectiveCodes' in its own useMemo() Hook.  
+react-hooks/exhaustive-deps
+373:45  Error: Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. 
+This value was memoized in source but not in compilation output.
+
+C:\Users\omara\projectx\mubxai\smart-advisor-ui\components\CourseTrackerView.tsx:373:45
+  371 |     const sandboxProgress = Math.min((completedCredits + sandboxCredits) / totalCredits, 1);
+  372 |
+> 373 |     const toggleSandboxCourse = useCallback((code: string) => {
+      |                                             ^^^^^^^^^^^^^^^^^^^
+> 374 |         if (!sandboxMode) return;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 375 |         setSandboxCourses(prev => {
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 400 |         });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 401 |     }, [sandboxMode, allCourses, uniElectiveCodes, deptElectiveCodes, MAX_UNI_ELECTIVES, MAX_DEPT_ELECTIVES, 
+totalCredits, SEMESTER_MAX]);
+      | ^^^^^^ Could not preserve existing memoization
+  402 |
+  403 |     const switchSemesterType = useCallback((newType: "normal" | "summer") => {
+  404 |         if (newType === semesterType) return;  react-hooks/preserve-manual-memoization
+401:22  Error: Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. 
+This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+C:\Users\omara\projectx\mubxai\smart-advisor-ui\components\CourseTrackerView.tsx:401:22
+  399 |             return next;
+  400 |         });
+> 401 |     }, [sandboxMode, allCourses, uniElectiveCodes, deptElectiveCodes, MAX_UNI_ELECTIVES, MAX_DEPT_ELECTIVES, 
+totalCredits, SEMESTER_MAX]);
+      |                      ^^^^^^^^^^ This dependency may be modified later
+  402 |
+  403 |     const switchSemesterType = useCallback((newType: "normal" | "summer") => {
+  404 |         if (newType === semesterType) return;  react-hooks/preserve-manual-memoization
+403:44  Error: Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. 
+This value was memoized in source but not in compilation output.
+
+C:\Users\omara\projectx\mubxai\smart-advisor-ui\components\CourseTrackerView.tsx:403:44
+  401 |     }, [sandboxMode, allCourses, uniElectiveCodes, deptElectiveCodes, MAX_UNI_ELECTIVES, MAX_DEPT_ELECTIVES, 
+totalCredits, SEMESTER_MAX]);
+  402 |
+> 403 |     const switchSemesterType = useCallback((newType: "normal" | "summer") => {
+      |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 404 |         if (newType === semesterType) return;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 405 |         const newMax = newType === "summer" ? 10 : 18;
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 427 |         setSemesterType(newType);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 428 |     }, [semesterType, sandboxCredits, allCourses]);
+      | ^^^^^^ Could not preserve existing memoization
+  429 |
+  430 |     // ΓöÇΓöÇ Plan Mode: Per-category simulation impact 
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  431 |     const categoryImpact = useMemo(() => {  react-hooks/preserve-manual-memoization
+428:39  Error: Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. 
+This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+C:\Users\omara\projectx\mubxai\smart-advisor-ui\components\CourseTrackerView.tsx:428:39
+  426 |         }
+  427 |         setSemesterType(newType);
+> 428 |     }, [semesterType, sandboxCredits, allCourses]);
+      |                                       ^^^^^^^^^^ This dependency may be modified later
+  429 |
+  430 |     // ΓöÇΓöÇ Plan Mode: Per-category simulation impact 
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  431 |     const categoryImpact = useMemo(() => {  react-hooks/preserve-manual-memoization
+578:26  Warning: 'parseError' is defined but never used.  @typescript-eslint/no-unused-vars
+588:54  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+589:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+600:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+600:63  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+676:26  Warning: 'parseError' is defined but never used.  @typescript-eslint/no-unused-vars
+684:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+685:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+692:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+703:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+703:67  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/HomeClient.tsx
+11:8  Warning: 'ThemeToggle' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+21:109  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/MajorSelector.tsx
+63:11  Warning: 'glow' is assigned a value but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+
+./components/PlannerCourseDetail.tsx
+238:8  Warning: React Hook useCallback has missing dependencies: 'fetchSessions' and 'toast'. Either include them or 
+remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/PlannerHomeClient.tsx
+7:158  Warning: 'Settings' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+7:200  Warning: 'Brain' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+7:207  Warning: 'Search' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+7:215  Warning: 'CalendarDays' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+463:54  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+470:62  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/PlannerSemesterDetail.tsx
+7:69  Warning: 'Search' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+153:25  Warning: 'currRes' is assigned a value but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+630:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+633:95  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/PlannerSettings.tsx
+240:37  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from 
+`next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from 
+your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./lib/advisor.ts
+16:10  Warning: 'checkDepartmentApproval' is defined but never used. Allowed unused vars must match /^_/u.  
+@typescript-eslint/no-unused-vars
+
+./lib/safe-storage.ts
+44:22  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+57:22  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+62:14  Warning: '_globalError' is defined but never used.  @typescript-eslint/no-unused-vars
+77:18  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+90:22  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+97:22  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+100:18  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+108:22  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+116:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+124:26  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: 
+https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
