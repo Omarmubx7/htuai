@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, AlertCircle, HelpCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertCircle, HelpCircle, ShieldAlert } from "lucide-react";
 import BrandMark from "@/components/BrandMark";
 import type { Metadata } from "next";
 
@@ -32,7 +32,7 @@ export default function TermsPage() {
                             Terms of Service
                         </h1>
                     </div>
-                    <p className="text-[#5a6472] font-medium">Last updated: February 21, 2026</p>
+                    <p className="text-[#5a6472] font-medium">Last updated: October 15, 2026</p>
                 </header>
 
                 <div className="space-y-12 text-[#222d32]/80 leading-relaxed">
@@ -72,6 +72,33 @@ export default function TermsPage() {
                             <li>The Service only accesses the specific scopes you authorize during the OAuth consent process.</li>
                             <li>You can revoke access at any time through your Google Account security settings.</li>
                         </ul>
+                    </section>
+
+                    <section className="space-y-4">
+                        <h2 className="text-xl font-bold text-[#222d32] flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5 text-[#dc4835]" /> Resources &amp; User Uploads
+                        </h2>
+                        <p>
+                            Our Resources directory lets students share course material. When you upload, you confirm that the file is
+                            shared course material — lecture slides, assignment briefs, past papers, or templates — and not your own
+                            submitted, graded, or personal academic work.
+                        </p>
+                        <div className="bg-white p-6 rounded-3xl border border-[#dde3ec] space-y-3 shadow-sm">
+                            <h3 className="text-sm font-bold text-[#222d32] uppercase tracking-wider">What not to upload</h3>
+                            <ul className="list-disc pl-6 space-y-2 text-sm text-[#5a6472]">
+                                <li>Your own assignments, essays, reports, or personal Word documents. Sharing your own work can cause plagiarism-detection services such as Turnitin to flag both you and anyone who downloads it.</li>
+                                <li>Copyrighted textbooks, paid course material, or anything you do not have the right to distribute.</li>
+                                <li>Another person&apos;s work without their permission.</li>
+                                <li>Solutions to an exam or assessment that is currently active.</li>
+                                <li>Files containing personal or sensitive data.</li>
+                            </ul>
+                        </div>
+                        <p className="text-sm text-[#5a6472]">
+                            You are solely responsible for the content you upload. By uploading, you grant us a non-exclusive licence to
+                            store, display and distribute the file within the Service, and you confirm you have the rights to do so. We may
+                            remove content at any time, including in response to a report or a takedown request. Content is provided &quot;as
+                            is&quot; and may be incomplete or inaccurate.
+                        </p>
                     </section>
 
                     <footer className="pt-12 border-t border-[#dde3ec]">

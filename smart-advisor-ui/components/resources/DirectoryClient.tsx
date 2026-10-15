@@ -2,18 +2,20 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Upload, BookOpen, Loader2, ArrowLeft } from "lucide-react";
+import { Search, Upload, BookOpen, Loader2, ArrowLeft, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Fuse from "fuse.js";
 import { useToast } from "@/components/ui/Toast";
-import CourseChips from "./CourseChips";
 import ResourceFilters from "./ResourceFilters";
 import ResourceCard from "./ResourceCard";
 import type { ResourceItem } from "./ResourceCard";
 import EmptyState from "./EmptyState";
 import UploadDialog from "./UploadDialog";
 import ReportDialog from "./ReportDialog";
+import UploadRulesBanner from "./UploadRulesBanner";
+import SearchSuggestions from "./SearchSuggestions";
+import type { SuggestionItem } from "./SearchSuggestions";
 import type { MajorGroup } from "@/app/resources/page";
 
 interface DirectoryClientProps {
@@ -23,23 +25,29 @@ interface DirectoryClientProps {
     prefilledCourseCode?: string | null;
 }
 
+const RECENT_KEY = "mubx-resource-recent-searches";
+
 export default function DirectoryClient({
     majorGroups,
     courseToMajorLabels,
     initialResources,
     prefilledCourseCode,
 }: Readonly<DirectoryClientProps>) {
-    const { status, data: session } = useSession();
+    const { status } = useSession();
     const { toast } = useToast();
     const [selectedMajor, setSelectedMajor] = useState<string>("all");
     const [selectedCourse, setSelectedCourse] = useState<string | null>(prefilledCourseCode || null);
     const [typeFilter, setTypeFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
     const [resources, setResources] = useState<ResourceItem[]>(initialResources || []);
     const [loading, setLoading] = useState(false);
     const [uploadOpen, setUploadOpen] = useState(false);
     const [reportTarget, setReportTarget] = useState<ResourceItem | null>(null);
-    const majorScrollRef = useRef<HTMLDivElement>(null);
+    const [focused, setFocused] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
+    const searchWrapRef = useRef<HTMLDivElement>(null);
 
     const activeMajor = useMemo(
         () => majorGroups.find((g) => g.id === selectedMajor) || majorGroups[0],
@@ -47,6 +55,16 @@ export default function DirectoryClient({
     );
 
     const courses = activeMajor.courses;
+
+    const allCourses = useMemo(() => {
+        const seen = new Map<string, { code: string; name: string }>();
+        majorGroups.forEach((g) =>
+            g.courses.forEach((c) => {
+                if (!seen.has(c.code)) seen.set(c.code, { code: c.code, name: c.name });
+            })
+        );
+        return Array.from(seen.values());
+    }, [majorGroups]);
 
     const courseNameMap = useMemo(() => {
         const map: Record<string, string> = {};
@@ -58,6 +76,33 @@ export default function DirectoryClient({
     useEffect(() => {
         setSelectedCourse(null);
     }, [selectedMajor]);
+
+    // Restore recent searches
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(RECENT_KEY);
+            if (raw) setRecentSearches(JSON.parse(raw));
+        } catch {
+            // ignore
+        }
+    }, []);
+
+    // Debounce the search input so filtering feels instant without thrashing.
+    useEffect(() => {
+        const id = setTimeout(() => setDebouncedQuery(searchQuery), 200);
+        return () => clearTimeout(id);
+    }, [searchQuery]);
+
+    // Close the suggestions dropdown when clicking outside.
+    useEffect(() => {
+        function onDocMouseDown(e: MouseEvent) {
+            if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+                setFocused(false);
+            }
+        }
+        document.addEventListener("mousedown", onDocMouseDown);
+        return () => document.removeEventListener("mousedown", onDocMouseDown);
+    }, []);
 
     const fetchResources = useCallback(async () => {
         setLoading(true);
@@ -94,18 +139,20 @@ export default function DirectoryClient({
         }));
     }, [resources, courseNameMap, courseToMajorLabels]);
 
-    // Fuse.js instance for fuzzy search
+    // Fuse.js instance — broadened keys for YouTube-style "find it however you type it".
     const fuse = useMemo(
         () =>
             new Fuse(enrichedResources, {
                 keys: [
                     { name: "title", weight: 0.4 },
-                    { name: "description", weight: 0.2 },
                     { name: "courseName", weight: 0.25 },
-                    { name: "course_code", weight: 0.1 },
-                    { name: "type", weight: 0.05 },
+                    { name: "course_code", weight: 0.15 },
+                    { name: "description", weight: 0.1 },
+                    { name: "uploaded_by", weight: 0.05 },
+                    { name: "semester", weight: 0.03 },
+                    { name: "type", weight: 0.02 },
                 ],
-                threshold: 0.35,
+                threshold: 0.4,
                 includeScore: true,
                 ignoreLocation: true,
                 minMatchCharLength: 2,
@@ -113,21 +160,91 @@ export default function DirectoryClient({
         [enrichedResources]
     );
 
+    /** Fuzzy search where every typed word must match somewhere (AND semantics). */
+    const smartSearch = useCallback(
+        (query: string) => {
+            const tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+            if (tokens.length === 0) return enrichedResources;
+
+            if (tokens.length === 1) {
+                return fuse.search(tokens[0]).map((r) => r.item);
+            }
+
+            const perToken = tokens.map((t) => {
+                const map = new Map<number, number>();
+                fuse.search(t).forEach((r) => map.set(r.item.id, r.score ?? 0));
+                return map;
+            });
+
+            const [first, ...rest] = perToken;
+            const sharedIds = [...first.keys()].filter((id) => rest.every((m) => m.has(id)));
+            const byId = new Map(enrichedResources.map((r) => [r.id, r]));
+            const scoreById = new Map(
+                sharedIds.map((id) => [id, perToken.reduce((sum, m) => sum + (m.get(id) ?? 0), 0)])
+            );
+
+            return sharedIds
+                .sort((a, b) => (scoreById.get(a) ?? 0) - (scoreById.get(b) ?? 0))
+                .map((id) => byId.get(id))
+                .filter((r): r is (typeof enrichedResources)[number] => Boolean(r));
+        },
+        [fuse, enrichedResources]
+    );
+
     const filteredResources = useMemo(() => {
-        let results = enrichedResources;
-
-        // Fuzzy search
-        if (searchQuery.trim()) {
-            results = fuse.search(searchQuery).map((r) => r.item);
-        }
-
-        // Type filter
+        let results = debouncedQuery.trim() ? smartSearch(debouncedQuery) : enrichedResources;
         if (typeFilter !== "all") {
             results = results.filter((r) => r.type === typeFilter);
         }
-
         return results;
-    }, [enrichedResources, fuse, searchQuery, typeFilter]);
+    }, [enrichedResources, smartSearch, debouncedQuery, typeFilter]);
+
+    // Live suggestions: matching courses, matching resources, and recent searches.
+    const suggestions = useMemo<SuggestionItem[]>(() => {
+        const q = searchQuery.trim();
+        const items: SuggestionItem[] = [];
+
+        if (!q) {
+            recentSearches.slice(0, 5).forEach((r) =>
+                items.push({ key: `recent-${r}`, kind: "recent", label: r, query: r })
+            );
+            return items;
+        }
+
+        const lower = q.toLowerCase();
+        allCourses
+            .filter((c) => c.code.toLowerCase().includes(lower) || c.name.toLowerCase().includes(lower))
+            .slice(0, 4)
+            .forEach((c) =>
+                items.push({
+                    key: `course-${c.code}`,
+                    kind: "course",
+                    label: c.name,
+                    sublabel: c.code,
+                    query: c.code,
+                })
+            );
+
+        smartSearch(q)
+            .slice(0, 5)
+            .forEach((r) =>
+                items.push({
+                    key: `resource-${r.id}`,
+                    kind: "resource",
+                    label: r.title,
+                    sublabel: courseNameMap[r.course_code] || r.course_code,
+                    query: r.title,
+                })
+            );
+
+        return items;
+    }, [searchQuery, recentSearches, allCourses, smartSearch, courseNameMap]);
+
+    useEffect(() => {
+        setActiveIndex(-1);
+    }, [searchQuery]);
+
+    const showSuggestions = focused && suggestions.length > 0;
 
     const typeCounts: Record<string, number> = {};
     enrichedResources.forEach((r) => {
@@ -136,11 +253,67 @@ export default function DirectoryClient({
 
     const selectedCourseData = courses.find((c) => c.code === selectedCourse);
 
-    const currentUser = session?.user?.name || session?.user?.email || null;
+    function commitRecent(value: string) {
+        const v = value.trim();
+        if (!v) return;
+        setRecentSearches((prev) => {
+            const next = [v, ...prev.filter((x) => x.toLowerCase() !== v.toLowerCase())].slice(0, 6);
+            try {
+                localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+            } catch {
+                // ignore
+            }
+            return next;
+        });
+    }
+
+    function handleSuggestionSelect(item: SuggestionItem) {
+        commitRecent(item.query);
+        setSearchQuery(item.query);
+        setFocused(false);
+        setActiveIndex(-1);
+    }
+
+    function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (e.key === "Escape") {
+            setFocused(false);
+            return;
+        }
+
+        if (!showSuggestions) {
+            if (e.key === "Enter") commitRecent(searchQuery);
+            return;
+        }
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex((i) => (i + 1) % suggestions.length);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (activeIndex >= 0 && suggestions[activeIndex]) {
+                handleSuggestionSelect(suggestions[activeIndex]);
+            } else {
+                commitRecent(searchQuery);
+                setFocused(false);
+            }
+        }
+    }
+
+    function requireAuthThenUpload() {
+        if (status === "authenticated") {
+            setUploadOpen(true);
+        } else if (typeof window !== "undefined") {
+            window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        }
+    }
 
     async function handleShare(resource: ResourceItem) {
-        const shareUrl = resource.url || `${typeof window !== "undefined" ? window.location.origin : ""}/resources?course_code=${resource.course_code}&rid=${resource.id}`;
-        const shareMessage = `Don't gatekeep. Help your classmates.\n\n"${resource.title}" (${resource.course_code})\n${shareUrl}\n\nUpload helpful files on MubxAI to lift the whole class!`;
+        const origin = typeof window !== "undefined" ? window.location.origin : "https://ai.mubx.dev";
+        const shareUrl = `${origin}/resources/${resource.id}`;
+        const shareMessage = `Found this on MubxAI — too useful to gatekeep.\n\n"${resource.title}" (${resource.course_code})\n${shareUrl}\n\nKnow something helpful? Upload it on MubxAI and help your classmates!`;
 
         try {
             if (typeof navigator !== "undefined" && navigator.share) {
@@ -162,31 +335,16 @@ export default function DirectoryClient({
         }
     }
 
-    async function handleDelete(resource: ResourceItem) {
-        if (!confirm(`Delete "${resource.title}"?`)) return;
-        try {
-            const res = await fetch(`/api/directory/resources/${resource.id}`, { method: "DELETE" });
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || "Failed to delete");
-            }
-            toast("Resource deleted", "success");
-            fetchResources();
-        } catch (err) {
-            toast(err instanceof Error ? err.message : "Delete failed", "error");
-        }
-    }
-
     return (
         <div className="min-h-dvh bg-[#edf1f6]">
             {/* Header */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec]">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-4">
-                        <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-3 mb-1.5 sm:mb-4">
+                        <div className="flex items-center gap-3 min-w-0">
                             <Link
                                 href="/dashboard"
-                                className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#edf1f6] hover:bg-[#dde3ec] text-[#5a6472] hover:text-[#222d32] transition-all duration-200"
+                                className="flex items-center justify-center shrink-0 w-10 h-10 rounded-xl bg-[#edf1f6] hover:bg-[#dde3ec] text-[#5a6472] hover:text-[#222d32] transition-all duration-200"
                                 aria-label="Back to dashboard"
                             >
                                 <ArrowLeft className="w-5 h-5" />
@@ -195,16 +353,16 @@ export default function DirectoryClient({
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="w-10 h-10 rounded-xl bg-[#dc4835]/10 flex items-center justify-center"
+                                className="shrink-0 w-10 h-10 rounded-xl bg-[#dc4835]/10 flex items-center justify-center"
                             >
                                 <BookOpen className="w-5 h-5 text-[#dc4835]" />
                             </motion.div>
-                            <div>
+                            <div className="min-w-0">
                                 <motion.h1
                                     initial={{ opacity: 0, x: -8 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.3, delay: 0.1 }}
-                                    className="text-lg font-black text-[#222d32] tracking-tight"
+                                    className="text-lg font-black text-[#222d32] tracking-tight truncate"
                                 >
                                     Resources
                                 </motion.h1>
@@ -212,7 +370,7 @@ export default function DirectoryClient({
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ duration: 0.3, delay: 0.2 }}
-                                    className="text-xs text-[#5a6472] font-semibold"
+                                    className="text-xs text-[#5a6472] font-semibold truncate"
                                 >
                                     Course materials shared by students
                                 </motion.p>
@@ -220,7 +378,7 @@ export default function DirectoryClient({
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ duration: 0.3, delay: 0.3 }}
-                                    className="hidden sm:block text-[11px] text-[#dc4835] font-semibold mt-0.5"
+                                    className="hidden sm:block text-[11px] text-[#dc4835] font-semibold mt-0.5 truncate"
                                 >
                                     Don't gatekeep. Share what helps your classmates.
                                 </motion.p>
@@ -228,15 +386,7 @@ export default function DirectoryClient({
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ duration: 0.3, delay: 0.35 }}
-                                    className="hidden sm:block text-[11px] text-[#5a6472] font-semibold mt-0.5"
-                                >
-                                    Help build MubxAI — upload files to lift the whole classmates.
-                                </motion.p>
-                                <motion.p
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3, delay: 0.35 }}
-                                    className="sm:hidden text-[9px] text-[#dc4835] font-semibold mt-0.5"
+                                    className="sm:hidden text-[9px] text-[#dc4835] font-semibold mt-0.5 truncate"
                                 >
                                     Share • Upload • Help your classmates
                                 </motion.p>
@@ -246,32 +396,31 @@ export default function DirectoryClient({
                         <motion.button
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.97 }}
-                            onClick={() => {
-                                if (status === "authenticated") {
-                                    setUploadOpen(true);
-                                } else {
-                                    if (typeof window !== "undefined") {
-                                        window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-                                    }
-                                }
-                            }}
-                            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg sm:py-2.5 bg-[#dc4835] text-white text-xs sm:text-sm font-bold hover:bg-[#c43a2a] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 focus:ring-offset-2 transition-all duration-200 shadow-sm whitespace-nowrap"
+                            onClick={requireAuthThenUpload}
+                            className="flex items-center gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-4 py-2 rounded-lg sm:py-2.5 bg-[#dc4835] text-white text-xs sm:text-sm font-bold hover:bg-[#c43a2a] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 focus:ring-offset-2 transition-all duration-200 shadow-sm whitespace-nowrap"
                             aria-label="Upload a resource"
                         >
                             <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>{status === "authenticated" ? "Upload" : "Sign in to Upload"}</span>
+                            <span className="hidden sm:inline">{status === "authenticated" ? "Upload" : "Sign in to Upload"}</span>
+                            <span className="sm:hidden">Upload</span>
                         </motion.button>
                     </div>
 
                     {/* Search */}
-                    <div className="relative mb-1 sm:mb-3">
+                    <div className="relative mb-1 sm:mb-3" ref={searchWrapRef}>
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6472]" />
                         <input
                             type="search"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-sm text-[#222d32] placeholder:text-[#5a6472]/50 focus:outline-none focus:border-[#dc4835] focus:ring-2 focus:ring-[#dc4835]/10 transition-all duration-200"
-                            placeholder="Search by title, course, or description..."
+                            onFocus={() => setFocused(true)}
+                            onKeyDown={handleSearchKeyDown}
+                            role="combobox"
+                            aria-expanded={showSuggestions}
+                            aria-controls="resource-search-suggestions"
+                            aria-autocomplete="list"
+                            className="w-full pl-9 pr-14 py-2.5 rounded-lg bg-[#edf1f6] border border-[#dde3ec] text-sm text-[#222d32] placeholder:text-[#5a6472]/50 focus:outline-none focus:border-[#dc4835] focus:ring-2 focus:ring-[#dc4835]/10 transition-all duration-200"
+                            placeholder="Search titles, courses, or a topic..."
                             aria-label="Search resources"
                         />
                         {searchQuery && (
@@ -283,46 +432,35 @@ export default function DirectoryClient({
                                 Clear
                             </button>
                         )}
-                    </div>
-
-                    {/* Major chips — horizontal scroll */}
-                    <div className="mb-1 sm:mb-3" ref={majorScrollRef}>
-                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" role="tablist" aria-label="Filter by major">
-                            {majorGroups.map((group) => {
-                                const isActive = group.id === selectedMajor;
-                                return (
-                                    <motion.button
-                                        key={group.id}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setSelectedMajor(group.id)}
-                                        role="tab"
-                                        aria-selected={isActive}
-                                        className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 border ${
-                                            isActive
-                                                ? "bg-[#dc4835] text-white border-[#dc4835] shadow-sm"
-                                                : "bg-white text-[#5a6472] border-[#dde3ec] hover:border-[#dc4835]/50 hover:text-[#222d32]"
-                                        }`}
-                                        style={{
-                                            boxShadow: isActive ? "0 2px 8px #dc483525" : "none",
-                                        }}
-                                    >
-                                        {group.label}
-                                        <span
-                                            className={`ml-0.5 text-[10px] rounded-full px-1 py-px font-bold ${
-                                                isActive ? "bg-white/20" : "bg-[#edf1f6]"
-                                            }`}
-                                        >
-                                            {group.courses.length}
-                                        </span>
-                                    </motion.button>
-                                );
-                            })}
+                        <div id="resource-search-suggestions">
+                            {showSuggestions && (
+                                <SearchSuggestions
+                                    items={suggestions}
+                                    activeIndex={activeIndex}
+                                    query={searchQuery}
+                                    onHover={setActiveIndex}
+                                    onSelect={handleSuggestionSelect}
+                                />
+                            )}
                         </div>
                     </div>
 
-                    {/* Course chips */}
-                    <div className="mb-1 sm:mb-3">
-                        <CourseChips courses={courses} selected={selectedCourse} onSelect={setSelectedCourse} />
+                    {/* Major dropdown */}
+                    <div className="relative mb-1 sm:mb-3">
+                        <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6472] pointer-events-none" />
+                        <select
+                            value={selectedMajor}
+                            onChange={(e) => setSelectedMajor(e.target.value)}
+                            className="w-full appearance-none pl-9 pr-9 py-2.5 rounded-lg bg-white border border-[#dde3ec] text-sm font-semibold text-[#222d32] focus:outline-none focus:border-[#dc4835] focus:ring-2 focus:ring-[#dc4835]/10 transition-all duration-200 cursor-pointer"
+                            aria-label="Filter by major"
+                        >
+                            {majorGroups.map((group) => (
+                                <option key={group.id} value={group.id}>
+                                    {group.label}
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a6472] pointer-events-none" />
                     </div>
 
                     {/* Type filters */}
@@ -341,8 +479,16 @@ export default function DirectoryClient({
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-1.5 pb-3 sm:py-6">
+            {/* Content — extra bottom padding on mobile so the last card clears the bottom app tray. */}
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-3 pb-28 sm:py-6">
+                <UploadRulesBanner onUpload={requireAuthThenUpload} />
+
+                {debouncedQuery.trim() && !loading && (
+                    <p className="text-[11px] font-semibold text-[#5a6472] mb-3" aria-live="polite">
+                        {filteredResources.length} result{filteredResources.length === 1 ? "" : "s"} for &ldquo;{debouncedQuery.trim()}&rdquo;
+                    </p>
+                )}
+
                 <AnimatePresence mode="wait">
                     {loading ? (
                         <motion.div
@@ -368,11 +514,10 @@ export default function DirectoryClient({
                                     key={r.id}
                                     resource={r}
                                     onReport={setReportTarget}
-                                    onDelete={handleDelete}
                                     onShare={handleShare}
-                                    isOwner={Boolean(r.is_owner ?? (currentUser === r.uploaded_by))}
                                     courseNameMap={courseNameMap}
                                     majorLabels={r.majorLabels}
+                                    highlightQuery={debouncedQuery}
                                 />
                             ))}
                         </motion.div>
@@ -386,15 +531,7 @@ export default function DirectoryClient({
                             <EmptyState
                                 type="no-resources"
                                 courseName={selectedCourseData?.name || selectedCourse}
-                                onUpload={() => {
-                                    if (status === "authenticated") {
-                                        setUploadOpen(true);
-                                    } else {
-                                        if (typeof window !== "undefined") {
-                                            window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-                                        }
-                                    }
-                                }}
+                                onUpload={requireAuthThenUpload}
                             />
                         </motion.div>
                     ) : searchQuery ? (
@@ -404,7 +541,7 @@ export default function DirectoryClient({
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                         >
-                            <EmptyState type="no-results" />
+                            <EmptyState type="no-results" query={debouncedQuery} />
                         </motion.div>
                     ) : (
                         <motion.div

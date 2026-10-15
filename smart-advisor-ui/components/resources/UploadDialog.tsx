@@ -2,29 +2,20 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Link2, FileUp, Search, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { X, Upload, Link2, FileUp, Search, CheckCircle2, Loader2, AlertCircle, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import {
+    MAX_FILE_SIZE,
+    MAX_FILES_PER_BATCH,
+    ACCEPT_ATTRIBUTE,
+    detectTypeFromExtension,
+    formatFileSize,
+    isAllowedExtension,
+    isPersonalDoc,
+} from "@/lib/resource-uploads";
 
 const SEASONS = ["Spring", "Summer", "Fall", "Winter"] as const;
 const YEARS = Array.from({ length: 21 }, (_, i) => 2020 + i);
-
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
-
-function detectTypeFromExtension(filename: string): string {
-    const ext = filename.split(".").pop()?.toLowerCase() || "";
-    if (ext === "pdf") return "pdf";
-    if (["mp4", "webm"].includes(ext)) return "video";
-    if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext)) return "image";
-    if (["zip", "rar"].includes(ext)) return "folder";
-    if (["doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt"].includes(ext)) return "pdf";
-    return "other";
-}
-
-function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 interface Course {
     name: string;
@@ -65,6 +56,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     const [submitting, setSubmitting] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(false);
+    const [acknowledged, setAcknowledged] = useState(false);
     const { toast } = useToast();
     const titleRef = useRef<HTMLInputElement>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
@@ -109,6 +101,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                 body: JSON.stringify({
                     filename: uploadFile.file.name,
                     contentType: uploadFile.file.type || "application/octet-stream",
+                    fileSize: uploadFile.file.size,
                 }),
             });
 
@@ -117,7 +110,8 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                 throw new Error(data.error || "Failed to get upload URL");
             }
 
-            const { uploadUrl, publicUrl } = await presignRes.json();
+            const { uploadUrl, publicUrl, contentType } = await presignRes.json();
+            const safeType = contentType || uploadFile.file.type || "application/octet-stream";
 
             // Step 2: PUT file directly to R2 (bypasses Vercel entirely)
             const xhr = new XMLHttpRequest();
@@ -162,7 +156,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
             };
 
             xhr.open("PUT", uploadUrl);
-            xhr.setRequestHeader("Content-Type", uploadFile.file.type || "application/octet-stream");
+            xhr.setRequestHeader("Content-Type", safeType);
             xhr.send(uploadFile.file);
 
             setUploadFiles((prev) =>
@@ -192,6 +186,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
         setUploadFiles([]);
         setDragActive(false);
         setIsAnonymous(false);
+        setAcknowledged(false);
     }
 
     function handleClose() {
@@ -201,6 +196,10 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     }
 
     function validateFile(selectedFile: File): boolean {
+        if (!isAllowedExtension(selectedFile.name)) {
+            toast(`${selectedFile.name} isn't a supported file type. Upload PDF, slides, docs, images, video or archives.`, "error");
+            return false;
+        }
         if (selectedFile.size > MAX_FILE_SIZE) {
             toast(`${selectedFile.name} is too large (${formatFileSize(selectedFile.size)}). Maximum size is 50 MB.`, "error");
             return false;
@@ -212,6 +211,10 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
         const arr = Array.from(fileList);
         const newUploads: UploadFile[] = [];
         for (const f of arr) {
+            if (uploadFiles.length + newUploads.length >= MAX_FILES_PER_BATCH) {
+                toast(`You can attach up to ${MAX_FILES_PER_BATCH} files at a time.`, "error");
+                break;
+            }
             if (!validateFile(f)) continue;
             const isDup = uploadFiles.some((u) => u.file.name === f.name && u.file.size === f.size);
             if (isDup) {
@@ -277,11 +280,13 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     const allFilesDone = uploadFiles.length > 0 && uploadFiles.every((f) => f.status === "done");
     const anyFileUploading = uploadFiles.some((f) => f.status === "uploading");
     const doneCount = uploadFiles.filter((f) => f.status === "done").length;
+    const hasPersonalDoc = uploadFiles.some((f) => isPersonalDoc(f.file.name));
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         const semester = `${semesterSeason} ${semesterYear}`;
         if (!courseCode || !title || !semesterSeason || !semesterYear) return;
+        if (!acknowledged) return;
         if (sourceMode === "url" && !url) return;
         if (sourceMode === "file" && !allFilesDone) return;
 
@@ -708,6 +713,16 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                             </p>
                                         )}
 
+                                        {hasPersonalDoc && (
+                                            <div className="flex items-start gap-2 rounded-lg border border-[#f39c14]/30 bg-[#f39c14]/10 p-2.5">
+                                                <AlertTriangle className="w-3.5 h-3.5 text-[#f39c14] mt-0.5 shrink-0" />
+                                                <p className="text-[11px] text-[#222d32]/80 leading-snug">
+                                                    Word documents detected. Make sure this is a <span className="font-bold">template or assignment brief</span> —
+                                                    not your own assignment. Sharing your personal work can trigger a <span className="font-bold">Turnitin</span> flag.
+                                                </p>
+                                            </div>
+                                        )}
+
                                         <div
                                             onDragOver={handleDragOver}
                                             onDragLeave={handleDragLeave}
@@ -729,7 +744,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                     {dragActive ? "Drop files here" : uploadFiles.length > 0 ? "Add more files" : "Drop files or click to browse"}
                                                 </p>
                                                 <p className="text-[11px] text-[#5a6472] mt-1">
-                                                    Any file type — max 50 MB each
+                                                    PDFs, slides, docs, images, video — max 50 MB each, up to {MAX_FILES_PER_BATCH} files
                                                 </p>
                                             </div>
                                         </div>
@@ -737,6 +752,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                             ref={fileInputRef}
                                             type="file"
                                             multiple
+                                            accept={ACCEPT_ATTRIBUTE}
                                             className="hidden"
                                             onChange={handleFileInputChange}
                                             tabIndex={-1}
@@ -745,9 +761,29 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                 )}
                             </fieldset>
 
+                            <div className="flex items-start gap-2 rounded-lg border border-[#dde3ec] bg-[#edf1f6]/60 p-3">
+                                <input
+                                    type="checkbox"
+                                    id="upload-acknowledge"
+                                    checked={acknowledged}
+                                    onChange={(e) => setAcknowledged(e.target.checked)}
+                                    className="mt-0.5 h-4 w-4 rounded border-[#dde3ec] text-[#dc4835] focus:ring-[#dc4835]/30 transition-all duration-200"
+                                    aria-label="Confirm this is not your own submitted work"
+                                />
+                                <label htmlFor="upload-acknowledge" className="flex flex-col gap-0.5 cursor-pointer">
+                                    <span className="text-xs font-bold text-[#222d32] flex items-center gap-1.5">
+                                        <ShieldCheck className="w-3.5 h-3.5 text-[#dc4835]" />
+                                        I confirm this isn&apos;t my own submitted work
+                                    </span>
+                                    <span className="text-[11px] text-[#5a6472] leading-relaxed">
+                                        It&apos;s shared course material (slides, briefs, templates) and doesn&apos;t violate academic integrity or copyright.
+                                    </span>
+                                </label>
+                            </div>
+
                             <button
                                 type="submit"
-                                disabled={!title || !semesterSeason || !semesterYear || (sourceMode === "url" && !url) || (sourceMode === "file" && (!allFilesDone || anyFileUploading)) || submitting}
+                                disabled={!title || !semesterSeason || !semesterYear || !acknowledged || (sourceMode === "url" && !url) || (sourceMode === "file" && (!allFilesDone || anyFileUploading)) || submitting}
                                 className="w-full py-2.5 rounded-lg bg-[#dc4835] text-white text-sm font-bold hover:bg-[#c43a2a] focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-1 active:scale-[0.98]"
                                 aria-label={submitting ? "Creating resources..." : anyFileUploading ? "Waiting for uploads to finish..." : "Upload resource"}
                             >

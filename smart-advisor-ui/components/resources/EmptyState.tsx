@@ -6,6 +6,7 @@ import { BookOpen, Search, Upload, Heart } from "lucide-react";
 interface EmptyStateProps {
     type: "no-search" | "no-results" | "no-resources";
     courseName?: string;
+    query?: string;
     onUpload?: () => void;
 }
 
@@ -22,7 +23,7 @@ const itemVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
-export default function EmptyState({ type, courseName, onUpload }: Readonly<EmptyStateProps>) {
+export default function EmptyState({ type, courseName, query, onUpload }: Readonly<EmptyStateProps>) {
     if (type === "no-results") {
         return (
             <motion.div
@@ -31,16 +32,16 @@ export default function EmptyState({ type, courseName, onUpload }: Readonly<Empt
                 animate="visible"
                 className="flex flex-col items-center justify-center py-20 px-4 text-center"
                 role="status"
-                aria-label="No matching courses found"
+                aria-label="No matching resources found"
             >
                 <motion.div variants={itemVariants} className="w-16 h-16 rounded-2xl bg-[#edf1f6] flex items-center justify-center mb-4">
                     <Search className="w-8 h-8 text-[#5a6472]" />
                 </motion.div>
                 <motion.h3 variants={itemVariants} className="text-base font-bold text-[#222d32] mb-1">
-                    No matching course
+                    No matching resources
                 </motion.h3>
                 <motion.p variants={itemVariants} className="text-sm text-[#5a6472] max-w-xs">
-                    Try a different name or course code.
+                    {query ? <>Nothing found for &ldquo;{query}&rdquo;. </> : null}Try a different keyword, course code, or check the spelling.
                 </motion.p>
             </motion.div>
         );
@@ -63,7 +64,7 @@ export default function EmptyState({ type, courseName, onUpload }: Readonly<Empt
                     No resources yet{courseName ? ` for ${courseName}` : ""}
                 </motion.h3>
                 <motion.p variants={itemVariants} className="text-sm text-[#5a6472] max-w-xs mb-4">
-                    No one's shared yet. Help your batch — upload one now.
+                    No one's shared yet. Help your classmates — upload one now.
                 </motion.p>
                 {onUpload && (
                     <motion.button
@@ -106,7 +107,7 @@ export default function EmptyState({ type, courseName, onUpload }: Readonly<Empt
             </motion.p>
             <motion.div variants={itemVariants} className="flex items-center gap-1.5 text-[11px] text-[#5a6472]">
                 <Heart className="w-3.5 h-3.5 text-[#dc4835]" />
-                <span>Share, upload, help your batch — MubxAI</span>
+                <span>Share, upload, help your classmates — MubxAI</span>
             </motion.div>
         </motion.div>
     );

@@ -1,7 +1,8 @@
 "use client";
 
-import { ExternalLink, FileText, Video, Link2, Image, Folder, HelpCircle, Flag, Trash2, Share2 } from "lucide-react";
+import { ExternalLink, FileText, Video, Link2, Image, Folder, HelpCircle, Flag, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
+import Highlight from "./Highlight";
 
 const TYPE_CONFIG: Record<string, { icon: typeof FileText; color: string; label: string }> = {
     pdf: { icon: FileText, color: "#dc4835", label: "PDF" },
@@ -31,11 +32,10 @@ export interface ResourceItem {
 interface ResourceCardProps {
     resource: ResourceItem;
     onReport: (resource: ResourceItem) => void;
-    onDelete?: (resource: ResourceItem) => void;
     onShare?: (resource: ResourceItem) => void;
-    isOwner?: boolean;
     courseNameMap?: Record<string, string>;
     majorLabels?: string[];
+    highlightQuery?: string;
 }
 
 const cardVariants = {
@@ -43,7 +43,7 @@ const cardVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
 
-export default function ResourceCard({ resource, onReport, onDelete, onShare, isOwner, courseNameMap, majorLabels }: Readonly<ResourceCardProps>) {
+export default function ResourceCard({ resource, onReport, onShare, courseNameMap, majorLabels, highlightQuery }: Readonly<ResourceCardProps>) {
     const config = TYPE_CONFIG[resource.type] || TYPE_CONFIG.other;
     const Icon = config.icon;
     const courseLabel = courseNameMap?.[resource.course_code] || resource.course_code;
@@ -52,7 +52,7 @@ export default function ResourceCard({ resource, onReport, onDelete, onShare, is
         <motion.article
             variants={cardVariants}
             whileHover={{ y: -2, transition: { duration: 0.2 } }}
-            className="premium-card rounded-xl p-4 sm:p-5 flex flex-col gap-3 group focus-within:ring-2 focus-within:ring-[#dc4835]/20 focus-within:ring-offset-2"
+            className="premium-card rounded-xl p-4 sm:p-5 flex flex-col gap-3 min-w-0 group focus-within:ring-2 focus-within:ring-[#dc4835]/20 focus-within:ring-offset-2"
             aria-label={`${resource.title} — ${config.label}${resource.description ? ` — ${resource.description}` : ""}`}
         >
             <div className="flex items-start gap-3">
@@ -64,7 +64,9 @@ export default function ResourceCard({ resource, onReport, onDelete, onShare, is
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-[#222d32] leading-tight line-clamp-2 break-words">{resource.title}</h3>
+                    <h3 className="text-sm font-bold text-[#222d32] leading-tight line-clamp-2 break-words [overflow-wrap:anywhere]">
+                        <Highlight text={resource.title} query={highlightQuery || ""} />
+                    </h3>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span
                             className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white"
@@ -104,7 +106,7 @@ export default function ResourceCard({ resource, onReport, onDelete, onShare, is
 
             {resource.description && (
                 <p className="text-xs text-[#5a6472] line-clamp-2 leading-relaxed">
-                    {resource.description}
+                    <Highlight text={resource.description} query={highlightQuery || ""} />
                 </p>
             )}
 
@@ -132,17 +134,6 @@ export default function ResourceCard({ resource, onReport, onDelete, onShare, is
                             aria-label={`Share ${resource.title}`}
                         >
                             <Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        </button>
-                    )}
-
-                    {isOwner && onDelete && (
-                        <button
-                            onClick={() => onDelete(resource)}
-                            className="p-1.5 sm:p-2 rounded-lg text-[#5a6472]/40 hover:text-[#dc4835] hover:bg-[#dc4835]/10 focus:outline-none focus:ring-2 focus:ring-[#dc4835]/30 transition-all duration-200"
-                            title="Delete resource"
-                            aria-label={`Delete ${resource.title}`}
-                        >
-                            <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
                     )}
 
