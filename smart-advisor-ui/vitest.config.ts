@@ -3,6 +3,9 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [],
+  // Next.js compiles JSX with React's automatic runtime; mirror that so
+  // component tests (.tsx) transform the same way app code does.
+  esbuild: { jsx: 'automatic' },
   test: {
     environment: 'happy-dom',
     globals: true,

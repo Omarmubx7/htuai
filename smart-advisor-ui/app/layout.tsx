@@ -8,6 +8,7 @@ import { logVisitor } from "@/lib/database";
 import { Providers } from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
 import MobileHeader from "@/components/MobileHeader";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
 import ThemeProvider from "@/components/ThemeProvider";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
@@ -345,6 +346,7 @@ export default async function RootLayout({
                 })
               }}
             />
+            <MaintenanceBanner />
             <MobileHeader />
             <main className="flex-1 flex flex-col">
               {children}

@@ -344,11 +344,7 @@ export default function DirectoryClient({
 
     return (
         <div className="min-h-dvh bg-[#edf1f6]">
-            {policy.maintenance.enabled && (
-                <div className="bg-[#dc4835] text-white text-xs sm:text-sm font-semibold px-4 py-2 text-center">
-                    {policy.maintenance.message}
-                </div>
-            )}
+            {/* Maintenance notice is rendered site-wide by <MaintenanceBanner /> in the root layout. */}
             {/* Header */}
             <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#dde3ec]">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
