@@ -52,6 +52,7 @@ const SKIP = {
   db: flag("skip-db"),
   tsc: flag("skip-tsc"),
   lint: flag("skip-lint"),
+  tests: flag("skip-tests"),
   build: !flag("build") || flag("skip-build"),
   api: flag("skip-api"),
   env: flag("skip-env"),
@@ -256,7 +257,7 @@ function readBaseline() {
 }
 
 async function checkDatabase() {
-  heading("3. Database integrity (no data loss)");
+  heading("7. Database integrity (no data loss)");
   const url = resolveDatabaseUrl();
   info("db", `Target: ${url.replace(/:\/\/[^@]*@/, "://***@")}`);
 
@@ -348,7 +349,7 @@ async function checkDatabase() {
 
 // ─────────────────────────────── 4. tsc ───────────────────────────────
 function checkTsc() {
-  heading("4. TypeScript");
+  heading("3. TypeScript");
   const res = run("npx tsc --noEmit", { timeout: 900000 });
   if (res.status === 0) ok("tsc", "tsc --noEmit passed with no errors");
   else fail("tsc", "tsc --noEmit reported errors", tail(`${res.stdout}\n${res.stderr}`, 20));
@@ -356,7 +357,7 @@ function checkTsc() {
 
 // ─────────────────────────────── 5. lint ───────────────────────────────
 function checkLint() {
-  heading("5. ESLint");
+  heading("4. ESLint");
   const res = run("npx next lint", { timeout: 900000 });
   const text = `${res.stdout}\n${res.stderr}`;
   if (res.status === 0) {
@@ -368,10 +369,24 @@ function checkLint() {
   }
 }
 
+const stripAnsi = (s) => String(s).replace(/\u001b\[[0-9;]*m/g, "");
+
+// ─────────────────────────────── 5. unit tests ───────────────────────────────
+function checkTests() {
+  heading("5. Unit tests (vitest)");
+  const res = run("npx vitest run", { timeout: 900000 });
+  const text = stripAnsi(`${res.stdout}\n${res.stderr}`);
+  if (res.status === 0) {
+    const m = text.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/i);
+    ok("tests", `vitest passed${m ? ` — ${m[1]} tests, ${m[2]} total` : ""}`);
+  } else {
+    fail("tests", "vitest reported failures", tail(text, 30));
+  }
+}
+
 // ─────────────────────────────── 6. build ───────────────────────────────
 function checkBuild() {
-  heading("6. Production build");
-  const gen = run("npx prisma generate", { timeout: 600000 });
+  heading("6. Production build");  const gen = run("npx prisma generate", { timeout: 600000 });
   if (gen.status !== 0) {
     fail("build", "prisma generate failed", tail(`${gen.stdout}\n${gen.stderr}`, 15));
     return;
@@ -397,7 +412,7 @@ const API_CHECKS = [
 ];
 
 async function checkApi() {
-  heading("7. HTTP smoke test");
+  heading("8. HTTP smoke test");
   let reachable = false;
   try {
     const res = await fetch(`${BASE_URL}/api/settings`, { signal: AbortSignal.timeout(8000) });
@@ -435,7 +450,7 @@ const REQUIRED_ENV = [
 const OPTIONAL_ENV = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "R2_BUCKET_NAME", "R2_PUBLIC_URL", "groqapi_token"];
 
 function checkEnv() {
-  heading("8. Environment");
+  heading("9. Environment");
   const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
   if (missing.length) fail("env", `Missing required env var(s) locally: ${missing.join(", ")}`);
   else ok("env", `All ${REQUIRED_ENV.length} required env vars are present locally`);
@@ -465,6 +480,7 @@ async function main() {
   // DB check) locks the Windows query-engine DLL, which then blocks `prisma generate`.
   if (!SKIP.tsc) checkTsc();
   if (!SKIP.lint) checkLint();
+  if (!SKIP.tests) checkTests();
   if (!SKIP.build) checkBuild();
   if (!SKIP.db) await checkDatabase();
   if (!SKIP.api) await checkApi();
