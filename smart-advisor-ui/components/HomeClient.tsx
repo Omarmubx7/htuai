@@ -5,7 +5,7 @@ import { MAJORS, MajorKey } from "@/lib/useMajor";
 import LandingPage from "@/components/LandingPage";
 import SiteFooter from "@/components/SiteFooter";
 import { Course, CourseData, CurriculumRules } from "@/types";
-import { Settings2, Bot, BookOpen } from "lucide-react";
+import { Settings2, Bot, BookOpen, ShieldCheck } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -13,6 +13,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { safeStorage } from "@/lib/safe-storage";
 import { fetchWithRetry, fetchJSON } from "@/lib/fetch-retry";
+import { useIsAdmin } from "@/lib/use-is-admin";
 
 import type { CourseTrackerViewProps } from "@/components/CourseTrackerView";
 const StudentLogin = dynamic(() => import("@/components/StudentLogin"), { ssr: false });
@@ -23,6 +24,7 @@ type AppState = "checking" | "landing" | "login" | "major-select" | "course-trac
 
 export default function HomeClient() {
     const { data: session, status } = useSession();
+    const isAdmin = useIsAdmin();
     const [appState, setAppState] = useState<AppState>("checking");
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajor] = useState<MajorKey | null>(null);
@@ -436,6 +438,11 @@ export default function HomeClient() {
                                                 <Link href="/planner" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Semester Planner</Link>
                                                 <Link href="/resources" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Resources</Link>
                                                 <Link href="/planner/settings" className="block px-3 py-2 text-sm text-[#222d32] hover:bg-[#edf1f6] rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>Profile & Settings</Link>
+                                                {isAdmin && (
+                                                    <Link href="/admin/dashboard" className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#dc4835] hover:bg-[#dc4835]/10 rounded transition-colors" onClick={() => setProfileMenuOpen(false)}>
+                                                        <ShieldCheck className="w-4 h-4" /> Admin Dashboard
+                                                    </Link>
+                                                )}
                                                 <div className="h-px bg-[#dde3ec] my-1" />
                                                 <button onClick={() => void signOut({ callbackUrl: '/' })} className="w-full text-left px-3 py-2 text-sm text-[#dc4835] hover:bg-[#edf1f6] rounded transition-colors">Sign out</button>
                                             </div>

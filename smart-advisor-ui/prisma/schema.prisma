@@ -390,3 +390,13 @@ model Report {
   @@index([resource_id])
   @@map("reports")
 }
+
+/// Key/value store for site-wide, admin-editable configuration.
+/// Purely additive: this table is new and no existing table is altered.
+model SiteSetting {
+  key        String   @id
+  value      Json
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("site_settings")
+}

@@ -17,8 +17,11 @@ function requireEnv(name: string, value: string | undefined): string {
     if (isProduction) {
         throw new Error(message);
     }
-    console.warn(message);
-    throw new Error(message);
+    // In development, warn and continue with a placeholder so the auth route
+    // still loads. Throwing here makes /api/auth/session return an HTML error
+    // page, which surfaces as next-auth's CLIENT_FETCH_ERROR in the browser.
+    console.warn(`${message}; using a local development placeholder.`);
+    return `dev-${name.toLowerCase()}`;
 }
 
 const googleClientId = requireEnv("GOOGLE_CLIENT_ID", process.env.GOOGLE_CLIENT_ID);
@@ -44,10 +47,12 @@ declare module "next-auth" {
             db_id?: number;
             student_id?: string | null;
             provider?: string;
+            role?: string | null;
         } & DefaultSession["user"];
     }
     interface User {
         student_id?: string | null;
+        role?: string | null;
     }
 }
 
@@ -56,6 +61,7 @@ declare module "next-auth/jwt" {
         student_id?: string | null;
         db_id?: number | null;
         provider?: string;
+        role?: string | null;
     }
 }
 
@@ -95,7 +101,7 @@ export const authOptions: NextAuthOptions = {
                             password_hash: passwordHash
                         });
 
-                        return { id: finalUser.id.toString(), name: studentId, student_id: studentId };
+                        return { id: finalUser.id.toString(), name: studentId, student_id: studentId, role: finalUser.role };
                     }
 
                     if (!user?.password_hash) {
@@ -107,7 +113,7 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
-                    return { id: user.id.toString(), name: user.student_id, student_id: user.student_id };
+                    return { id: user.id.toString(), name: user.student_id, student_id: user.student_id, role: user.role };
                 } catch (error) {
                     console.error("Auth Error in authorize callback:", error);
                     // Return null instead of throwing to avoid HTML error responses
@@ -176,6 +182,9 @@ export const authOptions: NextAuthOptions = {
                 if (token.sub && session.user) {
                     session.user.id = token.sub;
                     session.user.provider = token.provider;
+                    if (token.role) {
+                        session.user.role = token.role;
+                    }
                     if (token.student_id) {
                         session.user.student_id = token.student_id;
                     }
@@ -200,6 +209,7 @@ export const authOptions: NextAuthOptions = {
                 // Persist student_id and db_id from the authorize() return
                 if (user) {
                     token.student_id = (user as { student_id?: string | null }).student_id;
+                    token.role = (user as { role?: string | null }).role ?? token.role;
                     // user.id is always the DB id (as string) for credentials users
                     const parsedId = Number(user.id);
                     if (!Number.isNaN(parsedId)) {
@@ -215,6 +225,7 @@ export const authOptions: NextAuthOptions = {
                             if (dbUser) {
                                 token.student_id = dbUser.student_id;
                                 token.db_id = dbUser.id;
+                                token.role = dbUser.role ?? token.role;
                             }
                         } catch (e) {
                             console.error("[JWT] Failed to look up Google user in DB:", e);
