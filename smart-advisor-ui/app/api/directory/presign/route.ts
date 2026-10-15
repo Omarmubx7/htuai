@@ -5,7 +5,9 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from "@/lib/r2";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { MAX_FILE_SIZE, getExtension, isAllowedExtension, safeContentType, ALLOWED_EXTENSIONS } from "@/lib/resource-uploads";
+import { getExtension, safeContentType } from "@/lib/resource-uploads";
+import { getSiteSettings } from "@/lib/settings-server";
+import { maxFileSizeBytes } from "@/lib/site-settings";
 
 function generateKey(filename: string): string {
     const ext = getExtension(filename);
@@ -26,6 +28,16 @@ export async function POST(req: Request) {
     }
 
     try {
+        // Admin-editable upload policy (falls back to safe defaults on any error).
+        const settings = await getSiteSettings();
+
+        if (!settings.resources.enabled || !settings.resources.uploadsEnabled) {
+            return NextResponse.json(
+                { error: "Uploads are currently disabled." },
+                { status: 403 }
+            );
+        }
+
         const { filename, fileSize } = await req.json();
 
         if (!filename || typeof filename !== "string") {
@@ -36,9 +48,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Filename is too long. Maximum 255 characters." }, { status: 400 });
         }
 
-        if (!isAllowedExtension(filename)) {
+        const allowedExtensions = settings.upload.allowedExtensions.map((e) => e.toLowerCase());
+        const ext = getExtension(filename);
+        if (!allowedExtensions.includes(ext)) {
             return NextResponse.json(
-                { error: `Unsupported file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}.` },
+                { error: `Unsupported file type. Allowed: ${settings.upload.allowedExtensions.join(", ")}.` },
                 { status: 415 }
             );
         }
@@ -47,9 +61,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required field: fileSize." }, { status: 400 });
         }
 
-        if (fileSize > MAX_FILE_SIZE) {
+        const maxBytes = maxFileSizeBytes(settings);
+        if (fileSize > maxBytes) {
             return NextResponse.json(
-                { error: `File "${filename}" is too large (${(fileSize / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is 50 MB.` },
+                {
+                    error: `File "${filename}" is too large (${(fileSize / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is ${settings.upload.maxFileSizeMb} MB.`,
+                },
                 { status: 413 }
             );
         }

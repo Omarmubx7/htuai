@@ -4,13 +4,10 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Upload, Link2, FileUp, Search, CheckCircle2, Loader2, AlertCircle, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { useSitePolicy } from "@/lib/use-site-policy";
 import {
-    MAX_FILE_SIZE,
-    MAX_FILES_PER_BATCH,
-    ACCEPT_ATTRIBUTE,
     detectTypeFromExtension,
     formatFileSize,
-    isAllowedExtension,
     isPersonalDoc,
 } from "@/lib/resource-uploads";
 
@@ -58,6 +55,10 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [acknowledged, setAcknowledged] = useState(false);
     const { toast } = useToast();
+    const policy = useSitePolicy();
+    const maxFileSizeBytes = policy.upload.maxFileSizeMb * 1024 * 1024;
+    const maxFilesPerBatch = policy.upload.maxFilesPerBatch;
+    const acceptAttr = policy.upload.allowedExtensions.map((e) => `.${e}`).join(",");
     const titleRef = useRef<HTMLInputElement>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -196,12 +197,13 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
     }
 
     function validateFile(selectedFile: File): boolean {
-        if (!isAllowedExtension(selectedFile.name)) {
+        const ext = selectedFile.name.split(".").pop()?.toLowerCase() ?? "";
+        if (!policy.upload.allowedExtensions.includes(ext)) {
             toast(`${selectedFile.name} isn't a supported file type. Upload PDF, slides, docs, images, video or archives.`, "error");
             return false;
         }
-        if (selectedFile.size > MAX_FILE_SIZE) {
-            toast(`${selectedFile.name} is too large (${formatFileSize(selectedFile.size)}). Maximum size is 50 MB.`, "error");
+        if (selectedFile.size > maxFileSizeBytes) {
+            toast(`${selectedFile.name} is too large (${formatFileSize(selectedFile.size)}). Maximum size is ${policy.upload.maxFileSizeMb} MB.`, "error");
             return false;
         }
         return true;
@@ -211,8 +213,8 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
         const arr = Array.from(fileList);
         const newUploads: UploadFile[] = [];
         for (const f of arr) {
-            if (uploadFiles.length + newUploads.length >= MAX_FILES_PER_BATCH) {
-                toast(`You can attach up to ${MAX_FILES_PER_BATCH} files at a time.`, "error");
+            if (uploadFiles.length + newUploads.length >= maxFilesPerBatch) {
+                toast(`You can attach up to ${maxFilesPerBatch} files at a time.`, "error");
                 break;
             }
             if (!validateFile(f)) continue;
@@ -744,7 +746,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                                     {dragActive ? "Drop files here" : uploadFiles.length > 0 ? "Add more files" : "Drop files or click to browse"}
                                                 </p>
                                                 <p className="text-[11px] text-[#5a6472] mt-1">
-                                                    PDFs, slides, docs, images, video — max 50 MB each, up to {MAX_FILES_PER_BATCH} files
+                                                    PDFs, slides, docs, images, video — max {policy.upload.maxFileSizeMb} MB each, up to {maxFilesPerBatch} files
                                                 </p>
                                             </div>
                                         </div>
@@ -752,7 +754,7 @@ export default function UploadDialog({ open, onClose, courses, prefilledCourseCo
                                             ref={fileInputRef}
                                             type="file"
                                             multiple
-                                            accept={ACCEPT_ATTRIBUTE}
+                                            accept={acceptAttr}
                                             className="hidden"
                                             onChange={handleFileInputChange}
                                             tabIndex={-1}

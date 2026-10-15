@@ -3,26 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, Check, X, ChevronDown, Info } from "lucide-react";
+import { useSitePolicy } from "@/lib/use-site-policy";
 
 const DISMISS_KEY = "mubx-resource-rules-dismissed";
-
-const ALLOWED = [
-    "Lecture slides & professor notes",
-    "Assignment briefs and specs",
-    "Past papers (where your instructor permits)",
-    "Templates & blank formats",
-    "Study guides, summaries & formula sheets",
-    "Useful external links",
-];
-
-const NOT_ALLOWED = [
-    "Your own submitted or graded work",
-    "Personal .docx / .pdf assignments — these can trigger a Turnitin similarity hit",
-    "Copyrighted textbooks or paid course material",
-    "Someone else's work without their permission",
-    "Solutions to a currently active exam",
-    "Anything with personal or sensitive data",
-];
 
 interface UploadRulesBannerProps {
     /** Called when the user taps the "Upload a resource" CTA. */
@@ -34,6 +17,8 @@ interface UploadRulesBannerProps {
  * Dismissible; the dismissed state is remembered in localStorage.
  */
 export default function UploadRulesBanner({ onUpload }: Readonly<UploadRulesBannerProps>) {
+    const policy = useSitePolicy();
+    const { uploadRulesTitle, uploadRulesSubtitle, uploadRulesAllowed, uploadRulesDisallowed, uploadDisclaimer } = policy.content;
     const [hidden, setHidden] = useState(false);
     const [open, setOpen] = useState(true);
     const [hydrated, setHydrated] = useState(false);
@@ -67,7 +52,7 @@ export default function UploadRulesBanner({ onUpload }: Readonly<UploadRulesBann
                 className="inline-flex items-center gap-2 text-[11px] font-bold text-[#5a6472] hover:text-[#dc4835] transition-colors mb-3"
             >
                 <ShieldAlert className="w-3.5 h-3.5" />
-                Upload rules &amp; disclaimer
+                {uploadRulesTitle}
             </button>
         );
     }
@@ -92,10 +77,10 @@ export default function UploadRulesBanner({ onUpload }: Readonly<UploadRulesBann
                     aria-expanded={open}
                 >
                     <p className="text-sm font-bold text-[#222d32] leading-tight">
-                        Upload rules &amp; disclaimer
+                        {uploadRulesTitle}
                     </p>
                     <p className="text-[11px] text-[#5a6472] leading-snug mt-0.5">
-                        Share slides, briefs and templates — not your own work.
+                        {uploadRulesSubtitle}
                     </p>
                 </button>
                 <button
@@ -134,7 +119,7 @@ export default function UploadRulesBanner({ onUpload }: Readonly<UploadRulesBann
                                         <Check className="w-3.5 h-3.5" /> Do upload
                                     </p>
                                     <ul className="space-y-1.5">
-                                        {ALLOWED.map((line) => (
+                                        {uploadRulesAllowed.map((line) => (
                                             <li key={line} className="flex items-start gap-1.5 text-[11px] text-[#222d32]/80 leading-snug">
                                                 <Check className="w-3 h-3 text-[#0da55a] mt-0.5 shrink-0" />
                                                 <span>{line}</span>
@@ -147,7 +132,7 @@ export default function UploadRulesBanner({ onUpload }: Readonly<UploadRulesBann
                                         <X className="w-3.5 h-3.5" /> Don&apos;t upload
                                     </p>
                                     <ul className="space-y-1.5">
-                                        {NOT_ALLOWED.map((line) => (
+                                        {uploadRulesDisallowed.map((line) => (
                                             <li key={line} className="flex items-start gap-1.5 text-[11px] text-[#222d32]/80 leading-snug">
                                                 <X className="w-3 h-3 text-[#dc4835] mt-0.5 shrink-0" />
                                                 <span>{line}</span>
@@ -160,9 +145,7 @@ export default function UploadRulesBanner({ onUpload }: Readonly<UploadRulesBann
                             <div className="flex items-start gap-2 rounded-lg border border-[#f39c14]/30 bg-[#f39c14]/10 p-3">
                                 <Info className="w-3.5 h-3.5 text-[#f39c14] mt-0.5 shrink-0" />
                                 <p className="text-[11px] text-[#222d32]/80 leading-snug">
-                                    Uploading your own assignment can make <span className="font-bold">Turnitin</span> flag both you and
-                                    whoever downloads it. Keep it to shared course material. You are responsible for what you upload, and
-                                    content may be removed if it violates these rules.
+                                    {uploadDisclaimer}
                                 </p>
                             </div>
 

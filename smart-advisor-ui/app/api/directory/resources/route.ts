@@ -6,7 +6,7 @@ import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { resolveAuthenticatedUser } from "@/lib/resolve-user";
-import { MAX_UPLOADS_PER_DAY, MAX_TOTAL_RESOURCES, REPORT_HIDE_THRESHOLD, LIST_LIMIT } from "@/lib/resource-uploads";
+import { getSiteSettings } from "@/lib/settings-server";
 
 const MAX_DESCRIPTION_LENGTH = 1000;
 
@@ -78,6 +78,13 @@ export async function GET(req: Request) {
     const user = session?.user ? await resolveAuthenticatedUser(session) : null;
 
     try {
+        const settings = await getSiteSettings();
+
+        // If the whole Resources feature is turned off, return an empty list.
+        if (!settings.resources.enabled) {
+            return NextResponse.json({ resources: [] });
+        }
+
         let courseCodes: string[] | undefined;
 
         // If major is specified, resolve to course codes
@@ -88,10 +95,24 @@ export async function GET(req: Request) {
             }
         }
 
-        const where: Record<string, unknown> = {
-            // Automatically hide resources that have been reported enough times.
-            report_count: { lt: REPORT_HIDE_THRESHOLD },
-        };
+        // Visibility (Tier A: derived from settings, no schema change):
+        //  - hide once reported past the threshold, unless an admin restored it
+        //  - always hide ids an admin explicitly hid
+        const and: Record<string, unknown>[] = [
+            {
+                OR: [
+                    { report_count: { lt: settings.resources.reportHideThreshold } },
+                    ...(settings.resources.restoredResourceIds.length
+                        ? [{ id: { in: settings.resources.restoredResourceIds } }]
+                        : []),
+                ],
+            },
+        ];
+        if (settings.resources.hiddenResourceIds.length) {
+            and.push({ NOT: { id: { in: settings.resources.hiddenResourceIds } } });
+        }
+
+        const where: Record<string, unknown> = { AND: and };
 
         if (courseCode) {
             // Specific course takes priority
@@ -105,7 +126,7 @@ export async function GET(req: Request) {
         const resources = await prisma.resource.findMany({
             where,
             orderBy: { created_at: "desc" },
-            take: LIST_LIMIT,
+            take: settings.resources.listLimit,
             select: LIST_SELECT,
         });
 
@@ -137,6 +158,12 @@ export async function POST(req: Request) {
     }
 
     try {
+        const settings = await getSiteSettings();
+
+        if (!settings.resources.enabled || !settings.resources.uploadsEnabled) {
+            return NextResponse.json({ error: "Uploads are currently disabled." }, { status: 403 });
+        }
+
         const body = await req.json();
         const { course_code, title, type, url, file_path, description, semester, anonymous } = body;
 
@@ -186,16 +213,16 @@ export async function POST(req: Request) {
                 prisma.resource.count({ where: { user_id: user.id } }),
             ]);
 
-            if (todayCount >= MAX_UPLOADS_PER_DAY) {
+            if (todayCount >= settings.upload.maxUploadsPerDay) {
                 return NextResponse.json(
-                    { error: `Daily upload limit reached (${MAX_UPLOADS_PER_DAY}/day). Try again tomorrow.` },
+                    { error: `Daily upload limit reached (${settings.upload.maxUploadsPerDay}/day). Try again tomorrow.` },
                     { status: 429 }
                 );
             }
 
-            if (totalCount >= MAX_TOTAL_RESOURCES) {
+            if (totalCount >= settings.upload.maxTotalResources) {
                 return NextResponse.json(
-                    { error: `You've reached the limit of ${MAX_TOTAL_RESOURCES} resources. Delete some before uploading more.` },
+                    { error: `You've reached the limit of ${settings.upload.maxTotalResources} resources. Delete some before uploading more.` },
                     { status: 429 }
                 );
             }
