@@ -1,5 +1,6 @@
 # Local video project assets — not for commit
 resources-video/
+promo-video/
 
 # Local database backups — never commit
 db-backups/

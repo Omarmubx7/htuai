@@ -237,7 +237,7 @@
                 },
                 {
                     "code": "40201470",
-                    "name": "Special Topics",
+                    "name": "Special Topics for Computer Science",
                     "ch": 3,
                     "level": 4,
                     "prereq": "Department Approval"
@@ -488,7 +488,7 @@
                 },
                 {
                     "code": "10203470",
-                    "name": "Special Topics",
+                    "name": "Special Topics for Cybersecurity",
                     "ch": 3,
                     "level": 4,
                     "prereq": "Department Approval"
@@ -767,7 +767,7 @@
                 },
                 {
                     "code": "10204470",
-                    "name": "Special Topics",
+                    "name": "Special Topics for Data Science",
                     "ch": 3,
                     "level": 4,
                     "prereq": "Department Approval"
@@ -887,7 +887,7 @@
                 },
                 {
                     "code": "00201270",
-                    "name": "Special Topics in Game Development",
+                    "name": "Special Topics for Game Design",
                     "ch": 3,
                     "level": 2,
                     "prereq": "00201262"
@@ -1515,6 +1515,13 @@
                     "ch": 2,
                     "framework": "HTU",
                     "level": 4
+                },
+                {
+                    "code": "00103536",
+                    "name": "Special Topics for Electrical Engineering",
+                    "ch": 3,
+                    "framework": "HTU",
+                    "level": 5
                 }
             ]
         },
@@ -1976,7 +1983,7 @@
                 },
                 {
                     "code": "00102593",
-                    "name": "Special Topics in Energy Engineering",
+                    "name": "Special Topics for Energy Engineering",
                     "ch": 3,
                     "framework": "HTU",
                     "prereq": "Dept. Approval",
@@ -2413,7 +2420,7 @@
                 },
                 {
                     "code": "00106504",
-                    "name": "Special Topics in Industrial Engineering",
+                    "name": "Special Topics for Industrial Engineering",
                     "ch": 3,
                     "prereq": "106495",
                     "level": 5
@@ -3009,7 +3016,7 @@
                 },
                 {
                     "code": "00101554",
-                    "name": "Special Topic in Mechanical Engineering",
+                    "name": "Special Topics for Mechanical Engineering",
                     "ch": 3,
                     "framework": "HTU",
                     "prereq": "Dept. Approval",
@@ -3017,7 +3024,7 @@
                 },
                 {
                     "code": "00101555",
-                    "name": "Special Topic in Mechanical Engineering 1",
+                    "name": "Special Topics for Mechanical Engineering 1",
                     "ch": 1,
                     "framework": "HTU",
                     "prereq": "Dept. Approval",
@@ -3025,7 +3032,7 @@
                 },
                 {
                     "code": "00101556",
-                    "name": "Special Topic in Mechanical Engineering 2",
+                    "name": "Special Topics for Mechanical Engineering 2",
                     "ch": 2,
                     "framework": "HTU",
                     "prereq": "Dept. Approval",
@@ -3137,6 +3144,13 @@
                 "framework": "HTU",
                 "level": 3,
                 "description": "Free-choice elective — any approved university course"
+            },
+            {
+                "code": "30301125",
+                "name": "Languages",
+                "ch": 3,
+                "framework": "HTU",
+                "level": 1
             }
         ],
         "college_requirements": [
