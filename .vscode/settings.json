@@ -3,36 +3,5 @@
     "npm install": false
   },
   "snyk.advanced.autoSelectOrganization": true,
-  "workbench.colorCustomizations": {
-    "terminal.foreground": "#d4d4d4",
-    "terminal.background": "#1e1e1e",
-    "terminalCursor.foreground": "#aeafad",
-    "terminal.ansiBlack": "#000000",
-    "terminal.ansiRed": "#cd3131",
-    "terminal.ansiGreen": "#0dbc79",
-    "terminal.ansiYellow": "#e5e510",
-    "terminal.ansiBlue": "#2472c8",
-    "terminal.ansiMagenta": "#bc3fbc",
-    "terminal.ansiCyan": "#11a8cd",
-    "terminal.ansiWhite": "#e5e5e5",
-    "terminal.ansiBrightBlack": "#666666",
-    "terminal.ansiBrightRed": "#f14c4c",
-    "terminal.ansiBrightGreen": "#23d18b",
-    "terminal.ansiBrightYellow": "#f5f543",
-    "terminal.ansiBrightBlue": "#3b8eea",
-    "terminal.ansiBrightMagenta": "#d670d6",
-    "terminal.ansiBrightCyan": "#29b8db",
-    "terminal.ansiBrightWhite": "#e5e5e5",
-    "activityBar.background": "#092D5A",
-    "titleBar.activeBackground": "#0D3F7E",
-    "titleBar.activeForeground": "#F7FAFE",
-    "titleBar.inactiveBackground": "#092D5A",
-    "titleBar.inactiveForeground": "#F7FAFE",
-    "statusBar.background": "#092D5A",
-    "statusBar.foreground": "#F7FAFE",
-    "statusBar.debuggingBackground": "#092D5A",
-    "statusBar.debuggingForeground": "#F7FAFE",
-    "statusBar.noFolderBackground": "#092D5A",
-    "statusBar.noFolderForeground": "#F7FAFE"
-  }
+  "workbench.colorCustomizations": {}
 }
