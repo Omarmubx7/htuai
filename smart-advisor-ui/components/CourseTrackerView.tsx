@@ -267,9 +267,7 @@ function CourseTrackerView({
     const isLanguageCourse = (course: Course) => {
         const name = (course.name || '').toLowerCase();
         if (name === 'languages') return true;
-        if (name.includes('language')) return true;
-        if (name.includes('english')) return true;
-        if (name.includes('arabic')) return true;
+        // Only remove generic "Languages" category, keep specific English/Arabic courses
         return false;
     };
 
