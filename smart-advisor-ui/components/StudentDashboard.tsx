@@ -223,21 +223,7 @@ function StudentDashboard({
         };
     }, [isEditingGpa]);
 
-    // ── Auto-Prompt for True CGPA ─────────────────────────────────────────
-    useEffect(() => {
-        // Wait until previousGpaHistory is explicitly provided and is null
-        if (previousGpaHistory && previousGpaHistory.gpa === null) {
-            // Only prompt if they haven't been prompted yet in this browser
-            const hasPrompted = safeStorage.get("mubxai-gpa-prompted");
-            if (!hasPrompted) {
-                // Ensure they have completed at least one course so it makes sense to ask
-                if (completedCourses.size > 0) {
-                    setIsEditingGpa(true);
-                    safeStorage.set("mubxai-gpa-prompted", "true");
-                }
-            }
-        }
-    }, [previousGpaHistory, completedCourses.size]);
+    // Auto-Prompt for True CGPA removed as requested
 
     // ── Category CH breakdown for "What's Next" ──────────────────────
     const categories = useMemo(() => {

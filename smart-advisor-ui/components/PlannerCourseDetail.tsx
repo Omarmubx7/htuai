@@ -633,7 +633,7 @@ export default function PlannerCourseDetail({ courseId }: { readonly courseId: s
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#edf1f6]">
                             <CourseNotesEditor
-                                courseTitle={course.name === course.code ? `Course ${course.code}` : course.name}
+                                courseTitle={course.name || course.code}
                                 value={courseContent ?? course.course_notes?.[0]?.content ?? "<p></p>"}
                                 onAutoSave={handleAutoSaveNotes}
                             />
