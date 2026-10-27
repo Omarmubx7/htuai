@@ -264,6 +264,15 @@ function CourseTrackerView({
         }
     }, [sandboxMode, sandboxCourses, semesterType]);
 
+    const isLanguageCourse = (course: Course) => {
+        const name = (course.name || '').toLowerCase();
+        if (name === 'languages') return true;
+        if (name.includes('language')) return true;
+        if (name.includes('english')) return true;
+        if (name.includes('arabic')) return true;
+        return false;
+    };
+
     const allCourses = useMemo(
         () => [
             ...data.university_requirements,
@@ -272,7 +281,7 @@ function CourseTrackerView({
             ...data.department_requirements,
             ...data.electives,
             ...(data.work_market_requirements ?? []),
-        ],
+        ].filter(course => !isLanguageCourse(course)),
         [
             data.university_requirements,
             data.college_requirements,
