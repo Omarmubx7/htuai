@@ -4,11 +4,15 @@ import fs from "node:fs/promises";
 import DirectoryClient from "@/components/resources/DirectoryClient";
 
 export const metadata: Metadata = {
-    title: "Resources — MUBX",
-    description: "Course materials shared by HTU students. Browse PDFs, videos, links, and more.",
+    title: "HTU Student Resources & Course Materials",
+    description: "Course materials, PDFs, videos and links shared by Al Hussein Technical University (HTU) students, organised by major and course.",
+    alternates: {
+        canonical: "https://ai.mubx.dev/resources",
+    },
     openGraph: {
-        title: "Resources — MUBX",
-        description: "Course materials shared by HTU students.",
+        title: "HTU Student Resources — MUBXAI",
+        description: "Course materials shared by Al Hussein Technical University (HTU) students.",
+        url: "https://ai.mubx.dev/resources",
     },
 };
 

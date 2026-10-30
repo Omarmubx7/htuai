@@ -25,7 +25,9 @@ type AppState = "checking" | "landing" | "login" | "major-select" | "course-trac
 export default function HomeClient() {
     const { data: session, status } = useSession();
     const isAdmin = useIsAdmin();
-    const [appState, setAppState] = useState<AppState>("checking");
+    // Start on the public landing page so its content is server-rendered.
+    // The session effect below promotes authenticated users to the tracker.
+    const [appState, setAppState] = useState<AppState>("landing");
     const [studentId, setStudentId] = useState<string | null>(null);
     const [major, setMajor] = useState<MajorKey | null>(null);
     const [courseData, setCourseData] = useState<CourseData | null>(null);

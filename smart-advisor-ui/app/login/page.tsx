@@ -7,6 +7,7 @@ export const metadata: Metadata = {
     alternates: {
         canonical: "https://ai.mubx.dev/login",
     },
+    robots: { index: false, follow: true },
 };
 
 export default function LoginPage() {

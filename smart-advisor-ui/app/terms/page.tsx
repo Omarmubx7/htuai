@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Terms of Service",
-    description: "MUBXAI Terms of Service — rules for using the free academic tracking platform for MUBX University students. Covers data ownership, Google integrations, and disclaimers.",
+    description: "MUBXAI Terms of Service — rules for using the free academic tracking platform for Al Hussein Technical University (HTU) students. Covers data ownership, Google integrations, and disclaimers.",
     alternates: {
         canonical: "https://ai.mubx.dev/terms",
     },

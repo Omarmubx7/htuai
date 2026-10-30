@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     alternates: {
         canonical: "https://ai.mubx.dev/planner/study-log",
     },
+    robots: { index: false, follow: true },
 };
 export default async function PlannerStudyLogPage() {
     const session = await getServerSession(authOptions);

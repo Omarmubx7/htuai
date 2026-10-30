@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     alternates: {
         canonical: "https://ai.mubx.dev/planner",
     },
+    // Interactive, auth-gated planner — no unique crawlable content.
+    robots: { index: false, follow: true },
 };
 
 export default function PlannerPage() {

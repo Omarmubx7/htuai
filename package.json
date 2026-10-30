@@ -1,7 +1,7 @@
 {
-  "name": "htuai-root",
+  "name": "mubxai-root",
   "version": "1.0.0",
-  "description": "Root workspace router for HTUAI",
+  "description": "Root workspace router for MUBXAI",
   "scripts": {
     "dev": "cd smart-advisor-ui && npm run dev",
     "build": "cd smart-advisor-ui && npm run build",
